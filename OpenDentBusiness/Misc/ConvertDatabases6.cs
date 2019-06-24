@@ -1077,7 +1077,7 @@ namespace OpenDentBusiness {
 			Db.NonQ(command);
 		}
 
-		private static void To19_2_0() {
+		private static void To19_2_1() {
 			string command;
 			DataTable table;
 			//TSI - ArManager Excluded default preferences - The values are set to the unsent tab defaults
@@ -1413,7 +1413,7 @@ namespace OpenDentBusiness {
 			Db.NonQ(command); 
 
 			To19_2_0_LargeTableScripts();//IMPORTANT: Leave the large table scripts at the end of To19_2_0.
-		}//End of 19_2_0() method
+		}//End of 19_2_1() method
 
 		private static void To19_2_0_LargeTableScripts() {
 			string command;
