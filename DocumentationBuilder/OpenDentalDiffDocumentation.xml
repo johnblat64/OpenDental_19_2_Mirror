@@ -1,69 +1,281 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
-<database version="18.2.11.0">
-    <table name="clearinghouse">
+<database version="19.2.0.0">
+    <table name="benefit">
         <summary></summary>
-        <column order="29" name="IsAttachmentSendAllowed" type="tinyint(4)">
-            <summary>Currently only used for DentalXChange's attachment service. This indicates that the user has set up the attachment service and would like to use it in Open Dental.</summary>
+        <column order="12" name="SecDateTEntry" type="datetime">
+            <summary>Timestamp automatically generated and user not allowed to change.  The actual date of entry.</summary>
+        </column>
+        <column order="13" name="SecDateTEdit" type="timestamp">
+            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
+        </column>
+    </table>
+    <table name="carrier">
+        <summary></summary>
+        <column order="23" name="TrustedEtransFlags" type="tinyint(4)">
+            <summary>Bit flags.  None (0) by default.  Stores trusted user selected X12 transaction types related to this carrier.</summary>
+        </column>
+    </table>
+    <table name="claim">
+        <summary></summary>
+        <column order="78" name="DateIllnessInjuryPreg" type="date">
+            <summary>Date of Current Illness, Injury, or Pregnancy (LMP).  (LMP = Last Menstrual Period)  For use in 1500 Medical Claim Form box 14.
+            Identifies the first date of onset of illness, the actual date of injury, or the LMP for pregnancy.</summary>
+        </column>
+        <column order="79" name="DateIllnessInjuryPregQualifier" type="tinyint(4)">
+            <summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
+            <Enumeration name="DateQualifier">
+                <summary>Used for 1500 Medical Claim Form, 'Qual' box portion of fields 14 and 15.  Populate with 3 digit enum value.</summary>
+                <EnumValue name="ReportStart">090 - Report Start</EnumValue>
+                <EnumValue name="ReportEnd">091 - Report End</EnumValue>
+                <EnumValue name="LatestVisitConsult">304 - Latest Visit or Consultation</EnumValue>
+                <EnumValue name="OnsetCurSymptoms">431 - Onset of Current Symptoms or Illness</EnumValue>
+                <EnumValue name="Accident">439 - Accident</EnumValue>
+                <EnumValue name="FirstVisitConsult">444 - First Visit or Consultation</EnumValue>
+                <EnumValue name="ChronicCondManifest">453 - Acute Manifestation of a Chronic Condition</EnumValue>
+                <EnumValue name="InitialTreatment">454 - Initial Treatment</EnumValue>
+                <EnumValue name="LastXray">455 - Last X-ray</EnumValue>
+                <EnumValue name="Prescription">471 - Prescription</EnumValue>
+                <EnumValue name="LastMenstrualPeriod">484 - Last Menstrual Period</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="80" name="DateOther" type="date">
+            <summary>Another date related to the patient's condition or treatment.  For use in 1500 Medical Claim Form box 15.</summary>
+        </column>
+        <column order="81" name="DateOtherQualifier" type="tinyint(4)">
+            <summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
+            453,454, 455, and 471.</summary>
+            <Enumeration name="DateQualifier">
+                <summary>Used for 1500 Medical Claim Form, 'Qual' box portion of fields 14 and 15.  Populate with 3 digit enum value.</summary>
+                <EnumValue name="ReportStart">090 - Report Start</EnumValue>
+                <EnumValue name="ReportEnd">091 - Report End</EnumValue>
+                <EnumValue name="LatestVisitConsult">304 - Latest Visit or Consultation</EnumValue>
+                <EnumValue name="OnsetCurSymptoms">431 - Onset of Current Symptoms or Illness</EnumValue>
+                <EnumValue name="Accident">439 - Accident</EnumValue>
+                <EnumValue name="FirstVisitConsult">444 - First Visit or Consultation</EnumValue>
+                <EnumValue name="ChronicCondManifest">453 - Acute Manifestation of a Chronic Condition</EnumValue>
+                <EnumValue name="InitialTreatment">454 - Initial Treatment</EnumValue>
+                <EnumValue name="LastXray">455 - Last X-ray</EnumValue>
+                <EnumValue name="Prescription">471 - Prescription</EnumValue>
+                <EnumValue name="LastMenstrualPeriod">484 - Last Menstrual Period</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="82" name="IsOutsideLab" type="tinyint(4)">
+            <summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
+        </column>
+        <column order="83" name="ResubmissionCode" type="tinyint(4)">
+            <summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
+            <Enumeration name="ResubmitCode">
+                <summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
+                <EnumValue name="Replacement">7 - Replacement of prior claim</EnumValue>
+                <EnumValue name="VoidOrCancel">8 - Void/cancel of prior claim</EnumValue>
+            </Enumeration>
+        </column>
+    </table>
+    <table name="creditcard">
+        <summary></summary>
+        <column order="21" name="CanChargeWhenNoBal" type="tinyint(4)">
+            <summary>Set true to indicate the Credit Card in question can be charged when the Patient account balance is $0, which corresponds directly
+            to a preference called "RecurringChargesAllowedWhenPatNoBal" (true by default) which must be turned on via Module&gt;Account&gt;Misc to be 
+            available.</summary>
+        </column>
+    </table>
+    <table name="eclipboardsheetdef">
+        <summary></summary>
+        <column order="0" name="EClipboardSheetDefNum" type="bigint(20)">
+            <summary>Primary key.</summary>
+        </column>
+        <column order="1" name="SheetDefNum" type="bigint(20)" fk="sheetdef">
+            <summary>FK to SheetDef.SheetDefNum.</summary>
+        </column>
+        <column order="2" name="ClinicNum" type="bigint(20)" fk="clinic">
+            <summary>FK to clinic.ClinicNum.  0 if no clinic or if default clinic.</summary>
+        </column>
+        <column order="3" name="ResubmitInterval" type="bigint(20)">
+            <summary>Indicates the acceptable amount of time that can pass since the last time the patient has filled this sheet out. Once this has
+            elapsed, if the EClipboardCreateMissingFormsOnCheckIn pref is turned on, this sheet will automatically be added to the patient
+            sheets to fill out when the patient is checked-in.</summary>
+        </column>
+        <column order="4" name="ItemOrder" type="int(11)">
+            <summary>The order in which the patient will be asked to fill out this sheet.</summary>
         </column>
     </table>
     <table name="emailmessage">
         <summary></summary>
-        <column order="17" name="IsHtml" type="tinyint(4)">
-            <summary>True if the email message was sent in HTML.  False if Plain Text.</summary>
+        <column order="17" name="HtmlType" type="tinyint(4)">
+            <summary>Enum:EmailType </summary>
+            <Enumeration name="EmailType">
+                <summary />
+                <EnumValue name="Regular">0 - This is a regular email that may contain our special wiki markup.</EnumValue>
+                <EnumValue name="Html">1 - Html. Basic html email which uses the master template.</EnumValue>
+                <EnumValue name="RawHtml">2 - More advanced html that does not include the master template, user must provide everything.</EnumValue>
+            </Enumeration>
         </column>
     </table>
-    <table name="insplan">
+    <table name="emailtemplate">
         <summary></summary>
-        <column order="39" name="HasPpoSubstWriteoffs" type="tinyint(4)">
-            <summary>True by default.  When a plan allows downgrading procedures and this field is false, the writeoff will be $0 and the difference
-            between the proc fee and the insurance estimate will be the patient portion.</summary>
+        <column order="4" name="TemplateType" type="tinyint(4)">
+            <summary>Enum:EmailType </summary>
+            <Enumeration name="EmailType">
+                <summary />
+                <EnumValue name="Regular">0 - This is a regular email that may contain our special wiki markup.</EnumValue>
+                <EnumValue name="Html">1 - Html. Basic html email which uses the master template.</EnumValue>
+                <EnumValue name="RawHtml">2 - More advanced html that does not include the master template, user must provide everything.</EnumValue>
+            </Enumeration>
         </column>
     </table>
-    <table name="provider">
+    <table name="insverify">
         <summary></summary>
-        <column order="44" name="DateTerm" type="date">
-            <summary>The date that the provider's term ends. This can be used to prevent appointments from being scheduled, appointments from being 
-            marked complete, prescriptions from being prescribed, and claims from being sent.</summary>
+        <column order="10" name="SecDateTEdit" type="timestamp">
+            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
         </column>
     </table>
-    <table name="sheet">
+    <table name="insverifyhist">
         <summary></summary>
-        <column order="18" name="DateTSheetEdited" type="datetime">
-            <summary>The date and time the sheet was inserted or last time someone opened the sheet and clicked OK on FormSheetFillEdit.
-            Gets updated even if no changes were made to the sheet or sheetfields, because we don't want to do the lengthy work of comparing all fields.
-            Used when editing a sheet to warn user if the sheet has been edited by someone else.</summary>
+        <column order="12" name="SecDateTEdit" type="timestamp">
+            <summary></summary>
         </column>
     </table>
-    <table name="smstomobile">
+    <table name="loginattempt">
         <summary></summary>
-        <column order="17" name="MsgDiscountUSD" type="float">
-            <summary>Any discount applied to this message. 
-            If a particular messages has a MsgDiscountUSD &gt; 0  then the MsgChargeUSD will reflect the charge to the customer after the discount has already been applied. 
-            Multi-part messages will still be charged the wholesale rate for all parts after the first part.
-            To calculate the typical charge that this customer would pay without the discount use MsgChargeUSD + MsgDiscountUSD.
-            To calculate the percentage discounted off standard charges use (MsgDiscountUSD / (MsgChargeUSD + MsgDiscountUSD)).</summary>
+        <column order="0" name="LoginAttemptNum" type="bigint(20)">
+            <summary>Primary key.</summary>
+        </column>
+        <column order="1" name="UserName" type="varchar(255)">
+            <summary>The username that was attempted. May not be a username that exists.</summary>
+        </column>
+        <column order="2" name="LoginType" type="tinyint(4)">
+            <summary>Enum:UserWebFKeyType The part of the program where an attempt was made. If we want to use this for other parts of the program
+            that are do not use the userweb table, we can change this enum to a different one.</summary>
+            <Enumeration name="UserWebFKeyType">
+                <summary>The type of row that identifies which table FKey links to.</summary>
+                <EnumValue name="Undefined">This is a default value that should never be saved into the table.</EnumValue>
+                <EnumValue name="PatientPortal">FK to patient.PatNum</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="3" name="DateTFail" type="datetime">
+            <summary>When the failed attempt was attempted.</summary>
         </column>
     </table>
-    <table name="supplyorder">
+    <table name="mobileappdevice">
         <summary></summary>
-        <column order="5" name="UserNum" type="bigint(20)" fk="userod">
-            <summary>FK to userod.UserNum. User that placed the order, is editable.</summary>
+        <column order="7" name="PatNum" type="bigint(20)" fk="patient">
+            <summary>FK to patient.PatNum. Indicates which patient is currently using the device. 0 indicates the device is not in use. -1 indicates
+            that the device is in use but we do not yet know which patient is using the device.</summary>
         </column>
-        <column order="6" name="ShippingCharge" type="double">
-            <summary>The order's shipping charge.</summary>
-        </column>
-    </table>
-    <table name="timecardrule">
-        <summary></summary>
-        <column order="6" name="MinClockInTime" type="time">
-            <summary>When set this is the earliest an employee can clock in. Otherwise minimum dateTime represents not set.</summary>
+        <column order="8" name="LastCheckInActivity" type="datetime">
+            <summary>The date and time when we last updated the PatNum field for this device (indication the current use-state of the device).</summary>
         </column>
     </table>
-    <table name="wikipage">
+    <table name="patientnote">
         <summary></summary>
-        <column order="9" name="PageContentPlainText" type="mediumtext">
-            <summary>Content of page stored without any HTML markup or wiki page links.  This plain text allows for easier searching.</summary>
+        <column order="11" name="SecDateTEntry" type="datetime">
+            <summary>Timestamp automatically generated and user not allowed to change.  The actual date of entry.</summary>
+        </column>
+        <column order="12" name="SecDateTEdit" type="timestamp">
+            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
+        </column>
+    </table>
+    <table name="payment">
+        <summary></summary>
+        <column order="19" name="ExternalId" type="varchar(255)">
+            <summary>External Id</summary>
+        </column>
+        <column order="20" name="PaymentStatus" type="tinyint(4)">
+            <summary>Enum:PaymentStatus </summary>
+            <Enumeration name="PaymentStatus">
+                <summary />
+                <EnumValue name="None">0 - None</EnumValue>
+                <EnumValue name="PaySimpleAchPosted">1 - PaySimpleAchPosted</EnumValue>
+                <EnumValue name="PaySimpleAchSettled">2 - PaySimpleAchSettled</EnumValue>
+                <EnumValue name="PaySimpleAchFailed">3 - PaySimpleAchFailed</EnumValue>
+            </Enumeration>
+        </column>
+    </table>
+    <table name="procedurelog">
+        <summary></summary>
+        <column order="65" name="Urgency" type="tinyint(4)">
+            <summary>Enum:ProcUrgency Used in 1500 Medical Claim Form box 24c. Normal=blank 24c,Emergency='Y' in 24c.</summary>
+            <Enumeration name="ProcUrgency">
+                <summary>Used for marking procedures on medical claims as 'Emergency' on the 1500 claim form.</summary>
+                <EnumValue name="Normal">0 - Standard procedure urgency.  Most procedures will have this ProcUrgency.  This will result in the 1500 Medical Claim Form box 24c
+            being blank.  (Normal=blank,Emergency='Y')</EnumValue>
+                <EnumValue name="Emergency">1 - Emergency ProcUrgency is used to populate the 1500 Medical Claim Form box 24c with a 'Y'. (Emergency='Y',Normal=blank)</EnumValue>
+            </Enumeration>
+        </column>
+    </table>
+    <table name="proctp">
+        <summary></summary>
+        <column order="23" name="ProvNum" type="bigint(20)" fk="provider">
+            <summary>FK to provider.ProvNum.  Holds the ProvNum for this procedure's provider.</summary>
+        </column>
+        <column order="24" name="DateTP" type="date">
+            <summary>Holds the DateTP for this procedure.</summary>
+        </column>
+        <column order="25" name="ClinicNum" type="bigint(20)" fk="clinic">
+            <summary>FK to clinic.ClinicNum.  Holds the ClinicNum for this procedure's clinic.</summary>
+        </column>
+    </table>
+    <table name="scheduledprocess">
+        <summary></summary>
+        <column order="0" name="ScheduledProcessNum" type="bigint(20)">
+            <summary>Primary Key</summary>
+        </column>
+        <column order="1" name="ScheduledAction" type="varchar(50)">
+            <summary>Enum:ScheduledActionEnum </summary>
+            <Enumeration name="ScheduledActionEnum">
+                <summary>Action to be selected by user when scheduling. When adding a new value to this Enum add a case for it in the ScheduledProcessThread in
+            OpendentalService and a method to handle the action.</summary>
+                <EnumValue name="RecallSync">0</EnumValue>
+                <EnumValue name="InsVerifyBatch">1</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="2" name="TimeToRun" type="datetime">
+            <summary>What time of the day it's supposed to run.</summary>
+        </column>
+        <column order="3" name="FrequencyToRun" type="varchar(50)">
+            <summary>Enum:FrequencyToRunEnum </summary>
+            <Enumeration name="FrequencyToRunEnum">
+                <summary>Frequency with which an action will be run. When adding a new value to this Enum add a case for it in the ScheduledProcessThread in 
+            OpendentalService with the logic to check if the action should be run.</summary>
+                <EnumValue name="Daily">0</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="4" name="LastRanDateTime" type="datetime">
+            <summary>Date and time when process last ran.</summary>
+        </column>
+    </table>
+    <table name="task">
+        <summary></summary>
+        <column order="18" name="SecDateTEdit" type="timestamp">
+            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
+        </column>
+    </table>
+    <table name="taskhist">
+        <summary></summary>
+        <column order="22" name="SecDateTEdit" type="timestamp">
+            <summary></summary>
+        </column>
+    </table>
+    <table name="userod">
+        <summary></summary>
+        <column order="19" name="MobileWebPin" type="varchar(255)">
+            <summary>A hashed pin that is used for mobile web validation on eClipboard. Not used in OD proper.</summary>
+        </column>
+        <column order="20" name="MobileWebPinFailedAttempts" type="tinyint">
+            <summary>The number of attempts the mobile web pin has failed. Reset on successful attempt.</summary>
+        </column>
+    </table>
+    <table name="emailmessage">
+        <summary></summary>
+        <column order="17" name="IsHtml" type="tinyint(4)" deleted="true">
+            <summary></summary>
+        </column>
+    </table>
+    <table name="emailtemplate">
+        <summary></summary>
+        <column order="4" name="IsHtml" type="tinyint(4)" deleted="true">
+            <summary></summary>
         </column>
     </table>
 </database>
