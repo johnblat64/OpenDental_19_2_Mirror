@@ -61,7 +61,7 @@ namespace OpenDentBusiness {
 		public long AptNum;
 		///<summary>FK to userod.UserNum.  Optional.  0 if unknown (ex recieved emails).</summary>
 		public long UserNum;
-		///<summary>Enum:HtmlType</summary>
+		///<summary>Enum:EmailType </summary>
 		public EmailType HtmlType;
 		///<summary>Not a database column.  Only set when IsHtml is true.</summary>
 		[CrudColumn(IsNotDbColumn=true)]
@@ -141,6 +141,7 @@ namespace OpenDentBusiness {
 		AccountCommLog=16
   }
 
+	///<summary></summary>
   public enum MailboxType {
     ///<summary>1</summary>
     Inbox,
@@ -148,6 +149,7 @@ namespace OpenDentBusiness {
     Sent,
   }
 
+	///<summary></summary>
 	public enum EmailType {
 		///<summary>0 - This is a regular email that may contain our special wiki markup.</summary>
 		Regular,
