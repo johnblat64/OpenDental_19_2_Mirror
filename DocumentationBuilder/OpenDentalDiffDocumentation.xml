@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
+<database version="18.2.11.0">
+    <table name="clearinghouse">
+        <summary></summary>
+        <column order="29" name="IsAttachmentSendAllowed" type="tinyint(4)">
+            <summary>Currently only used for DentalXChange's attachment service. This indicates that the user has set up the attachment service and would like to use it in Open Dental.</summary>
+        </column>
+    </table>
+    <table name="emailmessage">
+        <summary></summary>
+        <column order="17" name="IsHtml" type="tinyint(4)">
+            <summary>True if the email message was sent in HTML.  False if Plain Text.</summary>
+        </column>
+    </table>
+    <table name="insplan">
+        <summary></summary>
+        <column order="39" name="HasPpoSubstWriteoffs" type="tinyint(4)">
+            <summary>True by default.  When a plan allows downgrading procedures and this field is false, the writeoff will be $0 and the difference
+            between the proc fee and the insurance estimate will be the patient portion.</summary>
+        </column>
+    </table>
+    <table name="provider">
+        <summary></summary>
+        <column order="44" name="DateTerm" type="date">
+            <summary>The date that the provider's term ends. This can be used to prevent appointments from being scheduled, appointments from being 
+            marked complete, prescriptions from being prescribed, and claims from being sent.</summary>
+        </column>
+    </table>
+    <table name="sheet">
+        <summary></summary>
+        <column order="18" name="DateTSheetEdited" type="datetime">
+            <summary>The date and time the sheet was inserted or last time someone opened the sheet and clicked OK on FormSheetFillEdit.
+            Gets updated even if no changes were made to the sheet or sheetfields, because we don't want to do the lengthy work of comparing all fields.
+            Used when editing a sheet to warn user if the sheet has been edited by someone else.</summary>
+        </column>
+    </table>
+    <table name="smstomobile">
+        <summary></summary>
+        <column order="17" name="MsgDiscountUSD" type="float">
+            <summary>Any discount applied to this message. 
+            If a particular messages has a MsgDiscountUSD &gt; 0  then the MsgChargeUSD will reflect the charge to the customer after the discount has already been applied. 
+            Multi-part messages will still be charged the wholesale rate for all parts after the first part.
+            To calculate the typical charge that this customer would pay without the discount use MsgChargeUSD + MsgDiscountUSD.
+            To calculate the percentage discounted off standard charges use (MsgDiscountUSD / (MsgChargeUSD + MsgDiscountUSD)).</summary>
+        </column>
+    </table>
+    <table name="supplyorder">
+        <summary></summary>
+        <column order="5" name="UserNum" type="bigint(20)" fk="userod">
+            <summary>FK to userod.UserNum. User that placed the order, is editable.</summary>
+        </column>
+        <column order="6" name="ShippingCharge" type="double">
+            <summary>The order's shipping charge.</summary>
+        </column>
+    </table>
+    <table name="timecardrule">
+        <summary></summary>
+        <column order="6" name="MinClockInTime" type="time">
+            <summary>When set this is the earliest an employee can clock in. Otherwise minimum dateTime represents not set.</summary>
+        </column>
+    </table>
+    <table name="wikipage">
+        <summary></summary>
+        <column order="9" name="PageContentPlainText" type="mediumtext">
+            <summary>Content of page stored without any HTML markup or wiki page links.  This plain text allows for easier searching.</summary>
+        </column>
+    </table>
+</database>
