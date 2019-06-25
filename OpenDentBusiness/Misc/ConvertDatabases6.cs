@@ -1418,11 +1418,10 @@ namespace OpenDentBusiness {
 				+"VALUES('0001-01-01',0,"+POut.Long(groupNumCur)+",22,"+POut.Long(reportNumNew)+")";
 				Db.NonQ(command);
 			}
-
-			To19_2_0_LargeTableScripts();//IMPORTANT: Leave the large table scripts at the end of To19_2_0.
+			To19_2_1_LargeTableScripts();//IMPORTANT: Leave the large table scripts at the end of To19_2_0.
 		}//End of 19_2_1() method
 
-		private static void To19_2_0_LargeTableScripts() {
+		private static void To19_2_1_LargeTableScripts() {
 			string command;
 			//We want it to be the last thing done so that if it fails for a large customer and we have to manually finish the update script we will only
 			//have to verify that these large table scripts have run.
