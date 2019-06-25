@@ -8,7 +8,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
-    <LastActiveSolutionConfig>Debug|x86</LastActiveSolutionConfig>
+    <LastActiveSolutionConfig>Release|x86</LastActiveSolutionConfig>
     <Use64BitIISExpress />
   </PropertyGroup>
   <ProjectExtensions>
