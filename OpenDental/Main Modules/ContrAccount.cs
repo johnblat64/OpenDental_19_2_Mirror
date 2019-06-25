@@ -2554,7 +2554,6 @@ namespace OpenDental {
 					.ToList();
 			_listSplitsHidden=_loadData.ListPrePayments.FindAll(x => x.UnearnedType.In(listDefNumsAcctHidden));
 			FillSummary();
-			FillTpUnearned();
 			Plugins.HookAddCode(this,"ContrAccount.RefreshModuleData_end",FamCur,PatCur,DataSetMain,PPBalanceTotal,isSelectingFamily);
 		}
 
@@ -2947,12 +2946,10 @@ namespace OpenDental {
 			if(PatCur==null) {
 				return;
 			}
-			//todo lindsay: add to AccountModules.LoadData
-			_listSplitsHidden=PaySplits.GetHiddenUnearnedForPats(_listFamilyPatNums);
 			if(_listSplitsHidden.Count==0) {
 				return;
 			}
-			List<Procedure> listProceduresForProcs=Procedures.GetManyProc(_listSplitsHidden.Select(x => x.ProcNum).ToList(),false);
+			List<Procedure> listProceduresForHiddenSplits=Procedures.GetManyProc(_listSplitsHidden.Select(x => x.ProcNum).ToList(),false);
 			gridTpSplits.BeginUpdate();
 			gridTpSplits.Columns.Clear();
 			ODGridColumn col=new ODGridColumn("Date",65);
@@ -2965,7 +2962,9 @@ namespace OpenDental {
 				col=new ODGridColumn("Clinic",60);
 				gridTpSplits.Columns.Add(col);
 			}
-			col=new ODGridColumn("Procedure",200);
+			col=new ODGridColumn("Code",80);
+			gridTpSplits.Columns.Add(col);
+			col=new ODGridColumn("Description",180);
 			gridTpSplits.Columns.Add(col);
 			col=new ODGridColumn("Amount",60);
 			gridTpSplits.Columns.Add(col);
@@ -2975,8 +2974,13 @@ namespace OpenDental {
 				ODGridRow row=new ODGridRow();
 				row.Cells.Add(tpSplit.DateEntry.ToShortDateString());//Date
 				if(!dictPats.ContainsKey(tpSplit.PatNum)) {
-					//use _loadData.Fam
-					dictPats.Add(tpSplit.PatNum,Patients.GetPat(tpSplit.PatNum));
+					Patient patFromFam=_loadData.Fam.ListPats.FirstOrDefault(x => x.PatNum==tpSplit.PatNum);
+					if(patFromFam!=null) {
+						dictPats.Add(tpSplit.PatNum,patFromFam);
+					}
+					else {
+						dictPats.Add(tpSplit.PatNum,Patients.GetPat(tpSplit.PatNum));
+					}
 				}
 				Patient patForSplit=dictPats[tpSplit.PatNum];
 				row.Cells.Add(patForSplit.LName+", "+patForSplit.FName);//Patient
@@ -2984,14 +2988,15 @@ namespace OpenDental {
 				if(PrefC.HasClinicsEnabled) {
 					row.Cells.Add(Clinics.GetAbbr(tpSplit.ClinicNum));//Clinics
 				}
-				long codeNum=listProceduresForProcs.FirstOrDefault(x => x.ProcNum==tpSplit.ProcNum)?.CodeNum??0;
-				string procCode=ProcedureCodes.GetFirstOrDefault(x => x.CodeNum==codeNum)?.ProcCode??"";
-				//todo lindsay: show Code column and Description column
-				if(ProcedureCodes.GetContainsKey(procCode)) {//ProcedureCode
-					row.Cells.Add(procCode+" - "+ProcedureCodes.GetOne(procCode).AbbrDesc);
+				long codeNum=listProceduresForHiddenSplits.FirstOrDefault(x => x.ProcNum==tpSplit.ProcNum)?.CodeNum??0;
+				ProcedureCode procCode=ProcedureCodes.GetFirstOrDefault(x => x.CodeNum==codeNum);				
+				if(procCode!=null) {
+					row.Cells.Add(procCode.ProcCode);//Code
+					row.Cells.Add(procCode.Descript);//Description
 				}
 				else {
-					row.Cells.Add("");
+					row.Cells.Add("");//Code
+					row.Cells.Add("");//Description
 				}
 				row.Cells.Add(tpSplit.SplitAmt.ToString("F"));//Amount
 				row.Tag=tpSplit;
@@ -3964,7 +3969,6 @@ namespace OpenDental {
 			FormPayment formPayment=new FormPayment(PatCur,FamCur,paymentForSplit,false);
 			formPayment.IsNew=false;
 			formPayment.ShowDialog();
-			_listSplitsHidden=PaySplits.GetHiddenUnearnedForPats(_listFamilyPatNums);
 			ModuleSelected(PatCur.PatNum,_isSelectingFamily);
 		}
 

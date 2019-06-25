@@ -1414,7 +1414,7 @@ namespace OpenDentBusiness {
 			long reportNum=Db.GetLong("SELECT DisplayReportNum FROM displayreport WHERE InternalName='ODPayments'");
 			List<long> listGroupNums=Db.GetListLong("SELECT UserGroupNum FROM grouppermission WHERE PermType=22 AND FKey="+POut.Long(reportNum));
 			foreach(long groupNumCur in listGroupNums) {
-				command+="INSERT INTO grouppermission (NewerDate,NewerDays,UserGroupNum,PermType,FKey) "
+				command="INSERT INTO grouppermission (NewerDate,NewerDays,UserGroupNum,PermType,FKey) "
 				+"VALUES('0001-01-01',0,"+POut.Long(groupNumCur)+",22,"+POut.Long(reportNumNew)+")";
 				Db.NonQ(command);
 			}

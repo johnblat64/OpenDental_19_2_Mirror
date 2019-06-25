@@ -173,6 +173,28 @@ namespace OpenDentBusiness {
 		public static bool GetBool(PrefName prefName) {
 			return PIn.Bool(Prefs.GetOne(prefName).ValueString);
 		}
+		
+		public static bool GetBool(PrefName prefName,YN defaultValueForPref) {
+			if(GetEnum<YN>(prefName)==YN.Yes) {
+				return true;//pref is on
+			}
+			else if(GetEnum<YN>(prefName)==YN.No) {
+				return false;//pref is off
+			}
+			else {//using the default value (unknown)
+				if(defaultValueForPref==YN.Yes) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+
+		///<summary>Gets a pref of the specified enum type.</summary>
+		public static T GetEnum<T>(PrefName prefName) where T:struct,IConvertible {
+			return PIn.Enum<T>(GetInt(prefName));
+		}
 
 		///<Summary>Gets a pref of type bool, but will not throw an exception if null or not found.  Indicate whether the silent default is true or false.</Summary>
 		public static bool GetBoolSilent(PrefName prefName,bool silentDefault) {
@@ -409,6 +431,13 @@ namespace OpenDentBusiness {
 		public static bool HasReportServer {
 			get {
 				return !string.IsNullOrEmpty(ReportingServer.Server) || !string.IsNullOrEmpty(ReportingServer.URI);
+			}
+		}
+
+		///<summary>Defaults to false if the office has not set this preference manually.</summary>
+		public static bool IsPrePayAllowedForTpProcs {
+			get {
+				return GetBool(PrefName.PrePayAllowedForTpProcs,YN.No);
 			}
 		}
 		

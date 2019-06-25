@@ -361,7 +361,6 @@ namespace OpenDentBusiness {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetBool(MethodBase.GetCurrentMethod(),def);
 			}
-			//todo lindsay: add your new preference for prepayment type
 			List<string> listStrCommands=new List<string>();
 			switch(def.Category) {
 				case DefCat.AdjTypes:
@@ -422,6 +421,9 @@ namespace OpenDentBusiness {
 					listStrCommands.Add("SELECT COUNT(*) FROM payment WHERE PayType="+POut.Long(def.DefNum));
 					break;
 				case DefCat.PaySplitUnearnedType:
+					if(def.DefNum.In(PrefC.GetLong(PrefName.TpUnearnedType))) {
+						return true;
+					}
 					listStrCommands.Add("SELECT COUNT(*) FROM paysplit WHERE UnearnedType="+POut.Long(def.DefNum));
 					break;
 				case DefCat.Prognosis:

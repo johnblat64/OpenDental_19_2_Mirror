@@ -234,7 +234,7 @@ namespace UnitTestsCore {
 						}							
 						double amt=Math.Min(brokenProcAmount,split.SplitAmt);
 						split.SplitAmt=amt;
-						Payments.CreateTransferForTpProcs(proc,new List<PaySplit>{split},brokenProcedure.ProcNum);
+						Payments.CreateTransferForTpProcs(proc,new List<PaySplit>{split},brokenProcedure);
 						brokenProcAmount-=amt;
 					}
 				}

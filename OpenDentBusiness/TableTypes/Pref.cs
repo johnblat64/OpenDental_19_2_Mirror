@@ -1106,7 +1106,7 @@ namespace OpenDentBusiness {
 		///<summary>This is the default pregnancy code used for diagnosing pregnancy from FormVitalSignEdit2014 and is displayed/set in FormEhrSettings.  When the check box for BMI and BP not taken due to pregnancy Dx is selected, this code value will be inserted into the diseasedef table in the column identified by the PregnancyDefaultCodeSystem (i.e. diseasedef.SnomedCode, diseasedef.ICD9Code).  It will then be a FK in the diseasedef table to the associated code system table.</summary>
 		PregnancyDefaultCodeValue,
 		PregnancyDefaultCodeSystem,
-		/// <summary>AllowTplanProcPayments enum. 0 by default, 0=default, 1=off, 2=on.</summary>
+		///<summary>YN enum. Indicates whether prepayments are allowed on TP procedures. Defaults to 'Unknown' which is equivalent to 'No'.</summary>
 		PrePayAllowedForTpProcs,
 		///<summary>FK to definition.DefNum for PaySplitUnearnedType defcat (29)</summary>
 		PrepaymentUnearnedType,
@@ -1887,18 +1887,6 @@ namespace OpenDentBusiness {
 		/// <summary>2 - Uses initial claim date for writeoff estimates and insurance payment date for writeoff adjustments in reports.</summary>
 		[Description("Initial Claim Date/Ins Pay Date")]
 		ClaimPayDate
-	}
-
-	public enum AllowTplanProcPayments {
-		/// <summary>Default currently acts the same as off. </summary>
-		[Description("Default")]
-		Default,
-		///<summary>Do not allow payments to be made with TP procs attached.</summary>
-		[Description("Off")]
-		Off,
-		///<summary>Prepayments are allowed for TP procs.</summary>
-		[Description("On")]
-		On
 	}
 
 }

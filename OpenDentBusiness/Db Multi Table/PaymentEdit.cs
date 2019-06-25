@@ -109,7 +109,7 @@ namespace OpenDentBusiness {
 			data.ListPaySplits=PaySplits.GetForPats(listPatNums);//Might contain payplan payments.
 			//will also contain TP procs if pref is set to ON
 			data.ListProcsCompleted=Procedures.GetCompleteForPats(listPatNums);
-			if(PrefC.GetLong(PrefName.PrePayAllowedForTpProcs)==(int)AllowTplanProcPayments.On && !isIncomeTransfer) {
+			if(PrefC.IsPrePayAllowedForTpProcs && !isIncomeTransfer) {
 				data.ListProcsCompleted.AddRange(Procedures.GetTpForPats(listPatNums));
 			}
 			//Look for splits that are in the database yet have been deleted from the pay splits grid.

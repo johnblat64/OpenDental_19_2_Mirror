@@ -610,7 +610,7 @@ namespace OpenDental{
 			}
 			_listSelectedProcs=new List<Procedure>();
 			_listProcedures=Procedures.GetCompleteForPats(new List<long> { _patNumCur });
-			if(PrefC.GetLong(PrefName.PrePayAllowedForTpProcs)==(int)AllowTplanProcPayments.On) {
+			if(PrefC.IsPrePayAllowedForTpProcs) {
 				_listProcedures.AddRange(Procedures.GetTpForPats(new List<long> {_patNumCur}));
 			}
 			_listAdjustments=Adjustments.GetAdjustForPats(new List<long> { _patNumCur });

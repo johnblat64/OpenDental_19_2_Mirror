@@ -1134,7 +1134,7 @@ namespace UnitTests.Payments_Tests {
 
 		[TestMethod]
 		public void PaymentEdit_AutoSplitForPayment_TpProcsInPaymentWindowWhenDisplayCorrectlyAccordingToPref() {
-			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)AllowTplanProcPayments.On);
+			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)YN.Yes);
 			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
 			long provNum=ProviderT.CreateProvider("prov");
 			Procedure treatPlanProc=ProcedureT.CreateProcedure(pat,"D0220",ProcStat.TP,"",50,provNum:provNum);
@@ -1145,7 +1145,7 @@ namespace UnitTests.Payments_Tests {
 			Assert.AreEqual(1,autoSplitData.ListAccountCharges.Count);
 			Assert.AreEqual(0,autoSplitData.ListAutoSplits.FindAll(x => x.ProcNum!=0).Count);//auto split should be for reg. unallocated, not the tp.
 			//now do the same with the pref turned off. Account charge should not show in the list.
-			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)AllowTplanProcPayments.Off);
+			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)YN.No);
 			constructData=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>{pat.PatNum},pat.PatNum,new List<PaySplit>(),currentPayment,
 				new List<AccountEntry>());
 			autoSplitData=PaymentEdit.AutoSplitForPayment(constructData);
@@ -1170,7 +1170,7 @@ namespace UnitTests.Payments_Tests {
 		[TestMethod]
 		public void Payments_CreateTransferForTpProcs_TransferTpPreAllocationToBrokenProcedure() {
 			PrefT.UpdateBool(PrefName.TpPrePayIsNonRefundable,true);
-			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)AllowTplanProcPayments.On);
+			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)YN.Yes);
 			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
 			long provNum=ProviderT.CreateProvider("prov");
 			Appointment appt=AppointmentT.CreateAppointment(pat.PatNum,DateTime.Today,1,provNum);

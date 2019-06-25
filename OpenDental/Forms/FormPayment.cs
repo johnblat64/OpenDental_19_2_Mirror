@@ -1731,7 +1731,7 @@ namespace OpenDental {
 				ToggleShowHideSplits();//set hidden
 			}
 			textCheckNum.Select();
-			if(PrefC.GetLong(PrefName.PrePayAllowedForTpProcs)==(int)AllowTplanProcPayments.On) {
+			if(PrefC.IsPrePayAllowedForTpProcs) {
 				gridCharges.Title="Outstanding Charges and Treatment Planned Procedures";
 			}
 			Plugins.HookAddCode(this,"FormPayment.Load_end",_paymentCur,IsNew);

@@ -121,17 +121,19 @@ namespace OpenDental{
 				}
 			}
 			#endregion
-			//todo lindsay: only run these queries if the preference is on
-			List<Procedure> listProcedures=Procedures.GetProcsForSingle(appt.AptNum,false);
+			List<Procedure> listProcedures=new List<Procedure>();
 			//splits should only exist on procs if they are using tp pre-payments
 			List<PaySplit> listSplitsForApptProcs=new List<PaySplit>();
 			bool isNonRefundable=false;
 			double brokenProcAmount=0;
-			if(listProcedures.Count > 0) {
-				listSplitsForApptProcs=PaySplits.GetPaySplitsFromProcs(listProcedures.Select(x => x.ProcNum).ToList());
-			}
 			Procedure brokenProcedure=new Procedure();
 			bool wasBrokenProcDeleted=false;
+			if(PrefC.IsPrePayAllowedForTpProcs) {
+				listProcedures=Procedures.GetProcsForSingle(appt.AptNum,false);
+				if(listProcedures.Count > 0) {
+					listSplitsForApptProcs=PaySplits.GetPaySplitsFromProcs(listProcedures.Select(x => x.ProcNum).ToList());
+				}
+			}
 			#region Charting the proc
 			if(procCode!=null) {
 				switch(procCode.ProcCode) { 
@@ -175,6 +177,12 @@ namespace OpenDental{
 					brokenProcedure.ProvNum);
 					brokenProcedure.ProcFee=Math.Max(provFee,procFee);
 				}
+				else if(listSplitsForApptProcs.Count>0 && PrefC.IsPrePayAllowedForTpProcs && procCode.ProcCode=="D9986") {
+					//if there are pre-payments, non-refundable pre-payments is turned on, and the broken appointment is a missed code then auto-fill 
+					//the window with the sum of the procs for the appointment. Transfer money below after broken procedure is confirmed by the user.
+					brokenProcedure.ProcFee=listSplitsForApptProcs.Sum(x => x.SplitAmt);
+					isNonRefundable=true;
+				}
 				else {
 					brokenProcedure.ProcFee=procFee;
 				}
@@ -186,12 +194,6 @@ namespace OpenDental{
 				List<Benefit> listBenefits=Benefits.Refresh(listPatPlans,listInsSubs);
 				List<ClaimProc> listClaimProcsForProc=ClaimProcs.RefreshForProc(brokenProcedure.ProcNum);
 				Procedures.ComputeEstimates(brokenProcedure,pat.PatNum,listClaimProcsForProc,false,listInsPlans,listPatPlans,listBenefits,pat.Age,listInsSubs);
-				if(listSplitsForApptProcs.Count>0 && PrefC.GetBool(PrefName.TpPrePayIsNonRefundable) && procCode.ProcCode=="D9986") {
-					//if there are pre-payments, non-refundable pre-payments is turned on, and the broken appointment is a missed code then auto-fill 
-					//the window with the sum of the procs for the appointment. Transfer money below after broken procedure is confirmed by the user.
-					brokenProcedure.ProcFee=listSplitsForApptProcs.Sum(x => x.SplitAmt);
-					isNonRefundable=true;
-				}
 				FormProcBroken FormPB=new FormProcBroken(brokenProcedure,isNonRefundable);
 				FormPB.IsNew=true;
 				FormPB.ShowDialog();
@@ -244,7 +246,7 @@ namespace OpenDental{
 						}							
 						double amt=Math.Min(brokenProcAmount,split.SplitAmt);
 						split.SplitAmt=amt;
-						Payments.CreateTransferForTpProcs(proc,new List<PaySplit>{split},brokenProcedure.ProcNum);
+						Payments.CreateTransferForTpProcs(proc,new List<PaySplit>{split},brokenProcedure);
 						brokenProcAmount-=amt;
 					}
 				}

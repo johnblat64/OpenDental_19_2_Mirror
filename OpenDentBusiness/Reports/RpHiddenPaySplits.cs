@@ -7,10 +7,15 @@ using System.Threading.Tasks;
 
 namespace OpenDentBusiness {
 	public class RpHiddenPaySplits {
-		public static DataTable GetReportData(List<long> listProvNums,List<long> listUnearnedTypeDefNums,List<long> listClinicNums) {
-			//todo lindsay: don't include clinic column if not enabled
+		public static DataTable GetReportData(List<long> listProvNums,List<long> listUnearnedTypeDefNums,List<long> listClinicNums
+			,bool hasClinicsEnabled) 
+		{
 			string command=$@"SELECT paysplit.DatePay,
-												CONCAT(patient.LName,', ',patient.FName),provider.Abbr,clinic.Abbr,procedurecode.ProcCode,
+												CONCAT(patient.LName,', ',patient.FName),provider.Abbr,";
+			if(hasClinicsEnabled) {
+				command+="clinic.Abbr,";
+			}
+			command+=$@"procedurecode.ProcCode,
 												procedurecode.Descript,paysplit.SplitAmt
 												FROM paysplit
 												INNER JOIN definition ON definition.DefNum=paysplit.UnearnedType AND definition.ItemValue!=''

@@ -8941,6 +8941,7 @@ namespace OpenDental {
 			int skippedApts=0;
 			int skippedEmails=0;
 			int skippedTasks=0;
+			int skippedAttached=0;
 			List<DataRow> listSelectedRows=gridProg.SelectedIndices.Where(x => x>-1 && x<gridProg.Rows.Count)
 				.Select(x => (DataRow)gridProg.Rows[x].Tag).ToList();
 			foreach(DataRow row in listSelectedRows) {
@@ -8978,8 +8979,7 @@ namespace OpenDental {
 							}
 							if(PIn.Enum<ProcStat>(PIn.Int(row["ProcStatus"].ToString()))==ProcStat.TP) {//check if there is an allocated payment to the TP proc. 
 								if(!PIn.Double(PaySplits.GetTotForProc(PIn.Long(row["ProcNum"].ToString()))).IsEqual(0)) {
-									//todo lindsay: use a new variable here
-									skippedC++;
+									skippedAttached++;
 									continue;
 								}
 							}
@@ -9059,6 +9059,10 @@ namespace OpenDental {
 			if(skippedTasks>0) {
 				MessageBox.Show(Lan.g(this,"Not allowed to delete tasks from here.")+"\r"
 					+skippedTasks.ToString()+" "+Lan.g(this,"item(s) skipped."));
+			}
+			if(skippedAttached>0) {
+				MessageBox.Show(Lan.g(this,"Not allowed to delete TP procedures with payments attached.")+"\r"
+					+skippedAttached.ToString()+" "+Lan.g(this,"item(s) skipped. "));
 			}
 			ModuleSelected(PatCur.PatNum);
 		}

@@ -358,13 +358,13 @@ namespace OpenDental{
 		private CheckBox checkPreventChangesToComplAppts;
 		private CheckBox checkEraAllowTotalPayment;
 		private CheckBox checkRecurPatBal0;
-		private Label label54;
-		private ComboBox comboTpProcPayment;
 		private Label label57;
 		private ComboBox comboTpUnearnedType;
 		private GroupBox groupBox5;
 		private CheckBox checkIsRefundable;
+		private CheckBox checkAllowPrePayToTpProcs;
 		private CheckBox checkFeesUseCache;
+		private YN _prePayAllowedForTpProcs;
 
 		///<summary>Default constructor.  Opens the form with the Appts tab selected.</summary>
 		public FormModuleSetup():this(0) {
@@ -495,10 +495,9 @@ namespace OpenDental{
 			this.tabControlAccount = new System.Windows.Forms.TabControl();
 			this.tabPagePayAdj = new System.Windows.Forms.TabPage();
 			this.groupBox5 = new System.Windows.Forms.GroupBox();
+			this.checkAllowPrePayToTpProcs = new System.Windows.Forms.CheckBox();
 			this.checkIsRefundable = new System.Windows.Forms.CheckBox();
-			this.comboTpProcPayment = new System.Windows.Forms.ComboBox();
 			this.label57 = new System.Windows.Forms.Label();
-			this.label54 = new System.Windows.Forms.Label();
 			this.comboTpUnearnedType = new System.Windows.Forms.ComboBox();
 			this.checkAllowPrepayProvider = new System.Windows.Forms.CheckBox();
 			this.comboPayPlanAdj = new System.Windows.Forms.ComboBox();
@@ -1903,40 +1902,40 @@ namespace OpenDental{
 			// 
 			// groupBox5
 			// 
+			this.groupBox5.Controls.Add(this.checkAllowPrePayToTpProcs);
 			this.groupBox5.Controls.Add(this.checkIsRefundable);
-			this.groupBox5.Controls.Add(this.comboTpProcPayment);
 			this.groupBox5.Controls.Add(this.label57);
-			this.groupBox5.Controls.Add(this.label54);
 			this.groupBox5.Controls.Add(this.comboTpUnearnedType);
 			this.groupBox5.Location = new System.Drawing.Point(6, 448);
 			this.groupBox5.Name = "groupBox5";
 			this.groupBox5.Size = new System.Drawing.Size(440, 93);
-			this.groupBox5.TabIndex = 254;
+			this.groupBox5.TabIndex = 246;
 			this.groupBox5.TabStop = false;
 			this.groupBox5.Text = "Treatment Planned Pre-payments";
+			// 
+			// checkAllowPrePayToTpProcs
+			// 
+			this.checkAllowPrePayToTpProcs.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkAllowPrePayToTpProcs.Location = new System.Drawing.Point(4, 15);
+			this.checkAllowPrePayToTpProcs.Name = "checkAllowPrePayToTpProcs";
+			this.checkAllowPrePayToTpProcs.Size = new System.Drawing.Size(430, 18);
+			this.checkAllowPrePayToTpProcs.TabIndex = 5;
+			this.checkAllowPrePayToTpProcs.Text = "Allow pre-payments to allocate to treatment planned procedures";
+			this.checkAllowPrePayToTpProcs.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkAllowPrePayToTpProcs.UseVisualStyleBackColor = true;
+			this.checkAllowPrePayToTpProcs.Click += new System.EventHandler(this.CheckAllowPrePayToTpProcs_Click);
 			// 
 			// checkIsRefundable
 			// 
 			this.checkIsRefundable.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkIsRefundable.Location = new System.Drawing.Point(4, 35);
 			this.checkIsRefundable.Name = "checkIsRefundable";
-			this.checkIsRefundable.Size = new System.Drawing.Size(430, 19);
-			this.checkIsRefundable.TabIndex = 254;
+			this.checkIsRefundable.Size = new System.Drawing.Size(430, 18);
+			this.checkIsRefundable.TabIndex = 10;
 			this.checkIsRefundable.Text = "TP pre-payments are non-refundable";
 			this.checkIsRefundable.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkIsRefundable.UseVisualStyleBackColor = true;
 			this.checkIsRefundable.Visible = false;
-			// 
-			// comboTpProcPayment
-			// 
-			this.comboTpProcPayment.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboTpProcPayment.FormattingEnabled = true;
-			this.comboTpProcPayment.Location = new System.Drawing.Point(271, 12);
-			this.comboTpProcPayment.MaxDropDownItems = 30;
-			this.comboTpProcPayment.Name = "comboTpProcPayment";
-			this.comboTpProcPayment.Size = new System.Drawing.Size(163, 21);
-			this.comboTpProcPayment.TabIndex = 250;
-			this.comboTpProcPayment.SelectionChangeCommitted += new System.EventHandler(this.ComboTpProcPayment_SelectionChangeCommitted);
 			// 
 			// label57
 			// 
@@ -1949,17 +1948,6 @@ namespace OpenDental{
 			this.label57.Text = "Default Treatement Planned Procedure Unearned Type";
 			this.label57.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			// 
-			// label54
-			// 
-			this.label54.BackColor = System.Drawing.SystemColors.Window;
-			this.label54.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.label54.Location = new System.Drawing.Point(4, 15);
-			this.label54.Name = "label54";
-			this.label54.Size = new System.Drawing.Size(265, 18);
-			this.label54.TabIndex = 251;
-			this.label54.Text = "Allow pre-payments to allocate to TP procedures";
-			this.label54.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			// 
 			// comboTpUnearnedType
 			// 
 			this.comboTpUnearnedType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -1968,7 +1956,7 @@ namespace OpenDental{
 			this.comboTpUnearnedType.MaxDropDownItems = 30;
 			this.comboTpUnearnedType.Name = "comboTpUnearnedType";
 			this.comboTpUnearnedType.Size = new System.Drawing.Size(163, 21);
-			this.comboTpUnearnedType.TabIndex = 252;
+			this.comboTpUnearnedType.TabIndex = 15;
 			// 
 			// checkAllowPrepayProvider
 			// 
@@ -4945,13 +4933,10 @@ namespace OpenDental{
 			long recurringPayTypeDefNum=PrefC.GetLong(PrefName.RecurringChargesPayTypeCC);
 			string payTypeNotFound=Defs.GetName(DefCat.PaymentTypes,recurringPayTypeDefNum)+ " ("+Lan.g(this,"hidden")+")";
 			comboRecurringChargePayType.SetSelectedItem<long>(x => x==recurringPayTypeDefNum,payTypeNotFound);
-			List<AllowTplanProcPayments> listTpPaymentSettings=Enum.GetValues(typeof(AllowTplanProcPayments)).OfType<AllowTplanProcPayments>().ToList();
-			for(int i=0;i<listTpPaymentSettings.Count;i++) {
-				comboTpProcPayment.Items.Add(listTpPaymentSettings[i].GetDescription());
-			}
-			comboTpProcPayment.SelectedIndex=PrefC.GetInt(PrefName.PrePayAllowedForTpProcs);
+			_prePayAllowedForTpProcs=PrefC.GetEnum<YN>(PrefName.PrePayAllowedForTpProcs);
+			checkAllowPrePayToTpProcs.Checked=PrefC.IsPrePayAllowedForTpProcs;
 			checkIsRefundable.Checked=PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
-			checkIsRefundable.Visible=comboTpProcPayment.SelectedIndex==(int)AllowTplanProcPayments.On;//pref will be unchecked if parent gets turned off.
+			checkIsRefundable.Visible=checkAllowPrePayToTpProcs.Checked;//pref will be unchecked if parent gets turned off.
 			foreach(Def unearnedType in _listPaySplitUnearnedType) {
 				comboTpUnearnedType.Items.Add(new ODBoxItem<long>(unearnedType.ItemName,unearnedType.DefNum));
 			}
@@ -5372,14 +5357,16 @@ namespace OpenDental{
 			}
 		}
 
-		private void ComboTpProcPayment_SelectionChangeCommitted(object sender,EventArgs e) {
-			if(comboTpProcPayment.SelectedIndex==(int)AllowTplanProcPayments.On) {
+		private void CheckAllowPrePayToTpProcs_Click(object sender,EventArgs e) {
+			if(checkAllowPrePayToTpProcs.Checked) {
 				checkIsRefundable.Visible=true;
 				checkIsRefundable.Checked=PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
+				_prePayAllowedForTpProcs=YN.Yes;
 			}
 			else {
 				checkIsRefundable.Visible=false;
 				checkIsRefundable.Checked=false;
+				_prePayAllowedForTpProcs=YN.No;
 			}
 		}
 
@@ -5616,10 +5603,6 @@ namespace OpenDental{
 					}
 				}
 			}//end if TP Note Changed
-			//int payPlanVersion=1;
-			//if(PrefC.GetInt(PrefName.PayPlansVersion) != 2) {
-			//	payPlanVersion=2;
-			//}
 			if(
 				#region Appointment Module
 				Prefs.UpdateBool(PrefName.AppointmentBubblesDisabled,checkAppointmentBubblesDisabled.Checked)
@@ -5735,7 +5718,7 @@ namespace OpenDental{
 				| Prefs.UpdateBool(PrefName.CanadaCreatePpoLabEst,checkCanadianPpoLabEst.Checked)
 				| Prefs.UpdateLong(PrefName.RecurringChargesPayTypeCC,comboRecurringChargePayType.SelectedTag<long>())
 				| Prefs.UpdateBool(PrefName.RecurringChargesAllowedWhenNoPatBal,checkRecurPatBal0.Checked)
-				| Prefs.UpdateLong(PrefName.PrePayAllowedForTpProcs,comboTpProcPayment.SelectedIndex)
+				| Prefs.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)_prePayAllowedForTpProcs)
 				| Prefs.UpdateLong(PrefName.TpUnearnedType,comboTpUnearnedType.SelectedTag<long>())
 				| Prefs.UpdateBool(PrefName.TpPrePayIsNonRefundable,checkIsRefundable.Checked)
 			#endregion Account Module

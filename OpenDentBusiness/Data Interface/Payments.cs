@@ -698,7 +698,7 @@ namespace OpenDentBusiness{
 		///<summary>Creates a transfer originating from the split on the procedure, back to the procedure. Used to transfer money from unearned back onto
 		///the procedure as an allocated non pre-pay split. 
 		///Optionally pass in procNumAttaching when wanting to attach to a procedure other than the procOriginal. </summary>
-		public static void CreateTransferForTpProcs(Procedure procOriginal,List<PaySplit> listSplitsForProc,long procNumAttaching=0) 
+		public static void CreateTransferForTpProcs(Procedure procOriginal,List<PaySplit> listSplitsForProc,Procedure procAttaching=null) 
 		{
 			if(listSplitsForProc.IsNullOrEmpty() || listSplitsForProc.Sum(x => x.SplitAmt)==0) {
 				return;
@@ -723,23 +723,18 @@ namespace OpenDentBusiness{
 					ProvNum=prepaySplit.ProvNum,
 				};
 				PaySplits.Insert(negSplitForTxfr);
-				long procNum=0;
-				if(procNumAttaching!=0) {//when transferring from unearned to a different procedure.
-					procNum=procNumAttaching;
-				}
-				else {
-					procNum=procOriginal.ProcNum;//when transferring from unearned to same procedure.
-				}
+				//procAttaching will be null when transferring from unearned to same procedure.
+				procAttaching=procAttaching??procOriginal;
 				PaySplit positiveSplit=new PaySplit{
-					ClinicNum=procOriginal.ClinicNum,
+					ClinicNum=procAttaching.ClinicNum,
 					DatePay=DateTime.Today,
 					FSplitNum=negSplitForTxfr.SplitNum,//if meant for unearned, FSplitNum must be 0 to show up correctly.
-					ProcNum=procNum,
-					PatNum=procOriginal.PatNum,
+					ProcNum=procAttaching.ProcNum,
+					PatNum=procAttaching.PatNum,
 					PayNum=transferPayment.PayNum,
 					SplitAmt=prepaySplit.SplitAmt,
-					ProcDate=procOriginal.ProcDate,
-					ProvNum=procOriginal.ProvNum,
+					ProcDate=procAttaching.ProcDate,
+					ProvNum=procAttaching.ProvNum,
 					UnearnedType=0//necessary for when broken appointments do not get a procedure created for them to transfer to. 
 				};
 				PaySplits.Insert(positiveSplit);
