@@ -1395,14 +1395,14 @@ namespace OpenDentBusiness {
 				ADD ResubmissionCode tinyint NOT NULL";
 			Db.NonQ(command);
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1");
-			command="INSERT INTO preference(PrefName,ValueString) VALUES('PrePayAllowedForTpProcs','0')";//default to Default. 
+			command="INSERT INTO preference(PrefName,ValueString) VALUES('PrePayAllowedForTpProcs','0')";//default to Off. 
 			Db.NonQ(command);
 			command="SELECT MAX(ItemOrder)+1 FROM definition WHERE Category=29";//29 is PaySplitUnearnedType
 			int order=PIn.Int(Db.GetCount(command));
 			command="INSERT INTO definition (Category,ItemName,ItemOrder,ItemValue) "
 				+"VALUES (29,'Treat Plan Pre-Payment',"+POut.Int(order)+",'X')";//29 is PaySplitUnearnedType
-			defNum=Db.NonQ(command);
-			command="INSERT INTO preference(PrefName,ValueString) VALUES('TpUnearnedType','"+POut.Long(defNum)+"')";//inherit from PrepaymentUnearnedType
+			defNum=Db.NonQ(command,true);
+			command="INSERT INTO preference(PrefName,ValueString) VALUES('TpUnearnedType','"+POut.Long(defNum)+"')";
 			Db.NonQ(command);
 			command="INSERT INTO preference(PrefName,ValueString) VALUES('TpPrePayIsNonRefundable','0')";
 			Db.NonQ(command);
@@ -1410,7 +1410,14 @@ namespace OpenDentBusiness {
 			itemOrder=Db.GetInt(command);
 			command="INSERT INTO displayreport(InternalName,ItemOrder,Description,Category,IsHidden) VALUES ('ODHiddenPaySplits',"+POut.Int(itemOrder)
 				+",'Hidden Payment Splits',3,0)";//3 is DisplayReportCategory.Lists
-			Db.NonQ(command); 
+			long reportNumNew=Db.NonQ(command,getInsertID:true);
+			long reportNum=Db.GetLong("SELECT DisplayReportNum FROM displayreport WHERE InternalName='ODPayments'");
+			List<long> listGroupNums=Db.GetListLong("SELECT UserGroupNum FROM grouppermission WHERE PermType=22 AND FKey="+POut.Long(reportNum));
+			foreach(long groupNumCur in listGroupNums) {
+				command+="INSERT INTO grouppermission (NewerDate,NewerDays,UserGroupNum,PermType,FKey) "
+				+"VALUES('0001-01-01',0,"+POut.Long(groupNumCur)+",22,"+POut.Long(reportNumNew)+")";
+				Db.NonQ(command);
+			}
 
 			To19_2_0_LargeTableScripts();//IMPORTANT: Leave the large table scripts at the end of To19_2_0.
 		}//End of 19_2_1() method
