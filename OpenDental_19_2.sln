@@ -62,7 +62,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xDataConnectionBase", "Data
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "..\..\Shared Projects Subversion\VirtualWeb\VirtualWeb_head\Web.csproj", "{4ED3DF2F-E97E-4BC3-AE5F-AA31A11AF57F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenDentBusiness.ODXam", "..\..\Shared Projects Subversion\OpenDentalWebApps\OpenDentalWebApps_19_2\OpenDentBusiness.ODXam\OpenDentBusiness.ODXam.csproj", "{A839333E-16F2-44EF-A3DD-FE05DE35F29D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenDentBusiness.ODXam", "..\..\Shared Projects Subversion\OpenDentalWebApps\OpenDentalWebApps_19_2\OpenDentBusiness.ODXam_19_2\OpenDentBusiness.ODXam_19_2.csproj", "{A839333E-16F2-44EF-A3DD-FE05DE35F29D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
