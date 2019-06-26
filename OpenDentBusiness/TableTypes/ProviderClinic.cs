@@ -3,7 +3,7 @@ using System.Collections;
 using System.Drawing;
 
 namespace OpenDentBusiness {
-	///<summary>Only used if clinics enabled.  Allows the user to specify DEA number override and other overrides for the provider at the specified 
+	///<summary>Allows the user to specify DEA number override and other overrides for the provider at the specified 
 	///clinic. This is different from the ProviderClinicLink table. That table records which providers are restricted to which clinics.</summary>
 	[Serializable]
 	[CrudTable(IsSynchable = true)]
