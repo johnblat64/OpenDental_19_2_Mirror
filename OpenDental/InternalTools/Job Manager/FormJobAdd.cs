@@ -59,6 +59,8 @@ namespace OpenDental {
 			_listPriorities=Defs.GetDefsForCategory(DefCat.JobPriorities,true).OrderBy(x => x.ItemOrder).ToList();
 			_listPriorities.ForEach(x=>comboPriority.Items.Add(new ODBoxItem<Def>(x.ItemName,x)));
 			comboPriority.SelectedIndex=_listPriorities.Select(x => x.DefNum).ToList().IndexOf(_jobNew.Priority);
+			Enum.GetNames(typeof(JobProposedVersion)).ToList().ForEach(x => comboProposedVersion.Items.Add(x));
+			comboProposedVersion.SelectedIndex=(int)JobProposedVersion.Current;
 		}
 
 		#region FillGrids
@@ -398,16 +400,6 @@ namespace OpenDental {
 			_jobNew.Category=jobCategoryNew;
 		}
 
-		private void butVersionPrompt_Click(object sender,EventArgs e) {
-			FormVersionPrompt FormVP=new FormVersionPrompt();
-			FormVP.VersionText=textVersion.Text;
-			FormVP.ShowDialog();
-			if(FormVP.DialogResult!=DialogResult.OK || string.IsNullOrEmpty(FormVP.VersionText)) {
-				return;
-			}
-			textVersion.Text=FormVP.VersionText;
-		}
-
 		private bool ValidateJob() {
 			if(string.IsNullOrWhiteSpace(textTitle.Text)) {
 				MessageBox.Show("Invalid Title.");
@@ -434,8 +426,7 @@ namespace OpenDental {
 			labelVersion.Text="Program";
 			comboCategory.Visible=false;
 			comboPriority.Visible=false;
-			textVersion.Visible=false;
-			butVersionPrompt.Visible=false;
+			comboProposedVersion.Visible=false;
 			label1.Visible=false;
 			textConcept.ReadOnly=true;
 			textConcept.TextBox.BackColor=Color.Black;
@@ -466,7 +457,8 @@ namespace OpenDental {
 			if(!ValidateJob()) {
 				return;
 			}
-			_jobNew.JobVersion=textVersion.Text;
+			JobProposedVersion proposedVersion=(JobProposedVersion)comboProposedVersion.SelectedIndex;
+			_jobNew.ProposedVersion=proposedVersion;
 			_jobNew.Requirements=textConcept.MainRtf;
 			long jobNum=Jobs.Insert(_jobNew);
 			foreach(JobLink link in _listJobLinks) {

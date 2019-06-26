@@ -48,14 +48,12 @@ namespace OpenDental{
 			this.textTitle = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
-			this.panel3 = new System.Windows.Forms.Panel();
-			this.butVersionPrompt = new OpenDental.UI.Button();
-			this.textVersion = new System.Windows.Forms.TextBox();
 			this.labelPriority = new System.Windows.Forms.Label();
-			this.labelVersion = new System.Windows.Forms.Label();
 			this.comboPriority = new System.Windows.Forms.ComboBox();
 			this.comboCategory = new System.Windows.Forms.ComboBox();
 			this.labelCategory = new System.Windows.Forms.Label();
+			this.comboProposedVersion = new System.Windows.Forms.ComboBox();
+			this.labelVersion = new System.Windows.Forms.Label();
 			this.tabControlExtra.SuspendLayout();
 			this.tabConcept.SuspendLayout();
 			this.tabCustomers.SuspendLayout();
@@ -69,7 +67,6 @@ namespace OpenDental{
 			this.tableLayoutPanel2.SuspendLayout();
 			this.panel2.SuspendLayout();
 			this.tableLayoutPanel3.SuspendLayout();
-			this.panel3.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// butOK
@@ -138,8 +135,10 @@ namespace OpenDental{
 			this.textConcept.HasEditorOptions = true;
 			this.textConcept.HasSaveButton = false;
 			this.textConcept.Location = new System.Drawing.Point(3, 3);
-			this.textConcept.MainRtf = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Microsoft S" +
-    "ans Serif;}}\r\n\\viewkind4\\uc1\\pard\\f0\\fs17\\par\r\n}\r\n";
+			this.textConcept.MainFont = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.textConcept.MainRtf = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\nouicompat\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 " +
+    "Microsoft Sans Serif;}}\r\n{\\*\\generator Riched20 10.0.17134}\\viewkind4\\uc1 \r\n\\par" +
+    "d\\f0\\fs17\\par\r\n}\r\n";
 			this.textConcept.MainText = "";
 			this.textConcept.Name = "textConcept";
 			this.textConcept.ReadOnly = false;
@@ -163,7 +162,6 @@ namespace OpenDental{
 			this.gridCustomers.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.gridCustomers.HasAddButton = true;
 			this.gridCustomers.HasDropDowns = false;
-			this.gridCustomers.HasMultilineHeaders = false;
 			this.gridCustomers.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridCustomers.HeaderHeight = 15;
 			this.gridCustomers.HScrollVisible = false;
@@ -196,7 +194,6 @@ namespace OpenDental{
 			this.gridSubscribers.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.gridSubscribers.HasAddButton = true;
 			this.gridSubscribers.HasDropDowns = false;
-			this.gridSubscribers.HasMultilineHeaders = false;
 			this.gridSubscribers.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridSubscribers.HeaderHeight = 15;
 			this.gridSubscribers.HScrollVisible = false;
@@ -229,7 +226,6 @@ namespace OpenDental{
 			this.gridFeatureReq.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.gridFeatureReq.HasAddButton = true;
 			this.gridFeatureReq.HasDropDowns = false;
-			this.gridFeatureReq.HasMultilineHeaders = false;
 			this.gridFeatureReq.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridFeatureReq.HeaderHeight = 15;
 			this.gridFeatureReq.HScrollVisible = false;
@@ -262,7 +258,6 @@ namespace OpenDental{
 			this.gridBugs.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.gridBugs.HasAddButton = true;
 			this.gridBugs.HasDropDowns = false;
-			this.gridBugs.HasMultilineHeaders = false;
 			this.gridBugs.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridBugs.HeaderHeight = 15;
 			this.gridBugs.HScrollVisible = false;
@@ -296,7 +291,6 @@ namespace OpenDental{
 			this.gridTasks.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.gridTasks.HasAddButton = true;
 			this.gridTasks.HasDropDowns = false;
-			this.gridTasks.HasMultilineHeaders = false;
 			this.gridTasks.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridTasks.HeaderHeight = 15;
 			this.gridTasks.HScrollVisible = false;
@@ -330,7 +324,6 @@ namespace OpenDental{
 			this.gridQuotes.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.gridQuotes.HasAddButton = true;
 			this.gridQuotes.HasDropDowns = false;
-			this.gridQuotes.HasMultilineHeaders = false;
 			this.gridQuotes.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridQuotes.HeaderHeight = 15;
 			this.gridQuotes.HScrollVisible = false;
@@ -425,9 +418,9 @@ namespace OpenDental{
 			this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
 			this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
 			this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
-			this.tableLayoutPanel3.Controls.Add(this.panel3, 2, 1);
-			this.tableLayoutPanel3.Controls.Add(this.labelPriority, 1, 0);
 			this.tableLayoutPanel3.Controls.Add(this.labelVersion, 2, 0);
+			this.tableLayoutPanel3.Controls.Add(this.comboProposedVersion, 2, 1);
+			this.tableLayoutPanel3.Controls.Add(this.labelPriority, 1, 0);
 			this.tableLayoutPanel3.Controls.Add(this.comboPriority, 1, 1);
 			this.tableLayoutPanel3.Controls.Add(this.comboCategory, 0, 1);
 			this.tableLayoutPanel3.Controls.Add(this.labelCategory, 0, 0);
@@ -440,41 +433,6 @@ namespace OpenDental{
 			this.tableLayoutPanel3.Size = new System.Drawing.Size(547, 47);
 			this.tableLayoutPanel3.TabIndex = 2;
 			// 
-			// panel3
-			// 
-			this.panel3.Controls.Add(this.butVersionPrompt);
-			this.panel3.Controls.Add(this.textVersion);
-			this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panel3.Location = new System.Drawing.Point(367, 22);
-			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(177, 22);
-			this.panel3.TabIndex = 4;
-			// 
-			// butVersionPrompt
-			// 
-			this.butVersionPrompt.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butVersionPrompt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butVersionPrompt.Autosize = true;
-			this.butVersionPrompt.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
-			this.butVersionPrompt.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
-			this.butVersionPrompt.CornerRadius = 4F;
-			this.butVersionPrompt.Location = new System.Drawing.Point(150, 0);
-			this.butVersionPrompt.Name = "butVersionPrompt";
-			this.butVersionPrompt.Size = new System.Drawing.Size(23, 20);
-			this.butVersionPrompt.TabIndex = 315;
-			this.butVersionPrompt.Text = "...";
-			this.butVersionPrompt.Click += new System.EventHandler(this.butVersionPrompt_Click);
-			// 
-			// textVersion
-			// 
-			this.textVersion.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.textVersion.Location = new System.Drawing.Point(0, 1);
-			this.textVersion.MaxLength = 100;
-			this.textVersion.Name = "textVersion";
-			this.textVersion.Size = new System.Drawing.Size(146, 20);
-			this.textVersion.TabIndex = 314;
-			// 
 			// labelPriority
 			// 
 			this.labelPriority.Location = new System.Drawing.Point(185, 0);
@@ -483,15 +441,6 @@ namespace OpenDental{
 			this.labelPriority.TabIndex = 309;
 			this.labelPriority.Text = "Priority";
 			this.labelPriority.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			// 
-			// labelVersion
-			// 
-			this.labelVersion.Location = new System.Drawing.Point(367, 0);
-			this.labelVersion.Name = "labelVersion";
-			this.labelVersion.Size = new System.Drawing.Size(63, 16);
-			this.labelVersion.TabIndex = 313;
-			this.labelVersion.Text = "Version";
-			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
 			// 
 			// comboPriority
 			// 
@@ -526,6 +475,25 @@ namespace OpenDental{
 			this.labelCategory.Text = "Category";
 			this.labelCategory.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
 			// 
+			// comboProposedVersion
+			// 
+			this.comboProposedVersion.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.comboProposedVersion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboProposedVersion.FormattingEnabled = true;
+			this.comboProposedVersion.Location = new System.Drawing.Point(367, 22);
+			this.comboProposedVersion.Name = "comboProposedVersion";
+			this.comboProposedVersion.Size = new System.Drawing.Size(177, 21);
+			this.comboProposedVersion.TabIndex = 322;
+			// 
+			// labelVersion
+			// 
+			this.labelVersion.Location = new System.Drawing.Point(367, 0);
+			this.labelVersion.Name = "labelVersion";
+			this.labelVersion.Size = new System.Drawing.Size(89, 16);
+			this.labelVersion.TabIndex = 323;
+			this.labelVersion.Text = "Est. Version";
+			this.labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
 			// FormJobAdd
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
@@ -550,8 +518,6 @@ namespace OpenDental{
 			this.panel2.ResumeLayout(false);
 			this.panel2.PerformLayout();
 			this.tableLayoutPanel3.ResumeLayout(false);
-			this.panel3.ResumeLayout(false);
-			this.panel3.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -574,11 +540,9 @@ namespace OpenDental{
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.TextBox textTitle;
 		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.TextBox textVersion;
 		private System.Windows.Forms.Label labelPriority;
 		private System.Windows.Forms.Label labelCategory;
 		private System.Windows.Forms.ComboBox comboPriority;
-		private System.Windows.Forms.Label labelVersion;
 		private System.Windows.Forms.ComboBox comboCategory;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
 		private OdtextEditor textConcept;
@@ -588,7 +552,7 @@ namespace OpenDental{
 		private UI.ODGrid gridTasks;
 		private UI.ODGrid gridQuotes;
 		private UI.ODGrid gridCustomers;
-		private System.Windows.Forms.Panel panel3;
-		private UI.Button butVersionPrompt;
+		private System.Windows.Forms.ComboBox comboProposedVersion;
+		private System.Windows.Forms.Label labelVersion;
 	}
 }

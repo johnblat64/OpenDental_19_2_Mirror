@@ -1479,6 +1479,17 @@ namespace OpenDental {
 			if(!tabControlNav.TabPages.Contains(tabQuery)) {
 				return;
 			}
+			Userod userFilter=Security.CurUser;
+			if(comboUser.SelectedIndex==1) {
+				userFilter=new Userod() { UserName="Unassigned",UserNum=0 };
+			}
+			//If all user set userFilter to null in order to get all jobs
+			if(comboUser.SelectedIndex==0) {
+				userFilter=null;
+			}
+			else if(comboUser.SelectedIndex>1) {
+				userFilter=_listUsers[comboUser.SelectedIndex-2];
+			}
 			gridQueries.ContextMenu=contextMenuQueries;
 			gridQueries.Title="Query Jobs";
 			long selectedJobNum=0;
@@ -1497,6 +1508,9 @@ namespace OpenDental {
 			listJobsSorted=listJobsSorted.OrderBy(x => x.AckDateTime).ThenBy(x => _listJobPriorities.FirstOrDefault(y => y.DefNum==x.Priority).ItemOrder).ToList();
 			Dictionary<JobPhase,List<Job>> dictPhases=new Dictionary<JobPhase,List<Job>>();
 			foreach(Job job in listJobsSorted) {
+				if(userFilter!=null && userFilter.UserNum!=job.UserNumEngineer) {
+					continue;
+				}
 				if((!checkShowQueryComplete.Checked && job.PhaseCur==JobPhase.Complete) 
 					|| (checkShowQueryComplete.Checked && job.PhaseCur==JobPhase.Complete
 					&& !job.ListJobLogs.Exists(y => y.Description.Contains("Job implemented") && y.DateTimeEntry.Between(dateFrom.Value,dateTo.Value)))) 

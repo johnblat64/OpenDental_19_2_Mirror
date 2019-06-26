@@ -277,6 +277,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			comboPhase.MouseWheel+=new MouseEventHandler(comboBox_MouseWheel);
 			comboProject.MouseWheel+=new MouseEventHandler(comboBox_MouseWheel);
 			comboPatternStatus.MouseWheel+=new MouseEventHandler(comboBox_MouseWheel);
+			comboProposedVersion.MouseWheel+=new MouseEventHandler(comboBox_MouseWheel);
 			_isLoading=false;
 		}
 

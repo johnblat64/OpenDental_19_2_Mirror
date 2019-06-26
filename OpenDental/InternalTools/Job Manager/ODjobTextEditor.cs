@@ -621,6 +621,9 @@ namespace OpenDental {
 		}
 
 		private void gridRequirements_DoubleClick(object sender, EventArgs e) {
+			if(ReadOnlyRequirementsGrid) {
+				return;
+			}
 			Point cell=gridRequirements.SelectedCell;
 			if(cell.X==-1) {
 				gridRequirements.Focus();
