@@ -168,13 +168,13 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Gets all sheets for a patient that have the terminal flag set.  Shallow list, no fields or parameters.</summary>
-		public static List<Sheet> GetForTerminal(long patNum) {
+		public static List<Sheet> GetForTerminal(long patNum,bool hasMobileLayout=false) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Sheet>>(MethodBase.GetCurrentMethod(),patNum);
+				return Meth.GetObject<List<Sheet>>(MethodBase.GetCurrentMethod(),patNum,hasMobileLayout);
 			}
 			string command="SELECT * FROM sheet WHERE PatNum="+POut.Long(patNum)
-				+" AND ShowInTerminal > 0 AND IsDeleted=0 "
-				+"ORDER BY ShowInTerminal,DateTimeSheet";
+				+" AND ShowInTerminal > 0 AND IsDeleted=0 AND HasMobileLayout="+POut.Bool(hasMobileLayout)
+				+" ORDER BY ShowInTerminal,DateTimeSheet";
 			return Crud.SheetCrud.SelectMany(command);
 		}
 
