@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using CodeBase;
 
 namespace OpenDental.Bridges{
-	/// <summary>Also used by the XDR bridge.</summary>
+	///<summary>Also used by the XDR bridge until 19.2 when XDR was broken out into its own bridge.</summary>
 	public class Dexis{
 
 		/// <summary></summary>

@@ -410,7 +410,7 @@ namespace OpenDental{
 					MsgBox.Show("ProgramLinks",bridgeDisabledMessage);
 					return;//bridge is not available for web users at this time. 
 				}
-				Dexis.SendData(prog,pat);//XDR uses the Dexis protocol
+				XDR.SendData(prog,pat);
 				return;
 			}
 			else if(prog.ProgName==ProgramName.XVWeb.ToString()) {

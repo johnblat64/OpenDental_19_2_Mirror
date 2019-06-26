@@ -411,6 +411,7 @@
     <Compile Include="Bridges\VixWin.cs" />
     <Compile Include="Bridges\VixWinNumbered.cs" />
     <Compile Include="Bridges\VixWinOld.cs" />
+    <Compile Include="Bridges\XDR.cs" />
     <Compile Include="Bridges\XVWeb.cs" />
     <Compile Include="Bridges\ZImage.cs" />
     <Compile Include="Forms Reports\FormRpHiddenPaySplits.cs">
@@ -578,6 +579,12 @@
     </Compile>
     <Compile Include="Forms\FormTsiHistory.designer.cs">
       <DependentUpon>FormTsiHistory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FormXDRSetup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormXDRSetup.designer.cs">
+      <DependentUpon>FormXDRSetup.cs</DependentUpon>
     </Compile>
     <Compile Include="InternalTools\Job Manager\FormJobEdit.cs">
       <SubType>Form</SubType>
@@ -5404,6 +5411,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FormTsiHistory.resx">
       <DependentUpon>FormTsiHistory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FormXDRSetup.resx">
+      <DependentUpon>FormXDRSetup.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="InternalTools\Job Manager\FormJobEdit.resx">
       <DependentUpon>FormJobEdit.cs</DependentUpon>

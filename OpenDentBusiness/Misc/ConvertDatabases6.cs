@@ -1468,5 +1468,18 @@ namespace OpenDentBusiness {
 			command="UPDATE taskhist SET SecDateTEdit = NOW()";
 			Db.NonQ(command);
 		}
+
+		private static void To19_2_2() {
+			string command;
+			DataTable table;
+			//XDR locationID for headquarters, LocationIDs for other clinics will be generated through the UI
+			command="SELECT ProgramNum FROM program WHERE ProgName='XDR'";
+			long programNum=Db.GetLong(command);
+			command=$@"INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue) VALUES(
+				'{POut.Long(programNum)}', 
+				'Location ID', 
+				'')";
+			Db.NonQ(command);
+		}
 	}
 }

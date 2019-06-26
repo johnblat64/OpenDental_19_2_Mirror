@@ -235,6 +235,10 @@ namespace OpenDental{
 					formAT.ProgramCur=program;
 					dResult=formAT.ShowDialog();
 					break;
+				case "XDR":
+					FormXDRSetup FormXS=new FormXDRSetup();
+					dResult=FormXS.ShowDialog();
+					break;
 				default:
 					FormProgramLinkEdit FormPE=new FormProgramLinkEdit();
 					if(Programs.IsStatic(program)) {
