@@ -2616,9 +2616,31 @@ namespace OpenDental{
 
 		///<summary>Opens FormClaimAttachment. This form is used for managing attachments to send to DentalXChange.</summary>
 		private void buttonClaimAttachment_Click(object sender,EventArgs e) {
-			if(IsNew) {
+			if(IsNew) {//Must have a claim object to do claim attachments
 				MsgBox.Show(this,"The claim must be saved before you can start adding attachments.");
 				return;
+			}
+			if(comboClaimStatus.SelectedIndex==2) {//Waiting to send claim
+																						 //Check to see if Claim is Valid
+				if(!ClaimIsValid()) {
+					return;
+				}
+				//Determine if there is any missing data
+				ClaimEdit.UpdateData updateData = UpdateClaim();
+				ClaimSendQueueItem[] listQueue = updateData.ListSendQueueItems;
+				//There is no benefit to the user by attaching and sending files to DXC if the carrier cannot send an electronic claim within Open Dental.
+				//If it is determined later that there is a desire to allow these carriers in, we can simply remove this block.
+				if(!listQueue[0].CanSendElect) {
+					MsgBox.Show(this,"Carrier is not set to Send Claims Electronically.");
+					return;
+				}
+				Clearinghouse clearinghouseHq = ClearinghouseL.GetClearinghouseHq(listQueue[0].ClearinghouseNum);
+				Clearinghouse clearinghouseClin = Clearinghouses.OverrideFields(clearinghouseHq,Clinics.ClinicNum);
+				listQueue[0]=Eclaims.GetMissingData(clearinghouseClin,listQueue[0]);
+				if(listQueue[0].MissingData!="") {
+					MessageBox.Show("Cannot add attachments until missing data is fixed:"+"\r\n"+listQueue[0].MissingData);
+					return;
+				}
 			}
 			if(MsgBox.Show(this,true,"This will close the claim edit window without saving any changes. Continue?")) {
 				FormClaimAttachment.Open(ClaimCur);
