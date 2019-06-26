@@ -677,9 +677,6 @@ namespace OpenDentBusiness {
 			if(disableUntilBalance>0 && familyBalance>disableUntilBalance) {
 				return false;
 			}
-			if(doShowReminded) {
-				return true;
-			}
 			if(showReminders==RecallListShowNumberReminders.All) {
 				//don't skip, add all to list
 			}
@@ -693,8 +690,9 @@ namespace OpenDentBusiness {
 					return false;
 				}
 			}
-			if(isAsap) {
-				return true;//The ASAP list includes recalls regardless of the time since the last reminder and regardless of the max number of reminders.
+			if(isAsap || doShowReminded) {
+				//The ASAP list and Include reminded includes recalls regardless of the time since the last reminder and regardless of the max number of reminders.
+				return true;
 			}
 			//filter by number of reminders, if numberOfReminders==0, always show
 			if(numberOfReminders==1) {
