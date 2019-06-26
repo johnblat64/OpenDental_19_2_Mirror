@@ -1218,7 +1218,7 @@ namespace OpenDentBusiness {
 			command="INSERT INTO preference(PrefName,ValueString) VALUES('EClipboardUseDefaults','1')";
 			Db.NonQ(command);
 			//Set the EClipboardUseDefaults pref to true for all clinics
-			command="SELECT ClinicNum FROM Clinic";
+			command="SELECT ClinicNum FROM clinic";
 			List<long> listClinicNums=Db.GetListLong(command);
 			if(listClinicNums.Count>0) {
 				foreach(long clinicNum in listClinicNums) {
