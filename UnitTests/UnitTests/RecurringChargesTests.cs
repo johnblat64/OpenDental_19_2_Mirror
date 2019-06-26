@@ -21,6 +21,7 @@ namespace UnitTests.RecurringCharges_Tests {
 
 		[TestInitialize]
 		public void SetupTest() {
+			CreditCardT.ClearCreditCardTable();
 			RecurringChargeT.ClearRecurringChargeTable();
 		}
 
