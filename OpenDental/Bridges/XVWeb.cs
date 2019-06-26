@@ -220,7 +220,7 @@ namespace OpenDental.Bridges {
 			string token=GetAuthorizationToken();//reuse old token or get a new one. 
 			UriBuilder uriBuilder=GetApiUri();
 			uriBuilder.Path+="bitmap/"+img.Id;
-			Stream responseStream=GetRequestHelperStream(token,uriBuilder,contentType:"image/jpeg");
+			Stream responseStream=GetRequestHelperStream(token,uriBuilder,accept:"image/jpeg");
 			int bytesRead;
 			Bitmap image;
 			long totalBytesRead=0;
@@ -270,7 +270,7 @@ namespace OpenDental.Bridges {
 			string token=GetAuthorizationToken();
 			UriBuilder uriBuilder=GetApiUri();
 			uriBuilder.Path+="bitmap/thumbnail/"+img.Id;
-			using(Stream responseStream = GetRequestHelperStream(token,uriBuilder,contentType: "image/jpeg")) {
+			using(Stream responseStream = GetRequestHelperStream(token,uriBuilder,accept:"image/jpeg")) {
 				return new Bitmap(responseStream);
 			}
 		}
@@ -298,11 +298,13 @@ namespace OpenDental.Bridges {
 			return serverResp;
 		}
 
-		private static Stream GetRequestHelperStream(string token,UriBuilder url,bool doRetryIfUnauthorized=true,string contentType="application/json") {
+		private static Stream GetRequestHelperStream(string token,UriBuilder url,bool doRetryIfUnauthorized=true,string contentType="application/json",
+			string accept="application/json") 
+		{
 			HttpWebRequest request=(HttpWebRequest)WebRequest.Create(url.ToString());
 			request.Method="GET";
 			request.ContentType=contentType;
-			request.Accept="application/json";
+			request.Accept=accept;
 			request.Headers.Add(HttpRequestHeader.Authorization,token);
 			HttpWebResponse response;
 			try {
