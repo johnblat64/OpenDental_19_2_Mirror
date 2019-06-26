@@ -2972,7 +2972,7 @@ namespace OpenDental {
 			Dictionary<long,Patient> dictPats=new Dictionary<long, Patient>();
 			foreach(PaySplit tpSplit in _listSplitsHidden) {
 				ODGridRow row=new ODGridRow();
-				row.Cells.Add(tpSplit.DateEntry.ToShortDateString());//Date
+				row.Cells.Add(tpSplit.DatePay.ToShortDateString());//Date
 				if(!dictPats.ContainsKey(tpSplit.PatNum)) {
 					Patient patFromFam=_loadData.Fam.ListPats.FirstOrDefault(x => x.PatNum==tpSplit.PatNum);
 					if(patFromFam!=null) {
