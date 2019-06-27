@@ -7694,7 +7694,13 @@ namespace OpenDental {
 			toothChart.ResumeLayout();
 			FillMovementsAndHidden();
 			if(dateLimit==DateTime.Today) {
-				_loadData.ToothChartBM=toothChart.GetBitmap();
+				try {
+					_loadData.ToothChartBM=toothChart.GetBitmap();
+				}
+				catch(Exception ex) {
+					ex.DoNothing();//Failing to get the toothchart bitmap would only mean being unable to update the Patient Dashboard.  Since this is a fairly
+					//rare exception, we can consider this to be not important enough to crash the program; the next module refresh should update the view.
+				}
 			}
 			//By firing this event here, we propogate any charted procs/missing/movements immediately to the Patient Dashboard.  FillToothChart() is always
 			//invoked via FillProgNotes() when ModuleSelected() is invoked, therefore, this event will fire when ModuleSelected() is invoked.  By only 
