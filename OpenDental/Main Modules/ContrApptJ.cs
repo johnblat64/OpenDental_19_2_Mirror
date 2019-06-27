@@ -2225,21 +2225,21 @@ namespace OpenDental {
 			Appointment apptOld=e.ApptOld;
 			MoveAppointment(appt,apptOld);
 			#region Update UI and cache
-			InsPlan aptInsPlan1 = InsPlans.GetPlan(appt.InsPlan1,null);//we only care about lining the fees up with the primary insurance plan
+			ProcFeeHelper procFeeHelper=new ProcFeeHelper(e.Appt.PatNum);
 			//check if the proc fees on the moved appointment need updating
 			List<Procedure> procsForApt = Procedures.GetProcsForSingle(appt.AptNum,false);//get the procedures on the appointment
 			bool isUpdatingFees = false;
 			List<Procedure> listProcsNew = procsForApt.Select(x => Procedures.UpdateProcInAppointment(appt,x.Copy())).ToList();
 			if(procsForApt.Exists(x => x.ProvNum!=listProcsNew.FirstOrDefault(y => y.ProcNum==x.ProcNum).ProvNum)) {//Either the primary or hygienist changed.
 				string promptText = "";
-				isUpdatingFees=Procedures.ShouldFeesChange(listProcsNew,procsForApt,aptInsPlan1,ref promptText);
+				isUpdatingFees=Procedures.ShouldFeesChange(listProcsNew,procsForApt,ref promptText,procFeeHelper);
 				if(isUpdatingFees) {//Made it pass the pref check.
 					if(promptText!="" && !MsgBox.Show(this,MsgBoxButtons.YesNo,promptText)) {
 						isUpdatingFees=false;
 					}
 				}
 			}
-			Procedures.SetProvidersInAppointment(appt,procsForApt,isUpdatingFees);
+			Procedures.SetProvidersInAppointment(appt,procsForApt,isUpdatingFees,procFeeHelper);
 			RefreshModuleDataPatient(appt.PatNum);
 			FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
 			RefreshPeriod();				
@@ -3505,19 +3505,19 @@ namespace OpenDental {
 					procsForSingleApt=Procedures.GetProcsForSingle(apptCur.AptNum,false);
 				}
 				#region Update UI and cache
-				InsPlan aptInsPlan1 = InsPlans.GetPlan(apptCur.InsPlan1,null);//we only care about lining the fees up with the primary insurance plan
+				ProcFeeHelper procFeeHelper=new ProcFeeHelper(apptCur.PatNum);
 				bool isUpdatingFees=false;
 				List<Procedure> listProcsNew=procsForSingleApt.Select(x => Procedures.UpdateProcInAppointment(apptCur,x.Copy())).ToList();
 				if(procsForSingleApt.Exists(x => x.ProvNum!=listProcsNew.FirstOrDefault(y => y.ProcNum==x.ProcNum).ProvNum)) {//Either the primary or hygienist changed.
 					string promptText="";
-					isUpdatingFees=Procedures.ShouldFeesChange(listProcsNew,procsForSingleApt,aptInsPlan1,ref promptText);
+					isUpdatingFees=Procedures.ShouldFeesChange(listProcsNew,procsForSingleApt,ref promptText,procFeeHelper);
 					if(isUpdatingFees) {//Made it pass the pref check.
 						if(promptText!="" && !MsgBox.Show(this,MsgBoxButtons.YesNo,promptText)) {
 								isUpdatingFees=false;
 						}
 					}
 				}
-				Procedures.SetProvidersInAppointment(apptCur,procsForSingleApt,isUpdatingFees);
+				Procedures.SetProvidersInAppointment(apptCur,procsForSingleApt,isUpdatingFees,procFeeHelper);
 				pinBoard.ClearSelected();
 				contrApptPanel.SelectedAptNum=apptCur.AptNum;
 				RefreshModuleScreenButtonsRight();

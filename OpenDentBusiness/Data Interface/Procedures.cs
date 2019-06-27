@@ -1763,7 +1763,7 @@ namespace OpenDentBusiness {
 		///<Summary>Supply the list of procedures attached to the appointment.  It will loop through each and assign the correct provider.
 		///Also sets clinic.  Also sets procDate for TP procs.  js 7/24/12 This is not supposed to be called if the appointment is complete.
 		///When isUpdatingFees is true, we also update the ProcFee based on PrefName.ProcFeeUpdatePrompt</Summary>
-		public static void SetProvidersInAppointment(Appointment apt,List<Procedure> listProcOrig,bool isUpdatingFees) {
+		public static void SetProvidersInAppointment(Appointment apt,List<Procedure> listProcOrig,bool isUpdatingFees,ProcFeeHelper procFeeHelper) {
 			//No need to check RemotingRole; no call to db.
 			List<Procedure> listProcNew=new List<Procedure>();
 			Procedure changedProc;
@@ -1780,8 +1780,9 @@ namespace OpenDentBusiness {
 					if(!IsProcComplEditAuthorized(procCur)) {
 						continue;
 					}
-					procCur.ProcFee=Fees.GetAmount0(procCur.CodeNum,Providers.GetProv(procCur.ProvNum).FeeSched,procCur.ClinicNum
-						,procCur.ProvNum);
+					procFeeHelper.FillData();
+					procCur.ProcFee=GetProcFee(procFeeHelper.Pat,procFeeHelper.ListPatPlans,procFeeHelper.ListInsSubs,procFeeHelper.ListInsPlans,
+						procCur.CodeNum,procCur.ProvNum,procCur.ClinicNum,procCur.MedicalCode,procFeeHelper.ListBenefitsPrimary,procFeeHelper.ListFees);
 				}
 			}
 			Sync(listProcNew,listProcOrig);
@@ -1842,20 +1843,16 @@ namespace OpenDentBusiness {
 		///<summary>Returns true when we want to allow procedure fees to be changed.
 		///Depending on PrefName.ProcFeeUpdatePrompt, may prompt user for input. We will need to show a MsgBox to the user when promptText is not empty after returing true.
 		///Should only be called after identifying a procedurelog or appointment provider change.</summary>
-		public static bool ShouldFeesChange(List<Procedure> listNewProcs,List<Procedure> listOldProcs,InsPlan insPlan,ref string promptText,List<Fee> listFees=null) {
+		public static bool ShouldFeesChange(List<Procedure> listNewProcs,List<Procedure> listOldProcs,ref string promptText,ProcFeeHelper procFeeHelper) {
 			//this method was called FeeUpdatePromptHelper
 			//No need to check RemotingRole; no call to db.
-			//We do not want to update the fees when changing providers if the insplan is cat% and it has a fee sched set.
-			if(insPlan!=null && insPlan.PlanType=="" && insPlan.FeeSched!=0) {
-				return false;
-			}
 			switch(PrefC.GetInt(PrefName.ProcFeeUpdatePrompt)) {
-				case 0:
+				case 0://No prompt, don't change fee
 					return false;
-				case 1:
+				case 1://No prompt, always change fee
 					//No prompt or check required. Equivilent to clicking "Yes" in some sense. Returns true.
 					return true;
-				case 2:
+				case 2://Prompt if patient portion would be different
 					List<ClaimProc> listClaimProcs=ClaimProcs.GetForProcs(listNewProcs.Select(x => x.ProcNum).ToList());
 					List<Adjustment> listAdjustments=Adjustments.GetForProcs(listNewProcs.Select(x => x.ProcNum).ToList());
 					foreach(Procedure proc in listNewProcs) {
@@ -1863,7 +1860,9 @@ namespace OpenDentBusiness {
 						if(procOld==null) {
 							continue;
 						}
-						proc.ProcFee=Fees.GetAmount0(proc.CodeNum,Providers.GetProv(proc.ProvNum).FeeSched,proc.ClinicNum,proc.ProvNum,listFees);
+						procFeeHelper.FillData();
+						proc.ProcFee=GetProcFee(procFeeHelper.Pat,procFeeHelper.ListPatPlans,procFeeHelper.ListInsSubs,procFeeHelper.ListInsPlans,proc.CodeNum,
+							proc.ProvNum,proc.ClinicNum,proc.MedicalCode,procFeeHelper.ListBenefitsPrimary,procFeeHelper.ListFees);
 						decimal procCurPatPortion=ClaimProcs.GetPatPortion(proc,listClaimProcs,listAdjustments);
 						decimal procOldPatPortion=ClaimProcs.GetPatPortion(procOld,listClaimProcs,listAdjustments);
 						if(procCurPatPortion!=procOldPatPortion) {
@@ -1873,7 +1872,7 @@ namespace OpenDentBusiness {
 						}
 					}
 					return false;
-				case 3:
+				case 3://Always prompt
 					promptText="Would you like to update procedure fee amounts to the newly selected provider's fees?";
 					return true;
 			}

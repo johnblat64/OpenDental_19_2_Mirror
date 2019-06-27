@@ -3235,21 +3235,17 @@ namespace OpenDental {
 			if(_procCur.ProvNum!=_procOld.ProvNum 
 				&& _procCur.ProcFee==_procOld.ProcFee)
 			{
-				InsPlan insPlanPrimary=null;//We only care about updating fees with the primary insurance plan.
-				if(_listPatPlans.Count>0) {
-					InsSub insSubPrimary=InsSubs.GetSub(_listPatPlans[0].InsSubNum,_listInsSubs);
-					insPlanPrimary=InsPlans.GetPlan(insSubPrimary.PlanNum,_listInsPlans);
-				}
 				string promptText="";
+				ProcFeeHelper procFeeHelper=new ProcFeeHelper(_patCur,ListFees,_listPatPlans,_listInsSubs,_listInsPlans,_listBenefits);
 				bool isUpdatingFee=Procedures.ShouldFeesChange(new List<Procedure>() { _procCur.Copy() },new List<Procedure>() { _procOld.Copy() },
-					insPlanPrimary,ref promptText,ListFees);
+					ref promptText,procFeeHelper);
 				if(isUpdatingFee) {//Made it past the pref check.
 					if(promptText!="" && !MsgBox.Show(MsgBoxButtons.YesNo,promptText)) {
 							isUpdatingFee=false;
 					}
 					if(isUpdatingFee) {
-						_procCur.ProcFee=Procedures.GetProcFee(_patCur,_listPatPlans,_listInsSubs,_listInsPlans,_procCur.CodeNum,_procCur.ProvNum,_procCur.ClinicNum,
-							_procCur.MedicalCode,listFees:ListFees);
+						_procCur.ProcFee=Procedures.GetProcFee(_patCur,_listPatPlans,_listInsSubs,_listInsPlans,_procCur.CodeNum,_procCur.ProvNum,
+							_procCur.ClinicNum,_procCur.MedicalCode,_listBenefits,listFees:ListFees);
 					}
 				}
 			}

@@ -325,6 +325,7 @@
     <Compile Include="Data Interface\Etrans835Attaches.cs" />
     <Compile Include="Data Interface\LoginAttempts.cs" />
     <Compile Include="Data Interface\ScheduledProcesses.cs" />
+    <Compile Include="Db Multi Table\ProcFeeHelper.cs" />
     <Compile Include="InternalTools\Faq\Faqs.cs" />
     <Compile Include="Data Interface\MobileAppDevices.cs" />
     <Compile Include="Data Interface\PayConnectResponseWebs.cs" />

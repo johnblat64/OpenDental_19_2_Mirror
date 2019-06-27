@@ -1950,13 +1950,13 @@ namespace OpenDental{
 			#endregion Update ProcDescript for Appt
 			#region Provider change and fee change check
 			//Determins if we would like to update ProcFees when a provider changes, considers PrefName.ProcFeeUpdatePrompt.
-			InsPlan aptInsPlan1=InsPlans.GetPlan(AptCur.InsPlan1,PlanList);//we only care about lining the fees up with the primary insurance plan
 			bool updateProcFees=false;
 			if(AptCur.AptStatus!=ApptStatus.Complete && (_selectedProvNum!=AptOld.ProvNum || _selectedProvHygNum!=AptOld.ProvHyg)) {//Either the primary or hygienist changed.
 				List<Procedure> listNewProcs=gridProc.SelectedIndices.Select(x => Procedures.UpdateProcInAppointment(AptCur,((Procedure)gridProc.Rows[x].Tag).Copy())).ToList();
 				List<Procedure> listOldProcs=gridProc.SelectedIndices.Select(x => ((Procedure)gridProc.Rows[x].Tag).Copy()).ToList();
+				ProcFeeHelper procFeeHelper=new ProcFeeHelper(AptCur.PatNum);
 				string promptText="";
-				updateProcFees=Procedures.ShouldFeesChange(listNewProcs,listOldProcs,aptInsPlan1,ref promptText);
+				updateProcFees=Procedures.ShouldFeesChange(listNewProcs,listOldProcs,ref promptText,procFeeHelper);
 				if(updateProcFees && promptText!="" && !MsgBox.Show(this,MsgBoxButtons.YesNo,promptText)) {
 					updateProcFees=false;
 				}

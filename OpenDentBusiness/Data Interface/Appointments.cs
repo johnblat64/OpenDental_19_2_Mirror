@@ -3621,19 +3621,19 @@ namespace OpenDentBusiness{
 				if(procsForSingleApt==null) {
 					procsForSingleApt=Procedures.GetProcsForSingle(apt.AptNum,false);
 				}
-				InsPlan aptInsPlan1 = InsPlans.GetPlan(apt.InsPlan1,null);//we only care about lining the fees up with the primary insurance plan
+				ProcFeeHelper procFeeHelper=new ProcFeeHelper(apt.PatNum);
 				bool isUpdatingFees=false;
 				List<Procedure> listProcsNew=procsForSingleApt.Select(x => Procedures.UpdateProcInAppointment(apt,x.Copy())).ToList();
 				if(procsForSingleApt.Exists(x => x.ProvNum!=listProcsNew.FirstOrDefault(y => y.ProcNum==x.ProcNum).ProvNum)) {//Either the primary or hygienist changed.
 					string promptText="";
-					isUpdatingFees=Procedures.ShouldFeesChange(listProcsNew,procsForSingleApt,aptInsPlan1,ref promptText);
+					isUpdatingFees=Procedures.ShouldFeesChange(listProcsNew,procsForSingleApt,ref promptText,procFeeHelper);
 					if(isUpdatingFees) {//Made it pass the pref check.
 						if(promptText!=""){
 								isUpdatingFees=false;
 						}
 					}
 				}
-				Procedures.SetProvidersInAppointment(apt,procsForSingleApt,isUpdatingFees);
+				Procedures.SetProvidersInAppointment(apt,procsForSingleApt,isUpdatingFees,procFeeHelper);
 			}
 			#endregion
 			#region SecurityLog
