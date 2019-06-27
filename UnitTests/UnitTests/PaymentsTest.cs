@@ -890,29 +890,34 @@ namespace UnitTests.Payments_Tests {
 			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountOriginal==-50 && x.AmountStart==0 && x.AmountEnd==0 && x.ProvNum==provB).Count);
 		}
 
-		///<summary>Make sure if a procedure has been paid by an incorrect provider and a negative unallocated split was made to counteract that payment that the procedure shows as owing money still.</summary>
+		///<summary>Make sure if a procedure has been paid by an incorrect provider and a negative unallocated split was made to counteract that payment that
+		///the procedure shows as owing money still.</summary>
 		[TestMethod]
 		public void PaymentEdit_UnlinkedIncomeXferShowsProcOwingMoney() {
 			//Make a procedure for Provider A
 			//Make a payment on that procedure (in full) for Provider B
 			//"Correct" the mistake by creating a negative split for Provider B, but unattached
 			//When making another payment it should show the procedure as owing money for Provider A (instead of owing none)
-			//I am unconvinced that this is proper display even if the "money was removed from the provider" - they aren't linked so....
 			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
 			long provA=ProviderT.CreateProvider("ProvA");
 			long provB=ProviderT.CreateProvider("ProvB");
 			Procedure proc=ProcedureT.CreateProcedure(pat,"D1120",ProcStat.C,"",50,provNum:provA);
 			PaySplit wrongSplit=PaySplitT.CreateSplit(proc.ClinicNum,pat.PatNum,0,0,proc.ProcDate,proc.ProcNum,provB,50,0);
 			PaySplit incorrectXferSplit=PaySplitT.CreateSplit(proc.ClinicNum,pat.PatNum,0,0,proc.ProcDate,0,provB,-50,0);
-			//In income xfer mode it'll show that there is a proc owing money and the others will counteract each other since it's on correct pat/prov/clinic.
+			//In income xfer mode it'll show that there is a proc owing money.
 			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
 			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
 				payCur,new List<AccountEntry>(),true,false);
-			//Make sure that the logic creates two charges - One for the procedure (original, start, and end are 100) and one for the claimproc paid by total (original, start, and end are -50).
+			//Make sure that the logic creates 3 charges - One for the procedure (original, start, and end are 50) 
+			//One for the wrongSplit paid to the procedure but wrong provider (original, start, and end are -50)
+			//One for the incorrectXferSplit that the user created to "Correct" the wrong split.(original, start, and end are 50). This charge gets created
+			//because when we implicitly link credits we assume that the "wrongSplit" was already allocated when we explicitly linked the procedures. 
+			//i.e the wrong split is associated to the proc but with the wrong provider. The logic does not associate the split to the procedure. When we try to 
+			//implicitly link incorrectXferSplit with the wrongSplit, we can't since wrongSplit has an attached procedure.
 			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==50 && x.AmountEnd==50).Count);
-			Assert.AreEqual(2,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountEnd==0).Count);
-			//Although it will want to transfer money onto the procedure and cause it to be overallocated, this is 100% user error and is not something we can 
-			//code for.  The user needs to either unattach the paysplit on the procedure, attach the negative split on the procedure, or delete both splits.
+			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountEnd==50).Count);
+			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountEnd==-50).Count);
+			//The user needs to either unattach the paysplit on the procedure, attach the negative split on the procedure, or delete both splits.
 		}
 
 		///<summary>Make sure if there are counteracting adjustments on a procedure that they counteract each other for income transfers (are not valid sources of transfer).</summary>
