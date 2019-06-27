@@ -107,6 +107,7 @@ namespace OpenDental{
 			butECards.Visible=true;
 #endif
 			checkGroupFamilies.Checked=PrefC.GetBool(PrefName.RecallGroupByFamily);
+			checkReactGroupFamilies.Checked=PrefC.GetBool(PrefName.ReactivationGroupByFamily);
 			//Fill sort types
 			for(int i=0;i<Enum.GetNames(typeof(RecallListSort)).Length;i++){
 				comboSort.Items.Add(Lan.g("enumRecallListSort",Enum.GetNames(typeof(RecallListSort))[i]));
