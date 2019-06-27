@@ -109,11 +109,6 @@ namespace OpenDental{
 			object[] parameters = { retVal };
 			Plugins.HookAddCode(null,"PatientL.GetMainTitle_beginning",parameters);
 			retVal = (string)parameters[0];
-			//Figure out if the patient passed in is different than the currently selected patient.
-			bool hasPatChanged=((_patSelectedCur==null && pat!=null)
-				|| (_patSelectedCur!=null && pat==null)
-				|| (_patSelectedCur!=null && pat!=null && _patSelectedCur.PatNum!=pat.PatNum)
-			);
 			_patSelectedCur=pat;
 			_clinSelectedCur=clinicNum;
 			if(PrefC.HasClinicsEnabled && clinicNum>0) {
@@ -138,10 +133,8 @@ namespace OpenDental{
 				return retVal;
 			}
 			retVal+=" - "+pat.GetNameLF();
-			//A query is required to get the Specialty for the selected patient so only run this code if the patient has changed.
-			if(PrefC.GetBool(PrefName.TitleBarShowSpecialty) && hasPatChanged) {
-				string specialty=Patients.GetPatientSpecialtyDef(pat.PatNum)?.ItemName??"";
-				retVal+=string.IsNullOrWhiteSpace(specialty)?"":" ("+specialty+")";
+			if(PrefC.GetBool(PrefName.TitleBarShowSpecialty)) {
+				retVal+=string.IsNullOrWhiteSpace(pat.Specialty) ? "" : " ("+pat.Specialty+")";
 			}
 			if(PrefC.GetLong(PrefName.ShowIDinTitleBar)==1) {
 				retVal+=" - "+pat.PatNum.ToString();
@@ -195,8 +188,7 @@ namespace OpenDental{
 			}
 			retVal+=" - "+_patSelectedCur.GetNameLF();
 			if(PrefC.GetBool(PrefName.TitleBarShowSpecialty)) {
-				string specialty=Patients.GetPatientSpecialtyDef(_patSelectedCur.PatNum)?.ItemName??"";
-				retVal+=string.IsNullOrWhiteSpace(specialty)?"":" ("+specialty+")";
+				retVal+=string.IsNullOrWhiteSpace(_patSelectedCur.Specialty) ? "" : " ("+_patSelectedCur.Specialty+")";
 			}
 			if(PrefC.GetLong(PrefName.ShowIDinTitleBar)==1) {
 				retVal+=" - "+_patSelectedCur.PatNum.ToString();
@@ -221,6 +213,15 @@ namespace OpenDental{
 				retVal+=" <TESTING MODE ENABLED> ";
 			}
 			return retVal;
+		}
+
+		///<summary>Sets the cached patient specialty to null so that the main title will refresh the specialty from the database if there is a valid
+		///patient selected.</summary>
+		public static void InvalidateSelectedPatSpecialty() {
+			if(_patSelectedCur==null) {
+				return;
+			}
+			_patSelectedCur.Specialty=null;
 		}
 
 		public static string MainTitleUpdateCountdown(string titleText = "") {

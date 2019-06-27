@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Xml.Serialization;
@@ -214,6 +215,11 @@ namespace OpenDentBusiness{
 		/////earliest one.  Used mostly to exclude patients from recall lists.  If you want all future appointments, use Appointments.GetForPat() 
 		/////instead. You can loop through that list and exclude appointments with dates earlier than today.</summary>
 		//public DateTime DateScheduled;
+		///<summary>Not in the database table.  The specialty is stored in the deflink table which is not cached.
+		///This field will be lazy loaded (specialty feature might not be enabled) when the Specialty property is used.
+		///Having this field around will save the main window title from running a query every second to get the patient specialty.</summary>
+		[CrudColumn(IsNotDbColumn=true)]
+		private string _specialty;
 
 		///<summary>Used only for serialization purposes</summary>
 		[XmlElement("SchedBeforeTime",typeof(long))]
@@ -254,6 +260,21 @@ namespace OpenDentBusiness{
 			}
 			set {//for backwards cvompatibility
 				_age=value;
+			}
+		}
+
+		///<summary>The specialty is stored in the deflink table which is not cached. This will lazy load the patient specialty.
+		///Having this property around will save the main window title from running a query every second to get the patient specialty.</summary>
+		[XmlIgnore, JsonIgnore]
+		public string Specialty {
+			get {
+				if(_specialty==null) {
+					_specialty=Patients.GetPatientSpecialtyDef(PatNum)?.ItemName??"";
+				}
+				return _specialty;
+			}
+			set {
+				_specialty=value;
 			}
 		}
 

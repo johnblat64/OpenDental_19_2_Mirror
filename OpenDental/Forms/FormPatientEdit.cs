@@ -3080,6 +3080,8 @@ namespace OpenDental{
 				defLinkNew.LinkType=DefLinkType.Patient;
 				DefLinks.Insert(defLinkNew);
 			}
+			//The specialty could have changed so invalidate the cached specialty on the currently selected patient object in PatientL.cs
+			PatientL.InvalidateSelectedPatSpecialty();
 			if(!IsNew) {
 				Patients.InsertAddressChangeSecurityLogEntry(PatOld,PatCur);
 				PatientEvent.Fire(ODEventType.Patient,PatCur);

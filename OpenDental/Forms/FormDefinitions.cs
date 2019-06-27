@@ -385,6 +385,8 @@ namespace OpenDental{
 			}
 			listDefUpdates.ForEach(x => Defs.Update(x));
 			if(_isDefChanged || listDefUpdates.Count>0) {
+				//A specialty could have been renamed, invalidate the specialty associated to the currently selected patient just in case.
+				PatientL.InvalidateSelectedPatSpecialty();
 				DataValid.SetInvalid(InvalidType.Defs);
 			}
 		}
