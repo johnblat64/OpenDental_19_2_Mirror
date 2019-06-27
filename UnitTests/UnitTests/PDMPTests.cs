@@ -18,7 +18,9 @@ namespace UnitTests {
 	public class PDMPTests:TestBase {
 		[ClassInitialize]
 		public static void SetupClass(TestContext testContext) {
-			//Add anything here that you want to run once before the tests in this class run.
+			IntrospectionT.UpsertPref(new Dictionary<Introspection.IntrospectionEntity,string>() {
+				{ Introspection.IntrospectionEntity.PDMPDebugURL,"https://openid.logicoy.com/ilpdmp/test/getReport" },
+			});
 		}
 
 		[TestInitialize]
