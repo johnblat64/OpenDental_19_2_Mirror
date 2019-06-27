@@ -751,6 +751,16 @@ namespace OpenDentBusiness
 			eb09.Add(new EB09("VS","Visits",BenefitQuantity.Visits));
 			eb09.Add(new EB09("YY","Years",BenefitQuantity.Years));
 		}
+
+		///<summary>Returns the description for the given EB01 code.
+		///If given code is not valid then null is returned.</summary>
+		public string GetEB01Description(string code){
+			EB01 eb=eb01.FirstOrDefault(x => x.Code==code);
+			if(eb==null){
+				return null;
+			}
+			return eb.Descript;
+		}
 		
 		///<summary>Attempts to return a matched PrefName based on given value from 271 MSG segment.</summary>
 		///<param name="msgVal">The MSG01 value.</param>

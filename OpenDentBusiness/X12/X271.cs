@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using CodeBase;
+using System.Linq;
 
 namespace OpenDentBusiness
 {
@@ -176,5 +178,43 @@ namespace OpenDentBusiness
 			return validationErrors;
 		}
 
+		internal bool IsValidForBatchVerification(bool isCoinsuranceInverted,out string errorMsg) {
+			errorMsg=this.GetProcessingError();
+			if(errorMsg!=""){
+				return false;
+			}
+			//true=>isInNetwork. The is inNetwork segment flag is optional.
+			//Patients care about in network coverage because that is how they save the most money.
+			//If they want to see out of network benefits they can do this manually from FormInsPlan.cs.
+			List<EB271> listBenefits=GetListEB(true,isCoinsuranceInverted);
+			if(listBenefits.Count==0){
+				errorMsg="No benefits reported.";
+				return false;
+			}
+			else if(listBenefits.Count==1){
+				EB271 eb271=listBenefits[0];
+				switch(eb271.Segment.Elements[1]){
+					case "U"://Contact Following Entity for Information for Eligibility or Benefit Information
+						errorMsg="Contact carrier for more information.";//There will be an MSG segment following this.
+						X12Segment msgSegment=eb271.SupplementalSegments.FirstOrDefault(x => x.SegmentID=="MSG");
+						if(msgSegment!=null){
+							errorMsg+="\r\n"+msgSegment.Get(1);
+						}
+						break;
+					//The following codes have not been reported as of yet.
+					case "6"://Inactive
+					case "7"://Inactive - Pending Eligibility Update
+					case "8"://Inactive - Pending Investigation
+					case "T"://Card(s) Reported Lost/Stolen
+					case "V"://Cannot Process
+						errorMsg=eb271.GetEB01Description(eb271.Segment.Elements[1]);//Returns null if given code is not known.
+						break;
+					default:
+						//Intentionally blank, most other EB01 codes are not easily identified as errors.
+						break;
+				}
+			}
+			return (errorMsg.IsNullOrEmpty());
+		}
 	}
 }

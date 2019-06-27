@@ -498,18 +498,21 @@ namespace OpenDentBusiness{
 					);//Can be null
 				}
 				if(errorStatus.IsNullOrEmpty()) {//No error yet.
-					if(etransRequest==null) {//Should not happen if errorStatus is not null or empty, just in case.
+					if(etransRequest==null) {//Can happen when an AAA segment is returned.
 						errorStatus=Lans.g("InsVerifyService","Unexpected carrier response.");
 					}
 					else {//Success, no errors so far and etrans returned
 						#region Verify Plan End dates
 						//AckEtrans and MessageText are not DB columns but are always set in x270.RequestBenefits(...). This is done to avoid queries.
 						X271 x271=new X271(etransRequest.AckEtrans.MessageText);
-						List<DTP271> listPlanEndDates=x271.GetListDtpSubscriber().FindAll(x => x.Segment.Get(1)=="347");//347 => Plan End.
-						if(listPlanEndDates.Count>0) {
-							DateTime planEndDate=X12Parse.ToDate(listPlanEndDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectonic_Click(...)
-							if(planEndDate<DateTime.Today) {
-								errorStatus=Lans.g("InsVerifyService","Inactive coverage");
+						//Sets errorStatus if validation failed, otherwise blank string.
+						if(x271.IsValidForBatchVerification(dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum].IsCoinsuranceInverted,out errorStatus)){
+							List<DTP271> listPlanEndDates=x271.GetListDtpSubscriber().FindAll(x => x.Segment.Get(1)=="347");//347 => Plan End.
+							if(listPlanEndDates.Count>0) {
+								DateTime planEndDate=X12Parse.ToDate(listPlanEndDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectonic_Click(...)
+								if(planEndDate<DateTime.Today) {
+									errorStatus=Lans.g("InsVerifyService","Inactive coverage");
+								}
 							}
 						}
 						#endregion
