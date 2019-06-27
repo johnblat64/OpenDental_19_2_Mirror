@@ -172,9 +172,7 @@ namespace OpenDental {
 			else {
 				PaySplitCur.ProvNum=0;
 			}
-			if(_isEditAnyway || PrefC.GetInt(PrefName.RigorousAccounting)!=(int)RigorousAccounting.EnforceFully 
-				|| PrefC.GetBool(PrefName.AllowPrepayProvider)) 
-			{
+			if(_isEditAnyway || PrefC.GetBool(PrefName.AllowPrepayProvider)) {
 				return;
 			}
 			if(PaySplitCur.ProvNum>0) {
@@ -194,9 +192,7 @@ namespace OpenDental {
 			else {
 				PaySplitCur.UnearnedType=0;
 			}
-			if(_isEditAnyway || PrefC.GetInt(PrefName.RigorousAccounting)!=(int)RigorousAccounting.EnforceFully 
-				|| PrefC.GetBool(PrefName.AllowPrepayProvider)) 
-			{
+			if(_isEditAnyway || PrefC.GetBool(PrefName.AllowPrepayProvider)) {
 				return;
 			}
 			if(PaySplitCur.UnearnedType>0) {//If they use an unearned type the provnum must be zero if Edit Anyway isn't pressed
@@ -682,7 +678,7 @@ namespace OpenDental {
 			if(isNegSplit) {//if negative then we're allocating money from the original prepayment.
 				butAttachProc.Enabled=false;
 				butDetachProc.Enabled=false;
-				if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully && !PrefC.GetBool(PrefName.AllowPrepayProvider)) {
+				if(!PrefC.GetBool(PrefName.AllowPrepayProvider)) {
 					comboProvider.Enabled=false;
 					butPickProv.Enabled=false;  
 				}
@@ -803,6 +799,17 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return false;
 			}
+			//check for TP pre-pay changes. If money has been detached from procedure it needs to be transferred to regular unearned if had been hidden.
+			if(_procedureOld!=null && _procedureOld.ProcStatus==ProcStat.TP && ProcCur==null && !string.IsNullOrEmpty(_unearnedOld?.ItemValue)) {
+				//user has detached the hidden paysplit 
+				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Hidden split is no longer attached to a procedure. Change unearned type to default?")) {
+					comboUnearnedTypes.SetSelectedItem<Def>(x => x.DefNum==PrefC.GetLong(PrefName.PrepaymentUnearnedType),"");
+					PaySplitCur.UnearnedType=comboUnearnedTypes.SelectedTag<Def>().DefNum;
+				}
+				if(!PrefC.GetBool(PrefName.AllowPrepayProvider)) {
+					PaySplitCur.ProvNum=0;
+				}
+			}
 			double amount=PIn.Double(textAmount.Text);
 			if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully && PaySplitCur.UnearnedType!=0 && ProcCur!=null 
 				&& !_isEditAnyway && ProcCur.ProcStatus!=ProcStat.TP) 
@@ -850,6 +857,13 @@ namespace OpenDental {
 					MsgBox.Show(this,"Procedure provider and original paysplit provider do not match.");
 					return false;
 				}
+			}
+			else if(comboUnearnedTypes.SelectedIndex==0 && comboProvider.SelectedIndex==0) {
+				MsgBox.Show(this,"Please select an unearned type or a provider.");
+				return false;
+			}
+			//at this point in time, TP procs are allowed to have providers even if provs are typically not allowed on prepayments.
+			if((ProcCur==null || ProcCur.ProcStatus==ProcStat.C) && PaySplitCur.UnearnedType!=0) {
 				if(PaySplitCur.ProvNum>0 && !PrefC.GetBool(PrefName.AllowPrepayProvider)) {
 					PaySplitCur.UnearnedType=0;
 				}
@@ -868,26 +882,10 @@ namespace OpenDental {
 					}
 				}
 			}
-			else if(comboUnearnedTypes.SelectedIndex==0 && comboProvider.SelectedIndex==0) {//may want to change this to match the above in the future.
-				MsgBox.Show(this,"Please select an unearned type or a provider.");
-				return false;
-			}
 			return true;
 		}
 
 		private void butOK_Click(object sender, System.EventArgs e) {
-			//check for TP pre-pay changes. If money has been detached from procedure it needs to be transferred to regular unearned if had been hidden.
-			if(_procedureOld!=null && _procedureOld.ProcStatus==ProcStat.TP && ProcCur==null && !string.IsNullOrEmpty(_unearnedOld.ItemValue)) {
-				//&& (comboUnearnedTypes.SelectedTag<Def>().ItemValue=="" || comboUnearnedTypes.SelectedIndex==0)
-				//user has detached the hidden paysplit 
-				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Hidden split is no longer attached to a procedure. Change unearned type to default?")) {
-					comboUnearnedTypes.SetSelectedItem<Def>(x => x.DefNum==PrefC.GetLong(PrefName.PrepaymentUnearnedType),"");
-					PaySplitCur.UnearnedType=comboUnearnedTypes.SelectedTag<Def>().DefNum;
-				}
-				if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully && !PrefC.GetBool(PrefName.AllowPrepayProvider)) {
-					PaySplitCur.ProvNum=0;
-				}
-			}
 			if(!IsValid()) {
 				return;
 			}

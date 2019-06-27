@@ -1480,6 +1480,12 @@ namespace OpenDentBusiness {
 				'Location ID', 
 				'')";
 			Db.NonQ(command);
+			command="SELECT ValueString FROM preference WHERE PrefName='RigorousAccounting'";
+			int intValue=Db.GetInt(command);//Rigorous accounting has three selection options Don't Enforce(2), AutoSplitOnly(1), EnforceFully(0)
+			if(intValue==1 || intValue==2) {//if 1 or 2, prepayments to providers were always allowed. 
+				command="UPDATE preference SET ValueString='1' WHERE PrefName='AllowPrepayProvider'";
+				Db.NonQ(command);
+			}
 		}
 	}
 }

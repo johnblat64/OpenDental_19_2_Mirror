@@ -177,7 +177,7 @@ namespace OpenDental{
 					brokenProcedure.ProvNum);
 					brokenProcedure.ProcFee=Math.Max(provFee,procFee);
 				}
-				else if(listSplitsForApptProcs.Count>0 && PrefC.IsPrePayAllowedForTpProcs && procCode.ProcCode=="D9986") {
+				else if(listSplitsForApptProcs.Count>0 && PrefC.GetBool(PrefName.TpPrePayIsNonRefundable) && procCode.ProcCode=="D9986") {
 					//if there are pre-payments, non-refundable pre-payments is turned on, and the broken appointment is a missed code then auto-fill 
 					//the window with the sum of the procs for the appointment. Transfer money below after broken procedure is confirmed by the user.
 					brokenProcedure.ProcFee=listSplitsForApptProcs.Sum(x => x.SplitAmt);

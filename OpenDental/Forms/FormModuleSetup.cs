@@ -705,6 +705,7 @@ namespace OpenDental{
 			this.radioImagesModuleTreeIsCollapsed = new System.Windows.Forms.RadioButton();
 			this.radioImagesModuleTreeIsExpanded = new System.Windows.Forms.RadioButton();
 			this.tabManage = new System.Windows.Forms.TabPage();
+			this.checkEraAllowTotalPayment = new System.Windows.Forms.CheckBox();
 			this.checkIncludeEraWOPercCoPay = new System.Windows.Forms.CheckBox();
 			this.checkClockEventAllowBreak = new System.Windows.Forms.CheckBox();
 			this.textClaimsReceivedDays = new OpenDental.ValidNumber();
@@ -737,7 +738,6 @@ namespace OpenDental{
 			this.checkRxSendNewToQueue = new System.Windows.Forms.CheckBox();
 			this.butCancel = new OpenDental.UI.Button();
 			this.butOK = new OpenDental.UI.Button();
-			this.checkEraAllowTotalPayment = new System.Windows.Forms.CheckBox();
 			this.tabControlMain.SuspendLayout();
 			this.tabAppts.SuspendLayout();
 			this.tabControlAppts.SuspendLayout();
@@ -1968,7 +1968,6 @@ namespace OpenDental{
 			this.checkAllowPrepayProvider.Text = "Allow prepayments to providers";
 			this.checkAllowPrepayProvider.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAllowPrepayProvider.UseVisualStyleBackColor = true;
-			this.checkAllowPrepayProvider.Visible = false;
 			// 
 			// comboPayPlanAdj
 			// 
@@ -2052,7 +2051,6 @@ namespace OpenDental{
 			this.comboRigorousAccounting.Name = "comboRigorousAccounting";
 			this.comboRigorousAccounting.Size = new System.Drawing.Size(163, 21);
 			this.comboRigorousAccounting.TabIndex = 241;
-			this.comboRigorousAccounting.SelectedIndexChanged += new System.EventHandler(this.comboRigorousAccounting_SelectedIndexChanged);
 			// 
 			// label39
 			// 
@@ -2605,7 +2603,6 @@ namespace OpenDental{
 			// textRepeatingChargesAutomatedTime
 			// 
 			this.textRepeatingChargesAutomatedTime.Enabled = false;
-			this.textRepeatingChargesAutomatedTime.IsShortTimeString = false;
 			this.textRepeatingChargesAutomatedTime.Location = new System.Drawing.Point(371, 52);
 			this.textRepeatingChargesAutomatedTime.Name = "textRepeatingChargesAutomatedTime";
 			this.textRepeatingChargesAutomatedTime.Size = new System.Drawing.Size(68, 20);
@@ -2698,7 +2695,6 @@ namespace OpenDental{
 			// 
 			// textRecurringChargesTime
 			// 
-			this.textRecurringChargesTime.IsShortTimeString = false;
 			this.textRecurringChargesTime.Location = new System.Drawing.Point(371, 69);
 			this.textRecurringChargesTime.Name = "textRecurringChargesTime";
 			this.textRecurringChargesTime.Size = new System.Drawing.Size(68, 20);
@@ -4233,6 +4229,17 @@ namespace OpenDental{
 			this.tabManage.TabIndex = 6;
 			this.tabManage.Text = "Manage";
 			// 
+			// checkEraAllowTotalPayment
+			// 
+			this.checkEraAllowTotalPayment.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkEraAllowTotalPayment.FlatStyle = System.Windows.Forms.FlatStyle.System;
+			this.checkEraAllowTotalPayment.Location = new System.Drawing.Point(19, 503);
+			this.checkEraAllowTotalPayment.Name = "checkEraAllowTotalPayment";
+			this.checkEraAllowTotalPayment.Size = new System.Drawing.Size(421, 17);
+			this.checkEraAllowTotalPayment.TabIndex = 252;
+			this.checkEraAllowTotalPayment.Text = "ERAs allow total payments";
+			this.checkEraAllowTotalPayment.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// checkIncludeEraWOPercCoPay
 			// 
 			this.checkIncludeEraWOPercCoPay.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -4594,17 +4601,6 @@ namespace OpenDental{
 			this.butOK.TabIndex = 7;
 			this.butOK.Text = "&OK";
 			this.butOK.Click += new System.EventHandler(this.butOK_Click);
-			// 
-			// checkEraAllowTotalPayment
-			// 
-			this.checkEraAllowTotalPayment.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkEraAllowTotalPayment.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkEraAllowTotalPayment.Location = new System.Drawing.Point(19, 503);
-			this.checkEraAllowTotalPayment.Name = "checkEraAllowTotalPayment";
-			this.checkEraAllowTotalPayment.Size = new System.Drawing.Size(421, 17);
-			this.checkEraAllowTotalPayment.TabIndex = 252;
-			this.checkEraAllowTotalPayment.Text = "ERAs allow total payments";
-			this.checkEraAllowTotalPayment.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// FormModuleSetup
 			// 
@@ -5321,17 +5317,6 @@ namespace OpenDental{
 		private void comboCobRule_SelectionChangeCommitted(object sender,EventArgs e) {
 			if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Would you like to change the COB rule for all existing insurance plans?")) {
 				InsPlans.UpdateCobRuleForAll((EnumCobRule)comboCobRule.SelectedIndex);
-			}
-		}
-
-		private void comboRigorousAccounting_SelectedIndexChanged(object sender,EventArgs e) {
-			if(comboRigorousAccounting.SelectedIndex==(int)RigorousAccounting.EnforceFully) {
-				checkAllowPrepayProvider.Visible=true;
-				checkAllowPrepayProvider.Checked=PrefC.GetBool(PrefName.AllowPrepayProvider);
-			}
-			else {
-				checkAllowPrepayProvider.Visible=false;
-				checkAllowPrepayProvider.Checked=false;
 			}
 		}
 
