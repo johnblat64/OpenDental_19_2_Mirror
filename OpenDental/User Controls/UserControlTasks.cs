@@ -65,8 +65,8 @@ namespace OpenDental {
 		private Action _actionChatToggle=null;
 		///<summary>Defines which filter type is currently in use for filtering the Task grid.</summary>
 		private GlobalTaskFilterType _globalFilterType;
-		///<summary>Foreign key to either a Clinic or a Region Def.  Indicates current filter on the selected TaskList.</summary>
-		private long _filterFkey;
+		///<summary>Foreign keys to either a Clinic or a Region Def.  Indicates current filter on the selected TaskList.</summary>
+		private List<long> _listFilterFkeys;
 		///<summary>Defined here so we can change the text on this button depending on filer setting.</summary>
 		private ODToolBarButton _butFilter;
 
@@ -318,7 +318,7 @@ namespace OpenDental {
 				_listTasks=new List<Task>();
 			}
 			_listTasks.Clear();
-			_listTasks=Tasks.RefreshChildren(_TriageListNum,false,cal.SelectionStart,Security.CurUser.UserNum,0,TaskType.All,_globalFilterType,_filterFkey);
+			_listTasks=Tasks.RefreshChildren(_TriageListNum,false,cal.SelectionStart,Security.CurUser.UserNum,0,TaskType.All,_globalFilterType,_listFilterFkeys);
 			FillTree();
 			FillGrid();
 			gridMain.Focus();//Allow immediate mouse wheel scroll when loading triage list, no click required
@@ -401,10 +401,10 @@ namespace OpenDental {
 			if(tree.SelectedNode!=null) {
 				switch(_globalFilterType) {
 					case GlobalTaskFilterType.Clinic:
-						tree.SelectedNode.Text+="(filtering by [Clinic:"+Clinics.GetAbbr(_filterFkey)+"])";
+						tree.SelectedNode.Text+="(filtering by [Clinic(s):"+string.Join(",",_listFilterFkeys.Select(x => Clinics.GetAbbr(x)))+"])";
 						break;
 					case GlobalTaskFilterType.Region:
-						tree.SelectedNode.Text+="(filtering by [Region:"+Defs.GetName(DefCat.Regions,_filterFkey)+"])";
+						tree.SelectedNode.Text+="(filtering by [Region(s):"+string.Join(",",_listFilterFkeys.Select(x => Defs.GetName(DefCat.Regions,x)))+"])";
 						break;
 					case GlobalTaskFilterType.None:
 					default:
@@ -458,14 +458,14 @@ namespace OpenDental {
 			globalFilterType=DowngradeFilterTypeIfNeeded(globalFilterType);
 			switch(globalFilterType) {
 				case GlobalTaskFilterType.None:
-					SetFilters(GlobalTaskFilterType.None,0);
+					SetFilters(GlobalTaskFilterType.None,new List<long> { 0 });
 					break;
 				case GlobalTaskFilterType.Clinic:
-					SetFilters(GlobalTaskFilterType.Clinic,Clinics.ClinicNum);//Default to currently selected clinic.
+					SetFilters(GlobalTaskFilterType.Clinic,new List<long> { Clinics.ClinicNum });//Default to currently selected clinic.
 					break;
 				case GlobalTaskFilterType.Region:
 					//Default to currently selected clinic's region.  Use 0 if no region defined.
-					SetFilters(GlobalTaskFilterType.Region,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
+					SetFilters(GlobalTaskFilterType.Region,new List<long> { Clinics.GetClinic(Clinics.ClinicNum)?.Region??0 });
 					break;
 				case GlobalTaskFilterType.Disabled:
 					FillTree();
@@ -485,10 +485,10 @@ namespace OpenDental {
 			return globalFilterType;
 		}
 
-		private void SetFilters(GlobalTaskFilterType globalFilterType,long filterFkey) {
+		private void SetFilters(GlobalTaskFilterType globalFilterType,List<long> listFilterFkeys) {
 			bool isChangingFilterType=(_globalFilterType!=globalFilterType);
 			_globalFilterType=globalFilterType;
-			_filterFkey=filterFkey;
+			_listFilterFkeys=listFilterFkeys;
 			if(isChangingFilterType && _butFilter!=null) {
 				if(_globalFilterType==GlobalTaskFilterType.None) {
 					_butFilter.Text="Unfiltered";
@@ -509,7 +509,7 @@ namespace OpenDental {
 
 		///<summary>Allows the user to temporarily turn of Filtering.</summary>
 		private void menuItemFilterNone_Click(object sender,EventArgs e) {
-			SetFilters(GlobalTaskFilterType.None,0);//Fills Tree and Grid
+			SetFilters(GlobalTaskFilterType.None,new List<long>{ 0 });//Fills Tree and Grid
 		}
 
 		///<summary>Allows the user to temporarily select a different Clinic to filter by.  Only allows user choices from unrestricted Clinics.</summary>
@@ -524,11 +524,11 @@ namespace OpenDental {
 				row.Tag=x.ClinicNum;
 				listGridRows.Add(row);
 			});
-			FormGridSelection formSelect=new FormGridSelection(listGridCols,listGridRows,"Select a Clinic","Clinics");
+			FormGridSelection formSelect=new FormGridSelection(listGridCols,listGridRows,"Select a Clinic","Clinics",GridSelectionMode.MultiExtended);
 			if(formSelect.ShowDialog()!=DialogResult.OK) {
 				return;
 			}
-			SetFilters(GlobalTaskFilterType.Clinic,(long)formSelect.ListSelectedTags[0]);//Fills Tree and Grid
+			SetFilters(GlobalTaskFilterType.Clinic,formSelect.ListSelectedTags.Select(x => (long)x).ToList());//Fills Tree and Grid
 		}
 
 		///<summary>Allows the user to temporarily select a different Region to filter by.  Only allows user choices from Regions associated to 
@@ -546,11 +546,11 @@ namespace OpenDental {
 				row.Tag=regionDef.DefNum;
 				listGridRows.Add(row);
 			});
-			FormGridSelection formSelect=new FormGridSelection(listGridCols,listGridRows,"Select a Region","Regions");
+			FormGridSelection formSelect=new FormGridSelection(listGridCols,listGridRows,"Select a Region","Regions",GridSelectionMode.MultiExtended);
 			if(formSelect.ShowDialog()!=DialogResult.OK) {
 				return;
 			}
-			SetFilters(GlobalTaskFilterType.Region,(long)formSelect.ListSelectedTags[0]);//Fills Tree and Grid
+			SetFilters(GlobalTaskFilterType.Region,formSelect.ListSelectedTags.Select(x => (long)x).ToList());//Fills Tree and Grid
 		}
 
 		///<summary>Causes all instances of UserControlTasks to replace/remove the passed in Task and TaskNotes from the list of currently displayed 
@@ -813,17 +813,17 @@ namespace OpenDental {
 				if(tabContr.SelectedTab==tabDate){
 					repeatingLists=TaskLists.RefreshRepeating(TaskDateType.Day,Security.CurUser.UserNum,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
-					repeatingTasks=Tasks.RefreshRepeating(TaskDateType.Day,Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+					repeatingTasks=Tasks.RefreshRepeating(TaskDateType.Day,Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 				}
 				if(tabContr.SelectedTab==tabWeek){
 					repeatingLists=TaskLists.RefreshRepeating(TaskDateType.Week,Security.CurUser.UserNum,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
-					repeatingTasks=Tasks.RefreshRepeating(TaskDateType.Week,Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+					repeatingTasks=Tasks.RefreshRepeating(TaskDateType.Week,Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 				}
 				if(tabContr.SelectedTab==tabMonth) {
 					repeatingLists=TaskLists.RefreshRepeating(TaskDateType.Month,Security.CurUser.UserNum,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
-					repeatingTasks=Tasks.RefreshRepeating(TaskDateType.Month,Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+					repeatingTasks=Tasks.RefreshRepeating(TaskDateType.Month,Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 				}
 				//loop through list and add back any that meet criteria.
 				changeMade=false;
@@ -1236,7 +1236,7 @@ namespace OpenDental {
 				_listTaskLists=TaskLists.RefreshChildren(parent,Security.CurUser.UserNum,userNumInbox,taskType,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
 				_listTasks=Tasks.RefreshChildren(parent,_isShowFinishedTasks,_dateTimeStartShowFinished,Security.CurUser.UserNum,userNumInbox,taskType,
-					_isTaskSortApptDateTime,_globalFilterType,_filterFkey);
+					_isTaskSortApptDateTime,_globalFilterType,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabUser) {
 				//If HQ clinic or clinics disabled, default to "0" Region.
@@ -1245,55 +1245,55 @@ namespace OpenDental {
 			}
 			else if(tabContr.SelectedTab==tabNew) {
 				_listTaskLists=new List<TaskList>();//no task lists in new tab
-				_listTasks=Tasks.RefreshUserNew(Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+				_listTasks=Tasks.RefreshUserNew(Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 				lock(_listSubscribedTaskListNums) {
 					_listSubscribedTaskListNums=GetSubscribedTaskLists(Security.CurUser.UserNum).Select(x => x.TaskListNum).ToList();
 				}
 			}
 			else if(tabContr.SelectedTab==tabOpenTickets) {
 				_listTaskLists=new List<TaskList>();//no task lists in new tab
-				_listTasks=Tasks.RefreshOpenTickets(Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+				_listTasks=Tasks.RefreshOpenTickets(Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabPatientTickets) {
 				_listTaskLists=new List<TaskList>();
 				_listTasks=new List<Task>();
 				if(FormOpenDental.CurPatNum!=0) {
-					_listTasks=Tasks.RefreshPatientTickets(FormOpenDental.CurPatNum,Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+					_listTasks=Tasks.RefreshPatientTickets(FormOpenDental.CurPatNum,Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 				}
 			}
 			else if(tabContr.SelectedTab==tabMain) {
 				_listTaskLists=TaskLists.RefreshMainTrunk(Security.CurUser.UserNum,TaskType.Normal,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
 				_listTasks=Tasks.RefreshMainTrunk(_isShowFinishedTasks,_dateTimeStartShowFinished,Security.CurUser.UserNum,TaskType.Normal,_globalFilterType
-					,_filterFkey);
+					,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabReminders) {
 				_listTaskLists=TaskLists.RefreshMainTrunk(Security.CurUser.UserNum,TaskType.Reminder,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
 				_listTasks=Tasks.RefreshMainTrunk(_isShowFinishedTasks,_dateTimeStartShowFinished,Security.CurUser.UserNum,TaskType.Reminder
-					,_globalFilterType,_filterFkey);
+					,_globalFilterType,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabRepeating) {
 				_listTaskLists=TaskLists.RefreshRepeatingTrunk(Security.CurUser.UserNum,Clinics.ClinicNum,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
-				_listTasks=Tasks.RefreshRepeatingTrunk(Security.CurUser.UserNum,_globalFilterType,_filterFkey);
+				_listTasks=Tasks.RefreshRepeatingTrunk(Security.CurUser.UserNum,_globalFilterType,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabDate) {
 				_listTaskLists=TaskLists.RefreshDatedTrunk(date,TaskDateType.Day,Security.CurUser.UserNum,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
 				_listTasks=Tasks.RefreshDatedTrunk(date,TaskDateType.Day,_isShowFinishedTasks,_dateTimeStartShowFinished,Security.CurUser.UserNum
-					,_globalFilterType,_filterFkey);
+					,_globalFilterType,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabWeek) {
 				_listTaskLists=TaskLists.RefreshDatedTrunk(date,TaskDateType.Week,Security.CurUser.UserNum,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
 				_listTasks=Tasks.RefreshDatedTrunk(date,TaskDateType.Week,_isShowFinishedTasks,_dateTimeStartShowFinished,Security.CurUser.UserNum
-					,_globalFilterType,_filterFkey);
+					,_globalFilterType,_listFilterFkeys);
 			}
 			else if(tabContr.SelectedTab==tabMonth) {
 				_listTaskLists=TaskLists.RefreshDatedTrunk(date,TaskDateType.Month,Security.CurUser.UserNum,Clinics.ClinicNum
 					,Clinics.GetClinic(Clinics.ClinicNum)?.Region??0);
 				_listTasks=Tasks.RefreshDatedTrunk(date,TaskDateType.Month,_isShowFinishedTasks,_dateTimeStartShowFinished,Security.CurUser.UserNum
-					,_globalFilterType,_filterFkey);
+					,_globalFilterType,_listFilterFkeys);
 			}
 			//notes
 			List<long> taskNums=new List<long>();

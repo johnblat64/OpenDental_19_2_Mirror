@@ -422,10 +422,10 @@ namespace OpenDentBusiness{
 
 		///<summary>Gets all tasks for the main trunk.</summary>
 		public static List<Task> RefreshMainTrunk(bool showDone,DateTime startDate,long currentUserNum,TaskType taskType
-			,GlobalTaskFilterType globalFilterType,long filterFkey=0) 
+			,GlobalTaskFilterType globalFilterType,List<long> listFilterFkeys=null) 
 		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),showDone,startDate,currentUserNum,taskType,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),showDone,startDate,currentUserNum,taskType,globalFilterType,listFilterFkeys);
 			}
 			//startDate only applies if showing Done tasks.
 			string command="SELECT task.*,"
@@ -453,16 +453,16 @@ namespace OpenDentBusiness{
 			else{
 				command+=" AND TaskStatus !="+POut.Long((int)TaskStatusEnum.Done);
 			}
-			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,listFilterFkeys);
 			command+=" ORDER BY DateTimeEntry";
 			DataTable table=Db.GetTable(command);
 			return TableToList(table);
 		}
 
 		///<summary>Gets all 'new' tasks for a user.</summary>
-		public static List<Task> RefreshUserNew(long userNum,GlobalTaskFilterType globalFilterType,long filterFkey=0) {
+		public static List<Task> RefreshUserNew(long userNum,GlobalTaskFilterType globalFilterType,List<long> listFilterFkey=null) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),userNum,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),userNum,globalFilterType,listFilterFkey);
 			}
 			string command="";
 			if(DataConnection.DBtype==DatabaseType.MySql) {
@@ -487,7 +487,7 @@ namespace OpenDentBusiness{
 			command+=BuildFilterJoins(globalFilterType,true);
 			command+="WHERE NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > "+DbHelper.Now()+") "//no future reminders
 				+"AND task.TaskStatus!="+POut.Int((int)TaskStatusEnum.Done)+" ";
-			command+=BuildFilterWhereClause(userNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(userNum,globalFilterType,listFilterFkey);
 			command+="GROUP BY task.TaskNum "//in case there are duplicate unreads
 				+"ORDER BY task.DateTimeEntry";
 			DataTable table=Db.GetTable(command);
@@ -524,9 +524,9 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Gets all 'open ticket' tasks for a user.  An open ticket is a task that was created by this user, is attached to a patient, and is not done.</summary>
-		public static List<Task> RefreshOpenTickets(long userNum,GlobalTaskFilterType globalFilterType,long filterFkey=0) {
+		public static List<Task> RefreshOpenTickets(long userNum,GlobalTaskFilterType globalFilterType,List<long> listFilterFkeys=null) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),userNum,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),userNum,globalFilterType,listFilterFkeys);
 			}
 			string command="SELECT task.*, "
 				+"(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum "
@@ -549,7 +549,7 @@ namespace OpenDentBusiness{
 				+"AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > "+DbHelper.Now()+") "//no future reminders
 				+"AND task.UserNum="+POut.Long(userNum)+" "
 				+"AND TaskStatus!="+POut.Int((int)TaskStatusEnum.Done)+" ";
-			command+=BuildFilterWhereClause(userNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(userNum,globalFilterType,listFilterFkeys);
 			command+="ORDER BY DateTimeEntry";
 			DataTable table=Db.GetTable(command);
 			return TableToList(table);
@@ -557,10 +557,10 @@ namespace OpenDentBusiness{
 
 		///<summary>Gets all 'open ticket' tasks for a patient.  An open ticket is a task that was created with the attached patient and is not done.</summary>
 		public static List<Task> RefreshPatientTickets(long patNum,long currentUserNum=0,
-			GlobalTaskFilterType globalFilterType=GlobalTaskFilterType.None,long filterFkey=0)
+			GlobalTaskFilterType globalFilterType=GlobalTaskFilterType.None,List<long> listFilterFkeys=null)
 		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),patNum,currentUserNum,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),patNum,currentUserNum,globalFilterType,listFilterFkeys);
 			}
 			string command="SELECT task.*, "
 				+"(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum "
@@ -572,16 +572,16 @@ namespace OpenDentBusiness{
 			command+="WHERE task.ObjectType="+POut.Int((int)TaskObjectType.Patient)+" "
 				+"AND task.KeyNum="+POut.Long(patNum)+" "
 				+"AND TaskStatus!="+POut.Int((int)TaskStatusEnum.Done)+" ";
-			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,listFilterFkeys);
 			command+="ORDER BY DateTimeEntry";
 			DataTable table=Db.GetTable(command);
 			return TableToList(table);
 		}
 
 		///<summary>Gets all tasks for the repeating trunk.  Always includes "done".</summary>
-		public static List<Task> RefreshRepeatingTrunk(long currentUserNum,GlobalTaskFilterType globalFilterType,long filterFkey=0) {
+		public static List<Task> RefreshRepeatingTrunk(long currentUserNum,GlobalTaskFilterType globalFilterType,List<long> listFilterFkeys=null) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),currentUserNum,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),currentUserNum,globalFilterType,listFilterFkeys);
 			}
 			string command="SELECT task.*, "
 				+"patient.LName,patient.FName,patient.Preferred "
@@ -592,7 +592,7 @@ namespace OpenDentBusiness{
 				+"AND DateTask < "+POut.Date(new DateTime(1880,01,01))+" "
 				+"AND IsRepeating=1 "
 				+"AND COALESCE(task.ReminderGroupId,'')='' ";//no reminders
-			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,listFilterFkeys);
 			command+="ORDER BY DateTimeEntry";
 			DataTable table=Db.GetTable(command);
 			return TableToList(table);
@@ -601,9 +601,9 @@ namespace OpenDentBusiness{
 		///<summary>0 is not allowed, because that would be a trunk.  
 		///Also, if this is in someone's inbox, then pass in the userNum whose inbox it is in.  If not in an inbox, pass in 0.</summary>
 		public static List<Task> RefreshChildren(long listNum,bool showDone,DateTime startDate,long currentUserNum,long userNumInbox,TaskType taskType,
-			GlobalTaskFilterType globalFilterType=GlobalTaskFilterType.None,long filterFkey=0)
+			GlobalTaskFilterType globalFilterType=GlobalTaskFilterType.None,List<long> listFilterFkey=null)
 		{
-			return RefreshChildren(listNum,showDone,startDate,currentUserNum,userNumInbox,taskType,false,globalFilterType,filterFkey);
+			return RefreshChildren(listNum,showDone,startDate,currentUserNum,userNumInbox,taskType,false,globalFilterType,listFilterFkey);
 		}
 
 		///<summary>0 is not allowed, because that would be a trunk.
@@ -611,11 +611,11 @@ namespace OpenDentBusiness{
 		///If isTaskSortApptDateTime==true and parent task list is an appointment type task list, TaskComparer oders appointment tasks to the top and
 		///then by AptDateTime.</summary>
 		public static List<Task> RefreshChildren(long listNum,bool showDone,DateTime startDate,long currentUserNum,long userNumInbox,TaskType taskType,
-			bool isTaskSortApptDateTime,GlobalTaskFilterType globalFilterType,long filterFkey=0)
+			bool isTaskSortApptDateTime,GlobalTaskFilterType globalFilterType,List<long> listFilterFkey=null)
 		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),listNum,showDone,startDate,currentUserNum,userNumInbox,taskType,
-					isTaskSortApptDateTime,globalFilterType,filterFkey);
+					isTaskSortApptDateTime,globalFilterType,listFilterFkey);
 			}
 			//startDate only applies if showing Done tasks.
 			string command="SELECT task.*, "
@@ -655,7 +655,7 @@ namespace OpenDentBusiness{
 			else {
 				command+=" AND TaskStatus !="+POut.Long((int)TaskStatusEnum.Done);
 			}
-			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,listFilterFkey);
 			command+=" GROUP BY task.TaskNum "//Sorting happens below
 							+" ORDER BY DateTimeEntry";
 			DataTable table=Db.GetTable(command);
@@ -715,9 +715,11 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>All repeating items for one date type with no heirarchy.</summary>
-		public static List<Task> RefreshRepeating(TaskDateType dateType,long currentUserNum,GlobalTaskFilterType globalFilterType,long filterFkey=0) {
+		public static List<Task> RefreshRepeating(TaskDateType dateType,long currentUserNum,GlobalTaskFilterType globalFilterType,
+			List<long> listFilterFkeys=null) 
+		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),dateType,currentUserNum,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),dateType,currentUserNum,globalFilterType,listFilterFkeys);
 			}
 			string command=
 				"SELECT task.*, "
@@ -730,7 +732,7 @@ namespace OpenDentBusiness{
 			command+="WHERE IsRepeating=1 "
 				+"AND COALESCE(task.ReminderGroupId,'')='' "//no reminders
 				+"AND DateType="+POut.Long((int)dateType)+" ";
-			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,listFilterFkeys);
 			command+="ORDER BY DateTimeEntry";
 			DataTable table=Db.GetTable(command);
 			return TableToList(table);
@@ -738,10 +740,10 @@ namespace OpenDentBusiness{
 
 		///<summary>Gets all tasks for one of the 3 dated trunks. startDate only applies if showing Done.</summary>
 		public static List<Task> RefreshDatedTrunk(DateTime date,TaskDateType dateType,bool showDone,DateTime startDate,long currentUserNum
-			,GlobalTaskFilterType globalFilterType,long filterFkey=0) 
+			,GlobalTaskFilterType globalFilterType,List<long> listFilterFkeys=null) 
 		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),date,dateType,showDone,startDate,currentUserNum,globalFilterType,filterFkey);
+				return Meth.GetObject<List<Task>>(MethodBase.GetCurrentMethod(),date,dateType,showDone,startDate,currentUserNum,globalFilterType,listFilterFkeys);
 			}
 			DateTime dateFrom=DateTime.MinValue;
 			DateTime dateTo=DateTime.MaxValue;
@@ -769,7 +771,7 @@ namespace OpenDentBusiness{
 				+" AND DateTask <= "+POut.Date(dateTo)
 				+" AND DateType="+POut.Long((int)dateType)
 				+" AND COALESCE(task.ReminderGroupId,'')='' ";//no reminders
-			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,filterFkey);
+			command+=BuildFilterWhereClause(currentUserNum,globalFilterType,listFilterFkeys);
 			if(showDone){
 				command+=" AND (TaskStatus !="+POut.Long((int)TaskStatusEnum.Done)
 					+" OR DateTimeFinished > "+POut.Date(startDate)+")";//of if done, then restrict date
@@ -799,7 +801,7 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Builds WHERE clauses appropriate to the type of GlobalFilterType.  Returns empty string if not filtering.</summary>
-		private static string BuildFilterWhereClause(long currentUserNum,GlobalTaskFilterType globalFilterType,long filterFkey) {
+		private static string BuildFilterWhereClause(long currentUserNum,GlobalTaskFilterType globalFilterType,List<long> listFilterFkeys) {
 			//Only add WHERE clauses if filtering.  Filtering will never happen if clinics are turned off, because regions link via clinics.
 			if((GlobalTaskFilterType)PrefC.GetInt(PrefName.TasksGlobalFilterType)==GlobalTaskFilterType.Disabled 
 				|| globalFilterType==GlobalTaskFilterType.None || !PrefC.HasClinicsEnabled) 
@@ -808,19 +810,19 @@ namespace OpenDentBusiness{
 			}
 			List<Clinic> listUnrestrictedClinics=Clinics.GetAllForUserod(Userods.GetUser(currentUserNum));
 			List<long> listFkeys=new List<long>() { 0 };//All users can see Tasks associated to HQ clinic or "0" region.
+			listFilterFkeys=listFilterFkeys??new List<long>() { 0 };
 			switch(globalFilterType) {
 				case GlobalTaskFilterType.Clinic:
 					List<long> listUnrestrictedClinicNums=listUnrestrictedClinics.Select(x => x.ClinicNum).ToList();//User can view these clinicnums.
-					if(filterFkey==0) {//filtering using HQ.  Let all unrestricted clinics through the fitler.
+					if(listFilterFkeys.Count==1 && listFilterFkeys.Contains(0)) {//filtering using HQ.  Let all unrestricted clinics through the fitler.
 						listFkeys.AddRange(listUnrestrictedClinicNums);
 					}
-					else if(filterFkey.In(listUnrestrictedClinicNums)) {//Make sure user is not restricted for this clinic.
-						listFkeys.Add(filterFkey);
+					else {//Make sure user is not restricted for these clinics.
+						listFkeys.AddRange(listUnrestrictedClinics.Where(x => x.ClinicNum.In(listFilterFkeys)).Select(x => x.ClinicNum));
 					}
 					break;
 				case GlobalTaskFilterType.Region:
-					List<long> listInRegionUnrestrictedClinicNums=listUnrestrictedClinics.FindAll(x => x.Region==filterFkey).Select(x => x.ClinicNum).ToList();
-					listFkeys.AddRange(listInRegionUnrestrictedClinicNums);
+					listFkeys.AddRange(listUnrestrictedClinics.FindAll(x => x.Region.In(listFilterFkeys)).Select(x => x.ClinicNum));
 					break;
 				case GlobalTaskFilterType.None:
 				default:

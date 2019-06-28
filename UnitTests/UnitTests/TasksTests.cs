@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CodeBase;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenDentBusiness;
 using UnitTestsCore;
@@ -80,7 +81,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -91,8 +93,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshMainTrunk_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix+"2",_patS,_userA);
+			//Filter by clinicN and clinicS
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum,_clinicS.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -114,8 +131,9 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Region,
+				new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -126,8 +144,9 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userNW.UserNum,TaskType.All,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userNW.UserNum,TaskType.All,GlobalTaskFilterType.Region,
+				new List<long> { _clinicNW.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW,_clinicNW.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -137,8 +156,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Region,
+				new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshMainTrunk_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			CreateTasks(suffix+"2",_patS,_userA);
+			//Filter by clinicN.Region
+			List<Task> listTasksActual=Tasks.RefreshMainTrunk(false,DateTime.Now,_userA.UserNum,TaskType.All,GlobalTaskFilterType.Region,
+				new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshMainTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region,
+				_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -150,7 +184,7 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,_taskListUserA.TaskListNum);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -161,8 +195,21 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,_taskListUserA.TaskListNum);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshUserNew_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,_taskListUserA.TaskListNum);
+			CreateTasks(suffix,_patS,_userA,_taskListUserA.TaskListNum);
+			//Filter by clinicN
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum,
+				_clinicS.ClinicNum });
+			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -183,8 +230,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,_taskListUserA.TaskListNum);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region ));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -195,8 +242,8 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW,_taskListUserNW.TaskListNum);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshUserNew(_userNW.UserNum,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=GetNewTasksForUser(_userNW).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userNW.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicNW.Region });
+			List<Task> listTasksExpected=GetNewTasksForUser(_userNW).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userNW,_clinicNW.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -206,8 +253,20 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,_taskListUserA.TaskListNum);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshUserNew_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,_taskListUserA.TaskListNum);
+			CreateTasks(suffix,_patS,_userA,_taskListUserA.TaskListNum);
+			//Filter by clinicN.Region
+			List<Task> listTasksActual=Tasks.RefreshUserNew(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=GetNewTasksForUser(_userA).FindAll(x => IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -219,7 +278,7 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -230,8 +289,22 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshOpenTickets_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA);
+			//Filter by clinicN
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum,_clinicS.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -252,8 +325,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -264,8 +337,8 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userNW.UserNum,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userNW.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicNW.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW,_clinicNW.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -275,8 +348,22 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshOpenTickets_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA);
+			//Filter by clinicN.Region and clinicS.Region
+			List<Task> listTasksActual=Tasks.RefreshOpenTickets(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshOpenTicketsTask(x) 
+				&& IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -288,7 +375,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);//
 			//Filter by clinicN, but look for _patB.  Shouldn't show because in a different clinic.
-			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patS.PatNum,_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patS.PatNum,_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> {_clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -299,8 +387,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshPatientTickets_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA);
+			//Filter by clinicN and clinicS
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum,_clinicN.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -321,8 +424,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN.Region, but look for _patB.  Shouldn't show because in a different region.
-			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patS.PatNum,_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patS.PatNum,_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -333,8 +436,9 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userNW.UserNum,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userNW.UserNum,GlobalTaskFilterType.Region,
+				new List<long> { _clinicNW.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW,_clinicNW.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -344,8 +448,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userA.UserNum,GlobalTaskFilterType.Region,new List<long>{ _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshPatientTickets_RegionFilterTasksFromMultiRegionsDoShow() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA);
+			//Filter by clinicN.Region and clincS.Region
+			List<Task> listTasksActual=Tasks.RefreshPatientTickets(_patN.PatNum,_userA.UserNum,GlobalTaskFilterType.Region,
+				new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshPatientTicketsTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,
+				_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -357,7 +476,7 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,isRepeating:true);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -368,8 +487,22 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,isRepeating:true);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshRepeatingTrunk_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,isRepeating: true);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA,isRepeating: true);
+			//Filter by clinicN and clinicS
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum,_clinicS.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -390,8 +523,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,isRepeating:true);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -402,8 +535,8 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW,isRepeating:true);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userNW.UserNum,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userNW.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicNW.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW,_clinicNW.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -413,8 +546,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,isRepeating:true);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshRepeatingTrunk_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,isRepeating: true);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA,isRepeating: true);
+			//Filter by clinicN.Region
+			List<Task> listTasksActual=Tasks.RefreshRepeatingTrunk(_userA.UserNum,GlobalTaskFilterType.Region,
+				new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTrunkTask(x) 
+				&& IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -428,7 +576,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,taskListNum);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -441,8 +590,25 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,taskListNum);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshChildren_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			long taskListNum=_taskListMain.TaskListNum;
+			long userInbox=TaskLists.GetMailboxUserNum(taskListNum);
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,taskListNum);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA,taskListNum);
+			//Filter by clinicN and clinicS
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum,_clinicS.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -467,8 +633,9 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,taskListNum);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userA, _clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -481,8 +648,9 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW,taskListNum);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userNW.UserNum,userInbox,TaskType.All,false,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userNW.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userNW,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -494,8 +662,26 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,taskListNum);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshChildren_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			long taskListNum=_taskListMain.TaskListNum;
+			long userInbox=TaskLists.GetMailboxUserNum(taskListNum);
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,taskListNum);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,taskListNum);
+			//Filter by clinicN.Region and clinicS.Region
+			List<Task> listTasksActual=Tasks.RefreshChildren(taskListNum,false,DateTime.Today,_userA.UserNum,userInbox,TaskType.All,false,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshChildrenTask(x,taskListNum) && IsTaskInRegionAndUnrestricted(x,_userA,
+				_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -507,7 +693,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,isRepeating:true);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> {_clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -518,8 +705,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,isRepeating:true);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshRepeating_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,isRepeating: true);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA,isRepeating: true);
+			//Filter by clinicN and clinicS
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Clinic,
+				new List<long> { _clinicN.ClinicNum,_clinicS.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -540,8 +742,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA,isRepeating:true);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -552,7 +754,8 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW,isRepeating:true);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userNW.UserNum,GlobalTaskFilterType.Region,_clinicNW.Region);
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userNW.UserNum,GlobalTaskFilterType.Region,
+				new List<long> { _clinicNW.Region });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -563,8 +766,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA,isRepeating:true);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshRepeating_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA,isRepeating:true);
+			//Add clinicS appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA,isRepeating:true);
+			//Filter by clinicN.Region and clinicS.Region
+			List<Task> listTasksActual=Tasks.RefreshRepeating(TaskDateType.None,_userA.UserNum,GlobalTaskFilterType.Region,
+				new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshRepeatingTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,
+				_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -576,7 +794,8 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,
+				GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInClinic(x,_clinicN));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
@@ -587,8 +806,23 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN
-			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,GlobalTaskFilterType.Clinic,_clinicN.ClinicNum);
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,
+				GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum });
 			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInClinic(x,_clinicN));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshDatedTrunk_ClinicFilterTasksFromThisClinicDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA);
+			//Filter by clinicN and clinicS
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,
+				GlobalTaskFilterType.Clinic,new List<long> { _clinicN.ClinicNum,_clinicS.ClinicNum });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInClinic(x,_clinicN,_clinicS));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -609,8 +843,9 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicS appointment and patient Tasks.
 			CreateTasks(suffix,_patS,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -621,8 +856,9 @@ namespace UnitTests.Tasks_Tests {
 			CreateTasks(suffix,_patN,_userNW);
 			//Filter by clinicN.Region.  _userNW is restricted to _clinicNW, which is in RegionN, _patN is in _clinicN also in RegionN, and even though
 			//_userNW is in RegionN as well, _userNW is restricted from _clinicN, so the Task should not show.
-			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userNW.UserNum,GlobalTaskFilterType.Region,_clinicNW.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW));
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userNW.UserNum,
+				GlobalTaskFilterType.Region,new List<long> { _clinicNW.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userNW,_clinicNW.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 
@@ -632,8 +868,24 @@ namespace UnitTests.Tasks_Tests {
 			//Add clinicN appointment and patient Tasks.
 			CreateTasks(suffix,_patN,_userA);
 			//Filter by clinicN.Region
-			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,GlobalTaskFilterType.Region,_clinicN.Region);
-			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA));
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,_clinicN.Region));
+			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
+		}
+
+		[TestMethod]
+		public void Tasks_RefreshDatedTrunk_RegionFilterTasksFromThisRegionDoShowMulti() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patN,_userA);
+			//Add clinicN appointment and patient Tasks.
+			CreateTasks(suffix,_patS,_userA);
+			//Filter by clinicN.Region and clinicS.Region
+			List<Task> listTasksActual=Tasks.RefreshDatedTrunk(DateTime.Today,TaskDateType.None,false,DateTime.Today,_userA.UserNum,
+				GlobalTaskFilterType.Region,new List<long> { _clinicN.Region,_clinicS.Region });
+			List<Task> listTasksExpected=_listTasks.FindAll(x => IsRefreshDatedTrunkTask(x) && IsTaskInRegionAndUnrestricted(x,_userA,
+				_clinicN.Region,_clinicS.Region));
 			Assert.IsTrue(ContainsSameTaskNums(listTasksExpected,listTasksActual));
 		}
 		#endregion
@@ -707,20 +959,20 @@ namespace UnitTests.Tasks_Tests {
 		}
 
 		///<summary>Determines if the Task is in the Clinic.</summary>
-		private bool IsTaskInClinic(Task task,Clinic clinic) {
+		private bool IsTaskInClinic(Task task,params Clinic[] listClinics) {
 			bool retVal=false;
 			switch(task.ObjectType) {
 				case TaskObjectType.Appointment:
 					Appointment appt=Appointments.GetOneApt(task.KeyNum);
 					//Is Appointment's clinic in the same clinic as passed in clinic?
 					//0 clinic also allowed.
-					if(appt.ClinicNum==0 || appt.ClinicNum==clinic.ClinicNum) {
+					if(appt.ClinicNum==0 || listClinics.Any(x=>x.ClinicNum==appt.ClinicNum)) {
 						retVal=true;
 					}
 					break;
 				case TaskObjectType.Patient:
 					Patient pat=Patients.GetPat(task.KeyNum);
-					if(pat.ClinicNum==0 || pat.ClinicNum==clinic.ClinicNum) {
+					if(pat.ClinicNum==0 || listClinics.Any(x => x.ClinicNum==pat.ClinicNum)) {
 						retVal=true;
 					}
 					break;
@@ -732,17 +984,16 @@ namespace UnitTests.Tasks_Tests {
 		}
 
 		///<summary>Determines if the Task is in the Clinic's region.</summary>
-		private bool IsTaskInRegionAndUnrestricted(Task task,Userod user) {
+		private bool IsTaskInRegionAndUnrestricted(Task task,Userod user,params long[] listRegions) {
 			bool retVal=false;
-			Clinic clinic=Clinics.GetClinic(user.ClinicNum);
-			List<long> listUserClinicNums=Clinics.GetAllForUserod(user).Select(x => x.ClinicNum).ToList();
+			List<Clinic> listUnrestrictedClinics=Clinics.GetAllForUserod(user).FindAll(x=> x.Region.In(listRegions));
 			switch(task.ObjectType) {
 				case TaskObjectType.Appointment:
 					Appointment appt=Appointments.GetOneApt(task.KeyNum);
 					Clinic clinicAppt=Clinics.GetClinic(appt.ClinicNum);
 					//Is Appointment's clinic in the same region as passed in clinic, and user has permission to view the clinicAppt?
 					//0 Region also allowed.
-					if(clinicAppt.Region==0 || (clinicAppt.Region==clinic.Region && listUserClinicNums.Any(x => x==clinicAppt.ClinicNum))) {
+					if(clinicAppt.Region==0 || listUnrestrictedClinics.Any(x => x.ClinicNum==clinicAppt.ClinicNum)) {
 						retVal=true;
 					}
 					break;
@@ -751,7 +1002,7 @@ namespace UnitTests.Tasks_Tests {
 					Clinic clinicPat=Clinics.GetClinic(pat.ClinicNum);
 					//Is Appointment's clinic in the same region as passed in clinic, and user has permission to view the clinicPat?
 					//0 Region also allowed.
-					if(clinicPat.Region==0 || (clinicPat.Region==clinic.Region && listUserClinicNums.Any(x => x==clinicPat.ClinicNum))) {
+					if(clinicPat.Region==0 || listUnrestrictedClinics.Any(x =>  x.ClinicNum==clinicPat.ClinicNum)) {
 						retVal=true;
 					}
 					break;
