@@ -184,12 +184,12 @@ namespace OpenDentBusiness{
 		///Identifies the first date of onset of illness, the actual date of injury, or the LMP for pregnancy.</summary>
 		public DateTime DateIllnessInjuryPreg;
 		///<summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
-		public DateQualifier DateIllnessInjuryPregQualifier;
+		public DateIllnessInjuryPregQualifier DateIllnessInjuryPregQualifier;
 		///<summary>Another date related to the patient's condition or treatment.  For use in 1500 Medical Claim Form box 15.</summary>
 		public DateTime DateOther;
 		///<summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
 		///453,454, 455, and 471.</summary>
-		public DateQualifier DateOtherQualifier;
+		public DateOtherQualifier DateOtherQualifier;
 		///<summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
 		public bool IsOutsideLab;
 		///<summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
@@ -278,7 +278,10 @@ namespace OpenDentBusiness{
 	}
 
 	///<summary>Used for 1500 Medical Claim Form, 'Qual' box portion of fields 14 and 15.  Populate with 3 digit enum value.</summary>
-	public enum DateQualifier {
+	public enum DateOtherQualifier {
+		///<summary>0 - None</summary>
+		[Description("None")]
+		None=0,
 		///<summary>090 - Report Start</summary>
 		[Description("Report Start (Assumed Care Date)")]
 		ReportStart=090,
@@ -288,9 +291,6 @@ namespace OpenDentBusiness{
 		///<summary>304 - Latest Visit or Consultation</summary>
 		[Description("Latest Visit or Consultation")]
 		LatestVisitConsult=304,
-		///<summary>431 - Onset of Current Symptoms or Illness</summary>
-		[Description("Onset of Current Symptoms or Illness")]
-		OnsetCurSymptoms=431,
 		///<summary>439 - Accident</summary>
 		[Description("Accident")]
 		Accident=439,
@@ -308,7 +308,16 @@ namespace OpenDentBusiness{
 		LastXray=455,
 		///<summary>471 - Prescription</summary>
 		[Description("Prescription")]
-		Prescription=471,
+		Prescription=471
+	}
+
+	public enum DateIllnessInjuryPregQualifier {
+		///<summary>0 - None</summary>
+		[Description("None")]
+		None=0,
+		///<summary>431 - Onset of Current Symptoms or Illness</summary>
+		[Description("Onset of Current Symptoms or Illness")]
+		OnsetCurSymptoms=431,
 		///<summary>484 - Last Menstrual Period</summary>
 		[Description("Last Menstrual Period")]
 		LastMenstrualPeriod=484
@@ -316,6 +325,9 @@ namespace OpenDentBusiness{
 
 	///<summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
 	public enum ResubmitCode {
+		///<summary>0 - None</summary>
+		[Description("None")]
+		None=0,
 		///<summary>7 - Replacement of prior claim</summary>
 		[Description("Replacement of prior claim")]
 		Replacement=7,

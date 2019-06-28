@@ -125,9 +125,9 @@ namespace OpenDentBusiness.Crud{
 				claim.OrderingReferralNum           = PIn.Long  (row["OrderingReferralNum"].ToString());
 				claim.DateSentOrig                  = PIn.Date  (row["DateSentOrig"].ToString());
 				claim.DateIllnessInjuryPreg         = PIn.Date  (row["DateIllnessInjuryPreg"].ToString());
-				claim.DateIllnessInjuryPregQualifier= (OpenDentBusiness.DateQualifier)PIn.Int(row["DateIllnessInjuryPregQualifier"].ToString());
+				claim.DateIllnessInjuryPregQualifier= (OpenDentBusiness.DateIllnessInjuryPregQualifier)PIn.Int(row["DateIllnessInjuryPregQualifier"].ToString());
 				claim.DateOther                     = PIn.Date  (row["DateOther"].ToString());
-				claim.DateOtherQualifier            = (OpenDentBusiness.DateQualifier)PIn.Int(row["DateOtherQualifier"].ToString());
+				claim.DateOtherQualifier            = (OpenDentBusiness.DateOtherQualifier)PIn.Int(row["DateOtherQualifier"].ToString());
 				claim.IsOutsideLab                  = PIn.Bool  (row["IsOutsideLab"].ToString());
 				claim.ResubmissionCode              = (OpenDentBusiness.ResubmitCode)PIn.Int(row["ResubmissionCode"].ToString());
 				retVal.Add(claim);

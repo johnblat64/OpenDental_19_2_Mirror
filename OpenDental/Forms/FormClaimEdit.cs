@@ -667,6 +667,10 @@ namespace OpenDental{
 			textClaimIdOriginal.Text=Claims.ConvertClaimId(ClaimCur,PatCur);
 			textClaimIdentifier.Text=string.IsNullOrWhiteSpace(ClaimCur.ClaimIdentifier) ? textClaimIdOriginal.Text : ClaimCur.ClaimIdentifier;
 			textOrigRefNum.Text=ClaimCur.OrigRefNum;
+			comboResubCode.SetItems(Enum.GetValues(typeof(ResubmitCode)).OfType<ResubmitCode>()
+				,(submitCode) => submitCode.GetDescription()
+				,(submitCode) => submitCode==ClaimCur.ResubmissionCode);
+			comboResubCode.SelectedIndex=Math.Max(comboResubCode.SelectedIndex,0);//select index 0 if selected index is -1
 			if(ClaimCur.ShareOfCost > 0) {
 				textShareOfCost.Text=ClaimCur.ShareOfCost.ToString("F2");
 			}
@@ -765,19 +769,30 @@ namespace OpenDental{
 				textCode10.Text=ClaimCondCodeLogCur.Code10.ToString();
 			}
 			if(ListClaimValCodes!=null) {
-				FillValCode(ListClaimValCodes,0,textVC0Code,textVC0Amount);
-				FillValCode(ListClaimValCodes,1,textVC1Code,textVC1Amount);
-				FillValCode(ListClaimValCodes,2,textVC2Code,textVC2Amount);
-				FillValCode(ListClaimValCodes,3,textVC3Code,textVC3Amount);
-				FillValCode(ListClaimValCodes,4,textVC4Code,textVC4Amount);
-				FillValCode(ListClaimValCodes,5,textVC5Code,textVC5Amount);
-				FillValCode(ListClaimValCodes,6,textVC6Code,textVC6Amount);
-				FillValCode(ListClaimValCodes,7,textVC7Code,textVC7Amount);
-				FillValCode(ListClaimValCodes,8,textVC8Code,textVC8Amount);
-				FillValCode(ListClaimValCodes,9,textVC9Code,textVC9Amount);
-				FillValCode(ListClaimValCodes,10,textVC10Code,textVC10Amount);
-				FillValCode(ListClaimValCodes,11,textVC11Code,textVC11Amount);
+				FillValCode(ListClaimValCodes,0,textVC39aCode,textVC39aAmt);
+				FillValCode(ListClaimValCodes,1,textVC40aCode,textVC40aAmt);
+				FillValCode(ListClaimValCodes,2,textVC41aCode,textVC41aAmt);
+				FillValCode(ListClaimValCodes,3,textVC39bCode,textVC39bAmt);
+				FillValCode(ListClaimValCodes,4,textVC40bCode,textVC40bAmt);
+				FillValCode(ListClaimValCodes,5,textVC41bCode,textVC41bAmt);
+				FillValCode(ListClaimValCodes,6,textVC39cCode,textVC39cAmt);
+				FillValCode(ListClaimValCodes,7,textVC40cCode,textVC40cAmt);
+				FillValCode(ListClaimValCodes,8,textVC41cCode,textVC41cAmt);
+				FillValCode(ListClaimValCodes,9,textVC39dCode,textVC39dAmt);
+				FillValCode(ListClaimValCodes,10,textVC40dCode,textVC40dAmt);
+				FillValCode(ListClaimValCodes,11,textVC41dCode,textVC41dAmt);
 			}
+			textDateIllness.Text=ClaimCur.DateIllnessInjuryPreg.Year<1880?"":ClaimCur.DateIllnessInjuryPreg.ToShortDateString();
+			comboDateIllnessQualifier.SetItems(Enum.GetValues(typeof(DateIllnessInjuryPregQualifier)).OfType<DateIllnessInjuryPregQualifier>()
+				,(x) => x.GetDescription()
+				,(x) => x==ClaimCur.DateIllnessInjuryPregQualifier);
+			comboDateIllnessQualifier.SelectedIndex=Math.Max(comboDateIllnessQualifier.SelectedIndex,0);//select index 0 if selected index is -1
+			textDateOther.Text=ClaimCur.DateOther.Year<1880?"":ClaimCur.DateOther.ToShortDateString();
+			comboDateOtherQualifier.SetItems(Enum.GetValues(typeof(DateOtherQualifier)).OfType<DateOtherQualifier>()
+				,(x) => x.GetDescription()
+				,(x) => x==ClaimCur.DateOtherQualifier);
+			comboDateOtherQualifier.SelectedIndex=Math.Max(comboDateOtherQualifier.SelectedIndex,0);//select index 0 if selected index is -1
+			checkIsOutsideLab.Checked=ClaimCur.IsOutsideLab;
 			FillGrids(false);
 			FillAttachments();
 		}
@@ -2688,6 +2703,8 @@ namespace OpenDental{
 				|| textShareOfCost.errorProvider1.GetError(textShareOfCost)!=""
 				|| textOrthoRemainM.errorProvider1.GetError(textOrthoRemainM)!=""
 				|| textOrthoTotalM.errorProvider1.GetError(textOrthoTotalM)!=""
+				|| textDateIllness.errorProvider1.GetError(textDateIllness)!=""
+				|| textDateOther.errorProvider1.GetError(textDateOther)!=""
 				)
 			{
 				MsgBox.Show(this,"Please fix data entry errors first.");
@@ -2980,6 +2997,7 @@ namespace OpenDental{
 			ClaimCur.CorrectionType=(ClaimCorrectionType)Enum.GetValues(typeof(ClaimCorrectionType)).GetValue(comboCorrectionType.SelectedIndex);
 			ClaimCur.ClaimIdentifier=string.IsNullOrWhiteSpace(textClaimIdentifier.Text) ? Claims.ConvertClaimId(ClaimCur,PatCur) : textClaimIdentifier.Text;
 			ClaimCur.OrigRefNum=textOrigRefNum.Text;
+			ClaimCur.ResubmissionCode=comboResubCode.SelectedTag<ResubmitCode>();
 			ClaimCur.ShareOfCost=PIn.Double(textShareOfCost.Text);
 			//attachments
 			ClaimCur.Radiographs=PIn.Byte(textRadiographs.Text);
@@ -3108,18 +3126,18 @@ namespace OpenDental{
 				ClaimCur.OrderingReferralNum=_referralOrdering.ReferralNum;
 			}
 			if(ListClaimValCodes!=null) {
-				GetValCodes(ListClaimValCodes,0,ClaimCur.ClaimNum,textVC0Code,textVC0Amount);
-				GetValCodes(ListClaimValCodes,1,ClaimCur.ClaimNum,textVC1Code,textVC1Amount);
-				GetValCodes(ListClaimValCodes,2,ClaimCur.ClaimNum,textVC2Code,textVC2Amount);
-				GetValCodes(ListClaimValCodes,3,ClaimCur.ClaimNum,textVC3Code,textVC3Amount);
-				GetValCodes(ListClaimValCodes,4,ClaimCur.ClaimNum,textVC4Code,textVC4Amount);
-				GetValCodes(ListClaimValCodes,5,ClaimCur.ClaimNum,textVC5Code,textVC5Amount);
-				GetValCodes(ListClaimValCodes,6,ClaimCur.ClaimNum,textVC6Code,textVC6Amount);
-				GetValCodes(ListClaimValCodes,7,ClaimCur.ClaimNum,textVC7Code,textVC7Amount);
-				GetValCodes(ListClaimValCodes,8,ClaimCur.ClaimNum,textVC8Code,textVC8Amount);
-				GetValCodes(ListClaimValCodes,9,ClaimCur.ClaimNum,textVC9Code,textVC9Amount);
-				GetValCodes(ListClaimValCodes,10,ClaimCur.ClaimNum,textVC10Code,textVC10Amount);
-				GetValCodes(ListClaimValCodes,11,ClaimCur.ClaimNum,textVC11Code,textVC11Amount);
+				GetValCodes(ListClaimValCodes,0,ClaimCur.ClaimNum,textVC39aCode,textVC39aAmt);
+				GetValCodes(ListClaimValCodes,1,ClaimCur.ClaimNum,textVC40aCode,textVC40aAmt);
+				GetValCodes(ListClaimValCodes,2,ClaimCur.ClaimNum,textVC41aCode,textVC41aAmt);
+				GetValCodes(ListClaimValCodes,3,ClaimCur.ClaimNum,textVC39bCode,textVC39bAmt);
+				GetValCodes(ListClaimValCodes,4,ClaimCur.ClaimNum,textVC40bCode,textVC40bAmt);
+				GetValCodes(ListClaimValCodes,5,ClaimCur.ClaimNum,textVC41bCode,textVC41bAmt);
+				GetValCodes(ListClaimValCodes,6,ClaimCur.ClaimNum,textVC39cCode,textVC39cAmt);
+				GetValCodes(ListClaimValCodes,7,ClaimCur.ClaimNum,textVC40cCode,textVC40cAmt);
+				GetValCodes(ListClaimValCodes,8,ClaimCur.ClaimNum,textVC41cCode,textVC41cAmt);
+				GetValCodes(ListClaimValCodes,9,ClaimCur.ClaimNum,textVC39dCode,textVC39dAmt);
+				GetValCodes(ListClaimValCodes,10,ClaimCur.ClaimNum,textVC40dCode,textVC40dAmt);
+				GetValCodes(ListClaimValCodes,11,ClaimCur.ClaimNum,textVC41dCode,textVC41dAmt);
 			}
 			if(ClaimCondCodeLogCur!=null || textCode0.Text!="" || textCode1.Text!="" || textCode2.Text!="" || textCode3.Text!="" || 
 				textCode4.Text!="" || textCode5.Text!="" || textCode6.Text!="" || textCode7.Text!="" || textCode8.Text!="" || 
@@ -3141,6 +3159,11 @@ namespace OpenDental{
 				ClaimCondCodeLogCur.Code9=textCode9.Text;
 				ClaimCondCodeLogCur.Code10=textCode10.Text;
 			}
+			ClaimCur.DateIllnessInjuryPreg=PIn.Date(textDateIllness.Text);
+			ClaimCur.DateIllnessInjuryPregQualifier=comboDateIllnessQualifier.SelectedTag<DateIllnessInjuryPregQualifier>();
+			ClaimCur.DateOther=PIn.Date(textDateOther.Text);
+			ClaimCur.DateOtherQualifier=comboDateOtherQualifier.SelectedTag<DateOtherQualifier>();
+			ClaimCur.IsOutsideLab=checkIsOutsideLab.Checked;
 			List<Procedure> listProcsToUpdatePlaceOfService=new List<Procedure>();
 			for(int i=0;i<_listClaimProcsForClaim.Count;i++) {
 				Procedure proc=Procedures.GetProcFromList(ProcList,_listClaimProcsForClaim[i].ProcNum);

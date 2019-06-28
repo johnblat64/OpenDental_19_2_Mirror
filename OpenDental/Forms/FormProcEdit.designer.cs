@@ -78,24 +78,24 @@
 			this.butChange = new OpenDental.UI.Button();
 			this.labelTimeFinal = new System.Windows.Forms.Label();
 			this.textDrugQty = new System.Windows.Forms.TextBox();
-			this.label10 = new System.Windows.Forms.Label();
-			this.label5 = new System.Windows.Forms.Label();
+			this.labelDrugQty = new System.Windows.Forms.Label();
+			this.labelDrugNDC = new System.Windows.Forms.Label();
 			this.textDrugNDC = new System.Windows.Forms.TextBox();
 			this.comboDrugUnit = new System.Windows.Forms.ComboBox();
-			this.label1 = new System.Windows.Forms.Label();
+			this.labelDrugUnit = new System.Windows.Forms.Label();
 			this.textRevCode = new System.Windows.Forms.TextBox();
-			this.label22 = new System.Windows.Forms.Label();
+			this.labelRevCode = new System.Windows.Forms.Label();
 			this.textUnitQty = new System.Windows.Forms.TextBox();
-			this.label21 = new System.Windows.Forms.Label();
+			this.labelUnitQty = new System.Windows.Forms.Label();
 			this.textCodeMod4 = new System.Windows.Forms.TextBox();
 			this.textCodeMod3 = new System.Windows.Forms.TextBox();
 			this.textCodeMod2 = new System.Windows.Forms.TextBox();
-			this.label19 = new System.Windows.Forms.Label();
+			this.labelCodeMods = new System.Windows.Forms.Label();
 			this.textCodeMod1 = new System.Windows.Forms.TextBox();
 			this.checkIsPrincDiag = new System.Windows.Forms.CheckBox();
-			this.labelDiagnosticCode1 = new System.Windows.Forms.Label();
-			this.textDiagnosticCode = new System.Windows.Forms.TextBox();
-			this.label8 = new System.Windows.Forms.Label();
+			this.labelDiagnosisCode = new System.Windows.Forms.Label();
+			this.textDiagnosisCode = new System.Windows.Forms.TextBox();
+			this.labelMedicalCode = new System.Windows.Forms.Label();
 			this.textMedicalCode = new System.Windows.Forms.TextBox();
 			this.labelClaim = new System.Windows.Forms.Label();
 			this.comboPlaceService = new System.Windows.Forms.ComboBox();
@@ -164,32 +164,33 @@
 			this.butAddAdjust = new OpenDental.UI.Button();
 			this.gridIns = new OpenDental.UI.ODGrid();
 			this.tabPageMedical = new System.Windows.Forms.TabPage();
+			this.checkIsEmergency = new System.Windows.Forms.CheckBox();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.butPickOrderProvInternal = new OpenDental.UI.Button();
 			this.textOrderingProviderOverride = new OpenDental.ODtextBox();
 			this.butPickOrderProvReferral = new OpenDental.UI.Button();
 			this.butNoneOrderProv = new OpenDental.UI.Button();
-			this.label11 = new System.Windows.Forms.Label();
+			this.labelIcdVersionUncheck = new System.Windows.Forms.Label();
 			this.checkIcdVersion = new System.Windows.Forms.CheckBox();
-			this.butNoneDiagnosisCode1 = new OpenDental.UI.Button();
-			this.butDiagnosisCode1 = new OpenDental.UI.Button();
+			this.butNoneDiagnosisCode = new OpenDental.UI.Button();
+			this.butDiagnosisCode = new OpenDental.UI.Button();
 			this.butNoneDiagnosisCode2 = new OpenDental.UI.Button();
 			this.butDiagnosisCode2 = new OpenDental.UI.Button();
 			this.butNoneDiagnosisCode4 = new OpenDental.UI.Button();
 			this.butDiagnosisCode4 = new OpenDental.UI.Button();
 			this.butNoneDiagnosisCode3 = new OpenDental.UI.Button();
 			this.butDiagnosisCode3 = new OpenDental.UI.Button();
-			this.textDiagnosticCode2 = new System.Windows.Forms.TextBox();
-			this.labelDiagnosticCode2 = new System.Windows.Forms.Label();
-			this.textDiagnosticCode3 = new System.Windows.Forms.TextBox();
-			this.labelDiagnosticCode3 = new System.Windows.Forms.Label();
-			this.textDiagnosticCode4 = new System.Windows.Forms.TextBox();
-			this.labelDiagnosticCode4 = new System.Windows.Forms.Label();
+			this.textDiagnosisCode2 = new System.Windows.Forms.TextBox();
+			this.labelDiagnosisCode2 = new System.Windows.Forms.Label();
+			this.textDiagnosisCode3 = new System.Windows.Forms.TextBox();
+			this.labelDiagnosisCode3 = new System.Windows.Forms.Label();
+			this.textDiagnosisCode4 = new System.Windows.Forms.TextBox();
+			this.labelDiagnosisCode4 = new System.Windows.Forms.Label();
 			this.butNoneSnomedBodySite = new OpenDental.UI.Button();
 			this.butSnomedBodySiteSelect = new OpenDental.UI.Button();
-			this.labelSnomedCtBodySite = new System.Windows.Forms.Label();
+			this.labelSnomedBodySite = new System.Windows.Forms.Label();
 			this.textSnomedBodySite = new System.Windows.Forms.TextBox();
-			this.label17 = new System.Windows.Forms.Label();
+			this.labelUnitType = new System.Windows.Forms.Label();
 			this.comboUnitType = new System.Windows.Forms.ComboBox();
 			this.tabPageMisc = new System.Windows.Forms.TabPage();
 			this.textBillingNote = new System.Windows.Forms.TextBox();
@@ -914,93 +915,92 @@
 			// 
 			// textDrugQty
 			// 
-			this.textDrugQty.Location = new System.Drawing.Point(123, 149);
+			this.textDrugQty.Location = new System.Drawing.Point(123, 148);
 			this.textDrugQty.Name = "textDrugQty";
 			this.textDrugQty.Size = new System.Drawing.Size(59, 20);
 			this.textDrugQty.TabIndex = 174;
 			// 
-			// label10
+			// labelDrugQty
 			// 
-			this.label10.Location = new System.Drawing.Point(4, 150);
-			this.label10.Name = "label10";
-			this.label10.Size = new System.Drawing.Size(118, 16);
-			this.label10.TabIndex = 173;
-			this.label10.Text = "Drug Qty";
-			this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDrugQty.Location = new System.Drawing.Point(6, 150);
+			this.labelDrugQty.Name = "labelDrugQty";
+			this.labelDrugQty.Size = new System.Drawing.Size(116, 17);
+			this.labelDrugQty.TabIndex = 173;
+			this.labelDrugQty.Text = "Drug Qty";
+			this.labelDrugQty.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// label5
+			// labelDrugNDC
 			// 
-			this.label5.Location = new System.Drawing.Point(7, 110);
-			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(115, 16);
-			this.label5.TabIndex = 170;
-			this.label5.Text = "Drug NDC";
-			this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDrugNDC.Location = new System.Drawing.Point(6, 109);
+			this.labelDrugNDC.Name = "labelDrugNDC";
+			this.labelDrugNDC.Size = new System.Drawing.Size(116, 17);
+			this.labelDrugNDC.TabIndex = 170;
+			this.labelDrugNDC.Text = "Drug NDC";
+			this.labelDrugNDC.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textDrugNDC
 			// 
-			this.textDrugNDC.Location = new System.Drawing.Point(123, 108);
+			this.textDrugNDC.Location = new System.Drawing.Point(123, 107);
 			this.textDrugNDC.Name = "textDrugNDC";
 			this.textDrugNDC.ReadOnly = true;
 			this.textDrugNDC.Size = new System.Drawing.Size(109, 20);
 			this.textDrugNDC.TabIndex = 171;
-			this.textDrugNDC.Text = "12345678901";
 			// 
 			// comboDrugUnit
 			// 
 			this.comboDrugUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboDrugUnit.FormattingEnabled = true;
-			this.comboDrugUnit.Location = new System.Drawing.Point(123, 128);
+			this.comboDrugUnit.Location = new System.Drawing.Point(123, 127);
 			this.comboDrugUnit.Name = "comboDrugUnit";
 			this.comboDrugUnit.Size = new System.Drawing.Size(92, 21);
 			this.comboDrugUnit.TabIndex = 169;
 			// 
-			// label1
+			// labelDrugUnit
 			// 
-			this.label1.Location = new System.Drawing.Point(7, 130);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(115, 16);
-			this.label1.TabIndex = 168;
-			this.label1.Text = "Drug Unit";
-			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDrugUnit.Location = new System.Drawing.Point(6, 129);
+			this.labelDrugUnit.Name = "labelDrugUnit";
+			this.labelDrugUnit.Size = new System.Drawing.Size(116, 17);
+			this.labelDrugUnit.TabIndex = 168;
+			this.labelDrugUnit.Text = "Drug Unit";
+			this.labelDrugUnit.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textRevCode
 			// 
-			this.textRevCode.Location = new System.Drawing.Point(123, 88);
+			this.textRevCode.Location = new System.Drawing.Point(123, 87);
 			this.textRevCode.MaxLength = 48;
 			this.textRevCode.Name = "textRevCode";
 			this.textRevCode.Size = new System.Drawing.Size(59, 20);
 			this.textRevCode.TabIndex = 112;
 			// 
-			// label22
+			// labelRevCode
 			// 
-			this.label22.Location = new System.Drawing.Point(7, 90);
-			this.label22.Name = "label22";
-			this.label22.Size = new System.Drawing.Size(115, 17);
-			this.label22.TabIndex = 111;
-			this.label22.Text = "Revenue Code";
-			this.label22.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelRevCode.Location = new System.Drawing.Point(6, 89);
+			this.labelRevCode.Name = "labelRevCode";
+			this.labelRevCode.Size = new System.Drawing.Size(116, 17);
+			this.labelRevCode.TabIndex = 111;
+			this.labelRevCode.Text = "Revenue Code";
+			this.labelRevCode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textUnitQty
 			// 
-			this.textUnitQty.Location = new System.Drawing.Point(123, 47);
+			this.textUnitQty.Location = new System.Drawing.Point(123, 46);
 			this.textUnitQty.MaxLength = 15;
 			this.textUnitQty.Name = "textUnitQty";
 			this.textUnitQty.Size = new System.Drawing.Size(29, 20);
 			this.textUnitQty.TabIndex = 110;
 			// 
-			// label21
+			// labelUnitQty
 			// 
-			this.label21.Location = new System.Drawing.Point(7, 49);
-			this.label21.Name = "label21";
-			this.label21.Size = new System.Drawing.Size(115, 17);
-			this.label21.TabIndex = 108;
-			this.label21.Text = "Unit Quantity";
-			this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelUnitQty.Location = new System.Drawing.Point(6, 48);
+			this.labelUnitQty.Name = "labelUnitQty";
+			this.labelUnitQty.Size = new System.Drawing.Size(116, 17);
+			this.labelUnitQty.TabIndex = 108;
+			this.labelUnitQty.Text = "Unit Quantity";
+			this.labelUnitQty.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textCodeMod4
 			// 
-			this.textCodeMod4.Location = new System.Drawing.Point(210, 27);
+			this.textCodeMod4.Location = new System.Drawing.Point(210, 26);
 			this.textCodeMod4.MaxLength = 2;
 			this.textCodeMod4.Name = "textCodeMod4";
 			this.textCodeMod4.Size = new System.Drawing.Size(29, 20);
@@ -1009,7 +1009,7 @@
 			// 
 			// textCodeMod3
 			// 
-			this.textCodeMod3.Location = new System.Drawing.Point(181, 27);
+			this.textCodeMod3.Location = new System.Drawing.Point(181, 26);
 			this.textCodeMod3.MaxLength = 2;
 			this.textCodeMod3.Name = "textCodeMod3";
 			this.textCodeMod3.Size = new System.Drawing.Size(29, 20);
@@ -1018,25 +1018,25 @@
 			// 
 			// textCodeMod2
 			// 
-			this.textCodeMod2.Location = new System.Drawing.Point(152, 27);
+			this.textCodeMod2.Location = new System.Drawing.Point(152, 26);
 			this.textCodeMod2.MaxLength = 2;
 			this.textCodeMod2.Name = "textCodeMod2";
 			this.textCodeMod2.Size = new System.Drawing.Size(29, 20);
 			this.textCodeMod2.TabIndex = 104;
 			this.textCodeMod2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
-			// label19
+			// labelCodeMods
 			// 
-			this.label19.Location = new System.Drawing.Point(7, 29);
-			this.label19.Name = "label19";
-			this.label19.Size = new System.Drawing.Size(115, 17);
-			this.label19.TabIndex = 102;
-			this.label19.Text = "Mods";
-			this.label19.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelCodeMods.Location = new System.Drawing.Point(6, 28);
+			this.labelCodeMods.Name = "labelCodeMods";
+			this.labelCodeMods.Size = new System.Drawing.Size(116, 17);
+			this.labelCodeMods.TabIndex = 102;
+			this.labelCodeMods.Text = "Mods";
+			this.labelCodeMods.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textCodeMod1
 			// 
-			this.textCodeMod1.Location = new System.Drawing.Point(123, 27);
+			this.textCodeMod1.Location = new System.Drawing.Point(123, 26);
 			this.textCodeMod1.MaxLength = 2;
 			this.textCodeMod1.Name = "textCodeMod1";
 			this.textCodeMod1.Size = new System.Drawing.Size(29, 20);
@@ -1047,37 +1047,37 @@
 			// 
 			this.checkIsPrincDiag.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkIsPrincDiag.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkIsPrincDiag.Location = new System.Drawing.Point(347, 28);
+			this.checkIsPrincDiag.Location = new System.Drawing.Point(336, 27);
 			this.checkIsPrincDiag.Name = "checkIsPrincDiag";
-			this.checkIsPrincDiag.Size = new System.Drawing.Size(166, 15);
+			this.checkIsPrincDiag.Size = new System.Drawing.Size(178, 17);
 			this.checkIsPrincDiag.TabIndex = 101;
 			this.checkIsPrincDiag.Text = "Princ Diag";
 			this.checkIsPrincDiag.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// labelDiagnosticCode1
+			// labelDiagnosisCode
 			// 
-			this.labelDiagnosticCode1.Location = new System.Drawing.Point(336, 66);
-			this.labelDiagnosticCode1.Name = "labelDiagnosticCode1";
-			this.labelDiagnosticCode1.Size = new System.Drawing.Size(164, 16);
-			this.labelDiagnosticCode1.TabIndex = 99;
-			this.labelDiagnosticCode1.Text = "ICD-10 Diagnosis Code 1";
-			this.labelDiagnosticCode1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDiagnosisCode.Location = new System.Drawing.Point(336, 64);
+			this.labelDiagnosisCode.Name = "labelDiagnosisCode";
+			this.labelDiagnosisCode.Size = new System.Drawing.Size(164, 17);
+			this.labelDiagnosisCode.TabIndex = 99;
+			this.labelDiagnosisCode.Text = "ICD-10 Diagnosis Code 1";
+			this.labelDiagnosisCode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// textDiagnosticCode
+			// textDiagnosisCode
 			// 
-			this.textDiagnosticCode.Location = new System.Drawing.Point(501, 64);
-			this.textDiagnosticCode.Name = "textDiagnosticCode";
-			this.textDiagnosticCode.Size = new System.Drawing.Size(76, 20);
-			this.textDiagnosticCode.TabIndex = 100;
+			this.textDiagnosisCode.Location = new System.Drawing.Point(501, 62);
+			this.textDiagnosisCode.Name = "textDiagnosisCode";
+			this.textDiagnosisCode.Size = new System.Drawing.Size(76, 20);
+			this.textDiagnosisCode.TabIndex = 100;
 			// 
-			// label8
+			// labelMedicalCode
 			// 
-			this.label8.Location = new System.Drawing.Point(7, 9);
-			this.label8.Name = "label8";
-			this.label8.Size = new System.Drawing.Size(115, 16);
-			this.label8.TabIndex = 97;
-			this.label8.Text = "Medical Code";
-			this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelMedicalCode.Location = new System.Drawing.Point(6, 8);
+			this.labelMedicalCode.Name = "labelMedicalCode";
+			this.labelMedicalCode.Size = new System.Drawing.Size(116, 17);
+			this.labelMedicalCode.TabIndex = 97;
+			this.labelMedicalCode.Text = "Medical Code";
+			this.labelMedicalCode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textMedicalCode
 			// 
@@ -1672,9 +1672,7 @@
 			// gridPay
 			// 
 			this.gridPay.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridPay.HasAddButton = false;
 			this.gridPay.HasDropDowns = false;
-			this.gridPay.HasMultilineHeaders = false;
 			this.gridPay.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridPay.HeaderHeight = 15;
 			this.gridPay.HScrollVisible = false;
@@ -1693,9 +1691,7 @@
 			// gridAdj
 			// 
 			this.gridAdj.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridAdj.HasAddButton = false;
 			this.gridAdj.HasDropDowns = false;
-			this.gridAdj.HasMultilineHeaders = false;
 			this.gridAdj.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridAdj.HeaderHeight = 15;
 			this.gridAdj.HScrollVisible = false;
@@ -1764,9 +1760,7 @@
 			// gridIns
 			// 
 			this.gridIns.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridIns.HasAddButton = false;
 			this.gridIns.HasDropDowns = false;
-			this.gridIns.HasMultilineHeaders = false;
 			this.gridIns.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridIns.HeaderHeight = 15;
 			this.gridIns.HScrollVisible = false;
@@ -1784,47 +1778,48 @@
 			// 
 			// tabPageMedical
 			// 
+			this.tabPageMedical.Controls.Add(this.checkIsEmergency);
 			this.tabPageMedical.Controls.Add(this.groupBox1);
-			this.tabPageMedical.Controls.Add(this.label11);
+			this.tabPageMedical.Controls.Add(this.labelIcdVersionUncheck);
 			this.tabPageMedical.Controls.Add(this.checkIcdVersion);
-			this.tabPageMedical.Controls.Add(this.butNoneDiagnosisCode1);
-			this.tabPageMedical.Controls.Add(this.butDiagnosisCode1);
+			this.tabPageMedical.Controls.Add(this.butNoneDiagnosisCode);
+			this.tabPageMedical.Controls.Add(this.butDiagnosisCode);
 			this.tabPageMedical.Controls.Add(this.butNoneDiagnosisCode2);
 			this.tabPageMedical.Controls.Add(this.butDiagnosisCode2);
 			this.tabPageMedical.Controls.Add(this.butNoneDiagnosisCode4);
 			this.tabPageMedical.Controls.Add(this.butDiagnosisCode4);
 			this.tabPageMedical.Controls.Add(this.butNoneDiagnosisCode3);
 			this.tabPageMedical.Controls.Add(this.butDiagnosisCode3);
-			this.tabPageMedical.Controls.Add(this.textDiagnosticCode2);
-			this.tabPageMedical.Controls.Add(this.labelDiagnosticCode2);
-			this.tabPageMedical.Controls.Add(this.textDiagnosticCode3);
-			this.tabPageMedical.Controls.Add(this.labelDiagnosticCode3);
-			this.tabPageMedical.Controls.Add(this.textDiagnosticCode4);
-			this.tabPageMedical.Controls.Add(this.labelDiagnosticCode4);
+			this.tabPageMedical.Controls.Add(this.textDiagnosisCode2);
+			this.tabPageMedical.Controls.Add(this.labelDiagnosisCode2);
+			this.tabPageMedical.Controls.Add(this.textDiagnosisCode3);
+			this.tabPageMedical.Controls.Add(this.labelDiagnosisCode3);
+			this.tabPageMedical.Controls.Add(this.textDiagnosisCode4);
+			this.tabPageMedical.Controls.Add(this.labelDiagnosisCode4);
 			this.tabPageMedical.Controls.Add(this.butNoneSnomedBodySite);
 			this.tabPageMedical.Controls.Add(this.butSnomedBodySiteSelect);
-			this.tabPageMedical.Controls.Add(this.labelSnomedCtBodySite);
+			this.tabPageMedical.Controls.Add(this.labelSnomedBodySite);
 			this.tabPageMedical.Controls.Add(this.textSnomedBodySite);
-			this.tabPageMedical.Controls.Add(this.label17);
+			this.tabPageMedical.Controls.Add(this.labelUnitType);
 			this.tabPageMedical.Controls.Add(this.comboUnitType);
 			this.tabPageMedical.Controls.Add(this.textDrugQty);
-			this.tabPageMedical.Controls.Add(this.label10);
-			this.tabPageMedical.Controls.Add(this.label8);
-			this.tabPageMedical.Controls.Add(this.label5);
+			this.tabPageMedical.Controls.Add(this.labelDrugQty);
+			this.tabPageMedical.Controls.Add(this.labelMedicalCode);
+			this.tabPageMedical.Controls.Add(this.labelDrugNDC);
 			this.tabPageMedical.Controls.Add(this.textMedicalCode);
 			this.tabPageMedical.Controls.Add(this.textDrugNDC);
-			this.tabPageMedical.Controls.Add(this.textDiagnosticCode);
+			this.tabPageMedical.Controls.Add(this.textDiagnosisCode);
 			this.tabPageMedical.Controls.Add(this.comboDrugUnit);
-			this.tabPageMedical.Controls.Add(this.labelDiagnosticCode1);
-			this.tabPageMedical.Controls.Add(this.label1);
+			this.tabPageMedical.Controls.Add(this.labelDiagnosisCode);
+			this.tabPageMedical.Controls.Add(this.labelDrugUnit);
 			this.tabPageMedical.Controls.Add(this.checkIsPrincDiag);
 			this.tabPageMedical.Controls.Add(this.textRevCode);
 			this.tabPageMedical.Controls.Add(this.textCodeMod1);
-			this.tabPageMedical.Controls.Add(this.label22);
-			this.tabPageMedical.Controls.Add(this.label19);
+			this.tabPageMedical.Controls.Add(this.labelRevCode);
+			this.tabPageMedical.Controls.Add(this.labelCodeMods);
 			this.tabPageMedical.Controls.Add(this.textUnitQty);
 			this.tabPageMedical.Controls.Add(this.textCodeMod2);
-			this.tabPageMedical.Controls.Add(this.label21);
+			this.tabPageMedical.Controls.Add(this.labelUnitQty);
 			this.tabPageMedical.Controls.Add(this.textCodeMod3);
 			this.tabPageMedical.Controls.Add(this.textCodeMod4);
 			this.tabPageMedical.Location = new System.Drawing.Point(4, 22);
@@ -1835,15 +1830,26 @@
 			this.tabPageMedical.Text = "Medical";
 			this.tabPageMedical.UseVisualStyleBackColor = true;
 			// 
+			// checkIsEmergency
+			// 
+			this.checkIsEmergency.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkIsEmergency.FlatStyle = System.Windows.Forms.FlatStyle.System;
+			this.checkIsEmergency.Location = new System.Drawing.Point(6, 169);
+			this.checkIsEmergency.Name = "checkIsEmergency";
+			this.checkIsEmergency.Size = new System.Drawing.Size(130, 17);
+			this.checkIsEmergency.TabIndex = 301;
+			this.checkIsEmergency.Text = "Is Emergency";
+			this.checkIsEmergency.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// groupBox1
 			// 
 			this.groupBox1.Controls.Add(this.butPickOrderProvInternal);
 			this.groupBox1.Controls.Add(this.textOrderingProviderOverride);
 			this.groupBox1.Controls.Add(this.butPickOrderProvReferral);
 			this.groupBox1.Controls.Add(this.butNoneOrderProv);
-			this.groupBox1.Location = new System.Drawing.Point(501, 151);
+			this.groupBox1.Location = new System.Drawing.Point(495, 146);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(275, 64);
+			this.groupBox1.Size = new System.Drawing.Size(278, 66);
 			this.groupBox1.TabIndex = 300;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Ordering Provider Override";
@@ -1855,9 +1861,9 @@
 			this.butPickOrderProvInternal.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPickOrderProvInternal.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butPickOrderProvInternal.CornerRadius = 4F;
-			this.butPickOrderProvInternal.Location = new System.Drawing.Point(6, 14);
+			this.butPickOrderProvInternal.Location = new System.Drawing.Point(6, 16);
 			this.butPickOrderProvInternal.Name = "butPickOrderProvInternal";
-			this.butPickOrderProvInternal.Size = new System.Drawing.Size(61, 21);
+			this.butPickOrderProvInternal.Size = new System.Drawing.Size(58, 20);
 			this.butPickOrderProvInternal.TabIndex = 294;
 			this.butPickOrderProvInternal.Text = "Internal";
 			this.butPickOrderProvInternal.Click += new System.EventHandler(this.butPickOrderProvInternal_Click);
@@ -1868,7 +1874,7 @@
 			this.textOrderingProviderOverride.BackColor = System.Drawing.SystemColors.Control;
 			this.textOrderingProviderOverride.DetectLinksEnabled = false;
 			this.textOrderingProviderOverride.DetectUrls = false;
-			this.textOrderingProviderOverride.Location = new System.Drawing.Point(6, 37);
+			this.textOrderingProviderOverride.Location = new System.Drawing.Point(6, 39);
 			this.textOrderingProviderOverride.Name = "textOrderingProviderOverride";
 			this.textOrderingProviderOverride.QuickPasteType = OpenDentBusiness.QuickPasteType.ReadOnly;
 			this.textOrderingProviderOverride.ReadOnly = true;
@@ -1885,9 +1891,9 @@
 			this.butPickOrderProvReferral.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPickOrderProvReferral.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butPickOrderProvReferral.CornerRadius = 4F;
-			this.butPickOrderProvReferral.Location = new System.Drawing.Point(70, 14);
+			this.butPickOrderProvReferral.Location = new System.Drawing.Point(65, 16);
 			this.butPickOrderProvReferral.Name = "butPickOrderProvReferral";
-			this.butPickOrderProvReferral.Size = new System.Drawing.Size(61, 21);
+			this.butPickOrderProvReferral.Size = new System.Drawing.Size(58, 20);
 			this.butPickOrderProvReferral.TabIndex = 297;
 			this.butPickOrderProvReferral.Text = "Referral";
 			this.butPickOrderProvReferral.Click += new System.EventHandler(this.butPickOrderProvReferral_Click);
@@ -1899,61 +1905,61 @@
 			this.butNoneOrderProv.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butNoneOrderProv.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butNoneOrderProv.CornerRadius = 4F;
-			this.butNoneOrderProv.Location = new System.Drawing.Point(134, 14);
+			this.butNoneOrderProv.Location = new System.Drawing.Point(124, 16);
 			this.butNoneOrderProv.Name = "butNoneOrderProv";
-			this.butNoneOrderProv.Size = new System.Drawing.Size(61, 21);
+			this.butNoneOrderProv.Size = new System.Drawing.Size(58, 20);
 			this.butNoneOrderProv.TabIndex = 298;
 			this.butNoneOrderProv.Text = "None";
 			this.butNoneOrderProv.Click += new System.EventHandler(this.butNoneOrderProv_Click);
 			// 
-			// label11
+			// labelIcdVersionUncheck
 			// 
-			this.label11.Location = new System.Drawing.Point(514, 45);
-			this.label11.Name = "label11";
-			this.label11.Size = new System.Drawing.Size(115, 15);
-			this.label11.TabIndex = 288;
-			this.label11.Text = "(uncheck for ICD-9)";
-			this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.labelIcdVersionUncheck.Location = new System.Drawing.Point(515, 43);
+			this.labelIcdVersionUncheck.Name = "labelIcdVersionUncheck";
+			this.labelIcdVersionUncheck.Size = new System.Drawing.Size(115, 17);
+			this.labelIcdVersionUncheck.TabIndex = 288;
+			this.labelIcdVersionUncheck.Text = "(uncheck for ICD-9)";
+			this.labelIcdVersionUncheck.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// checkIcdVersion
 			// 
 			this.checkIcdVersion.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkIcdVersion.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkIcdVersion.Location = new System.Drawing.Point(307, 45);
+			this.checkIcdVersion.Location = new System.Drawing.Point(336, 43);
 			this.checkIcdVersion.Name = "checkIcdVersion";
-			this.checkIcdVersion.Size = new System.Drawing.Size(206, 15);
+			this.checkIcdVersion.Size = new System.Drawing.Size(178, 17);
 			this.checkIcdVersion.TabIndex = 287;
 			this.checkIcdVersion.Text = "Use ICD-10 Diagnosis Codes";
 			this.checkIcdVersion.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkIcdVersion.Click += new System.EventHandler(this.checkIcdVersion_Click);
 			// 
-			// butNoneDiagnosisCode1
+			// butNoneDiagnosisCode
 			// 
-			this.butNoneDiagnosisCode1.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butNoneDiagnosisCode1.Autosize = true;
-			this.butNoneDiagnosisCode1.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
-			this.butNoneDiagnosisCode1.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
-			this.butNoneDiagnosisCode1.CornerRadius = 4F;
-			this.butNoneDiagnosisCode1.Location = new System.Drawing.Point(605, 61);
-			this.butNoneDiagnosisCode1.Name = "butNoneDiagnosisCode1";
-			this.butNoneDiagnosisCode1.Size = new System.Drawing.Size(51, 22);
-			this.butNoneDiagnosisCode1.TabIndex = 194;
-			this.butNoneDiagnosisCode1.Text = "None";
-			this.butNoneDiagnosisCode1.Click += new System.EventHandler(this.butNoneDiagnosisCode1_Click);
+			this.butNoneDiagnosisCode.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butNoneDiagnosisCode.Autosize = true;
+			this.butNoneDiagnosisCode.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butNoneDiagnosisCode.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butNoneDiagnosisCode.CornerRadius = 4F;
+			this.butNoneDiagnosisCode.Location = new System.Drawing.Point(599, 62);
+			this.butNoneDiagnosisCode.Name = "butNoneDiagnosisCode";
+			this.butNoneDiagnosisCode.Size = new System.Drawing.Size(50, 20);
+			this.butNoneDiagnosisCode.TabIndex = 194;
+			this.butNoneDiagnosisCode.Text = "None";
+			this.butNoneDiagnosisCode.Click += new System.EventHandler(this.butNoneDiagnosisCode1_Click);
 			// 
-			// butDiagnosisCode1
+			// butDiagnosisCode
 			// 
-			this.butDiagnosisCode1.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butDiagnosisCode1.Autosize = true;
-			this.butDiagnosisCode1.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
-			this.butDiagnosisCode1.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
-			this.butDiagnosisCode1.CornerRadius = 4F;
-			this.butDiagnosisCode1.Location = new System.Drawing.Point(580, 61);
-			this.butDiagnosisCode1.Name = "butDiagnosisCode1";
-			this.butDiagnosisCode1.Size = new System.Drawing.Size(22, 22);
-			this.butDiagnosisCode1.TabIndex = 193;
-			this.butDiagnosisCode1.Text = "...";
-			this.butDiagnosisCode1.Click += new System.EventHandler(this.butDiagnosisCode1_Click);
+			this.butDiagnosisCode.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butDiagnosisCode.Autosize = true;
+			this.butDiagnosisCode.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butDiagnosisCode.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butDiagnosisCode.CornerRadius = 4F;
+			this.butDiagnosisCode.Location = new System.Drawing.Point(578, 62);
+			this.butDiagnosisCode.Name = "butDiagnosisCode";
+			this.butDiagnosisCode.Size = new System.Drawing.Size(20, 20);
+			this.butDiagnosisCode.TabIndex = 193;
+			this.butDiagnosisCode.Text = "...";
+			this.butDiagnosisCode.Click += new System.EventHandler(this.butDiagnosisCode1_Click);
 			// 
 			// butNoneDiagnosisCode2
 			// 
@@ -1962,9 +1968,9 @@
 			this.butNoneDiagnosisCode2.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butNoneDiagnosisCode2.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butNoneDiagnosisCode2.CornerRadius = 4F;
-			this.butNoneDiagnosisCode2.Location = new System.Drawing.Point(605, 83);
+			this.butNoneDiagnosisCode2.Location = new System.Drawing.Point(599, 82);
 			this.butNoneDiagnosisCode2.Name = "butNoneDiagnosisCode2";
-			this.butNoneDiagnosisCode2.Size = new System.Drawing.Size(51, 22);
+			this.butNoneDiagnosisCode2.Size = new System.Drawing.Size(50, 20);
 			this.butNoneDiagnosisCode2.TabIndex = 192;
 			this.butNoneDiagnosisCode2.Text = "None";
 			this.butNoneDiagnosisCode2.Click += new System.EventHandler(this.butNoneDiagnosisCode2_Click);
@@ -1976,9 +1982,9 @@
 			this.butDiagnosisCode2.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butDiagnosisCode2.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butDiagnosisCode2.CornerRadius = 4F;
-			this.butDiagnosisCode2.Location = new System.Drawing.Point(580, 83);
+			this.butDiagnosisCode2.Location = new System.Drawing.Point(578, 82);
 			this.butDiagnosisCode2.Name = "butDiagnosisCode2";
-			this.butDiagnosisCode2.Size = new System.Drawing.Size(22, 22);
+			this.butDiagnosisCode2.Size = new System.Drawing.Size(20, 20);
 			this.butDiagnosisCode2.TabIndex = 191;
 			this.butDiagnosisCode2.Text = "...";
 			this.butDiagnosisCode2.Click += new System.EventHandler(this.butDiagnosisCode2_Click);
@@ -1990,9 +1996,9 @@
 			this.butNoneDiagnosisCode4.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butNoneDiagnosisCode4.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butNoneDiagnosisCode4.CornerRadius = 4F;
-			this.butNoneDiagnosisCode4.Location = new System.Drawing.Point(605, 127);
+			this.butNoneDiagnosisCode4.Location = new System.Drawing.Point(599, 122);
 			this.butNoneDiagnosisCode4.Name = "butNoneDiagnosisCode4";
-			this.butNoneDiagnosisCode4.Size = new System.Drawing.Size(51, 22);
+			this.butNoneDiagnosisCode4.Size = new System.Drawing.Size(50, 20);
 			this.butNoneDiagnosisCode4.TabIndex = 190;
 			this.butNoneDiagnosisCode4.Text = "None";
 			this.butNoneDiagnosisCode4.Click += new System.EventHandler(this.butNoneDiagnosisCode4_Click);
@@ -2004,9 +2010,9 @@
 			this.butDiagnosisCode4.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butDiagnosisCode4.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butDiagnosisCode4.CornerRadius = 4F;
-			this.butDiagnosisCode4.Location = new System.Drawing.Point(580, 127);
+			this.butDiagnosisCode4.Location = new System.Drawing.Point(578, 122);
 			this.butDiagnosisCode4.Name = "butDiagnosisCode4";
-			this.butDiagnosisCode4.Size = new System.Drawing.Size(22, 22);
+			this.butDiagnosisCode4.Size = new System.Drawing.Size(20, 20);
 			this.butDiagnosisCode4.TabIndex = 189;
 			this.butDiagnosisCode4.Text = "...";
 			this.butDiagnosisCode4.Click += new System.EventHandler(this.butDiagnosisCode4_Click);
@@ -2018,9 +2024,9 @@
 			this.butNoneDiagnosisCode3.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butNoneDiagnosisCode3.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butNoneDiagnosisCode3.CornerRadius = 4F;
-			this.butNoneDiagnosisCode3.Location = new System.Drawing.Point(605, 105);
+			this.butNoneDiagnosisCode3.Location = new System.Drawing.Point(599, 102);
 			this.butNoneDiagnosisCode3.Name = "butNoneDiagnosisCode3";
-			this.butNoneDiagnosisCode3.Size = new System.Drawing.Size(51, 22);
+			this.butNoneDiagnosisCode3.Size = new System.Drawing.Size(50, 20);
 			this.butNoneDiagnosisCode3.TabIndex = 188;
 			this.butNoneDiagnosisCode3.Text = "None";
 			this.butNoneDiagnosisCode3.Click += new System.EventHandler(this.butNoneDiagnosisCode3_Click);
@@ -2032,60 +2038,60 @@
 			this.butDiagnosisCode3.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butDiagnosisCode3.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butDiagnosisCode3.CornerRadius = 4F;
-			this.butDiagnosisCode3.Location = new System.Drawing.Point(580, 105);
+			this.butDiagnosisCode3.Location = new System.Drawing.Point(578, 102);
 			this.butDiagnosisCode3.Name = "butDiagnosisCode3";
-			this.butDiagnosisCode3.Size = new System.Drawing.Size(22, 22);
+			this.butDiagnosisCode3.Size = new System.Drawing.Size(20, 20);
 			this.butDiagnosisCode3.TabIndex = 187;
 			this.butDiagnosisCode3.Text = "...";
 			this.butDiagnosisCode3.Click += new System.EventHandler(this.butDiagnosisCode3_Click);
 			// 
-			// textDiagnosticCode2
+			// textDiagnosisCode2
 			// 
-			this.textDiagnosticCode2.Location = new System.Drawing.Point(501, 85);
-			this.textDiagnosticCode2.Name = "textDiagnosticCode2";
-			this.textDiagnosticCode2.Size = new System.Drawing.Size(76, 20);
-			this.textDiagnosticCode2.TabIndex = 186;
+			this.textDiagnosisCode2.Location = new System.Drawing.Point(501, 82);
+			this.textDiagnosisCode2.Name = "textDiagnosisCode2";
+			this.textDiagnosisCode2.Size = new System.Drawing.Size(76, 20);
+			this.textDiagnosisCode2.TabIndex = 186;
 			// 
-			// labelDiagnosticCode2
+			// labelDiagnosisCode2
 			// 
-			this.labelDiagnosticCode2.Location = new System.Drawing.Point(336, 87);
-			this.labelDiagnosticCode2.Name = "labelDiagnosticCode2";
-			this.labelDiagnosticCode2.Size = new System.Drawing.Size(164, 16);
-			this.labelDiagnosticCode2.TabIndex = 185;
-			this.labelDiagnosticCode2.Text = "ICD-10 Diagnosis Code 2";
-			this.labelDiagnosticCode2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDiagnosisCode2.Location = new System.Drawing.Point(336, 84);
+			this.labelDiagnosisCode2.Name = "labelDiagnosisCode2";
+			this.labelDiagnosisCode2.Size = new System.Drawing.Size(164, 17);
+			this.labelDiagnosisCode2.TabIndex = 185;
+			this.labelDiagnosisCode2.Text = "ICD-10 Diagnosis Code 2";
+			this.labelDiagnosisCode2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// textDiagnosticCode3
+			// textDiagnosisCode3
 			// 
-			this.textDiagnosticCode3.Location = new System.Drawing.Point(501, 106);
-			this.textDiagnosticCode3.Name = "textDiagnosticCode3";
-			this.textDiagnosticCode3.Size = new System.Drawing.Size(76, 20);
-			this.textDiagnosticCode3.TabIndex = 184;
+			this.textDiagnosisCode3.Location = new System.Drawing.Point(501, 102);
+			this.textDiagnosisCode3.Name = "textDiagnosisCode3";
+			this.textDiagnosisCode3.Size = new System.Drawing.Size(76, 20);
+			this.textDiagnosisCode3.TabIndex = 184;
 			// 
-			// labelDiagnosticCode3
+			// labelDiagnosisCode3
 			// 
-			this.labelDiagnosticCode3.Location = new System.Drawing.Point(336, 108);
-			this.labelDiagnosticCode3.Name = "labelDiagnosticCode3";
-			this.labelDiagnosticCode3.Size = new System.Drawing.Size(164, 16);
-			this.labelDiagnosticCode3.TabIndex = 183;
-			this.labelDiagnosticCode3.Text = "ICD-10 Diagnosis Code 3";
-			this.labelDiagnosticCode3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDiagnosisCode3.Location = new System.Drawing.Point(336, 104);
+			this.labelDiagnosisCode3.Name = "labelDiagnosisCode3";
+			this.labelDiagnosisCode3.Size = new System.Drawing.Size(164, 17);
+			this.labelDiagnosisCode3.TabIndex = 183;
+			this.labelDiagnosisCode3.Text = "ICD-10 Diagnosis Code 3";
+			this.labelDiagnosisCode3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// textDiagnosticCode4
+			// textDiagnosisCode4
 			// 
-			this.textDiagnosticCode4.Location = new System.Drawing.Point(501, 126);
-			this.textDiagnosticCode4.Name = "textDiagnosticCode4";
-			this.textDiagnosticCode4.Size = new System.Drawing.Size(76, 20);
-			this.textDiagnosticCode4.TabIndex = 182;
+			this.textDiagnosisCode4.Location = new System.Drawing.Point(501, 122);
+			this.textDiagnosisCode4.Name = "textDiagnosisCode4";
+			this.textDiagnosisCode4.Size = new System.Drawing.Size(76, 20);
+			this.textDiagnosisCode4.TabIndex = 182;
 			// 
-			// labelDiagnosticCode4
+			// labelDiagnosisCode4
 			// 
-			this.labelDiagnosticCode4.Location = new System.Drawing.Point(336, 128);
-			this.labelDiagnosticCode4.Name = "labelDiagnosticCode4";
-			this.labelDiagnosticCode4.Size = new System.Drawing.Size(164, 16);
-			this.labelDiagnosticCode4.TabIndex = 181;
-			this.labelDiagnosticCode4.Text = "ICD-10 Diagnosis Code 4";
-			this.labelDiagnosticCode4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelDiagnosisCode4.Location = new System.Drawing.Point(336, 124);
+			this.labelDiagnosisCode4.Name = "labelDiagnosisCode4";
+			this.labelDiagnosisCode4.Size = new System.Drawing.Size(164, 17);
+			this.labelDiagnosisCode4.TabIndex = 181;
+			this.labelDiagnosisCode4.Text = "ICD-10 Diagnosis Code 4";
+			this.labelDiagnosisCode4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// butNoneSnomedBodySite
 			// 
@@ -2094,9 +2100,9 @@
 			this.butNoneSnomedBodySite.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butNoneSnomedBodySite.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butNoneSnomedBodySite.CornerRadius = 4F;
-			this.butNoneSnomedBodySite.Location = new System.Drawing.Point(801, 6);
+			this.butNoneSnomedBodySite.Location = new System.Drawing.Point(795, 6);
 			this.butNoneSnomedBodySite.Name = "butNoneSnomedBodySite";
-			this.butNoneSnomedBodySite.Size = new System.Drawing.Size(51, 22);
+			this.butNoneSnomedBodySite.Size = new System.Drawing.Size(50, 20);
 			this.butNoneSnomedBodySite.TabIndex = 180;
 			this.butNoneSnomedBodySite.Text = "None";
 			this.butNoneSnomedBodySite.Click += new System.EventHandler(this.butNoneSnomedBodySite_Click);
@@ -2108,44 +2114,44 @@
 			this.butSnomedBodySiteSelect.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butSnomedBodySiteSelect.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butSnomedBodySiteSelect.CornerRadius = 4F;
-			this.butSnomedBodySiteSelect.Location = new System.Drawing.Point(776, 6);
+			this.butSnomedBodySiteSelect.Location = new System.Drawing.Point(774, 6);
 			this.butSnomedBodySiteSelect.Name = "butSnomedBodySiteSelect";
-			this.butSnomedBodySiteSelect.Size = new System.Drawing.Size(22, 22);
+			this.butSnomedBodySiteSelect.Size = new System.Drawing.Size(20, 20);
 			this.butSnomedBodySiteSelect.TabIndex = 179;
 			this.butSnomedBodySiteSelect.Text = "...";
 			this.butSnomedBodySiteSelect.Click += new System.EventHandler(this.butSnomedBodySiteSelect_Click);
 			// 
-			// labelSnomedCtBodySite
+			// labelSnomedBodySite
 			// 
-			this.labelSnomedCtBodySite.Location = new System.Drawing.Point(326, 7);
-			this.labelSnomedCtBodySite.Name = "labelSnomedCtBodySite";
-			this.labelSnomedCtBodySite.Size = new System.Drawing.Size(172, 20);
-			this.labelSnomedCtBodySite.TabIndex = 178;
-			this.labelSnomedCtBodySite.Text = "SNOMED CT Body Site";
-			this.labelSnomedCtBodySite.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelSnomedBodySite.Location = new System.Drawing.Point(336, 8);
+			this.labelSnomedBodySite.Name = "labelSnomedBodySite";
+			this.labelSnomedBodySite.Size = new System.Drawing.Size(164, 17);
+			this.labelSnomedBodySite.TabIndex = 178;
+			this.labelSnomedBodySite.Text = "SNOMED CT Body Site";
+			this.labelSnomedBodySite.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textSnomedBodySite
 			// 
-			this.textSnomedBodySite.Location = new System.Drawing.Point(501, 7);
+			this.textSnomedBodySite.Location = new System.Drawing.Point(501, 6);
 			this.textSnomedBodySite.Name = "textSnomedBodySite";
 			this.textSnomedBodySite.ReadOnly = true;
 			this.textSnomedBodySite.Size = new System.Drawing.Size(272, 20);
 			this.textSnomedBodySite.TabIndex = 177;
 			// 
-			// label17
+			// labelUnitType
 			// 
-			this.label17.Location = new System.Drawing.Point(7, 69);
-			this.label17.Name = "label17";
-			this.label17.Size = new System.Drawing.Size(115, 17);
-			this.label17.TabIndex = 176;
-			this.label17.Text = "Unit Type";
-			this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelUnitType.Location = new System.Drawing.Point(6, 68);
+			this.labelUnitType.Name = "labelUnitType";
+			this.labelUnitType.Size = new System.Drawing.Size(116, 17);
+			this.labelUnitType.TabIndex = 176;
+			this.labelUnitType.Text = "Unit Type";
+			this.labelUnitType.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// comboUnitType
 			// 
 			this.comboUnitType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboUnitType.FormattingEnabled = true;
-			this.comboUnitType.Location = new System.Drawing.Point(123, 67);
+			this.comboUnitType.Location = new System.Drawing.Point(123, 66);
 			this.comboUnitType.Name = "comboUnitType";
 			this.comboUnitType.Size = new System.Drawing.Size(117, 21);
 			this.comboUnitType.TabIndex = 175;
@@ -2195,7 +2201,7 @@
 			this.butPickSite.Autosize = true;
 			this.butPickSite.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPickSite.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
-			this.butPickSite.CornerRadius = 2F;
+			this.butPickSite.CornerRadius = 4F;
 			this.butPickSite.Location = new System.Drawing.Point(273, 76);
 			this.butPickSite.Name = "butPickSite";
 			this.butPickSite.Size = new System.Drawing.Size(19, 21);
@@ -2385,7 +2391,7 @@
 			this.butReferral.Autosize = false;
 			this.butReferral.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butReferral.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
-			this.butReferral.CornerRadius = 2F;
+			this.butReferral.CornerRadius = 4F;
 			this.butReferral.Location = new System.Drawing.Point(707, 77);
 			this.butReferral.Name = "butReferral";
 			this.butReferral.Size = new System.Drawing.Size(18, 21);
@@ -2399,7 +2405,7 @@
 			this.butPickProv.Autosize = false;
 			this.butPickProv.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPickProv.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
-			this.butPickProv.CornerRadius = 2F;
+			this.butPickProv.CornerRadius = 4F;
 			this.butPickProv.Location = new System.Drawing.Point(265, 217);
 			this.butPickProv.Name = "butPickProv";
 			this.butPickProv.Size = new System.Drawing.Size(18, 21);
@@ -2722,10 +2728,10 @@
 		private System.Windows.Forms.Label label12;
 		private System.Windows.Forms.ComboBox comboClinic;
 		private System.Windows.Forms.Label labelClinic;
-		private System.Windows.Forms.Label label8;
+		private System.Windows.Forms.Label labelMedicalCode;
 		private System.Windows.Forms.TextBox textMedicalCode;
-		private System.Windows.Forms.Label labelDiagnosticCode1;
-		private System.Windows.Forms.TextBox textDiagnosticCode;//ENP
+		private System.Windows.Forms.Label labelDiagnosisCode;
+		private System.Windows.Forms.TextBox textDiagnosisCode;//ENP
 		private System.Windows.Forms.CheckBox checkIsPrincDiag;//ENP
 		private System.Windows.Forms.Label label14;
 		private System.Windows.Forms.Label label15;
@@ -2734,7 +2740,7 @@
 		private System.Windows.Forms.ComboBox comboDx;
 		private System.Windows.Forms.ComboBox comboPriority;
 		private System.Windows.Forms.TextBox textUser;
-		private System.Windows.Forms.Label label19;
+		private System.Windows.Forms.Label labelCodeMods;
 		private System.Windows.Forms.TextBox textCodeMod1;
 		private System.Windows.Forms.ComboBox comboBillingTypeTwo;
 		private System.Windows.Forms.Label labelBillingTypeTwo;
@@ -2744,9 +2750,9 @@
 		private System.Windows.Forms.TextBox textCodeMod3;
 		private System.Windows.Forms.TextBox textCodeMod2;
 		private System.Windows.Forms.TextBox textRevCode;
-		private System.Windows.Forms.Label label22;
+		private System.Windows.Forms.Label labelRevCode;
 		private System.Windows.Forms.TextBox textUnitQty;
-		private System.Windows.Forms.Label label21;
+		private System.Windows.Forms.Label labelUnitQty;
 		private OpenDental.UI.Button buttonUseAutoNote;
 		private System.Windows.Forms.ToolTip toolTip1;
 		private ValidDate textDateTP;
@@ -2801,10 +2807,10 @@
 		private System.Windows.Forms.Label labelPrognosis;
 		private System.Windows.Forms.ComboBox comboProcStatus;
 		private System.Windows.Forms.ComboBox comboDrugUnit;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Label labelDrugUnit;
+		private System.Windows.Forms.Label labelDrugNDC;
 		private System.Windows.Forms.TextBox textDrugNDC;
-		private System.Windows.Forms.Label label10;
+		private System.Windows.Forms.Label labelDrugQty;
 		private System.Windows.Forms.TextBox textDrugQty;
 		private System.Windows.Forms.Label label13;
 		private System.Windows.Forms.TextBox textReferral;
@@ -2815,7 +2821,7 @@
 		private System.Windows.Forms.TabPage tabPageMisc;
 		private System.Windows.Forms.TabPage tabPageCanada;
 		private System.Windows.Forms.TabPage tabPageOrion;
-		private System.Windows.Forms.Label label17;
+		private System.Windows.Forms.Label labelUnitType;
 		private System.Windows.Forms.ComboBox comboUnitType;
 		private System.Windows.Forms.Label labelCanadaLabFee2;
 		private System.Windows.Forms.Label labelCanadaLabFee1;
@@ -2828,8 +2834,8 @@
 		private UI.Button butSearch;
 		private UI.Button butSnomedBodySiteSelect;
 		private UI.Button butNoneSnomedBodySite;
-		private UI.Button butNoneDiagnosisCode1;
-		private UI.Button butDiagnosisCode1;
+		private UI.Button butNoneDiagnosisCode;
+		private UI.Button butDiagnosisCode;
 		private UI.Button butNoneDiagnosisCode2;
 		private UI.Button butDiagnosisCode2;
 		private UI.Button butNoneDiagnosisCode4;
@@ -2840,7 +2846,7 @@
 		private ValidDouble textDiscount;
 		private System.Windows.Forms.CheckBox checkIsDateProsthEst;
 		private System.Windows.Forms.CheckBox checkIcdVersion;
-		private System.Windows.Forms.Label label11;
+		private System.Windows.Forms.Label labelIcdVersionUncheck;
 		private UI.Button butChangeUser;
 		private UI.Button butAddExistAdj;
 		private ValidDate textOrigDateComp;
@@ -2857,14 +2863,14 @@
 		private System.Windows.Forms.TextBox textTimeFinal;
 		private System.Windows.Forms.Label labelTimeFinal;
 		private System.Windows.Forms.TextBox textBillingNote;
-		private System.Windows.Forms.Label labelSnomedCtBodySite;
+		private System.Windows.Forms.Label labelSnomedBodySite;
 		private System.Windows.Forms.TextBox textSnomedBodySite;
-		private System.Windows.Forms.TextBox textDiagnosticCode2;
-		private System.Windows.Forms.Label labelDiagnosticCode2;
-		private System.Windows.Forms.TextBox textDiagnosticCode3;
-		private System.Windows.Forms.Label labelDiagnosticCode3;
-		private System.Windows.Forms.TextBox textDiagnosticCode4;
-		private System.Windows.Forms.Label labelDiagnosticCode4;
+		private System.Windows.Forms.TextBox textDiagnosisCode2;
+		private System.Windows.Forms.Label labelDiagnosisCode2;
+		private System.Windows.Forms.TextBox textDiagnosisCode3;
+		private System.Windows.Forms.Label labelDiagnosisCode3;
+		private System.Windows.Forms.TextBox textDiagnosisCode4;
+		private System.Windows.Forms.Label labelDiagnosisCode4;
 		private UI.ODGrid gridAdj;
 		private UI.ODGrid gridPay;
 		private UI.SignatureBoxWrapper signatureBoxWrapper;
@@ -2872,5 +2878,6 @@
 		private System.Windows.Forms.Label labelPermAlert;
 		private System.Windows.Forms.Label labelTaxEst;
 		private ValidDouble textTaxAmt;
+		private System.Windows.Forms.CheckBox checkIsEmergency;
 	}
 }

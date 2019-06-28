@@ -1486,6 +1486,8 @@ namespace OpenDentBusiness {
 				command="UPDATE preference SET ValueString='1' WHERE PrefName='AllowPrepayProvider'";
 				Db.NonQ(command);
 			}
+			command="ALTER TABLE claim MODIFY DateIllnessInjuryPregQualifier smallint NOT NULL,MODIFY DateOtherQualifier smallint NOT NULL";
+			Db.NonQ(command);
 		}
 	}
 }

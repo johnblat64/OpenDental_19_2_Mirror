@@ -112,21 +112,23 @@
 			this.labelAttachmentID = new System.Windows.Forms.Label();
 			this.gridSent = new OpenDental.UI.ODGrid();
 			this.tabMisc = new System.Windows.Forms.TabPage();
+			this.labelResubCode = new System.Windows.Forms.Label();
+			this.comboResubCode = new System.Windows.Forms.ComboBox();
 			this.textClaimIdOriginal = new System.Windows.Forms.TextBox();
-			this.label62 = new System.Windows.Forms.Label();
-			this.label74 = new System.Windows.Forms.Label();
-			this.label94 = new System.Windows.Forms.Label();
-			this.label93 = new System.Windows.Forms.Label();
-			this.label88 = new System.Windows.Forms.Label();
+			this.labelClaimIdOriginal = new System.Windows.Forms.Label();
+			this.labelShareOfCost = new System.Windows.Forms.Label();
+			this.labelClaimIdentifierDentiCal = new System.Windows.Forms.Label();
+			this.labelOrigRefNumDentiCal = new System.Windows.Forms.Label();
+			this.labelPriorAuthDentiCal = new System.Windows.Forms.Label();
 			this.textOrigRefNum = new System.Windows.Forms.TextBox();
-			this.label90 = new System.Windows.Forms.Label();
+			this.labelCorrectionType = new System.Windows.Forms.Label();
 			this.labelPriorAuth = new System.Windows.Forms.Label();
-			this.label92 = new System.Windows.Forms.Label();
+			this.labelOrigRefNum = new System.Windows.Forms.Label();
 			this.textPriorAuth = new System.Windows.Forms.TextBox();
 			this.labelSpecialProgram = new System.Windows.Forms.Label();
 			this.textClaimIdentifier = new System.Windows.Forms.TextBox();
 			this.comboSpecialProgram = new System.Windows.Forms.ComboBox();
-			this.label91 = new System.Windows.Forms.Label();
+			this.labelClaimIdentifier = new System.Windows.Forms.Label();
 			this.comboCorrectionType = new System.Windows.Forms.ComboBox();
 			this.textShareOfCost = new OpenDental.ValidDouble();
 			this.tabUB04 = new System.Windows.Forms.TabPage();
@@ -136,65 +138,65 @@
 			this.butPickOrderProvReferral = new OpenDental.UI.Button();
 			this.butNoneOrderProv = new OpenDental.UI.Button();
 			this.groupUb04 = new System.Windows.Forms.GroupBox();
-			this.label7 = new System.Windows.Forms.Label();
+			this.labelBillType = new System.Windows.Forms.Label();
 			this.groupValueCodes = new System.Windows.Forms.GroupBox();
-			this.textVC11Amount = new System.Windows.Forms.TextBox();
-			this.textVC8Amount = new System.Windows.Forms.TextBox();
-			this.textVC5Amount = new System.Windows.Forms.TextBox();
-			this.textVC2Amount = new System.Windows.Forms.TextBox();
-			this.textVC11Code = new System.Windows.Forms.TextBox();
-			this.textVC8Code = new System.Windows.Forms.TextBox();
-			this.textVC5Code = new System.Windows.Forms.TextBox();
-			this.textVC2Code = new System.Windows.Forms.TextBox();
-			this.label36 = new System.Windows.Forms.Label();
-			this.label37 = new System.Windows.Forms.Label();
-			this.label38 = new System.Windows.Forms.Label();
-			this.label39 = new System.Windows.Forms.Label();
-			this.label40 = new System.Windows.Forms.Label();
-			this.label41 = new System.Windows.Forms.Label();
-			this.textVC10Amount = new System.Windows.Forms.TextBox();
-			this.textVC7Amount = new System.Windows.Forms.TextBox();
-			this.textVC4Amount = new System.Windows.Forms.TextBox();
-			this.textVC1Amount = new System.Windows.Forms.TextBox();
-			this.textVC10Code = new System.Windows.Forms.TextBox();
-			this.textVC7Code = new System.Windows.Forms.TextBox();
-			this.textVC4Code = new System.Windows.Forms.TextBox();
-			this.textVC1Code = new System.Windows.Forms.TextBox();
-			this.label17 = new System.Windows.Forms.Label();
-			this.label19 = new System.Windows.Forms.Label();
-			this.label23 = new System.Windows.Forms.Label();
-			this.label24 = new System.Windows.Forms.Label();
-			this.label28 = new System.Windows.Forms.Label();
-			this.label29 = new System.Windows.Forms.Label();
-			this.label27 = new System.Windows.Forms.Label();
-			this.label26 = new System.Windows.Forms.Label();
-			this.label25 = new System.Windows.Forms.Label();
-			this.textVC9Amount = new System.Windows.Forms.TextBox();
-			this.textVC6Amount = new System.Windows.Forms.TextBox();
-			this.textVC3Amount = new System.Windows.Forms.TextBox();
-			this.textVC0Amount = new System.Windows.Forms.TextBox();
-			this.textVC9Code = new System.Windows.Forms.TextBox();
-			this.textVC6Code = new System.Windows.Forms.TextBox();
-			this.textVC3Code = new System.Windows.Forms.TextBox();
-			this.textVC0Code = new System.Windows.Forms.TextBox();
-			this.label22 = new System.Windows.Forms.Label();
-			this.label15 = new System.Windows.Forms.Label();
-			this.label14 = new System.Windows.Forms.Label();
-			this.label13 = new System.Windows.Forms.Label();
-			this.label12 = new System.Windows.Forms.Label();
-			this.label11 = new System.Windows.Forms.Label();
+			this.textVC41dAmt = new System.Windows.Forms.TextBox();
+			this.textVC41cAmt = new System.Windows.Forms.TextBox();
+			this.textVC41bAmt = new System.Windows.Forms.TextBox();
+			this.textVC41aAmt = new System.Windows.Forms.TextBox();
+			this.textVC41dCode = new System.Windows.Forms.TextBox();
+			this.textVC41cCode = new System.Windows.Forms.TextBox();
+			this.textVC41bCode = new System.Windows.Forms.TextBox();
+			this.textVC41aCode = new System.Windows.Forms.TextBox();
+			this.labelVC41Amt = new System.Windows.Forms.Label();
+			this.labelVC41Code = new System.Windows.Forms.Label();
+			this.labelVC41d = new System.Windows.Forms.Label();
+			this.labelVC41c = new System.Windows.Forms.Label();
+			this.labelVC41b = new System.Windows.Forms.Label();
+			this.labelVC41a = new System.Windows.Forms.Label();
+			this.textVC40dAmt = new System.Windows.Forms.TextBox();
+			this.textVC40cAmt = new System.Windows.Forms.TextBox();
+			this.textVC40bAmt = new System.Windows.Forms.TextBox();
+			this.textVC40aAmt = new System.Windows.Forms.TextBox();
+			this.textVC40dCode = new System.Windows.Forms.TextBox();
+			this.textVC40cCode = new System.Windows.Forms.TextBox();
+			this.textVC40bCode = new System.Windows.Forms.TextBox();
+			this.textVC40aCode = new System.Windows.Forms.TextBox();
+			this.labelVC40Amt = new System.Windows.Forms.Label();
+			this.labelVC40Code = new System.Windows.Forms.Label();
+			this.labelVC40d = new System.Windows.Forms.Label();
+			this.labelVC40c = new System.Windows.Forms.Label();
+			this.labelVC40b = new System.Windows.Forms.Label();
+			this.labelVC40a = new System.Windows.Forms.Label();
+			this.labelVC41 = new System.Windows.Forms.Label();
+			this.labelVC40 = new System.Windows.Forms.Label();
+			this.labelVC39 = new System.Windows.Forms.Label();
+			this.textVC39dAmt = new System.Windows.Forms.TextBox();
+			this.textVC39cAmt = new System.Windows.Forms.TextBox();
+			this.textVC39bAmt = new System.Windows.Forms.TextBox();
+			this.textVC39aAmt = new System.Windows.Forms.TextBox();
+			this.textVC39dCode = new System.Windows.Forms.TextBox();
+			this.textVC39cCode = new System.Windows.Forms.TextBox();
+			this.textVC39bCode = new System.Windows.Forms.TextBox();
+			this.textVC39aCode = new System.Windows.Forms.TextBox();
+			this.labelVC39Amt = new System.Windows.Forms.Label();
+			this.labelVC39Code = new System.Windows.Forms.Label();
+			this.labelVC39d = new System.Windows.Forms.Label();
+			this.labelVC39c = new System.Windows.Forms.Label();
+			this.labelVC39b = new System.Windows.Forms.Label();
+			this.labelVC39a = new System.Windows.Forms.Label();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
-			this.label60 = new System.Windows.Forms.Label();
-			this.label59 = new System.Windows.Forms.Label();
-			this.label58 = new System.Windows.Forms.Label();
-			this.label57 = new System.Windows.Forms.Label();
-			this.label56 = new System.Windows.Forms.Label();
-			this.label55 = new System.Windows.Forms.Label();
-			this.label54 = new System.Windows.Forms.Label();
-			this.label53 = new System.Windows.Forms.Label();
-			this.label52 = new System.Windows.Forms.Label();
-			this.label51 = new System.Windows.Forms.Label();
-			this.label50 = new System.Windows.Forms.Label();
+			this.labelCode10 = new System.Windows.Forms.Label();
+			this.labelCode9 = new System.Windows.Forms.Label();
+			this.labelCode8 = new System.Windows.Forms.Label();
+			this.labelCode7 = new System.Windows.Forms.Label();
+			this.labelCode6 = new System.Windows.Forms.Label();
+			this.labelCode5 = new System.Windows.Forms.Label();
+			this.labelCode4 = new System.Windows.Forms.Label();
+			this.labelCode3 = new System.Windows.Forms.Label();
+			this.labelCode2 = new System.Windows.Forms.Label();
+			this.labelCode1 = new System.Windows.Forms.Label();
+			this.labelCode0 = new System.Windows.Forms.Label();
 			this.textCode10 = new System.Windows.Forms.TextBox();
 			this.textCode9 = new System.Windows.Forms.TextBox();
 			this.textCode8 = new System.Windows.Forms.TextBox();
@@ -207,12 +209,23 @@
 			this.textCode1 = new System.Windows.Forms.TextBox();
 			this.textCode0 = new System.Windows.Forms.TextBox();
 			this.textBillType = new System.Windows.Forms.TextBox();
-			this.label83 = new System.Windows.Forms.Label();
+			this.labelAdmissionType = new System.Windows.Forms.Label();
 			this.textPatientStatus = new System.Windows.Forms.TextBox();
 			this.textAdmissionType = new System.Windows.Forms.TextBox();
-			this.label85 = new System.Windows.Forms.Label();
-			this.label84 = new System.Windows.Forms.Label();
+			this.labelPatientStatus = new System.Windows.Forms.Label();
+			this.labelAdmissionSource = new System.Windows.Forms.Label();
 			this.textAdmissionSource = new System.Windows.Forms.TextBox();
+			this.groupDateIllnessInjuryPreg = new System.Windows.Forms.GroupBox();
+			this.comboDateIllnessQualifier = new System.Windows.Forms.ComboBox();
+			this.textDateIllness = new OpenDental.ValidDate();
+			this.labelDateIllness = new System.Windows.Forms.Label();
+			this.labelDateIllnessQualifier = new System.Windows.Forms.Label();
+			this.checkIsOutsideLab = new System.Windows.Forms.CheckBox();
+			this.groupDateOtherCondOrTreatment = new System.Windows.Forms.GroupBox();
+			this.textDateOther = new OpenDental.ValidDate();
+			this.labelDateOtherQualifier = new System.Windows.Forms.Label();
+			this.labelDateOther = new System.Windows.Forms.Label();
+			this.comboDateOtherQualifier = new System.Windows.Forms.ComboBox();
 			this.tabCanadian = new System.Windows.Forms.TabPage();
 			this.textCanadaTransRefNum = new System.Windows.Forms.TextBox();
 			this.groupCanadaOrthoPredeterm = new System.Windows.Forms.GroupBox();
@@ -349,6 +362,8 @@
 			this.groupUb04.SuspendLayout();
 			this.groupValueCodes.SuspendLayout();
 			this.groupBox1.SuspendLayout();
+			this.groupDateIllnessInjuryPreg.SuspendLayout();
+			this.groupDateOtherCondOrTreatment.SuspendLayout();
 			this.tabCanadian.SuspendLayout();
 			this.groupCanadaOrthoPredeterm.SuspendLayout();
 			this.groupMandPros.SuspendLayout();
@@ -1306,9 +1321,7 @@
 			// gridSent
 			// 
 			this.gridSent.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridSent.HasAddButton = false;
 			this.gridSent.HasDropDowns = false;
-			this.gridSent.HasMultilineHeaders = false;
 			this.gridSent.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridSent.HeaderHeight = 15;
 			this.gridSent.HScrollVisible = false;
@@ -1326,21 +1339,23 @@
 			// tabMisc
 			// 
 			this.tabMisc.AutoScroll = true;
+			this.tabMisc.Controls.Add(this.labelResubCode);
+			this.tabMisc.Controls.Add(this.comboResubCode);
 			this.tabMisc.Controls.Add(this.textClaimIdOriginal);
-			this.tabMisc.Controls.Add(this.label62);
-			this.tabMisc.Controls.Add(this.label74);
-			this.tabMisc.Controls.Add(this.label94);
-			this.tabMisc.Controls.Add(this.label93);
-			this.tabMisc.Controls.Add(this.label88);
+			this.tabMisc.Controls.Add(this.labelClaimIdOriginal);
+			this.tabMisc.Controls.Add(this.labelShareOfCost);
+			this.tabMisc.Controls.Add(this.labelClaimIdentifierDentiCal);
+			this.tabMisc.Controls.Add(this.labelOrigRefNumDentiCal);
+			this.tabMisc.Controls.Add(this.labelPriorAuthDentiCal);
 			this.tabMisc.Controls.Add(this.textOrigRefNum);
-			this.tabMisc.Controls.Add(this.label90);
+			this.tabMisc.Controls.Add(this.labelCorrectionType);
 			this.tabMisc.Controls.Add(this.labelPriorAuth);
-			this.tabMisc.Controls.Add(this.label92);
+			this.tabMisc.Controls.Add(this.labelOrigRefNum);
 			this.tabMisc.Controls.Add(this.textPriorAuth);
 			this.tabMisc.Controls.Add(this.labelSpecialProgram);
 			this.tabMisc.Controls.Add(this.textClaimIdentifier);
 			this.tabMisc.Controls.Add(this.comboSpecialProgram);
-			this.tabMisc.Controls.Add(this.label91);
+			this.tabMisc.Controls.Add(this.labelClaimIdentifier);
 			this.tabMisc.Controls.Add(this.comboCorrectionType);
 			this.tabMisc.Controls.Add(this.textShareOfCost);
 			this.tabMisc.Location = new System.Drawing.Point(4, 22);
@@ -1351,6 +1366,24 @@
 			this.tabMisc.Text = "Misc";
 			this.tabMisc.UseVisualStyleBackColor = true;
 			// 
+			// labelResubCode
+			// 
+			this.labelResubCode.Location = new System.Drawing.Point(6, 127);
+			this.labelResubCode.Name = "labelResubCode";
+			this.labelResubCode.Size = new System.Drawing.Size(132, 17);
+			this.labelResubCode.TabIndex = 168;
+			this.labelResubCode.Text = "Resubmission Code";
+			this.labelResubCode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// comboResubCode
+			// 
+			this.comboResubCode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboResubCode.Location = new System.Drawing.Point(139, 125);
+			this.comboResubCode.MaxDropDownItems = 100;
+			this.comboResubCode.Name = "comboResubCode";
+			this.comboResubCode.Size = new System.Drawing.Size(150, 21);
+			this.comboResubCode.TabIndex = 169;
+			// 
 			// textClaimIdOriginal
 			// 
 			this.textClaimIdOriginal.Location = new System.Drawing.Point(139, 65);
@@ -1359,47 +1392,50 @@
 			this.textClaimIdOriginal.Size = new System.Drawing.Size(150, 20);
 			this.textClaimIdOriginal.TabIndex = 166;
 			// 
-			// label62
+			// labelClaimIdOriginal
 			// 
-			this.label62.Location = new System.Drawing.Point(3, 69);
-			this.label62.Name = "label62";
-			this.label62.Size = new System.Drawing.Size(137, 16);
-			this.label62.TabIndex = 167;
-			this.label62.Text = "Default Claim Identifier";
-			this.label62.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelClaimIdOriginal.Location = new System.Drawing.Point(6, 67);
+			this.labelClaimIdOriginal.Name = "labelClaimIdOriginal";
+			this.labelClaimIdOriginal.Size = new System.Drawing.Size(132, 17);
+			this.labelClaimIdOriginal.TabIndex = 167;
+			this.labelClaimIdOriginal.Text = "Default Claim Identifier";
+			this.labelClaimIdOriginal.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// label74
+			// labelShareOfCost
 			// 
-			this.label74.Location = new System.Drawing.Point(3, 129);
-			this.label74.Name = "label74";
-			this.label74.Size = new System.Drawing.Size(137, 16);
-			this.label74.TabIndex = 164;
-			this.label74.Text = "Share of Cost Amount";
-			this.label74.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelShareOfCost.Location = new System.Drawing.Point(6, 148);
+			this.labelShareOfCost.Name = "labelShareOfCost";
+			this.labelShareOfCost.Size = new System.Drawing.Size(132, 17);
+			this.labelShareOfCost.TabIndex = 164;
+			this.labelShareOfCost.Text = "Share of Cost Amount";
+			this.labelShareOfCost.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// label94
+			// labelClaimIdentifierDentiCal
 			// 
-			this.label94.Location = new System.Drawing.Point(291, 89);
-			this.label94.Name = "label94";
-			this.label94.Size = new System.Drawing.Size(165, 16);
-			this.label94.TabIndex = 162;
-			this.label94.Text = "Denti-Cal PDCN";
+			this.labelClaimIdentifierDentiCal.Location = new System.Drawing.Point(290, 87);
+			this.labelClaimIdentifierDentiCal.Name = "labelClaimIdentifierDentiCal";
+			this.labelClaimIdentifierDentiCal.Size = new System.Drawing.Size(165, 17);
+			this.labelClaimIdentifierDentiCal.TabIndex = 162;
+			this.labelClaimIdentifierDentiCal.Text = "Denti-Cal PDCN";
+			this.labelClaimIdentifierDentiCal.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
-			// label93
+			// labelOrigRefNumDentiCal
 			// 
-			this.label93.Location = new System.Drawing.Point(291, 109);
-			this.label93.Name = "label93";
-			this.label93.Size = new System.Drawing.Size(165, 16);
-			this.label93.TabIndex = 161;
-			this.label93.Text = "Denti-Cal Replacement DCN";
+			this.labelOrigRefNumDentiCal.Location = new System.Drawing.Point(290, 107);
+			this.labelOrigRefNumDentiCal.Name = "labelOrigRefNumDentiCal";
+			this.labelOrigRefNumDentiCal.Size = new System.Drawing.Size(165, 17);
+			this.labelOrigRefNumDentiCal.TabIndex = 161;
+			this.labelOrigRefNumDentiCal.Text = "Denti-Cal Replacement DCN";
+			this.labelOrigRefNumDentiCal.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
-			// label88
+			// labelPriorAuthDentiCal
 			// 
-			this.label88.Location = new System.Drawing.Point(291, 28);
-			this.label88.Name = "label88";
-			this.label88.Size = new System.Drawing.Size(165, 16);
-			this.label88.TabIndex = 160;
-			this.label88.Text = "Denti-Cal NOA DCN";
+			this.labelPriorAuthDentiCal.Location = new System.Drawing.Point(290, 26);
+			this.labelPriorAuthDentiCal.Name = "labelPriorAuthDentiCal";
+			this.labelPriorAuthDentiCal.Size = new System.Drawing.Size(165, 17);
+			this.labelPriorAuthDentiCal.TabIndex = 160;
+			this.labelPriorAuthDentiCal.Text = "Denti-Cal NOA DCN";
+			this.labelPriorAuthDentiCal.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// textOrigRefNum
 			// 
@@ -1408,32 +1444,32 @@
 			this.textOrigRefNum.Size = new System.Drawing.Size(150, 20);
 			this.textOrigRefNum.TabIndex = 158;
 			// 
-			// label90
+			// labelCorrectionType
 			// 
-			this.label90.Location = new System.Drawing.Point(40, 6);
-			this.label90.Name = "label90";
-			this.label90.Size = new System.Drawing.Size(97, 17);
-			this.label90.TabIndex = 154;
-			this.label90.Text = "Correction Type";
-			this.label90.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelCorrectionType.Location = new System.Drawing.Point(6, 5);
+			this.labelCorrectionType.Name = "labelCorrectionType";
+			this.labelCorrectionType.Size = new System.Drawing.Size(132, 17);
+			this.labelCorrectionType.TabIndex = 154;
+			this.labelCorrectionType.Text = "Correction Type";
+			this.labelCorrectionType.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// labelPriorAuth
 			// 
-			this.labelPriorAuth.Location = new System.Drawing.Point(3, 28);
+			this.labelPriorAuth.Location = new System.Drawing.Point(6, 26);
 			this.labelPriorAuth.Name = "labelPriorAuth";
-			this.labelPriorAuth.Size = new System.Drawing.Size(134, 16);
+			this.labelPriorAuth.Size = new System.Drawing.Size(132, 17);
 			this.labelPriorAuth.TabIndex = 142;
 			this.labelPriorAuth.Text = "Prior Authorization (rare)";
-			this.labelPriorAuth.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelPriorAuth.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// label92
+			// labelOrigRefNum
 			// 
-			this.label92.Location = new System.Drawing.Point(3, 109);
-			this.label92.Name = "label92";
-			this.label92.Size = new System.Drawing.Size(137, 16);
-			this.label92.TabIndex = 159;
-			this.label92.Text = "Original Reference Num";
-			this.label92.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelOrigRefNum.Location = new System.Drawing.Point(6, 107);
+			this.labelOrigRefNum.Name = "labelOrigRefNum";
+			this.labelOrigRefNum.Size = new System.Drawing.Size(132, 17);
+			this.labelOrigRefNum.TabIndex = 159;
+			this.labelOrigRefNum.Text = "Original Reference Num";
+			this.labelOrigRefNum.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textPriorAuth
 			// 
@@ -1444,12 +1480,12 @@
 			// 
 			// labelSpecialProgram
 			// 
-			this.labelSpecialProgram.Location = new System.Drawing.Point(40, 47);
+			this.labelSpecialProgram.Location = new System.Drawing.Point(6, 46);
 			this.labelSpecialProgram.Name = "labelSpecialProgram";
-			this.labelSpecialProgram.Size = new System.Drawing.Size(97, 17);
+			this.labelSpecialProgram.Size = new System.Drawing.Size(132, 17);
 			this.labelSpecialProgram.TabIndex = 143;
 			this.labelSpecialProgram.Text = "Special Program";
-			this.labelSpecialProgram.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelSpecialProgram.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textClaimIdentifier
 			// 
@@ -1467,14 +1503,14 @@
 			this.comboSpecialProgram.Size = new System.Drawing.Size(150, 21);
 			this.comboSpecialProgram.TabIndex = 144;
 			// 
-			// label91
+			// labelClaimIdentifier
 			// 
-			this.label91.Location = new System.Drawing.Point(3, 89);
-			this.label91.Name = "label91";
-			this.label91.Size = new System.Drawing.Size(137, 16);
-			this.label91.TabIndex = 157;
-			this.label91.Text = "Claim Identifier (CLM01)";
-			this.label91.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelClaimIdentifier.Location = new System.Drawing.Point(6, 87);
+			this.labelClaimIdentifier.Name = "labelClaimIdentifier";
+			this.labelClaimIdentifier.Size = new System.Drawing.Size(132, 17);
+			this.labelClaimIdentifier.TabIndex = 157;
+			this.labelClaimIdentifier.Text = "Claim Identifier (CLM01)";
+			this.labelClaimIdentifier.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// comboCorrectionType
 			// 
@@ -1487,7 +1523,7 @@
 			// 
 			// textShareOfCost
 			// 
-			this.textShareOfCost.Location = new System.Drawing.Point(139, 125);
+			this.textShareOfCost.Location = new System.Drawing.Point(139, 146);
 			this.textShareOfCost.MaxVal = 100000000D;
 			this.textShareOfCost.MinVal = 0D;
 			this.textShareOfCost.Name = "textShareOfCost";
@@ -1500,6 +1536,9 @@
 			this.tabUB04.BackColor = System.Drawing.Color.Transparent;
 			this.tabUB04.Controls.Add(this.groupBox4);
 			this.tabUB04.Controls.Add(this.groupUb04);
+			this.tabUB04.Controls.Add(this.groupDateIllnessInjuryPreg);
+			this.tabUB04.Controls.Add(this.checkIsOutsideLab);
+			this.tabUB04.Controls.Add(this.groupDateOtherCondOrTreatment);
 			this.tabUB04.Location = new System.Drawing.Point(4, 22);
 			this.tabUB04.Name = "tabUB04";
 			this.tabUB04.Padding = new System.Windows.Forms.Padding(3);
@@ -1514,10 +1553,10 @@
 			this.groupBox4.Controls.Add(this.textOrderingProviderOverride);
 			this.groupBox4.Controls.Add(this.butPickOrderProvReferral);
 			this.groupBox4.Controls.Add(this.butNoneOrderProv);
-			this.groupBox4.Location = new System.Drawing.Point(11, 3);
+			this.groupBox4.Location = new System.Drawing.Point(6, 3);
 			this.groupBox4.Name = "groupBox4";
-			this.groupBox4.Size = new System.Drawing.Size(275, 65);
-			this.groupBox4.TabIndex = 300;
+			this.groupBox4.Size = new System.Drawing.Size(322, 65);
+			this.groupBox4.TabIndex = 1;
 			this.groupBox4.TabStop = false;
 			this.groupBox4.Text = "Ordering Provider Override";
 			// 
@@ -1528,10 +1567,10 @@
 			this.butPickOrderProvInternal.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPickOrderProvInternal.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butPickOrderProvInternal.CornerRadius = 4F;
-			this.butPickOrderProvInternal.Location = new System.Drawing.Point(6, 17);
+			this.butPickOrderProvInternal.Location = new System.Drawing.Point(6, 15);
 			this.butPickOrderProvInternal.Name = "butPickOrderProvInternal";
-			this.butPickOrderProvInternal.Size = new System.Drawing.Size(61, 21);
-			this.butPickOrderProvInternal.TabIndex = 290;
+			this.butPickOrderProvInternal.Size = new System.Drawing.Size(58, 20);
+			this.butPickOrderProvInternal.TabIndex = 1;
 			this.butPickOrderProvInternal.Text = "Internal";
 			this.butPickOrderProvInternal.Click += new System.EventHandler(this.butPickOrderProvInternal_Click);
 			// 
@@ -1541,14 +1580,15 @@
 			this.textOrderingProviderOverride.BackColor = System.Drawing.SystemColors.Control;
 			this.textOrderingProviderOverride.DetectLinksEnabled = false;
 			this.textOrderingProviderOverride.DetectUrls = false;
-			this.textOrderingProviderOverride.Location = new System.Drawing.Point(6, 42);
+			this.textOrderingProviderOverride.Location = new System.Drawing.Point(6, 38);
 			this.textOrderingProviderOverride.Name = "textOrderingProviderOverride";
 			this.textOrderingProviderOverride.QuickPasteType = OpenDentBusiness.QuickPasteType.ReadOnly;
 			this.textOrderingProviderOverride.ReadOnly = true;
 			this.textOrderingProviderOverride.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
-			this.textOrderingProviderOverride.Size = new System.Drawing.Size(266, 21);
+			this.textOrderingProviderOverride.Size = new System.Drawing.Size(310, 21);
 			this.textOrderingProviderOverride.SpellCheckIsEnabled = false;
-			this.textOrderingProviderOverride.TabIndex = 299;
+			this.textOrderingProviderOverride.TabIndex = 0;
+			this.textOrderingProviderOverride.TabStop = false;
 			this.textOrderingProviderOverride.Text = "";
 			// 
 			// butPickOrderProvReferral
@@ -1558,10 +1598,10 @@
 			this.butPickOrderProvReferral.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPickOrderProvReferral.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butPickOrderProvReferral.CornerRadius = 4F;
-			this.butPickOrderProvReferral.Location = new System.Drawing.Point(70, 17);
+			this.butPickOrderProvReferral.Location = new System.Drawing.Point(65, 15);
 			this.butPickOrderProvReferral.Name = "butPickOrderProvReferral";
-			this.butPickOrderProvReferral.Size = new System.Drawing.Size(61, 21);
-			this.butPickOrderProvReferral.TabIndex = 297;
+			this.butPickOrderProvReferral.Size = new System.Drawing.Size(58, 20);
+			this.butPickOrderProvReferral.TabIndex = 2;
 			this.butPickOrderProvReferral.Text = "Referral";
 			this.butPickOrderProvReferral.Click += new System.EventHandler(this.butPickOrderProvReferral_Click);
 			// 
@@ -1572,501 +1612,501 @@
 			this.butNoneOrderProv.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butNoneOrderProv.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butNoneOrderProv.CornerRadius = 4F;
-			this.butNoneOrderProv.Location = new System.Drawing.Point(134, 17);
+			this.butNoneOrderProv.Location = new System.Drawing.Point(124, 15);
 			this.butNoneOrderProv.Name = "butNoneOrderProv";
-			this.butNoneOrderProv.Size = new System.Drawing.Size(61, 21);
-			this.butNoneOrderProv.TabIndex = 298;
+			this.butNoneOrderProv.Size = new System.Drawing.Size(58, 20);
+			this.butNoneOrderProv.TabIndex = 3;
 			this.butNoneOrderProv.Text = "None";
 			this.butNoneOrderProv.Click += new System.EventHandler(this.butNoneOrderProv_Click);
 			// 
 			// groupUb04
 			// 
-			this.groupUb04.Controls.Add(this.label7);
+			this.groupUb04.Controls.Add(this.labelBillType);
 			this.groupUb04.Controls.Add(this.groupValueCodes);
 			this.groupUb04.Controls.Add(this.groupBox1);
 			this.groupUb04.Controls.Add(this.textBillType);
-			this.groupUb04.Controls.Add(this.label83);
+			this.groupUb04.Controls.Add(this.labelAdmissionType);
 			this.groupUb04.Controls.Add(this.textPatientStatus);
 			this.groupUb04.Controls.Add(this.textAdmissionType);
-			this.groupUb04.Controls.Add(this.label85);
-			this.groupUb04.Controls.Add(this.label84);
+			this.groupUb04.Controls.Add(this.labelPatientStatus);
+			this.groupUb04.Controls.Add(this.labelAdmissionSource);
 			this.groupUb04.Controls.Add(this.textAdmissionSource);
-			this.groupUb04.Location = new System.Drawing.Point(11, 68);
+			this.groupUb04.Location = new System.Drawing.Point(334, 3);
 			this.groupUb04.Name = "groupUb04";
-			this.groupUb04.Size = new System.Drawing.Size(664, 203);
-			this.groupUb04.TabIndex = 283;
+			this.groupUb04.Size = new System.Drawing.Size(614, 197);
+			this.groupUb04.TabIndex = 5;
 			this.groupUb04.TabStop = false;
 			this.groupUb04.Text = "UB04";
 			// 
-			// label7
+			// labelBillType
 			// 
-			this.label7.Location = new System.Drawing.Point(5, 16);
-			this.label7.Name = "label7";
-			this.label7.Size = new System.Drawing.Size(156, 16);
-			this.label7.TabIndex = 144;
-			this.label7.Text = "Type of Bill (3 digit)";
-			this.label7.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelBillType.Location = new System.Drawing.Point(6, 14);
+			this.labelBillType.Name = "labelBillType";
+			this.labelBillType.Size = new System.Drawing.Size(155, 17);
+			this.labelBillType.TabIndex = 0;
+			this.labelBillType.Text = "Type of Bill (3 digit)";
+			this.labelBillType.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// groupValueCodes
 			// 
-			this.groupValueCodes.Controls.Add(this.textVC11Amount);
-			this.groupValueCodes.Controls.Add(this.textVC8Amount);
-			this.groupValueCodes.Controls.Add(this.textVC5Amount);
-			this.groupValueCodes.Controls.Add(this.textVC2Amount);
-			this.groupValueCodes.Controls.Add(this.textVC11Code);
-			this.groupValueCodes.Controls.Add(this.textVC8Code);
-			this.groupValueCodes.Controls.Add(this.textVC5Code);
-			this.groupValueCodes.Controls.Add(this.textVC2Code);
-			this.groupValueCodes.Controls.Add(this.label36);
-			this.groupValueCodes.Controls.Add(this.label37);
-			this.groupValueCodes.Controls.Add(this.label38);
-			this.groupValueCodes.Controls.Add(this.label39);
-			this.groupValueCodes.Controls.Add(this.label40);
-			this.groupValueCodes.Controls.Add(this.label41);
-			this.groupValueCodes.Controls.Add(this.textVC10Amount);
-			this.groupValueCodes.Controls.Add(this.textVC7Amount);
-			this.groupValueCodes.Controls.Add(this.textVC4Amount);
-			this.groupValueCodes.Controls.Add(this.textVC1Amount);
-			this.groupValueCodes.Controls.Add(this.textVC10Code);
-			this.groupValueCodes.Controls.Add(this.textVC7Code);
-			this.groupValueCodes.Controls.Add(this.textVC4Code);
-			this.groupValueCodes.Controls.Add(this.textVC1Code);
-			this.groupValueCodes.Controls.Add(this.label17);
-			this.groupValueCodes.Controls.Add(this.label19);
-			this.groupValueCodes.Controls.Add(this.label23);
-			this.groupValueCodes.Controls.Add(this.label24);
-			this.groupValueCodes.Controls.Add(this.label28);
-			this.groupValueCodes.Controls.Add(this.label29);
-			this.groupValueCodes.Controls.Add(this.label27);
-			this.groupValueCodes.Controls.Add(this.label26);
-			this.groupValueCodes.Controls.Add(this.label25);
-			this.groupValueCodes.Controls.Add(this.textVC9Amount);
-			this.groupValueCodes.Controls.Add(this.textVC6Amount);
-			this.groupValueCodes.Controls.Add(this.textVC3Amount);
-			this.groupValueCodes.Controls.Add(this.textVC0Amount);
-			this.groupValueCodes.Controls.Add(this.textVC9Code);
-			this.groupValueCodes.Controls.Add(this.textVC6Code);
-			this.groupValueCodes.Controls.Add(this.textVC3Code);
-			this.groupValueCodes.Controls.Add(this.textVC0Code);
-			this.groupValueCodes.Controls.Add(this.label22);
-			this.groupValueCodes.Controls.Add(this.label15);
-			this.groupValueCodes.Controls.Add(this.label14);
-			this.groupValueCodes.Controls.Add(this.label13);
-			this.groupValueCodes.Controls.Add(this.label12);
-			this.groupValueCodes.Controls.Add(this.label11);
-			this.groupValueCodes.Location = new System.Drawing.Point(213, 82);
+			this.groupValueCodes.Controls.Add(this.textVC41dAmt);
+			this.groupValueCodes.Controls.Add(this.textVC41cAmt);
+			this.groupValueCodes.Controls.Add(this.textVC41bAmt);
+			this.groupValueCodes.Controls.Add(this.textVC41aAmt);
+			this.groupValueCodes.Controls.Add(this.textVC41dCode);
+			this.groupValueCodes.Controls.Add(this.textVC41cCode);
+			this.groupValueCodes.Controls.Add(this.textVC41bCode);
+			this.groupValueCodes.Controls.Add(this.textVC41aCode);
+			this.groupValueCodes.Controls.Add(this.labelVC41Amt);
+			this.groupValueCodes.Controls.Add(this.labelVC41Code);
+			this.groupValueCodes.Controls.Add(this.labelVC41d);
+			this.groupValueCodes.Controls.Add(this.labelVC41c);
+			this.groupValueCodes.Controls.Add(this.labelVC41b);
+			this.groupValueCodes.Controls.Add(this.labelVC41a);
+			this.groupValueCodes.Controls.Add(this.textVC40dAmt);
+			this.groupValueCodes.Controls.Add(this.textVC40cAmt);
+			this.groupValueCodes.Controls.Add(this.textVC40bAmt);
+			this.groupValueCodes.Controls.Add(this.textVC40aAmt);
+			this.groupValueCodes.Controls.Add(this.textVC40dCode);
+			this.groupValueCodes.Controls.Add(this.textVC40cCode);
+			this.groupValueCodes.Controls.Add(this.textVC40bCode);
+			this.groupValueCodes.Controls.Add(this.textVC40aCode);
+			this.groupValueCodes.Controls.Add(this.labelVC40Amt);
+			this.groupValueCodes.Controls.Add(this.labelVC40Code);
+			this.groupValueCodes.Controls.Add(this.labelVC40d);
+			this.groupValueCodes.Controls.Add(this.labelVC40c);
+			this.groupValueCodes.Controls.Add(this.labelVC40b);
+			this.groupValueCodes.Controls.Add(this.labelVC40a);
+			this.groupValueCodes.Controls.Add(this.labelVC41);
+			this.groupValueCodes.Controls.Add(this.labelVC40);
+			this.groupValueCodes.Controls.Add(this.labelVC39);
+			this.groupValueCodes.Controls.Add(this.textVC39dAmt);
+			this.groupValueCodes.Controls.Add(this.textVC39cAmt);
+			this.groupValueCodes.Controls.Add(this.textVC39bAmt);
+			this.groupValueCodes.Controls.Add(this.textVC39aAmt);
+			this.groupValueCodes.Controls.Add(this.textVC39dCode);
+			this.groupValueCodes.Controls.Add(this.textVC39cCode);
+			this.groupValueCodes.Controls.Add(this.textVC39bCode);
+			this.groupValueCodes.Controls.Add(this.textVC39aCode);
+			this.groupValueCodes.Controls.Add(this.labelVC39Amt);
+			this.groupValueCodes.Controls.Add(this.labelVC39Code);
+			this.groupValueCodes.Controls.Add(this.labelVC39d);
+			this.groupValueCodes.Controls.Add(this.labelVC39c);
+			this.groupValueCodes.Controls.Add(this.labelVC39b);
+			this.groupValueCodes.Controls.Add(this.labelVC39a);
+			this.groupValueCodes.Location = new System.Drawing.Point(215, 74);
 			this.groupValueCodes.Name = "groupValueCodes";
-			this.groupValueCodes.Size = new System.Drawing.Size(434, 114);
-			this.groupValueCodes.TabIndex = 130;
+			this.groupValueCodes.Size = new System.Drawing.Size(393, 117);
+			this.groupValueCodes.TabIndex = 6;
 			this.groupValueCodes.TabStop = false;
 			this.groupValueCodes.Text = "Value Codes";
 			// 
-			// textVC11Amount
-			// 
-			this.textVC11Amount.Location = new System.Drawing.Point(343, 90);
-			this.textVC11Amount.Name = "textVC11Amount";
-			this.textVC11Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC11Amount.TabIndex = 56;
-			this.textVC11Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC8Amount
-			// 
-			this.textVC8Amount.Location = new System.Drawing.Point(343, 71);
-			this.textVC8Amount.Name = "textVC8Amount";
-			this.textVC8Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC8Amount.TabIndex = 55;
-			this.textVC8Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC5Amount
-			// 
-			this.textVC5Amount.Location = new System.Drawing.Point(343, 52);
-			this.textVC5Amount.Name = "textVC5Amount";
-			this.textVC5Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC5Amount.TabIndex = 54;
-			this.textVC5Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC2Amount
-			// 
-			this.textVC2Amount.Location = new System.Drawing.Point(343, 33);
-			this.textVC2Amount.Name = "textVC2Amount";
-			this.textVC2Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC2Amount.TabIndex = 53;
-			this.textVC2Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC11Code
-			// 
-			this.textVC11Code.Location = new System.Drawing.Point(313, 90);
-			this.textVC11Code.MaxLength = 2;
-			this.textVC11Code.Name = "textVC11Code";
-			this.textVC11Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC11Code.TabIndex = 52;
-			this.textVC11Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC8Code
-			// 
-			this.textVC8Code.Location = new System.Drawing.Point(313, 71);
-			this.textVC8Code.MaxLength = 2;
-			this.textVC8Code.Name = "textVC8Code";
-			this.textVC8Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC8Code.TabIndex = 51;
-			this.textVC8Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC5Code
-			// 
-			this.textVC5Code.Location = new System.Drawing.Point(313, 52);
-			this.textVC5Code.MaxLength = 2;
-			this.textVC5Code.Name = "textVC5Code";
-			this.textVC5Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC5Code.TabIndex = 50;
-			this.textVC5Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC2Code
-			// 
-			this.textVC2Code.Location = new System.Drawing.Point(313, 33);
-			this.textVC2Code.MaxLength = 2;
-			this.textVC2Code.Name = "textVC2Code";
-			this.textVC2Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC2Code.TabIndex = 49;
-			this.textVC2Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// label36
-			// 
-			this.label36.AutoSize = true;
-			this.label36.Location = new System.Drawing.Point(355, 18);
-			this.label36.Name = "label36";
-			this.label36.Size = new System.Drawing.Size(42, 13);
-			this.label36.TabIndex = 48;
-			this.label36.Text = "amount";
-			// 
-			// label37
-			// 
-			this.label37.AutoSize = true;
-			this.label37.Location = new System.Drawing.Point(311, 18);
-			this.label37.Name = "label37";
-			this.label37.Size = new System.Drawing.Size(31, 13);
-			this.label37.TabIndex = 47;
-			this.label37.Text = "code";
-			// 
-			// label38
-			// 
-			this.label38.AutoSize = true;
-			this.label38.Location = new System.Drawing.Point(292, 94);
-			this.label38.Name = "label38";
-			this.label38.Size = new System.Drawing.Size(13, 13);
-			this.label38.TabIndex = 46;
-			this.label38.Text = "d";
-			// 
-			// label39
-			// 
-			this.label39.AutoSize = true;
-			this.label39.Location = new System.Drawing.Point(292, 75);
-			this.label39.Name = "label39";
-			this.label39.Size = new System.Drawing.Size(13, 13);
-			this.label39.TabIndex = 45;
-			this.label39.Text = "c";
-			// 
-			// label40
-			// 
-			this.label40.AutoSize = true;
-			this.label40.Location = new System.Drawing.Point(292, 56);
-			this.label40.Name = "label40";
-			this.label40.Size = new System.Drawing.Size(13, 13);
-			this.label40.TabIndex = 44;
-			this.label40.Text = "b";
-			// 
-			// label41
-			// 
-			this.label41.AutoSize = true;
-			this.label41.Location = new System.Drawing.Point(292, 37);
-			this.label41.Name = "label41";
-			this.label41.Size = new System.Drawing.Size(13, 13);
-			this.label41.TabIndex = 43;
-			this.label41.Text = "a";
-			// 
-			// textVC10Amount
-			// 
-			this.textVC10Amount.Location = new System.Drawing.Point(203, 89);
-			this.textVC10Amount.Name = "textVC10Amount";
-			this.textVC10Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC10Amount.TabIndex = 42;
-			this.textVC10Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC7Amount
-			// 
-			this.textVC7Amount.Location = new System.Drawing.Point(203, 70);
-			this.textVC7Amount.Name = "textVC7Amount";
-			this.textVC7Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC7Amount.TabIndex = 41;
-			this.textVC7Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC4Amount
-			// 
-			this.textVC4Amount.Location = new System.Drawing.Point(203, 51);
-			this.textVC4Amount.Name = "textVC4Amount";
-			this.textVC4Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC4Amount.TabIndex = 40;
-			this.textVC4Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC1Amount
-			// 
-			this.textVC1Amount.Location = new System.Drawing.Point(203, 32);
-			this.textVC1Amount.Name = "textVC1Amount";
-			this.textVC1Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC1Amount.TabIndex = 39;
-			this.textVC1Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC10Code
-			// 
-			this.textVC10Code.Location = new System.Drawing.Point(173, 89);
-			this.textVC10Code.MaxLength = 2;
-			this.textVC10Code.Name = "textVC10Code";
-			this.textVC10Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC10Code.TabIndex = 38;
-			this.textVC10Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC7Code
-			// 
-			this.textVC7Code.Location = new System.Drawing.Point(173, 70);
-			this.textVC7Code.MaxLength = 2;
-			this.textVC7Code.Name = "textVC7Code";
-			this.textVC7Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC7Code.TabIndex = 37;
-			this.textVC7Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC4Code
-			// 
-			this.textVC4Code.Location = new System.Drawing.Point(173, 51);
-			this.textVC4Code.MaxLength = 2;
-			this.textVC4Code.Name = "textVC4Code";
-			this.textVC4Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC4Code.TabIndex = 36;
-			this.textVC4Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC1Code
-			// 
-			this.textVC1Code.Location = new System.Drawing.Point(173, 32);
-			this.textVC1Code.MaxLength = 2;
-			this.textVC1Code.Name = "textVC1Code";
-			this.textVC1Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC1Code.TabIndex = 35;
-			this.textVC1Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// label17
-			// 
-			this.label17.AutoSize = true;
-			this.label17.Location = new System.Drawing.Point(215, 17);
-			this.label17.Name = "label17";
-			this.label17.Size = new System.Drawing.Size(42, 13);
-			this.label17.TabIndex = 34;
-			this.label17.Text = "amount";
-			// 
-			// label19
-			// 
-			this.label19.AutoSize = true;
-			this.label19.Location = new System.Drawing.Point(171, 17);
-			this.label19.Name = "label19";
-			this.label19.Size = new System.Drawing.Size(31, 13);
-			this.label19.TabIndex = 33;
-			this.label19.Text = "code";
-			// 
-			// label23
-			// 
-			this.label23.AutoSize = true;
-			this.label23.Location = new System.Drawing.Point(152, 93);
-			this.label23.Name = "label23";
-			this.label23.Size = new System.Drawing.Size(13, 13);
-			this.label23.TabIndex = 32;
-			this.label23.Text = "d";
-			// 
-			// label24
-			// 
-			this.label24.AutoSize = true;
-			this.label24.Location = new System.Drawing.Point(152, 74);
-			this.label24.Name = "label24";
-			this.label24.Size = new System.Drawing.Size(13, 13);
-			this.label24.TabIndex = 31;
-			this.label24.Text = "c";
-			// 
-			// label28
-			// 
-			this.label28.AutoSize = true;
-			this.label28.Location = new System.Drawing.Point(152, 55);
-			this.label28.Name = "label28";
-			this.label28.Size = new System.Drawing.Size(13, 13);
-			this.label28.TabIndex = 30;
-			this.label28.Text = "b";
-			// 
-			// label29
-			// 
-			this.label29.AutoSize = true;
-			this.label29.Location = new System.Drawing.Point(152, 36);
-			this.label29.Name = "label29";
-			this.label29.Size = new System.Drawing.Size(13, 13);
-			this.label29.TabIndex = 29;
-			this.label29.Text = "a";
-			// 
-			// label27
-			// 
-			this.label27.AutoSize = true;
-			this.label27.Location = new System.Drawing.Point(292, 16);
-			this.label27.Name = "label27";
-			this.label27.Size = new System.Drawing.Size(19, 13);
-			this.label27.TabIndex = 28;
-			this.label27.Text = "41";
-			// 
-			// label26
-			// 
-			this.label26.AutoSize = true;
-			this.label26.Location = new System.Drawing.Point(149, 16);
-			this.label26.Name = "label26";
-			this.label26.Size = new System.Drawing.Size(19, 13);
-			this.label26.TabIndex = 27;
-			this.label26.Text = "40";
-			// 
-			// label25
-			// 
-			this.label25.AutoSize = true;
-			this.label25.Location = new System.Drawing.Point(12, 16);
-			this.label25.Name = "label25";
-			this.label25.Size = new System.Drawing.Size(19, 13);
-			this.label25.TabIndex = 18;
-			this.label25.Text = "39";
-			// 
-			// textVC9Amount
-			// 
-			this.textVC9Amount.Location = new System.Drawing.Point(66, 88);
-			this.textVC9Amount.Name = "textVC9Amount";
-			this.textVC9Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC9Amount.TabIndex = 17;
-			this.textVC9Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC6Amount
-			// 
-			this.textVC6Amount.Location = new System.Drawing.Point(66, 69);
-			this.textVC6Amount.Name = "textVC6Amount";
-			this.textVC6Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC6Amount.TabIndex = 16;
-			this.textVC6Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC3Amount
-			// 
-			this.textVC3Amount.Location = new System.Drawing.Point(66, 50);
-			this.textVC3Amount.Name = "textVC3Amount";
-			this.textVC3Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC3Amount.TabIndex = 15;
-			this.textVC3Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC0Amount
-			// 
-			this.textVC0Amount.Location = new System.Drawing.Point(66, 31);
-			this.textVC0Amount.Name = "textVC0Amount";
-			this.textVC0Amount.Size = new System.Drawing.Size(66, 20);
-			this.textVC0Amount.TabIndex = 14;
-			this.textVC0Amount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// textVC9Code
-			// 
-			this.textVC9Code.Location = new System.Drawing.Point(36, 88);
-			this.textVC9Code.MaxLength = 2;
-			this.textVC9Code.Name = "textVC9Code";
-			this.textVC9Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC9Code.TabIndex = 13;
-			this.textVC9Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC6Code
-			// 
-			this.textVC6Code.Location = new System.Drawing.Point(36, 69);
-			this.textVC6Code.MaxLength = 2;
-			this.textVC6Code.Name = "textVC6Code";
-			this.textVC6Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC6Code.TabIndex = 12;
-			this.textVC6Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC3Code
-			// 
-			this.textVC3Code.Location = new System.Drawing.Point(36, 50);
-			this.textVC3Code.MaxLength = 2;
-			this.textVC3Code.Name = "textVC3Code";
-			this.textVC3Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC3Code.TabIndex = 11;
-			this.textVC3Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// textVC0Code
-			// 
-			this.textVC0Code.Location = new System.Drawing.Point(36, 31);
-			this.textVC0Code.MaxLength = 2;
-			this.textVC0Code.Name = "textVC0Code";
-			this.textVC0Code.Size = new System.Drawing.Size(26, 20);
-			this.textVC0Code.TabIndex = 10;
-			this.textVC0Code.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-			// 
-			// label22
-			// 
-			this.label22.AutoSize = true;
-			this.label22.Location = new System.Drawing.Point(78, 16);
-			this.label22.Name = "label22";
-			this.label22.Size = new System.Drawing.Size(42, 13);
-			this.label22.TabIndex = 7;
-			this.label22.Text = "amount";
-			// 
-			// label15
-			// 
-			this.label15.AutoSize = true;
-			this.label15.Location = new System.Drawing.Point(34, 16);
-			this.label15.Name = "label15";
-			this.label15.Size = new System.Drawing.Size(31, 13);
-			this.label15.TabIndex = 4;
-			this.label15.Text = "code";
-			// 
-			// label14
-			// 
-			this.label14.AutoSize = true;
-			this.label14.Location = new System.Drawing.Point(15, 92);
-			this.label14.Name = "label14";
-			this.label14.Size = new System.Drawing.Size(13, 13);
-			this.label14.TabIndex = 3;
-			this.label14.Text = "d";
-			// 
-			// label13
-			// 
-			this.label13.AutoSize = true;
-			this.label13.Location = new System.Drawing.Point(15, 73);
-			this.label13.Name = "label13";
-			this.label13.Size = new System.Drawing.Size(13, 13);
-			this.label13.TabIndex = 2;
-			this.label13.Text = "c";
-			// 
-			// label12
-			// 
-			this.label12.AutoSize = true;
-			this.label12.Location = new System.Drawing.Point(15, 54);
-			this.label12.Name = "label12";
-			this.label12.Size = new System.Drawing.Size(13, 13);
-			this.label12.TabIndex = 1;
-			this.label12.Text = "b";
-			// 
-			// label11
-			// 
-			this.label11.AutoSize = true;
-			this.label11.Location = new System.Drawing.Point(15, 35);
-			this.label11.Name = "label11";
-			this.label11.Size = new System.Drawing.Size(13, 13);
-			this.label11.TabIndex = 0;
-			this.label11.Text = "a";
+			// textVC41dAmt
+			// 
+			this.textVC41dAmt.Location = new System.Drawing.Point(321, 91);
+			this.textVC41dAmt.Name = "textVC41dAmt";
+			this.textVC41dAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC41dAmt.TabIndex = 24;
+			this.textVC41dAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC41cAmt
+			// 
+			this.textVC41cAmt.Location = new System.Drawing.Point(321, 72);
+			this.textVC41cAmt.Name = "textVC41cAmt";
+			this.textVC41cAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC41cAmt.TabIndex = 23;
+			this.textVC41cAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC41bAmt
+			// 
+			this.textVC41bAmt.Location = new System.Drawing.Point(321, 53);
+			this.textVC41bAmt.Name = "textVC41bAmt";
+			this.textVC41bAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC41bAmt.TabIndex = 22;
+			this.textVC41bAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC41aAmt
+			// 
+			this.textVC41aAmt.Location = new System.Drawing.Point(321, 34);
+			this.textVC41aAmt.Name = "textVC41aAmt";
+			this.textVC41aAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC41aAmt.TabIndex = 21;
+			this.textVC41aAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC41dCode
+			// 
+			this.textVC41dCode.Location = new System.Drawing.Point(289, 91);
+			this.textVC41dCode.MaxLength = 2;
+			this.textVC41dCode.Name = "textVC41dCode";
+			this.textVC41dCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC41dCode.TabIndex = 20;
+			this.textVC41dCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC41cCode
+			// 
+			this.textVC41cCode.Location = new System.Drawing.Point(289, 72);
+			this.textVC41cCode.MaxLength = 2;
+			this.textVC41cCode.Name = "textVC41cCode";
+			this.textVC41cCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC41cCode.TabIndex = 19;
+			this.textVC41cCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC41bCode
+			// 
+			this.textVC41bCode.Location = new System.Drawing.Point(289, 53);
+			this.textVC41bCode.MaxLength = 2;
+			this.textVC41bCode.Name = "textVC41bCode";
+			this.textVC41bCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC41bCode.TabIndex = 18;
+			this.textVC41bCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC41aCode
+			// 
+			this.textVC41aCode.Location = new System.Drawing.Point(289, 34);
+			this.textVC41aCode.MaxLength = 2;
+			this.textVC41aCode.Name = "textVC41aCode";
+			this.textVC41aCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC41aCode.TabIndex = 17;
+			this.textVC41aCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// labelVC41Amt
+			// 
+			this.labelVC41Amt.Location = new System.Drawing.Point(321, 16);
+			this.labelVC41Amt.Name = "labelVC41Amt";
+			this.labelVC41Amt.Size = new System.Drawing.Size(66, 17);
+			this.labelVC41Amt.TabIndex = 0;
+			this.labelVC41Amt.Text = "amount";
+			this.labelVC41Amt.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC41Code
+			// 
+			this.labelVC41Code.Location = new System.Drawing.Point(287, 16);
+			this.labelVC41Code.Name = "labelVC41Code";
+			this.labelVC41Code.Size = new System.Drawing.Size(31, 17);
+			this.labelVC41Code.TabIndex = 0;
+			this.labelVC41Code.Text = "code";
+			this.labelVC41Code.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC41d
+			// 
+			this.labelVC41d.Location = new System.Drawing.Point(264, 93);
+			this.labelVC41d.Name = "labelVC41d";
+			this.labelVC41d.Size = new System.Drawing.Size(19, 17);
+			this.labelVC41d.TabIndex = 0;
+			this.labelVC41d.Text = "d";
+			this.labelVC41d.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC41c
+			// 
+			this.labelVC41c.Location = new System.Drawing.Point(264, 74);
+			this.labelVC41c.Name = "labelVC41c";
+			this.labelVC41c.Size = new System.Drawing.Size(19, 17);
+			this.labelVC41c.TabIndex = 0;
+			this.labelVC41c.Text = "c";
+			this.labelVC41c.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC41b
+			// 
+			this.labelVC41b.Location = new System.Drawing.Point(264, 55);
+			this.labelVC41b.Name = "labelVC41b";
+			this.labelVC41b.Size = new System.Drawing.Size(19, 17);
+			this.labelVC41b.TabIndex = 0;
+			this.labelVC41b.Text = "b";
+			this.labelVC41b.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC41a
+			// 
+			this.labelVC41a.Location = new System.Drawing.Point(264, 36);
+			this.labelVC41a.Name = "labelVC41a";
+			this.labelVC41a.Size = new System.Drawing.Size(19, 17);
+			this.labelVC41a.TabIndex = 0;
+			this.labelVC41a.Text = "a";
+			this.labelVC41a.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// textVC40dAmt
+			// 
+			this.textVC40dAmt.Location = new System.Drawing.Point(192, 91);
+			this.textVC40dAmt.Name = "textVC40dAmt";
+			this.textVC40dAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC40dAmt.TabIndex = 16;
+			this.textVC40dAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC40cAmt
+			// 
+			this.textVC40cAmt.Location = new System.Drawing.Point(192, 72);
+			this.textVC40cAmt.Name = "textVC40cAmt";
+			this.textVC40cAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC40cAmt.TabIndex = 15;
+			this.textVC40cAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC40bAmt
+			// 
+			this.textVC40bAmt.Location = new System.Drawing.Point(192, 53);
+			this.textVC40bAmt.Name = "textVC40bAmt";
+			this.textVC40bAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC40bAmt.TabIndex = 14;
+			this.textVC40bAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC40aAmt
+			// 
+			this.textVC40aAmt.Location = new System.Drawing.Point(192, 34);
+			this.textVC40aAmt.Name = "textVC40aAmt";
+			this.textVC40aAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC40aAmt.TabIndex = 13;
+			this.textVC40aAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC40dCode
+			// 
+			this.textVC40dCode.Location = new System.Drawing.Point(160, 91);
+			this.textVC40dCode.MaxLength = 2;
+			this.textVC40dCode.Name = "textVC40dCode";
+			this.textVC40dCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC40dCode.TabIndex = 12;
+			this.textVC40dCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC40cCode
+			// 
+			this.textVC40cCode.Location = new System.Drawing.Point(160, 72);
+			this.textVC40cCode.MaxLength = 2;
+			this.textVC40cCode.Name = "textVC40cCode";
+			this.textVC40cCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC40cCode.TabIndex = 11;
+			this.textVC40cCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC40bCode
+			// 
+			this.textVC40bCode.Location = new System.Drawing.Point(160, 53);
+			this.textVC40bCode.MaxLength = 2;
+			this.textVC40bCode.Name = "textVC40bCode";
+			this.textVC40bCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC40bCode.TabIndex = 10;
+			this.textVC40bCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC40aCode
+			// 
+			this.textVC40aCode.Location = new System.Drawing.Point(160, 34);
+			this.textVC40aCode.MaxLength = 2;
+			this.textVC40aCode.Name = "textVC40aCode";
+			this.textVC40aCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC40aCode.TabIndex = 9;
+			this.textVC40aCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// labelVC40Amt
+			// 
+			this.labelVC40Amt.Location = new System.Drawing.Point(192, 16);
+			this.labelVC40Amt.Name = "labelVC40Amt";
+			this.labelVC40Amt.Size = new System.Drawing.Size(66, 17);
+			this.labelVC40Amt.TabIndex = 0;
+			this.labelVC40Amt.Text = "amount";
+			this.labelVC40Amt.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC40Code
+			// 
+			this.labelVC40Code.Location = new System.Drawing.Point(158, 16);
+			this.labelVC40Code.Name = "labelVC40Code";
+			this.labelVC40Code.Size = new System.Drawing.Size(31, 17);
+			this.labelVC40Code.TabIndex = 0;
+			this.labelVC40Code.Text = "code";
+			this.labelVC40Code.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC40d
+			// 
+			this.labelVC40d.Location = new System.Drawing.Point(135, 93);
+			this.labelVC40d.Name = "labelVC40d";
+			this.labelVC40d.Size = new System.Drawing.Size(19, 17);
+			this.labelVC40d.TabIndex = 0;
+			this.labelVC40d.Text = "d";
+			this.labelVC40d.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC40c
+			// 
+			this.labelVC40c.Location = new System.Drawing.Point(135, 74);
+			this.labelVC40c.Name = "labelVC40c";
+			this.labelVC40c.Size = new System.Drawing.Size(19, 17);
+			this.labelVC40c.TabIndex = 0;
+			this.labelVC40c.Text = "c";
+			this.labelVC40c.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC40b
+			// 
+			this.labelVC40b.Location = new System.Drawing.Point(135, 55);
+			this.labelVC40b.Name = "labelVC40b";
+			this.labelVC40b.Size = new System.Drawing.Size(19, 17);
+			this.labelVC40b.TabIndex = 0;
+			this.labelVC40b.Text = "b";
+			this.labelVC40b.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC40a
+			// 
+			this.labelVC40a.Location = new System.Drawing.Point(135, 36);
+			this.labelVC40a.Name = "labelVC40a";
+			this.labelVC40a.Size = new System.Drawing.Size(19, 17);
+			this.labelVC40a.TabIndex = 0;
+			this.labelVC40a.Text = "a";
+			this.labelVC40a.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC41
+			// 
+			this.labelVC41.Location = new System.Drawing.Point(264, 16);
+			this.labelVC41.Name = "labelVC41";
+			this.labelVC41.Size = new System.Drawing.Size(19, 17);
+			this.labelVC41.TabIndex = 0;
+			this.labelVC41.Text = "41";
+			this.labelVC41.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC40
+			// 
+			this.labelVC40.Location = new System.Drawing.Point(135, 16);
+			this.labelVC40.Name = "labelVC40";
+			this.labelVC40.Size = new System.Drawing.Size(19, 17);
+			this.labelVC40.TabIndex = 0;
+			this.labelVC40.Text = "40";
+			this.labelVC40.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC39
+			// 
+			this.labelVC39.Location = new System.Drawing.Point(6, 16);
+			this.labelVC39.Name = "labelVC39";
+			this.labelVC39.Size = new System.Drawing.Size(19, 17);
+			this.labelVC39.TabIndex = 0;
+			this.labelVC39.Text = "39";
+			this.labelVC39.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// textVC39dAmt
+			// 
+			this.textVC39dAmt.Location = new System.Drawing.Point(63, 91);
+			this.textVC39dAmt.Name = "textVC39dAmt";
+			this.textVC39dAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC39dAmt.TabIndex = 8;
+			this.textVC39dAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC39cAmt
+			// 
+			this.textVC39cAmt.Location = new System.Drawing.Point(63, 72);
+			this.textVC39cAmt.Name = "textVC39cAmt";
+			this.textVC39cAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC39cAmt.TabIndex = 7;
+			this.textVC39cAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC39bAmt
+			// 
+			this.textVC39bAmt.Location = new System.Drawing.Point(63, 53);
+			this.textVC39bAmt.Name = "textVC39bAmt";
+			this.textVC39bAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC39bAmt.TabIndex = 6;
+			this.textVC39bAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC39aAmt
+			// 
+			this.textVC39aAmt.Location = new System.Drawing.Point(63, 34);
+			this.textVC39aAmt.Name = "textVC39aAmt";
+			this.textVC39aAmt.Size = new System.Drawing.Size(66, 20);
+			this.textVC39aAmt.TabIndex = 5;
+			this.textVC39aAmt.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			// 
+			// textVC39dCode
+			// 
+			this.textVC39dCode.Location = new System.Drawing.Point(31, 91);
+			this.textVC39dCode.MaxLength = 2;
+			this.textVC39dCode.Name = "textVC39dCode";
+			this.textVC39dCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC39dCode.TabIndex = 4;
+			this.textVC39dCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC39cCode
+			// 
+			this.textVC39cCode.Location = new System.Drawing.Point(31, 72);
+			this.textVC39cCode.MaxLength = 2;
+			this.textVC39cCode.Name = "textVC39cCode";
+			this.textVC39cCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC39cCode.TabIndex = 3;
+			this.textVC39cCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC39bCode
+			// 
+			this.textVC39bCode.Location = new System.Drawing.Point(31, 53);
+			this.textVC39bCode.MaxLength = 2;
+			this.textVC39bCode.Name = "textVC39bCode";
+			this.textVC39bCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC39bCode.TabIndex = 2;
+			this.textVC39bCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// textVC39aCode
+			// 
+			this.textVC39aCode.Location = new System.Drawing.Point(31, 34);
+			this.textVC39aCode.MaxLength = 2;
+			this.textVC39aCode.Name = "textVC39aCode";
+			this.textVC39aCode.Size = new System.Drawing.Size(26, 20);
+			this.textVC39aCode.TabIndex = 1;
+			this.textVC39aCode.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+			// 
+			// labelVC39Amt
+			// 
+			this.labelVC39Amt.Location = new System.Drawing.Point(63, 16);
+			this.labelVC39Amt.Name = "labelVC39Amt";
+			this.labelVC39Amt.Size = new System.Drawing.Size(66, 17);
+			this.labelVC39Amt.TabIndex = 0;
+			this.labelVC39Amt.Text = "amount";
+			this.labelVC39Amt.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC39Code
+			// 
+			this.labelVC39Code.Location = new System.Drawing.Point(29, 16);
+			this.labelVC39Code.Name = "labelVC39Code";
+			this.labelVC39Code.Size = new System.Drawing.Size(31, 17);
+			this.labelVC39Code.TabIndex = 0;
+			this.labelVC39Code.Text = "code";
+			this.labelVC39Code.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC39d
+			// 
+			this.labelVC39d.Location = new System.Drawing.Point(6, 93);
+			this.labelVC39d.Name = "labelVC39d";
+			this.labelVC39d.Size = new System.Drawing.Size(19, 17);
+			this.labelVC39d.TabIndex = 0;
+			this.labelVC39d.Text = "d";
+			this.labelVC39d.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC39c
+			// 
+			this.labelVC39c.Location = new System.Drawing.Point(6, 74);
+			this.labelVC39c.Name = "labelVC39c";
+			this.labelVC39c.Size = new System.Drawing.Size(19, 17);
+			this.labelVC39c.TabIndex = 0;
+			this.labelVC39c.Text = "c";
+			this.labelVC39c.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC39b
+			// 
+			this.labelVC39b.Location = new System.Drawing.Point(6, 55);
+			this.labelVC39b.Name = "labelVC39b";
+			this.labelVC39b.Size = new System.Drawing.Size(19, 17);
+			this.labelVC39b.TabIndex = 0;
+			this.labelVC39b.Text = "b";
+			this.labelVC39b.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// labelVC39a
+			// 
+			this.labelVC39a.Location = new System.Drawing.Point(6, 36);
+			this.labelVC39a.Name = "labelVC39a";
+			this.labelVC39a.Size = new System.Drawing.Size(19, 17);
+			this.labelVC39a.TabIndex = 0;
+			this.labelVC39a.Text = "a";
+			this.labelVC39a.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// groupBox1
 			// 
-			this.groupBox1.Controls.Add(this.label60);
-			this.groupBox1.Controls.Add(this.label59);
-			this.groupBox1.Controls.Add(this.label58);
-			this.groupBox1.Controls.Add(this.label57);
-			this.groupBox1.Controls.Add(this.label56);
-			this.groupBox1.Controls.Add(this.label55);
-			this.groupBox1.Controls.Add(this.label54);
-			this.groupBox1.Controls.Add(this.label53);
-			this.groupBox1.Controls.Add(this.label52);
-			this.groupBox1.Controls.Add(this.label51);
-			this.groupBox1.Controls.Add(this.label50);
+			this.groupBox1.Controls.Add(this.labelCode10);
+			this.groupBox1.Controls.Add(this.labelCode9);
+			this.groupBox1.Controls.Add(this.labelCode8);
+			this.groupBox1.Controls.Add(this.labelCode7);
+			this.groupBox1.Controls.Add(this.labelCode6);
+			this.groupBox1.Controls.Add(this.labelCode5);
+			this.groupBox1.Controls.Add(this.labelCode4);
+			this.groupBox1.Controls.Add(this.labelCode3);
+			this.groupBox1.Controls.Add(this.labelCode2);
+			this.groupBox1.Controls.Add(this.labelCode1);
+			this.groupBox1.Controls.Add(this.labelCode0);
 			this.groupBox1.Controls.Add(this.textCode10);
 			this.groupBox1.Controls.Add(this.textCode9);
 			this.groupBox1.Controls.Add(this.textCode8);
@@ -2078,209 +2118,209 @@
 			this.groupBox1.Controls.Add(this.textCode2);
 			this.groupBox1.Controls.Add(this.textCode1);
 			this.groupBox1.Controls.Add(this.textCode0);
-			this.groupBox1.Location = new System.Drawing.Point(213, 9);
+			this.groupBox1.Location = new System.Drawing.Point(215, 11);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(433, 67);
-			this.groupBox1.TabIndex = 131;
+			this.groupBox1.Size = new System.Drawing.Size(393, 60);
+			this.groupBox1.TabIndex = 5;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Condition Codes";
 			// 
-			// label60
+			// labelCode10
 			// 
-			this.label60.AutoSize = true;
-			this.label60.Location = new System.Drawing.Point(398, 19);
-			this.label60.Name = "label60";
-			this.label60.Size = new System.Drawing.Size(19, 13);
-			this.label60.TabIndex = 78;
-			this.label60.Text = "28";
+			this.labelCode10.Location = new System.Drawing.Point(326, 16);
+			this.labelCode10.Name = "labelCode10";
+			this.labelCode10.Size = new System.Drawing.Size(26, 17);
+			this.labelCode10.TabIndex = 0;
+			this.labelCode10.Text = "28";
+			this.labelCode10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label59
+			// labelCode9
 			// 
-			this.label59.AutoSize = true;
-			this.label59.Location = new System.Drawing.Point(360, 19);
-			this.label59.Name = "label59";
-			this.label59.Size = new System.Drawing.Size(19, 13);
-			this.label59.TabIndex = 77;
-			this.label59.Text = "27";
+			this.labelCode9.Location = new System.Drawing.Point(294, 16);
+			this.labelCode9.Name = "labelCode9";
+			this.labelCode9.Size = new System.Drawing.Size(26, 17);
+			this.labelCode9.TabIndex = 0;
+			this.labelCode9.Text = "27";
+			this.labelCode9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label58
+			// labelCode8
 			// 
-			this.label58.AutoSize = true;
-			this.label58.Location = new System.Drawing.Point(322, 19);
-			this.label58.Name = "label58";
-			this.label58.Size = new System.Drawing.Size(19, 13);
-			this.label58.TabIndex = 76;
-			this.label58.Text = "26";
+			this.labelCode8.Location = new System.Drawing.Point(262, 16);
+			this.labelCode8.Name = "labelCode8";
+			this.labelCode8.Size = new System.Drawing.Size(26, 17);
+			this.labelCode8.TabIndex = 0;
+			this.labelCode8.Text = "26";
+			this.labelCode8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label57
+			// labelCode7
 			// 
-			this.label57.AutoSize = true;
-			this.label57.Location = new System.Drawing.Point(284, 19);
-			this.label57.Name = "label57";
-			this.label57.Size = new System.Drawing.Size(19, 13);
-			this.label57.TabIndex = 75;
-			this.label57.Text = "25";
+			this.labelCode7.Location = new System.Drawing.Point(230, 16);
+			this.labelCode7.Name = "labelCode7";
+			this.labelCode7.Size = new System.Drawing.Size(26, 17);
+			this.labelCode7.TabIndex = 0;
+			this.labelCode7.Text = "25";
+			this.labelCode7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label56
+			// labelCode6
 			// 
-			this.label56.AutoSize = true;
-			this.label56.Location = new System.Drawing.Point(246, 19);
-			this.label56.Name = "label56";
-			this.label56.Size = new System.Drawing.Size(19, 13);
-			this.label56.TabIndex = 74;
-			this.label56.Text = "24";
+			this.labelCode6.Location = new System.Drawing.Point(198, 16);
+			this.labelCode6.Name = "labelCode6";
+			this.labelCode6.Size = new System.Drawing.Size(26, 17);
+			this.labelCode6.TabIndex = 0;
+			this.labelCode6.Text = "24";
+			this.labelCode6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label55
+			// labelCode5
 			// 
-			this.label55.AutoSize = true;
-			this.label55.Location = new System.Drawing.Point(209, 19);
-			this.label55.Name = "label55";
-			this.label55.Size = new System.Drawing.Size(19, 13);
-			this.label55.TabIndex = 73;
-			this.label55.Text = "23";
+			this.labelCode5.Location = new System.Drawing.Point(167, 16);
+			this.labelCode5.Name = "labelCode5";
+			this.labelCode5.Size = new System.Drawing.Size(26, 17);
+			this.labelCode5.TabIndex = 0;
+			this.labelCode5.Text = "23";
+			this.labelCode5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label54
+			// labelCode4
 			// 
-			this.label54.AutoSize = true;
-			this.label54.Location = new System.Drawing.Point(170, 19);
-			this.label54.Name = "label54";
-			this.label54.Size = new System.Drawing.Size(19, 13);
-			this.label54.TabIndex = 72;
-			this.label54.Text = "22";
+			this.labelCode4.Location = new System.Drawing.Point(134, 16);
+			this.labelCode4.Name = "labelCode4";
+			this.labelCode4.Size = new System.Drawing.Size(26, 17);
+			this.labelCode4.TabIndex = 0;
+			this.labelCode4.Text = "22";
+			this.labelCode4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label53
+			// labelCode3
 			// 
-			this.label53.AutoSize = true;
-			this.label53.Location = new System.Drawing.Point(132, 19);
-			this.label53.Name = "label53";
-			this.label53.Size = new System.Drawing.Size(19, 13);
-			this.label53.TabIndex = 71;
-			this.label53.Text = "21";
+			this.labelCode3.Location = new System.Drawing.Point(102, 16);
+			this.labelCode3.Name = "labelCode3";
+			this.labelCode3.Size = new System.Drawing.Size(26, 17);
+			this.labelCode3.TabIndex = 0;
+			this.labelCode3.Text = "21";
+			this.labelCode3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label52
+			// labelCode2
 			// 
-			this.label52.AutoSize = true;
-			this.label52.Location = new System.Drawing.Point(94, 19);
-			this.label52.Name = "label52";
-			this.label52.Size = new System.Drawing.Size(19, 13);
-			this.label52.TabIndex = 70;
-			this.label52.Text = "20";
+			this.labelCode2.Location = new System.Drawing.Point(70, 16);
+			this.labelCode2.Name = "labelCode2";
+			this.labelCode2.Size = new System.Drawing.Size(26, 17);
+			this.labelCode2.TabIndex = 0;
+			this.labelCode2.Text = "20";
+			this.labelCode2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label51
+			// labelCode1
 			// 
-			this.label51.AutoSize = true;
-			this.label51.Location = new System.Drawing.Point(56, 19);
-			this.label51.Name = "label51";
-			this.label51.Size = new System.Drawing.Size(19, 13);
-			this.label51.TabIndex = 69;
-			this.label51.Text = "19";
+			this.labelCode1.Location = new System.Drawing.Point(38, 16);
+			this.labelCode1.Name = "labelCode1";
+			this.labelCode1.Size = new System.Drawing.Size(26, 17);
+			this.labelCode1.TabIndex = 0;
+			this.labelCode1.Text = "19";
+			this.labelCode1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
-			// label50
+			// labelCode0
 			// 
-			this.label50.AutoSize = true;
-			this.label50.Location = new System.Drawing.Point(18, 19);
-			this.label50.Name = "label50";
-			this.label50.Size = new System.Drawing.Size(19, 13);
-			this.label50.TabIndex = 68;
-			this.label50.Text = "18";
+			this.labelCode0.Location = new System.Drawing.Point(6, 16);
+			this.labelCode0.Name = "labelCode0";
+			this.labelCode0.Size = new System.Drawing.Size(26, 17);
+			this.labelCode0.TabIndex = 0;
+			this.labelCode0.Text = "18";
+			this.labelCode0.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// textCode10
 			// 
-			this.textCode10.Location = new System.Drawing.Point(394, 37);
+			this.textCode10.Location = new System.Drawing.Point(326, 34);
 			this.textCode10.MaxLength = 2;
 			this.textCode10.Name = "textCode10";
 			this.textCode10.Size = new System.Drawing.Size(26, 20);
-			this.textCode10.TabIndex = 67;
+			this.textCode10.TabIndex = 11;
 			this.textCode10.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode9
 			// 
-			this.textCode9.Location = new System.Drawing.Point(356, 37);
+			this.textCode9.Location = new System.Drawing.Point(294, 34);
 			this.textCode9.MaxLength = 2;
 			this.textCode9.Name = "textCode9";
 			this.textCode9.Size = new System.Drawing.Size(26, 20);
-			this.textCode9.TabIndex = 66;
+			this.textCode9.TabIndex = 10;
 			this.textCode9.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode8
 			// 
-			this.textCode8.Location = new System.Drawing.Point(318, 37);
+			this.textCode8.Location = new System.Drawing.Point(262, 34);
 			this.textCode8.MaxLength = 2;
 			this.textCode8.Name = "textCode8";
 			this.textCode8.Size = new System.Drawing.Size(26, 20);
-			this.textCode8.TabIndex = 65;
+			this.textCode8.TabIndex = 9;
 			this.textCode8.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode7
 			// 
-			this.textCode7.Location = new System.Drawing.Point(280, 37);
+			this.textCode7.Location = new System.Drawing.Point(230, 34);
 			this.textCode7.MaxLength = 2;
 			this.textCode7.Name = "textCode7";
 			this.textCode7.Size = new System.Drawing.Size(26, 20);
-			this.textCode7.TabIndex = 64;
+			this.textCode7.TabIndex = 8;
 			this.textCode7.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode6
 			// 
-			this.textCode6.Location = new System.Drawing.Point(242, 37);
+			this.textCode6.Location = new System.Drawing.Point(198, 34);
 			this.textCode6.MaxLength = 2;
 			this.textCode6.Name = "textCode6";
 			this.textCode6.Size = new System.Drawing.Size(26, 20);
-			this.textCode6.TabIndex = 63;
+			this.textCode6.TabIndex = 7;
 			this.textCode6.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode5
 			// 
-			this.textCode5.Location = new System.Drawing.Point(205, 37);
+			this.textCode5.Location = new System.Drawing.Point(167, 34);
 			this.textCode5.MaxLength = 2;
 			this.textCode5.Name = "textCode5";
 			this.textCode5.Size = new System.Drawing.Size(26, 20);
-			this.textCode5.TabIndex = 62;
+			this.textCode5.TabIndex = 6;
 			this.textCode5.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode4
 			// 
-			this.textCode4.Location = new System.Drawing.Point(166, 37);
+			this.textCode4.Location = new System.Drawing.Point(134, 34);
 			this.textCode4.MaxLength = 2;
 			this.textCode4.Name = "textCode4";
 			this.textCode4.Size = new System.Drawing.Size(26, 20);
-			this.textCode4.TabIndex = 61;
+			this.textCode4.TabIndex = 5;
 			this.textCode4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode3
 			// 
-			this.textCode3.Location = new System.Drawing.Point(128, 37);
+			this.textCode3.Location = new System.Drawing.Point(102, 34);
 			this.textCode3.MaxLength = 2;
 			this.textCode3.Name = "textCode3";
 			this.textCode3.Size = new System.Drawing.Size(26, 20);
-			this.textCode3.TabIndex = 60;
+			this.textCode3.TabIndex = 4;
 			this.textCode3.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode2
 			// 
-			this.textCode2.Location = new System.Drawing.Point(90, 37);
+			this.textCode2.Location = new System.Drawing.Point(70, 34);
 			this.textCode2.MaxLength = 2;
 			this.textCode2.Name = "textCode2";
 			this.textCode2.Size = new System.Drawing.Size(26, 20);
-			this.textCode2.TabIndex = 59;
+			this.textCode2.TabIndex = 3;
 			this.textCode2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode1
 			// 
-			this.textCode1.Location = new System.Drawing.Point(52, 37);
+			this.textCode1.Location = new System.Drawing.Point(38, 34);
 			this.textCode1.MaxLength = 2;
 			this.textCode1.Name = "textCode1";
 			this.textCode1.Size = new System.Drawing.Size(26, 20);
-			this.textCode1.TabIndex = 58;
+			this.textCode1.TabIndex = 2;
 			this.textCode1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textCode0
 			// 
-			this.textCode0.Location = new System.Drawing.Point(14, 37);
+			this.textCode0.Location = new System.Drawing.Point(6, 34);
 			this.textCode0.MaxLength = 2;
 			this.textCode0.Name = "textCode0";
 			this.textCode0.Size = new System.Drawing.Size(26, 20);
-			this.textCode0.TabIndex = 57;
+			this.textCode0.TabIndex = 1;
 			this.textCode0.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// textBillType
@@ -2288,55 +2328,160 @@
 			this.textBillType.Location = new System.Drawing.Point(162, 12);
 			this.textBillType.Name = "textBillType";
 			this.textBillType.Size = new System.Drawing.Size(47, 20);
-			this.textBillType.TabIndex = 143;
+			this.textBillType.TabIndex = 1;
 			// 
-			// label83
+			// labelAdmissionType
 			// 
-			this.label83.Location = new System.Drawing.Point(5, 39);
-			this.label83.Name = "label83";
-			this.label83.Size = new System.Drawing.Size(156, 16);
-			this.label83.TabIndex = 146;
-			this.label83.Text = "Admission Type (1 digit)";
-			this.label83.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelAdmissionType.Location = new System.Drawing.Point(6, 35);
+			this.labelAdmissionType.Name = "labelAdmissionType";
+			this.labelAdmissionType.Size = new System.Drawing.Size(155, 17);
+			this.labelAdmissionType.TabIndex = 0;
+			this.labelAdmissionType.Text = "Admission Type (1 digit)";
+			this.labelAdmissionType.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textPatientStatus
 			// 
-			this.textPatientStatus.Location = new System.Drawing.Point(162, 81);
+			this.textPatientStatus.Location = new System.Drawing.Point(162, 75);
 			this.textPatientStatus.Name = "textPatientStatus";
 			this.textPatientStatus.Size = new System.Drawing.Size(47, 20);
-			this.textPatientStatus.TabIndex = 149;
+			this.textPatientStatus.TabIndex = 4;
 			// 
 			// textAdmissionType
 			// 
-			this.textAdmissionType.Location = new System.Drawing.Point(162, 35);
+			this.textAdmissionType.Location = new System.Drawing.Point(162, 33);
 			this.textAdmissionType.Name = "textAdmissionType";
 			this.textAdmissionType.Size = new System.Drawing.Size(47, 20);
-			this.textAdmissionType.TabIndex = 145;
+			this.textAdmissionType.TabIndex = 2;
 			// 
-			// label85
+			// labelPatientStatus
 			// 
-			this.label85.Location = new System.Drawing.Point(5, 85);
-			this.label85.Name = "label85";
-			this.label85.Size = new System.Drawing.Size(156, 16);
-			this.label85.TabIndex = 150;
-			this.label85.Text = "Patient Status (2 digit)";
-			this.label85.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelPatientStatus.Location = new System.Drawing.Point(6, 77);
+			this.labelPatientStatus.Name = "labelPatientStatus";
+			this.labelPatientStatus.Size = new System.Drawing.Size(155, 17);
+			this.labelPatientStatus.TabIndex = 0;
+			this.labelPatientStatus.Text = "Patient Status (2 digit)";
+			this.labelPatientStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// label84
+			// labelAdmissionSource
 			// 
-			this.label84.Location = new System.Drawing.Point(5, 62);
-			this.label84.Name = "label84";
-			this.label84.Size = new System.Drawing.Size(156, 16);
-			this.label84.TabIndex = 148;
-			this.label84.Text = "Admission Source (1 char)";
-			this.label84.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelAdmissionSource.Location = new System.Drawing.Point(6, 56);
+			this.labelAdmissionSource.Name = "labelAdmissionSource";
+			this.labelAdmissionSource.Size = new System.Drawing.Size(155, 17);
+			this.labelAdmissionSource.TabIndex = 0;
+			this.labelAdmissionSource.Text = "Admission Source (1 char)";
+			this.labelAdmissionSource.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textAdmissionSource
 			// 
-			this.textAdmissionSource.Location = new System.Drawing.Point(162, 58);
+			this.textAdmissionSource.Location = new System.Drawing.Point(162, 54);
 			this.textAdmissionSource.Name = "textAdmissionSource";
 			this.textAdmissionSource.Size = new System.Drawing.Size(47, 20);
-			this.textAdmissionSource.TabIndex = 147;
+			this.textAdmissionSource.TabIndex = 3;
+			// 
+			// groupDateIllnessInjuryPreg
+			// 
+			this.groupDateIllnessInjuryPreg.Controls.Add(this.comboDateIllnessQualifier);
+			this.groupDateIllnessInjuryPreg.Controls.Add(this.textDateIllness);
+			this.groupDateIllnessInjuryPreg.Controls.Add(this.labelDateIllness);
+			this.groupDateIllnessInjuryPreg.Controls.Add(this.labelDateIllnessQualifier);
+			this.groupDateIllnessInjuryPreg.Location = new System.Drawing.Point(6, 71);
+			this.groupDateIllnessInjuryPreg.Name = "groupDateIllnessInjuryPreg";
+			this.groupDateIllnessInjuryPreg.Size = new System.Drawing.Size(322, 63);
+			this.groupDateIllnessInjuryPreg.TabIndex = 2;
+			this.groupDateIllnessInjuryPreg.TabStop = false;
+			this.groupDateIllnessInjuryPreg.Text = "Current Illness, Injury, or Pregnancy (LMP)";
+			// 
+			// comboDateIllnessQualifier
+			// 
+			this.comboDateIllnessQualifier.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboDateIllnessQualifier.Location = new System.Drawing.Point(91, 36);
+			this.comboDateIllnessQualifier.MaxDropDownItems = 100;
+			this.comboDateIllnessQualifier.Name = "comboDateIllnessQualifier";
+			this.comboDateIllnessQualifier.Size = new System.Drawing.Size(225, 21);
+			this.comboDateIllnessQualifier.TabIndex = 2;
+			// 
+			// textDateIllness
+			// 
+			this.textDateIllness.Location = new System.Drawing.Point(91, 16);
+			this.textDateIllness.Name = "textDateIllness";
+			this.textDateIllness.Size = new System.Drawing.Size(66, 20);
+			this.textDateIllness.TabIndex = 1;
+			// 
+			// labelDateIllness
+			// 
+			this.labelDateIllness.Location = new System.Drawing.Point(6, 18);
+			this.labelDateIllness.Name = "labelDateIllness";
+			this.labelDateIllness.Size = new System.Drawing.Size(84, 17);
+			this.labelDateIllness.TabIndex = 0;
+			this.labelDateIllness.Text = "Date";
+			this.labelDateIllness.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// labelDateIllnessQualifier
+			// 
+			this.labelDateIllnessQualifier.Location = new System.Drawing.Point(6, 38);
+			this.labelDateIllnessQualifier.Name = "labelDateIllnessQualifier";
+			this.labelDateIllnessQualifier.Size = new System.Drawing.Size(84, 17);
+			this.labelDateIllnessQualifier.TabIndex = 0;
+			this.labelDateIllnessQualifier.Text = "Date Qualifier";
+			this.labelDateIllnessQualifier.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// checkIsOutsideLab
+			// 
+			this.checkIsOutsideLab.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkIsOutsideLab.FlatStyle = System.Windows.Forms.FlatStyle.System;
+			this.checkIsOutsideLab.Location = new System.Drawing.Point(6, 203);
+			this.checkIsOutsideLab.Name = "checkIsOutsideLab";
+			this.checkIsOutsideLab.Size = new System.Drawing.Size(104, 17);
+			this.checkIsOutsideLab.TabIndex = 4;
+			this.checkIsOutsideLab.Text = "Is Outside Lab";
+			this.checkIsOutsideLab.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// groupDateOtherCondOrTreatment
+			// 
+			this.groupDateOtherCondOrTreatment.Controls.Add(this.textDateOther);
+			this.groupDateOtherCondOrTreatment.Controls.Add(this.labelDateOtherQualifier);
+			this.groupDateOtherCondOrTreatment.Controls.Add(this.labelDateOther);
+			this.groupDateOtherCondOrTreatment.Controls.Add(this.comboDateOtherQualifier);
+			this.groupDateOtherCondOrTreatment.Location = new System.Drawing.Point(6, 137);
+			this.groupDateOtherCondOrTreatment.Name = "groupDateOtherCondOrTreatment";
+			this.groupDateOtherCondOrTreatment.Size = new System.Drawing.Size(322, 63);
+			this.groupDateOtherCondOrTreatment.TabIndex = 3;
+			this.groupDateOtherCondOrTreatment.TabStop = false;
+			this.groupDateOtherCondOrTreatment.Text = "Other Condition or Treatment";
+			// 
+			// textDateOther
+			// 
+			this.textDateOther.Location = new System.Drawing.Point(91, 16);
+			this.textDateOther.Name = "textDateOther";
+			this.textDateOther.Size = new System.Drawing.Size(66, 20);
+			this.textDateOther.TabIndex = 1;
+			// 
+			// labelDateOtherQualifier
+			// 
+			this.labelDateOtherQualifier.Location = new System.Drawing.Point(6, 38);
+			this.labelDateOtherQualifier.Name = "labelDateOtherQualifier";
+			this.labelDateOtherQualifier.Size = new System.Drawing.Size(84, 17);
+			this.labelDateOtherQualifier.TabIndex = 0;
+			this.labelDateOtherQualifier.Text = "Date Qualifier";
+			this.labelDateOtherQualifier.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// labelDateOther
+			// 
+			this.labelDateOther.Location = new System.Drawing.Point(6, 18);
+			this.labelDateOther.Name = "labelDateOther";
+			this.labelDateOther.Size = new System.Drawing.Size(84, 17);
+			this.labelDateOther.TabIndex = 0;
+			this.labelDateOther.Text = "Date";
+			this.labelDateOther.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// comboDateOtherQualifier
+			// 
+			this.comboDateOtherQualifier.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboDateOtherQualifier.Location = new System.Drawing.Point(91, 36);
+			this.comboDateOtherQualifier.MaxDropDownItems = 100;
+			this.comboDateOtherQualifier.Name = "comboDateOtherQualifier";
+			this.comboDateOtherQualifier.Size = new System.Drawing.Size(225, 21);
+			this.comboDateOtherQualifier.TabIndex = 2;
 			// 
 			// tabCanadian
 			// 
@@ -2885,9 +3030,7 @@
 			// gridStatusHistory
 			// 
 			this.gridStatusHistory.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridStatusHistory.HasAddButton = false;
 			this.gridStatusHistory.HasDropDowns = false;
-			this.gridStatusHistory.HasMultilineHeaders = false;
 			this.gridStatusHistory.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridStatusHistory.HeaderHeight = 15;
 			this.gridStatusHistory.HScrollVisible = false;
@@ -3068,9 +3211,7 @@
 			// gridPay
 			// 
 			this.gridPay.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridPay.HasAddButton = false;
 			this.gridPay.HasDropDowns = false;
-			this.gridPay.HasMultilineHeaders = false;
 			this.gridPay.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridPay.HeaderHeight = 15;
 			this.gridPay.HScrollVisible = false;
@@ -3174,9 +3315,7 @@
 			this.gridProc.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridProc.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridProc.HasAddButton = false;
 			this.gridProc.HasDropDowns = false;
-			this.gridProc.HasMultilineHeaders = false;
 			this.gridProc.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridProc.HeaderHeight = 15;
 			this.gridProc.HScrollVisible = false;
@@ -3732,6 +3871,10 @@
 			this.groupValueCodes.PerformLayout();
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
+			this.groupDateIllnessInjuryPreg.ResumeLayout(false);
+			this.groupDateIllnessInjuryPreg.PerformLayout();
+			this.groupDateOtherCondOrTreatment.ResumeLayout(false);
+			this.groupDateOtherCondOrTreatment.PerformLayout();
 			this.tabCanadian.ResumeLayout(false);
 			this.tabCanadian.PerformLayout();
 			this.groupCanadaOrthoPredeterm.ResumeLayout(false);
@@ -3761,41 +3904,41 @@
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.Label labelBillType;
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.Label label9;
 		private System.Windows.Forms.Label label10;
-		private System.Windows.Forms.Label label11;
-		private System.Windows.Forms.Label label12;
-		private System.Windows.Forms.Label label13;
-		private System.Windows.Forms.Label label14;
-		private System.Windows.Forms.Label label15;
+		private System.Windows.Forms.Label labelVC39a;
+		private System.Windows.Forms.Label labelVC39b;
+		private System.Windows.Forms.Label labelVC39c;
+		private System.Windows.Forms.Label labelVC39d;
+		private System.Windows.Forms.Label labelVC39Code;
 		private System.Windows.Forms.Label label16;
-		private System.Windows.Forms.Label label17;
+		private System.Windows.Forms.Label labelVC40Amt;
 		private System.Windows.Forms.Label label18;
-		private System.Windows.Forms.Label label19;
+		private System.Windows.Forms.Label labelVC40Code;
 		private System.Windows.Forms.Label label20;
 		private System.Windows.Forms.Label label21;
-		private System.Windows.Forms.Label label22;
-		private System.Windows.Forms.Label label23;
-		private System.Windows.Forms.Label label24;
-		private System.Windows.Forms.Label label25;
-		private System.Windows.Forms.Label label26;
-		private System.Windows.Forms.Label label27;
-		private System.Windows.Forms.Label label28;
-		private System.Windows.Forms.Label label29;
+		private System.Windows.Forms.Label labelVC39Amt;
+		private System.Windows.Forms.Label labelVC40d;
+		private System.Windows.Forms.Label labelVC40c;
+		private System.Windows.Forms.Label labelVC39;
+		private System.Windows.Forms.Label labelVC40;
+		private System.Windows.Forms.Label labelVC41;
+		private System.Windows.Forms.Label labelVC40b;
+		private System.Windows.Forms.Label labelVC40a;
 		private System.Windows.Forms.Label label30;
 		private System.Windows.Forms.Label label31;
 		private System.Windows.Forms.Label label32;
 		private System.Windows.Forms.Label label33;
 		private System.Windows.Forms.Label label34;
 		private System.Windows.Forms.Label label35;
-		private System.Windows.Forms.Label label36;
-		private System.Windows.Forms.Label label37;
-		private System.Windows.Forms.Label label38;
-		private System.Windows.Forms.Label label39;
-		private System.Windows.Forms.Label label40;
-		private System.Windows.Forms.Label label41;
+		private System.Windows.Forms.Label labelVC41Amt;
+		private System.Windows.Forms.Label labelVC41Code;
+		private System.Windows.Forms.Label labelVC41d;
+		private System.Windows.Forms.Label labelVC41c;
+		private System.Windows.Forms.Label labelVC41b;
+		private System.Windows.Forms.Label labelVC41a;
 		private System.Windows.Forms.Label label43;
 		private System.Windows.Forms.Label label44;
 		private System.Windows.Forms.Label label45;
@@ -3805,17 +3948,17 @@
 		private System.Windows.Forms.Label label47;
 		private System.Windows.Forms.Label label48;
 		private System.Windows.Forms.Label label49;
-		private System.Windows.Forms.Label label60;
-		private System.Windows.Forms.Label label59;
-		private System.Windows.Forms.Label label58;
-		private System.Windows.Forms.Label label57;
-		private System.Windows.Forms.Label label56;
-		private System.Windows.Forms.Label label55;
-		private System.Windows.Forms.Label label54;
-		private System.Windows.Forms.Label label53;
-		private System.Windows.Forms.Label label52;
-		private System.Windows.Forms.Label label51;
-		private System.Windows.Forms.Label label50;
+		private System.Windows.Forms.Label labelCode10;
+		private System.Windows.Forms.Label labelCode9;
+		private System.Windows.Forms.Label labelCode8;
+		private System.Windows.Forms.Label labelCode7;
+		private System.Windows.Forms.Label labelCode6;
+		private System.Windows.Forms.Label labelCode5;
+		private System.Windows.Forms.Label labelCode4;
+		private System.Windows.Forms.Label labelCode3;
+		private System.Windows.Forms.Label labelCode2;
+		private System.Windows.Forms.Label labelCode1;
+		private System.Windows.Forms.Label labelCode0;
 		private System.Windows.Forms.Label labelAttachedImagesWillNotBeSent;
 		private System.Windows.Forms.Label label63;
 		private System.Windows.Forms.Label label64;
@@ -3828,7 +3971,7 @@
 		private System.Windows.Forms.Label label71;
 		private System.Windows.Forms.Label label72;
 		private System.Windows.Forms.Label label73;
-		private System.Windows.Forms.Label label74;
+		private System.Windows.Forms.Label labelShareOfCost;
 		private System.Windows.Forms.Label label76;
 		private System.Windows.Forms.Label label77;
 		private System.Windows.Forms.Label label78;
@@ -3836,17 +3979,17 @@
 		private System.Windows.Forms.Label label80;
 		private System.Windows.Forms.Label label81;
 		private System.Windows.Forms.Label label82;
-		private System.Windows.Forms.Label label83;
-		private System.Windows.Forms.Label label84;
-		private System.Windows.Forms.Label label85;
+		private System.Windows.Forms.Label labelAdmissionType;
+		private System.Windows.Forms.Label labelAdmissionSource;
+		private System.Windows.Forms.Label labelPatientStatus;
 		private System.Windows.Forms.Label label86;
 		private System.Windows.Forms.Label label87;
-		private System.Windows.Forms.Label label94;
-		private System.Windows.Forms.Label label90;
-		private System.Windows.Forms.Label label91;
-		private System.Windows.Forms.Label label92;
-		private System.Windows.Forms.Label label93;
-		private System.Windows.Forms.Label label88;
+		private System.Windows.Forms.Label labelClaimIdentifierDentiCal;
+		private System.Windows.Forms.Label labelCorrectionType;
+		private System.Windows.Forms.Label labelClaimIdentifier;
+		private System.Windows.Forms.Label labelOrigRefNum;
+		private System.Windows.Forms.Label labelOrigRefNumDentiCal;
+		private System.Windows.Forms.Label labelPriorAuthDentiCal;
 		private System.Windows.Forms.Label label96;
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.GroupBox groupBox2;
@@ -3939,30 +4082,30 @@
 		private System.Windows.Forms.Label labelExtractedTeeth;
 		private System.Windows.Forms.ListBox listExtractedTeeth;
 		private System.Windows.Forms.GroupBox groupValueCodes;
-		private System.Windows.Forms.TextBox textVC9Amount;
-		private System.Windows.Forms.TextBox textVC6Amount;
-		private System.Windows.Forms.TextBox textVC3Amount;
-		private System.Windows.Forms.TextBox textVC0Amount;
-		private System.Windows.Forms.TextBox textVC9Code;
-		private System.Windows.Forms.TextBox textVC6Code;
-		private System.Windows.Forms.TextBox textVC3Code;
-		private System.Windows.Forms.TextBox textVC0Code;
-		private System.Windows.Forms.TextBox textVC10Amount;
-		private System.Windows.Forms.TextBox textVC7Amount;
-		private System.Windows.Forms.TextBox textVC4Amount;
-		private System.Windows.Forms.TextBox textVC1Amount;
-		private System.Windows.Forms.TextBox textVC10Code;
-		private System.Windows.Forms.TextBox textVC7Code;
-		private System.Windows.Forms.TextBox textVC4Code;
-		private System.Windows.Forms.TextBox textVC1Code;
-		private System.Windows.Forms.TextBox textVC11Amount;
-		private System.Windows.Forms.TextBox textVC8Amount;
-		private System.Windows.Forms.TextBox textVC5Amount;
-		private System.Windows.Forms.TextBox textVC2Amount;
-		private System.Windows.Forms.TextBox textVC11Code;
-		private System.Windows.Forms.TextBox textVC8Code;
-		private System.Windows.Forms.TextBox textVC5Code;
-		private System.Windows.Forms.TextBox textVC2Code;
+		private System.Windows.Forms.TextBox textVC39dAmt;
+		private System.Windows.Forms.TextBox textVC39cAmt;
+		private System.Windows.Forms.TextBox textVC39bAmt;
+		private System.Windows.Forms.TextBox textVC39aAmt;
+		private System.Windows.Forms.TextBox textVC39dCode;
+		private System.Windows.Forms.TextBox textVC39cCode;
+		private System.Windows.Forms.TextBox textVC39bCode;
+		private System.Windows.Forms.TextBox textVC39aCode;
+		private System.Windows.Forms.TextBox textVC40dAmt;
+		private System.Windows.Forms.TextBox textVC40cAmt;
+		private System.Windows.Forms.TextBox textVC40bAmt;
+		private System.Windows.Forms.TextBox textVC40aAmt;
+		private System.Windows.Forms.TextBox textVC40dCode;
+		private System.Windows.Forms.TextBox textVC40cCode;
+		private System.Windows.Forms.TextBox textVC40bCode;
+		private System.Windows.Forms.TextBox textVC40aCode;
+		private System.Windows.Forms.TextBox textVC41dAmt;
+		private System.Windows.Forms.TextBox textVC41cAmt;
+		private System.Windows.Forms.TextBox textVC41bAmt;
+		private System.Windows.Forms.TextBox textVC41aAmt;
+		private System.Windows.Forms.TextBox textVC41dCode;
+		private System.Windows.Forms.TextBox textVC41cCode;
+		private System.Windows.Forms.TextBox textVC41bCode;
+		private System.Windows.Forms.TextBox textVC41aCode;
 		private System.Windows.Forms.TextBox textReasonUnder;
 		private System.Windows.Forms.ComboBox comboAccident;
 		private System.Windows.Forms.Label labelAccidentST;
@@ -4050,7 +4193,7 @@
 		private System.Windows.Forms.ContextMenu contextAdjust;
 		private System.Windows.Forms.MenuItem menuItemAddAdj;
 		private System.Windows.Forms.TextBox textClaimIdOriginal;
-		private System.Windows.Forms.Label label62;
+		private System.Windows.Forms.Label labelClaimIdOriginal;
 		private System.Windows.Forms.GroupBox groupFinalizePayment;
 		private UI.Button butThisClaimOnly;
 		private UI.Button butViewEob;
@@ -4062,6 +4205,18 @@
 		private System.Windows.Forms.Label labelAttachmentID;
 		private UI.Button butClaimAttachment;
 		private System.Windows.Forms.ErrorProvider _recalcErrorProvider;
-
+		private System.Windows.Forms.GroupBox groupDateOtherCondOrTreatment;
+		private ValidDate textDateOther;
+		private System.Windows.Forms.Label labelDateOtherQualifier;
+		private System.Windows.Forms.Label labelDateOther;
+		private System.Windows.Forms.ComboBox comboDateOtherQualifier;
+		private System.Windows.Forms.Label labelDateIllnessQualifier;
+		private System.Windows.Forms.ComboBox comboDateIllnessQualifier;
+		private ValidDate textDateIllness;
+		private System.Windows.Forms.Label labelDateIllness;
+		private System.Windows.Forms.GroupBox groupDateIllnessInjuryPreg;
+		private System.Windows.Forms.CheckBox checkIsOutsideLab;
+		private System.Windows.Forms.Label labelResubCode;
+		private System.Windows.Forms.ComboBox comboResubCode;
 	}
 }

@@ -347,7 +347,7 @@ namespace OpenDental {
 			}
 			else {
 				butSearch.Visible=false;
-				labelSnomedCtBodySite.Visible=false;
+				labelSnomedBodySite.Visible=false;
 				textSnomedBodySite.Visible=false;
 				butSnomedBodySiteSelect.Visible=false;
 				butNoneSnomedBodySite.Visible=false;
@@ -675,10 +675,10 @@ namespace OpenDental {
 				checkIcdVersion.Checked=true;
 			}
 			SetIcdLabels();
-			textDiagnosticCode.Text=_procCur.DiagnosticCode;
-			textDiagnosticCode2.Text=_procCur.DiagnosticCode2;
-			textDiagnosticCode3.Text=_procCur.DiagnosticCode3;
-			textDiagnosticCode4.Text=_procCur.DiagnosticCode4;
+			textDiagnosisCode.Text=_procCur.DiagnosticCode;
+			textDiagnosisCode2.Text=_procCur.DiagnosticCode2;
+			textDiagnosisCode3.Text=_procCur.DiagnosticCode3;
+			textDiagnosisCode4.Text=_procCur.DiagnosticCode4;
 			checkIsPrincDiag.Checked=_procCur.IsPrincDiag;
 			textCodeMod1.Text = _procCur.CodeMod1;
 			textCodeMod2.Text = _procCur.CodeMod2;
@@ -707,6 +707,7 @@ namespace OpenDental {
 			if(_procCur.DrugQty!=0){
 				textDrugQty.Text=_procCur.DrugQty.ToString();
 			}
+			checkIsEmergency.Checked=(_procCur.Urgency==ProcUrgency.Emergency);
 			textClaimNote.Text=_procCur.ClaimNote;
 			textUser.Text=Userods.GetName(_procCur.UserNum);//might be blank. Will change automatically if user changes note or alters sig.
 			string keyData=GetSignatureKey();
@@ -2476,10 +2477,10 @@ namespace OpenDental {
 			if(checkIcdVersion.Checked) {
 				icdVersion=10;
 			}
-			labelDiagnosticCode1.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 1");
-			labelDiagnosticCode2.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 2");
-			labelDiagnosticCode3.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 3");
-			labelDiagnosticCode4.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 4");
+			labelDiagnosisCode.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 1");
+			labelDiagnosisCode2.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 2");
+			labelDiagnosisCode3.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 3");
+			labelDiagnosisCode4.Text=Lan.g(this,"ICD")+"-"+icdVersion+" "+Lan.g(this,"Diagnosis Code 4");
 		}
 
 		private void checkIcdVersion_Click(object sender,EventArgs e) {
@@ -2504,35 +2505,35 @@ namespace OpenDental {
 		}
 
 		private void butDiagnosisCode1_Click(object sender,EventArgs e) {
-			PickDiagnosisCode(textDiagnosticCode);
+			PickDiagnosisCode(textDiagnosisCode);
 		}
 
 		private void butNoneDiagnosisCode1_Click(object sender,EventArgs e) {
-			textDiagnosticCode.Text="";
+			textDiagnosisCode.Text="";
 		}
 
 		private void butDiagnosisCode2_Click(object sender,EventArgs e) {
-			PickDiagnosisCode(textDiagnosticCode2);
+			PickDiagnosisCode(textDiagnosisCode2);
 		}
 
 		private void butNoneDiagnosisCode2_Click(object sender,EventArgs e) {
-			textDiagnosticCode2.Text="";
+			textDiagnosisCode2.Text="";
 		}
 
 		private void butDiagnosisCode3_Click(object sender,EventArgs e) {
-			PickDiagnosisCode(textDiagnosticCode3);
+			PickDiagnosisCode(textDiagnosisCode3);
 		}
 
 		private void butNoneDiagnosisCode3_Click(object sender,EventArgs e) {
-			textDiagnosticCode3.Text="";
+			textDiagnosisCode3.Text="";
 		}
 
 		private void butDiagnosisCode4_Click(object sender,EventArgs e) {
-			PickDiagnosisCode(textDiagnosticCode4);
+			PickDiagnosisCode(textDiagnosisCode4);
 		}
 
 		private void butNoneDiagnosisCode4_Click(object sender,EventArgs e) {
-			textDiagnosticCode4.Text="";
+			textDiagnosisCode4.Text="";
 		}
 
 		private void butDelete_Click(object sender, System.EventArgs e) {
@@ -2824,17 +2825,17 @@ namespace OpenDental {
 			_procCur.DiagnosticCode3="";
 			_procCur.DiagnosticCode4="";
 			List<string> diagnosticCodes=new List<string>();//A list of all the diagnostic code boxes.
-			if(textDiagnosticCode.Text!="") {
-				diagnosticCodes.Add(textDiagnosticCode.Text);
+			if(textDiagnosisCode.Text!="") {
+				diagnosticCodes.Add(textDiagnosisCode.Text);
 			}
-			if(textDiagnosticCode2.Text!="") {
-				diagnosticCodes.Add(textDiagnosticCode2.Text);
+			if(textDiagnosisCode2.Text!="") {
+				diagnosticCodes.Add(textDiagnosisCode2.Text);
 			}
-			if(textDiagnosticCode3.Text!="") {
-				diagnosticCodes.Add(textDiagnosticCode3.Text);
+			if(textDiagnosisCode3.Text!="") {
+				diagnosticCodes.Add(textDiagnosisCode3.Text);
 			}
-			if(textDiagnosticCode4.Text!="") {
-				diagnosticCodes.Add(textDiagnosticCode4.Text);
+			if(textDiagnosisCode4.Text!="") {
+				diagnosticCodes.Add(textDiagnosisCode4.Text);
 			}
 			if(diagnosticCodes.Count>0) {
 				_procCur.DiagnosticCode=diagnosticCodes[0];
@@ -2865,6 +2866,7 @@ namespace OpenDental {
 			_procCur.RevCode = textRevCode.Text;
 			_procCur.DrugUnit=(EnumProcDrugUnit)comboDrugUnit.SelectedIndex;
 			_procCur.DrugQty=PIn.Float(textDrugQty.Text);
+			_procCur.Urgency=(checkIsEmergency.Checked?ProcUrgency.Emergency:ProcUrgency.Normal);
 			_procCur.ProvNum=_selectedProvNum;			
 			ClaimProcs.TrySetProvFromProc(_procCur,_listClaimProcsForProc);
 			_procCur.ClinicNum=_selectedClinicNum;

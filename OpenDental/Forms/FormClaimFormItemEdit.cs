@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
+using System.Linq;
 
 namespace OpenDental{
 	/// <summary>
@@ -82,87 +83,93 @@ namespace OpenDental{
 			// 
 			// butCancel
 			// 
-			this.butCancel.AdjustImageLocation = new System.Drawing.Point(0,0);
+			this.butCancel.AdjustImageLocation = new System.Drawing.Point(0, 0);
 			this.butCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butCancel.Autosize = true;
 			this.butCancel.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butCancel.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butCancel.CornerRadius = 4F;
-			this.butCancel.Location = new System.Drawing.Point(838,605);
+			this.butCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+			this.butCancel.Location = new System.Drawing.Point(852, 607);
 			this.butCancel.Name = "butCancel";
-			this.butCancel.Size = new System.Drawing.Size(75,25);
+			this.butCancel.Size = new System.Drawing.Size(75, 25);
 			this.butCancel.TabIndex = 0;
 			this.butCancel.Text = "&Cancel";
 			this.butCancel.Click += new System.EventHandler(this.butCancel_Click);
 			// 
 			// butOK
 			// 
-			this.butOK.AdjustImageLocation = new System.Drawing.Point(0,0);
+			this.butOK.AdjustImageLocation = new System.Drawing.Point(0, 0);
 			this.butOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butOK.Autosize = true;
 			this.butOK.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butOK.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butOK.CornerRadius = 4F;
-			this.butOK.Location = new System.Drawing.Point(838,564);
+			this.butOK.Location = new System.Drawing.Point(852, 576);
 			this.butOK.Name = "butOK";
-			this.butOK.Size = new System.Drawing.Size(75,25);
+			this.butOK.Size = new System.Drawing.Size(75, 25);
 			this.butOK.TabIndex = 1;
 			this.butOK.Text = "&OK";
 			this.butOK.Click += new System.EventHandler(this.butOK_Click);
 			// 
 			// labelImageFileName
 			// 
-			this.labelImageFileName.Location = new System.Drawing.Point(25,22);
+			this.labelImageFileName.Location = new System.Drawing.Point(12, 12);
 			this.labelImageFileName.Name = "labelImageFileName";
-			this.labelImageFileName.Size = new System.Drawing.Size(156,16);
+			this.labelImageFileName.Size = new System.Drawing.Size(236, 17);
 			this.labelImageFileName.TabIndex = 2;
 			this.labelImageFileName.Text = "Image File Name";
+			this.labelImageFileName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// textImageFileName
 			// 
-			this.textImageFileName.Location = new System.Drawing.Point(26,40);
+			this.textImageFileName.Location = new System.Drawing.Point(12, 30);
 			this.textImageFileName.Name = "textImageFileName";
-			this.textImageFileName.Size = new System.Drawing.Size(211,20);
+			this.textImageFileName.Size = new System.Drawing.Size(236, 20);
 			this.textImageFileName.TabIndex = 3;
 			// 
 			// label2
 			// 
-			this.label2.Location = new System.Drawing.Point(25,67);
+			this.label2.Location = new System.Drawing.Point(12, 54);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(209,57);
+			this.label2.Size = new System.Drawing.Size(236, 45);
 			this.label2.TabIndex = 4;
 			this.label2.Text = "This file must be present in the OpenDentalData folder.  It should be a jpg, gif," +
     " or emf.";
 			// 
 			// labelFieldName
 			// 
-			this.labelFieldName.Location = new System.Drawing.Point(255,14);
+			this.labelFieldName.Location = new System.Drawing.Point(254, 12);
 			this.labelFieldName.Name = "labelFieldName";
-			this.labelFieldName.Size = new System.Drawing.Size(156,16);
+			this.labelFieldName.Size = new System.Drawing.Size(156, 17);
 			this.labelFieldName.TabIndex = 5;
 			this.labelFieldName.Text = "or Field Name";
+			this.labelFieldName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// listFieldName
 			// 
-			this.listFieldName.Location = new System.Drawing.Point(254,31);
+			this.listFieldName.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.listFieldName.Location = new System.Drawing.Point(254, 30);
 			this.listFieldName.MultiColumn = true;
 			this.listFieldName.Name = "listFieldName";
-			this.listFieldName.Size = new System.Drawing.Size(560,602);
+			this.listFieldName.Size = new System.Drawing.Size(592, 602);
 			this.listFieldName.TabIndex = 6;
 			this.listFieldName.DoubleClick += new System.EventHandler(this.listFieldName_DoubleClick);
 			// 
 			// textFormatString
 			// 
-			this.textFormatString.Location = new System.Drawing.Point(24,208);
+			this.textFormatString.Location = new System.Drawing.Point(12, 161);
 			this.textFormatString.Name = "textFormatString";
-			this.textFormatString.Size = new System.Drawing.Size(211,20);
+			this.textFormatString.Size = new System.Drawing.Size(236, 20);
 			this.textFormatString.TabIndex = 8;
 			// 
 			// labelFormatString
 			// 
-			this.labelFormatString.Location = new System.Drawing.Point(24,135);
+			this.labelFormatString.Location = new System.Drawing.Point(12, 106);
 			this.labelFormatString.Name = "labelFormatString";
-			this.labelFormatString.Size = new System.Drawing.Size(210,68);
+			this.labelFormatString.Size = new System.Drawing.Size(236, 52);
 			this.labelFormatString.TabIndex = 7;
 			this.labelFormatString.Text = "Format String.  All dates must have a format.  Valid entries would include MM/dd/" +
     "yyyy, MM-dd-yy, and M d y as examples.";
@@ -170,14 +177,15 @@ namespace OpenDental{
 			// 
 			// butDelete
 			// 
-			this.butDelete.AdjustImageLocation = new System.Drawing.Point(0,0);
+			this.butDelete.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.butDelete.Autosize = true;
 			this.butDelete.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butDelete.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butDelete.CornerRadius = 4F;
-			this.butDelete.Location = new System.Drawing.Point(29,600);
+			this.butDelete.Location = new System.Drawing.Point(12, 607);
 			this.butDelete.Name = "butDelete";
-			this.butDelete.Size = new System.Drawing.Size(80,25);
+			this.butDelete.Size = new System.Drawing.Size(80, 25);
 			this.butDelete.TabIndex = 9;
 			this.butDelete.Text = "&Delete";
 			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
@@ -185,9 +193,8 @@ namespace OpenDental{
 			// FormClaimFormItemEdit
 			// 
 			this.AcceptButton = this.butOK;
-			this.AutoScaleBaseSize = new System.Drawing.Size(5,13);
 			this.CancelButton = this.butCancel;
-			this.ClientSize = new System.Drawing.Size(939,646);
+			this.ClientSize = new System.Drawing.Size(939, 644);
 			this.Controls.Add(this.butDelete);
 			this.Controls.Add(this.textFormatString);
 			this.Controls.Add(this.textImageFileName);
@@ -198,13 +205,11 @@ namespace OpenDental{
 			this.Controls.Add(this.labelImageFileName);
 			this.Controls.Add(this.butOK);
 			this.Controls.Add(this.butCancel);
-			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-			this.MaximizeBox = false;
 			this.MinimizeBox = false;
+			this.MinimumSize = new System.Drawing.Size(418, 261);
 			this.Name = "FormClaimFormItemEdit";
 			this.ShowInTaskbar = false;
-			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Edit Claim Form Item";
 			this.Load += new System.EventHandler(this.FormClaimFormItemEdit_Load);
 			this.ResumeLayout(false);
@@ -314,438 +319,7 @@ namespace OpenDental{
 				"PatientID-MedicaidOrSSN",
 				"PatientPatNum",
 				"PatientChartNum",
-				"Diagnosis1",
-				"Diagnosis2",
-				"Diagnosis3",
-				"Diagnosis4",
-				"DiagnosisA",
-				"DiagnosisB",
-				"DiagnosisC",
-				"DiagnosisD",
-				"DiagnosisE",
-				"DiagnosisF",
-				"DiagnosisG",
-				"DiagnosisH",
-				"DiagnosisI",
-				"DiagnosisJ",
-				"DiagnosisK",
-				"DiagnosisL",
-				//1
-				"P1SystemAndTeeth",
-				"P1Date",
-				"P1Area",
-				"P1System",
-				"P1ToothNumber",
-				"P1Surface",
-				"P1Code",
-				"P1Description",
-				"P1Fee",
-				"P1TreatDentMedicaidID",
-				"P1PlaceNumericCode",
-				"P1Diagnosis",
-				"P1DiagnosisPoint",
-				"P1Lab",
-				"P1FeeMinusLab",
-				"P1ToothNumOrArea",
-				"P1TreatProvNPI",
-				"P1RevCode",
-				"P1CodeMod1",
-				"P1CodeMod2",
-				"P1CodeMod3",
-				"P1CodeMod4",
-				"P1Minutes",
-				//"P1UnitCode",
-				"P1UnitQty",
-				"P1UnitQtyOrCount",
-				"P1CodeAndMods",
-				//2
-				"P2SystemAndTeeth",
-				"P2Date",
-				"P2Area",
-				"P2System",
-				"P2ToothNumber",
-				"P2Surface",
-				"P2Code",
-				"P2Description",
-				"P2Fee",
-				"P2TreatDentMedicaidID",
-				"P2PlaceNumericCode",
-				"P2Diagnosis",
-				"P2DiagnosisPoint",
-				"P2Lab",
-				"P2FeeMinusLab",
-				"P2ToothNumOrArea",
-				"P2TreatProvNPI",
-				"P2RevCode",
-				"P2CodeMod1",
-				"P2CodeMod2",
-				"P2CodeMod3",
-				"P2CodeMod4",
-				"P2Minutes",
-				//"P2UnitCode",
-				"P2UnitQty",
-				"P2UnitQtyOrCount",
-				"P2CodeAndMods",
-				//3
-				"P3SystemAndTeeth",
-				"P3Date",
-				"P3Area",
-				"P3System",
-				"P3ToothNumber",
-				"P3Surface",
-				"P3Code",
-				"P3Description",
-				"P3Fee",
-				"P3TreatDentMedicaidID",
-				"P3PlaceNumericCode",
-				"P3Diagnosis",
-				"P3DiagnosisPoint",
-				"P3Lab",
-				"P3FeeMinusLab",
-				"P3ToothNumOrArea",
-				"P3TreatProvNPI",
-				"P3RevCode",
-				"P3CodeMod1",
-				"P3CodeMod2",
-				"P3CodeMod3",
-				"P3CodeMod4",
-				"P3Minutes",
-				//"P3UnitCode",
-				"P3UnitQty",
-				"P3UnitQtyOrCount",
-				"P3CodeAndMods",
-				//4
-				"P4SystemAndTeeth",
-				"P4Date",
-				"P4Area",
-				"P4System",
-				"P4ToothNumber",
-				"P4Surface",
-				"P4Code",
-				"P4Description",
-				"P4Fee",
-				"P4TreatDentMedicaidID",
-				"P4PlaceNumericCode",
-				"P4Diagnosis",
-				"P4DiagnosisPoint",
-				"P4Lab",
-				"P4FeeMinusLab",
-				"P4ToothNumOrArea",
-				"P4TreatProvNPI",
-				"P4RevCode",
-				"P4CodeMod1",
-				"P4CodeMod2",
-				"P4CodeMod3",
-				"P4CodeMod4",
-				"P4Minutes",
-				//"P4UnitCode",
-				"P4UnitQty",
-				"P4UnitQtyOrCount",
-				"P4CodeAndMods",
-				//5
-				"P5SystemAndTeeth",
-				"P5Date",
-				"P5Area",
-				"P5System",
-				"P5ToothNumber",
-				"P5Surface",
-				"P5Code",
-				"P5Description",
-				"P5Fee",
-				"P5TreatDentMedicaidID",
-				"P5PlaceNumericCode",
-				"P5Diagnosis",
-				"P5DiagnosisPoint",
-				"P5Lab",
-				"P5FeeMinusLab",
-				"P5ToothNumOrArea",
-				"P5TreatProvNPI",
-				"P5RevCode",
-				"P5CodeMod1",
-				"P5CodeMod2",
-				"P5CodeMod3",
-				"P5CodeMod4",
-				"P5Minutes",
-				//"P5UnitCode",
-				"P5UnitQty",
-				"P5UnitQtyOrCount",
-				"P5CodeAndMods",
-				//6
-				"P6SystemAndTeeth",
-				"P6Date",
-				"P6Area",
-				"P6System",
-				"P6ToothNumber",
-				"P6Surface",
-				"P6Code",
-				"P6Description",
-				"P6Fee",
-				"P6TreatDentMedicaidID",
-				"P6PlaceNumericCode",
-				"P6Diagnosis",
-				"P6DiagnosisPoint",
-				"P6Lab",
-				"P6FeeMinusLab",
-				"P6ToothNumOrArea",
-				"P6TreatProvNPI",
-				"P6RevCode",
-				"P6CodeMod1",
-				"P6CodeMod2",
-				"P6CodeMod3",
-				"P6CodeMod4",
-				"P6Minutes",
-				//"P6UnitCode",
-				"P6UnitQty",
-				"P6UnitQtyOrCount",
-				"P6CodeAndMods",
-				//7
-				"P7Date",
-				"P7Area",
-				"P7System",
-				"P7ToothNumber",
-				"P7Surface",
-				"P7Code",
-				"P7Description",
-				"P7Fee",
-				"P7TreatDentMedicaidID",
-				"P7PlaceNumericCode",
-				"P7Diagnosis",
-				"P7DiagnosisPoint",
-				"P7Lab",
-				"P7FeeMinusLab",
-				"P7ToothNumOrArea",
-				"P7TreatProvNPI",
-				"P7RevCode",
-				"P7CodeMod1",
-				"P7CodeMod2",
-				"P7CodeMod3",
-				"P7CodeMod4",
-				//"P7UnitCode",
-				"P7UnitQty",
-				"P7CodeAndMods",
-				//8
-				"P8Date",
-				"P8Area",
-				"P8System",
-				"P8ToothNumber",
-				"P8Surface",
-				"P8Code",
-				"P8Description",
-				"P8Fee",
-				"P8TreatDentMedicaidID",
-				"P8PlaceNumericCode",
-				"P8Diagnosis",
-				"P8DiagnosisPoint",
-				"P8Lab",
-				"P8FeeMinusLab",
-				"P8ToothNumOrArea",
-				"P8TreatProvNPI",
-				"P8RevCode",
-				"P8CodeMod1",
-				"P8CodeMod2",
-				"P8CodeMod3",
-				"P8CodeMod4",
-				//"P8UnitCode",
-				"P8UnitQty",
-				"P8CodeAndMods",
-				//9
-				"P9Date",
-				"P9Area",
-				"P9System",
-				"P9ToothNumber",
-				"P9Surface",
-				"P9Code",
-				"P9Description",
-				"P9Fee",
-				"P9TreatDentMedicaidID",
-				"P9PlaceNumericCode",
-				"P9Diagnosis",
-				"P9DiagnosisPoint",
-				"P9Lab",
-				"P9FeeMinusLab",
-				"P9ToothNumOrArea",
-				"P9TreatProvNPI",
-				"P9RevCode",
-				"P9CodeMod1",
-				"P9CodeMod2",
-				"P9CodeMod3",
-				"P9CodeMod4",
-				//"P9UnitCode",
-				"P9UnitQty",
-				"P9CodeAndMods",
-				//10
-				"P10Date",
-				"P10Area",
-				"P10System",
-				"P10ToothNumber",
-				"P10Surface",
-				"P10Code",
-				"P10Description",
-				"P10Fee",
-				"P10TreatDentMedicaidID",
-				"P10PlaceNumericCode",
-				"P10Diagnosis",
-				"P10DiagnosisPoint",
-				"P10Lab",
-				"P10FeeMinusLab",
-				"P10ToothNumOrArea",
-				"P10TreatProvNPI",
-				"P10RevCode",
-				"P10CodeMod1",
-				"P10CodeMod2",
-				"P10CodeMod3",
-				"P10CodeMod4",
-				//"P10UnitCode",
-				"P10UnitQty",
-				"P10CodeAndMods",
-				"P11Date",
-				"P11Area",
-				"P11System",
-				"P11ToothNumber",
-				"P11Surface",
-				"P11Code",
-				"P11Description",
-				"P11Fee",
-				"P11TreatDentMedicaidID",
-				"P11PlaceNumericCode",
-				"P11Diagnosis",
-				"P11DiagnosisPoint",
-				"P11Lab",
-				"P11FeeMinusLab",
-				"P11ToothNumOrArea",
-				"P11TreatProvNPI",
-				"P11RevCode",
-				"P11CodeMod1",
-				"P11CodeMod2",
-				"P11CodeMod3",
-				"P11CodeMod4",
-				"P11UnitQty",
-				"P11CodeAndMods",
-				"P12Date",
-				"P12Area",
-				"P12System",
-				"P12ToothNumber",
-				"P12Surface",
-				"P12Code",
-				"P12Description",
-				"P12Fee",
-				"P12TreatDentMedicaidID",
-				"P12PlaceNumericCode",
-				"P12Diagnosis",
-				"P12DiagnosisPoint",
-				"P12Lab",
-				"P12FeeMinusLab",
-				"P12ToothNumOrArea",
-				"P12TreatProvNPI",
-				"P12RevCode",
-				"P12CodeMod1",
-				"P12CodeMod2",
-				"P12CodeMod3",
-				"P12CodeMod4",
-				"P12UnitQty",
-				"P12CodeAndMods",
-				"P13Date",
-				"P13Area",
-				"P13System",
-				"P13ToothNumber",
-				"P13Surface",
-				"P13Code",
-				"P13Description",
-				"P13Fee",
-				"P13TreatDentMedicaidID",
-				"P13PlaceNumericCode",
-				"P13Diagnosis",
-				"P13DiagnosisPoint",
-				"P13Lab",
-				"P13FeeMinusLab",
-				"P13ToothNumOrArea",
-				"P13TreatProvNPI",
-				"P13RevCode",
-				"P13CodeMod1",
-				"P13CodeMod2",
-				"P13CodeMod3",
-				"P13CodeMod4",
-				"P13UnitQty",
-				"P13CodeAndMods",
-				"P14Date",
-				"P14Area",
-				"P14System",
-				"P14ToothNumber",
-				"P14Surface",
-				"P14Code",
-				"P14Description",
-				"P14Fee",
-				"P14TreatDentMedicaidID",
-				"P14PlaceNumericCode",
-				"P14Diagnosis",
-				"P14DiagnosisPoint",
-				"P14Lab",
-				"P14FeeMinusLab",
-				"P14ToothNumOrArea",
-				"P14TreatProvNPI",
-				"P14RevCode",
-				"P14CodeMod1",
-				"P14CodeMod2",
-				"P14CodeMod3",
-				"P14CodeMod4",
-				"P14UnitQty",
-				"P14CodeAndMods",
-				"P15Date",
-				"P15Area",
-				"P15System",
-				"P15ToothNumber",
-				"P15Surface",
-				"P15Code",
-				"P15Description",
-				"P15Fee",
-				"P15TreatDentMedicaidID",
-				"P15PlaceNumericCode",
-				"P15Diagnosis",
-				"P15DiagnosisPoint",
-				"P15Lab",
-				"P15FeeMinusLab",
-				"P15ToothNumOrArea",
-				"P15TreatProvNPI",
-				"P15RevCode",
-				"P15CodeMod1",
-				"P15CodeMod2",
-				"P15CodeMod3",
-				"P15CodeMod4",
-				"P15UnitQty",
-				"P15CodeAndMods",
 				"TotalFee",
-				"Miss1",
-				"Miss2",
-				"Miss3",
-				"Miss4",
-				"Miss5",
-				"Miss6",
-				"Miss7",
-				"Miss8",
-				"Miss9",
-				"Miss10",
-				"Miss11",
-				"Miss12",
-				"Miss13",
-				"Miss14",
-				"Miss15",
-				"Miss16",
-				"Miss17",
-				"Miss18",
-				"Miss19",
-				"Miss20",
-				"Miss21",
-				"Miss22",
-				"Miss23",
-				"Miss24",
-				"Miss25",
-				"Miss26",
-				"Miss27",
-				"Miss28",
-				"Miss29",
-				"Miss30",
-				"Miss31",
-				"Miss32",
 				"Remarks",
 				"PatientRelease",
 				"PatientReleaseDate",
@@ -778,7 +352,6 @@ namespace OpenDental{
 				"IsNotReplacementProsth",
 				"IsReplacementProsth",
 				"DatePriorProsthPlaced",
-				//reason for replacement (ADA2000)
 				"IsOccupational",
 				"IsNotOccupational",
 				"IsAutoAccident",
@@ -790,11 +363,6 @@ namespace OpenDental{
 				"AccidentDate",
 				"AccidentST",
 				"BillingDentist",
-				//"BillingDentistAddress",
-				//"BillingDentistAddress2",
-				//"BillingDentistCity",
-				//"BillingDentistST",
-				//"BillingDentistZip",
 				"BillingDentistMedicaidID",
 				"BillingDentistProviderID",
 				"BillingDentistNPI",
@@ -875,41 +443,6 @@ namespace OpenDental{
 				"MedInsCGroupNum",
 				"MedInsCAuthCode",
 				"MedInsCEmployer",
-				"MedValCode39a",
-				"MedValAmount39a",
-				"MedValCode39b",
-				"MedValAmount39b",
-				"MedValCode39c",
-				"MedValAmount39c",
-				"MedValCode39d",
-				"MedValAmount39d",
-				"MedValCode40a",
-				"MedValAmount40a",
-				"MedValCode40b",
-				"MedValAmount40b",
-				"MedValCode40c",
-				"MedValAmount40c",
-				"MedValCode40d",
-				"MedValAmount40d",
-				"MedValCode41a",
-				"MedValAmount41a",
-				"MedValCode41b",
-				"MedValAmount41b",
-				"MedValCode41c",
-				"MedValAmount41c",
-				"MedValCode41d",
-				"MedValAmount41d",
-				"MedConditionCode18",
-				"MedConditionCode19",
-				"MedConditionCode20",
-				"MedConditionCode21",
-				"MedConditionCode22",
-				"MedConditionCode23",
-				"MedConditionCode24",
-				"MedConditionCode25",
-				"MedConditionCode26",
-				"MedConditionCode27",
-				"MedConditionCode28",
 				"MedUniformBillType",
 				"MedAdmissionTypeCode",
 				"MedAdmissionSourceCode",
@@ -919,7 +452,51 @@ namespace OpenDental{
 				"AcceptAssignmentY",
 				"AcceptAssignmentN",
 				"ClaimIdentifier",
-			};
+				"OrigRefNum",
+				"ResubmissionCode",
+				"DateIllnessInjuryPreg",
+				"DateIllnessInjuryPregQualifier",
+				"DateOther",
+				"DateOtherQualifier",
+				"IsOutsideLab",
+				"IsNotOutsideLab"
+			}.Concat(Enumerable.Range(1,32).Select(x => "Miss"+x))//Miss1-32
+			.Concat(Enumerable.Range(18,11).Select(x => "MedConditionCode"+x))//MedConditionCode18-28
+			.Concat(Enumerable.Range(39,3).SelectMany(x => Enumerable.Range(97,4)
+					.SelectMany(y => new[] { "MedValCode"+x+(char)y,"MedValAmount"+x+(char)y })))//MedValCode39a-41d and MedValAmount39a-41d
+			.Concat(Enumerable.Range(1,16).Select(x => "Diagnosis"+(x<5?x.ToString():((char)(x+60)).ToString())))//Diagnosis1-4 and DiagnosisA-L
+			.OrderBy(x => x)//alphabatize the list before concatenating with the procedure (P1-P15...) fields.
+			.Concat(Enumerable.Range(1,15).SelectMany(x => new[] {
+				"Area",
+				"Code",
+				"CodeAndMods",
+				"CodeMod1",
+				"CodeMod2",
+				"CodeMod3",
+				"CodeMod4",
+				"Date",
+				"Description",
+				"Diagnosis",
+				"DiagnosisPoint",
+				"eClaimNote",
+				"Fee",
+				"FeeMinusLab",
+				"IsEmergency",
+				"Lab",
+				"Minutes",
+				"PlaceNumericCode",
+				"RevCode",
+				"Surface",
+				"System",
+				"SystemAndTeeth",
+				"ToothNumber",
+				"ToothNumOrArea",
+				"TreatDentMedicaidID",
+				"TreatProvNPI",
+				"UnitQty",
+				"UnitQtyOrCount"
+			}.Select(y => "P"+x+y)))//P1-15SystemAndTeeth..., 28 fields, these will be alphabatized at the end of the list of all fields
+			.ToArray();
 		}
 
 		private void FillForm(){
@@ -932,6 +509,7 @@ namespace OpenDental{
 					listFieldName.SelectedIndex=i;
 				}
 			}
+			listFieldName.ColumnWidth=FieldNames.Max(x => TextRenderer.MeasureText(x,listFieldName.Font).Width);
 		}
 
 		private void listFieldName_DoubleClick(object sender, System.EventArgs e) {

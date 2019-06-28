@@ -33,8 +33,6 @@ namespace OpenDental{
 		private string[] displayStrings;
 		///<summary>The claimprocs for this claim, not including payments and duplicates.</summary>
 		private List<ClaimProc> ListClaimProcs;
-		///<summary>For batch generic e-claims, this just prints the data and not the background.</summary>
-		public bool HideBackground;
 		private System.Windows.Forms.Label labelTotPages;
 		private OpenDental.UI.Button butBack;
 		private OpenDental.UI.Button butFwd;
@@ -353,9 +351,6 @@ namespace OpenDental{
 				}
 				else{//image
 					if(!ClaimFormCur.PrintImages){
-						continue;
-					}
-					if(HideBackground){
 						continue;
 					}
 					Image thisImage;
@@ -1698,61 +1693,6 @@ namespace OpenDental{
 							displayStrings[i]=providerClaimBill.FName+" "+providerClaimBill.MI+" "+providerClaimBill.LName+" "+providerClaimBill.Suffix;
 						}
 						break;
-					//case "BillingDentistAddress":
-					//  if(PrefC.GetBool(PrefName.UseBillingAddressOnClaims)){
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeBillingAddress);
-					//  }
-					//  else if(clinic==null) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeAddress);
-					//  }
-					//  else {
-					//    displayStrings[i]=clinic.Address;
-					//  }
-					//  break;
-					//case "BillingDentistAddress2":
-					//  if(PrefC.GetBool(PrefName.UseBillingAddressOnClaims)) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeBillingAddress2);
-					//  }
-					//  else if(clinic==null) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeAddress2);
-					//  }
-					//  else {
-					//    displayStrings[i]=clinic.Address2;
-					//  }
-					//  break;
-					//case "BillingDentistCity":
-					//  if(PrefC.GetBool(PrefName.UseBillingAddressOnClaims)) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeBillingCity);
-					//  }
-					//  else if(clinic==null) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeCity);
-					//  }
-					//  else {
-					//    displayStrings[i]=clinic.City;
-					//  }
-					//  break;
-					//case "BillingDentistST":
-					//  if(PrefC.GetBool(PrefName.UseBillingAddressOnClaims)) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeBillingST);
-					//  }
-					//  else if(clinic==null) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeST);
-					//  }
-					//  else {
-					//    displayStrings[i]=clinic.State;
-					//  }
-					//  break;
-					//case "BillingDentistZip":
-					//  if(PrefC.GetBool(PrefName.UseBillingAddressOnClaims)) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeBillingZip);
-					//  }
-					//  else if(clinic==null) {
-					//    displayStrings[i]=PrefC.GetString(PrefName.PracticeZip);
-					//  }
-					//  else {
-					//    displayStrings[i]=clinic.Zip;
-					//  }
-					//  break;
 					case "BillingDentistMedicaidID":
 						displayStrings[i]=providerClaimBill.MedicaidID;
 						break;
@@ -2135,6 +2075,36 @@ namespace OpenDental{
 					case "ClaimIdentifier":
 						displayStrings[i]=ClaimCur.ClaimIdentifier;
 					break;
+					case "OrigRefNum":
+						displayStrings[i]=ClaimCur.OrigRefNum;
+						break;
+					case "ResubmissionCode":
+						displayStrings[i]=ClaimCur.ResubmissionCode==ResubmitCode.None?"":((int)ClaimCur.ResubmissionCode).ToString();
+						break;
+					case "DateIllnessInjuryPreg":
+						if(ClaimCur.DateIllnessInjuryPreg.Year>1880) {
+							displayStrings[i]=string.IsNullOrEmpty(ClaimFormCur.Items[i].FormatString)?ClaimCur.DateIllnessInjuryPreg.ToShortDateString():
+								ClaimCur.DateIllnessInjuryPreg.ToString(ClaimFormCur.Items[i].FormatString);
+						}
+						break;
+					case "DateIllnessInjuryPregQualifier":
+						displayStrings[i]=ClaimCur.DateIllnessInjuryPregQualifier==DateIllnessInjuryPregQualifier.None?"":((int)ClaimCur.DateIllnessInjuryPregQualifier).ToString("000");
+						break;
+					case "DateOther":
+						if(ClaimCur.DateOther.Year>1880){
+							displayStrings[i]=string.IsNullOrEmpty(ClaimFormCur.Items[i].FormatString)?ClaimCur.DateOther.ToShortDateString():
+								ClaimCur.DateOther.ToString(ClaimFormCur.Items[i].FormatString);
+						}
+						break;
+					case "DateOtherQualifier":
+						displayStrings[i]=ClaimCur.DateOtherQualifier==DateOtherQualifier.None?"":((int)ClaimCur.DateOtherQualifier).ToString("000");
+						break;
+					case "IsOutsideLab":
+						displayStrings[i]=ClaimCur.IsOutsideLab?"X":"";
+						break;
+					case "IsNotOutsideLab":
+						displayStrings[i]=ClaimCur.IsOutsideLab?"":"X";
+						break;
 				}//switch
 				if(CultureInfo.CurrentCulture.Name=="nl-BE"	&& displayStrings[i]==""){//Dutch Belgium
 					displayStrings[i]="*   *   *";
@@ -2161,6 +2131,7 @@ namespace OpenDental{
 				qty = 0;
 				switch(ClaimFormCur.Items[i].FieldName){
 					//there is no default, because any non-matches will remain as ""
+					#region P1
 					case "P1SystemAndTeeth":
 						displayStrings[i]=GenerateSystemAndTeethField(1,startProc);
 						break;
@@ -2230,9 +2201,6 @@ namespace OpenDental{
 					case "P1Minutes":
 						displayStrings[i]=GetProcInfo("Minutes",1+startProc);
 						break;
-					//case "P1UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",1+startProc);
-					//	break;
 					case "P1UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2266,6 +2234,14 @@ namespace OpenDental{
 					case "P1CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",1+startProc) + GetProcInfo("CodeMod1",1+startProc) + GetProcInfo("CodeMod2",1+startProc) + GetProcInfo("CodeMod3",1+startProc) + GetProcInfo("CodeMod4",1+startProc);
 						break;
+					case "P1IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",1+startProc);
+						break;
+					case "P1eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",1+startProc);
+						break;
+					#endregion P1
+					#region P2
 					case "P2SystemAndTeeth":
 						displayStrings[i]=GenerateSystemAndTeethField(2,startProc);
 						break;
@@ -2335,9 +2311,6 @@ namespace OpenDental{
 					case "P2Minutes":
 						displayStrings[i]=GetProcInfo("Minutes",2+startProc);
 						break;
-					//case "P2UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",2+startProc);
-					//	break;
 					case "P2UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2375,6 +2348,14 @@ namespace OpenDental{
 							+ GetProcInfo("CodeMod3",2+startProc) 
 							+ GetProcInfo("CodeMod4",2+startProc);
 						break;
+					case "P2IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",2+startProc);
+						break;
+					case "P2eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",2+startProc);
+						break;
+					#endregion P2
+					#region P3
 					case "P3SystemAndTeeth":
 						displayStrings[i]=GenerateSystemAndTeethField(3,startProc);
 						break;
@@ -2444,9 +2425,6 @@ namespace OpenDental{
 					case "P3Minutes":
 						displayStrings[i]=GetProcInfo("Minutes",3+startProc);
 						break;
-					//case "P3UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",3+startProc);
-					//	break;
 					case "P3UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2484,6 +2462,14 @@ namespace OpenDental{
 							+ GetProcInfo("CodeMod3",3+startProc) 
 							+ GetProcInfo("CodeMod4",3+startProc);
 						break;
+					case "P3IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",3+startProc);
+						break;
+					case "P3eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",3+startProc);
+						break;
+					#endregion P3
+					#region P4
 					case "P4SystemAndTeeth":
 						displayStrings[i]=GenerateSystemAndTeethField(4,startProc);
 						break;
@@ -2553,9 +2539,6 @@ namespace OpenDental{
 					case "P4Minutes":
 						displayStrings[i]=GetProcInfo("Minutes",4+startProc);
 						break;
-					//case "P4UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",4+startProc);
-					//	break;
 					case "P4UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2593,6 +2576,14 @@ namespace OpenDental{
 							+ GetProcInfo("CodeMod3",4+startProc) 
 							+ GetProcInfo("CodeMod4",4+startProc);
 						break;
+					case "P4IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",4+startProc);
+						break;
+					case "P4eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",4+startProc);
+						break;
+					#endregion P4
+					#region P5
 					case "P5SystemAndTeeth":
 						displayStrings[i]=GenerateSystemAndTeethField(5,startProc);
 						break;
@@ -2662,9 +2653,6 @@ namespace OpenDental{
 					case "P5Minutes":
 						displayStrings[i]=GetProcInfo("Minutes",5+startProc);
 						break;
-					//case "P5UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",5+startProc);
-					//	break;
 					case "P5UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2702,6 +2690,14 @@ namespace OpenDental{
 							+ GetProcInfo("CodeMod3",5+startProc) 
 							+ GetProcInfo("CodeMod4",5+startProc);
 						break;
+					case "P5IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",5+startProc);
+						break;
+					case "P5eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",5+startProc);
+						break;
+					#endregion P5
+					#region P6
 					case "P6SystemAndTeeth":
 						displayStrings[i]=GenerateSystemAndTeethField(6,startProc);
 						break;
@@ -2771,9 +2767,6 @@ namespace OpenDental{
 					case "P6Minutes":
 						displayStrings[i]=GetProcInfo("Minutes",6+startProc);
 						break;
-					//case "P6UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",6+startProc);
-					//	break;
 					case "P6UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2810,6 +2803,17 @@ namespace OpenDental{
 							+ GetProcInfo("CodeMod2",6+startProc) 
 							+ GetProcInfo("CodeMod3",6+startProc) 
 							+ GetProcInfo("CodeMod4",6+startProc);
+						break;
+					case "P6IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",6+startProc);
+						break;
+					case "P6eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",6+startProc);
+						break;
+					#endregion P6
+					#region P7
+					case "P7SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(7,startProc);
 						break;
 					case "P7Date":
 						displayStrings[i]=GetProcInfo("Date",7+startProc,ClaimFormCur.Items[i].FormatString);
@@ -2874,9 +2878,9 @@ namespace OpenDental{
 					case "P7CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",7+startProc);
 						break;
-					//case "P7UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",7+startProc);
-					//	break;
+					case "P7Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",7+startProc);
+						break;
 					case "P7UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2898,12 +2902,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P7UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",7+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(7,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P7CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",7+startProc) 
 							+ GetProcInfo("CodeMod1",7+startProc) 
 							+ GetProcInfo("CodeMod2",7+startProc) 
 							+ GetProcInfo("CodeMod3",7+startProc) 
 							+ GetProcInfo("CodeMod4",7+startProc);
+						break;
+					case "P7IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",7+startProc);
+						break;
+					case "P7eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",7+startProc);
+						break;
+					#endregion P7
+					#region P8
+					case "P8SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(8,startProc);
 						break;
 					case "P8Date":
 						displayStrings[i]=GetProcInfo("Date",8+startProc,ClaimFormCur.Items[i].FormatString);
@@ -2968,9 +2992,9 @@ namespace OpenDental{
 					case "P8CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",8+startProc);
 						break;
-					//case "P8UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",8+startProc);
-					//	break;
+					case "P8Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",8+startProc);
+						break;
 					case "P8UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -2992,12 +3016,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P8UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",8+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(8,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
+					case "P8IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",8+startProc);
+						break;
+					case "P8eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",8+startProc);
+						break;
+					#endregion P8
+					#region P9
 					case "P8CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",8+startProc) 
 							+ GetProcInfo("CodeMod1",8+startProc) 
 							+ GetProcInfo("CodeMod2",8+startProc) 
 							+ GetProcInfo("CodeMod3",8+startProc) 
 							+ GetProcInfo("CodeMod4",8+startProc);
+						break;
+					case "P9SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(9,startProc);
 						break;
 					case "P9Date":
 						displayStrings[i]=GetProcInfo("Date",9+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3062,9 +3106,9 @@ namespace OpenDental{
 					case "P9CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",9+startProc);
 						break;
-					//case "P9UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",9+startProc);
-					//	break;
+					case "P9Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",9+startProc);
+						break;
 					case "P9UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3086,12 +3130,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P9UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",9+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(9,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P9CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",9+startProc) 
 							+ GetProcInfo("CodeMod1",9+startProc) 
 							+ GetProcInfo("CodeMod2",9+startProc) 
 							+ GetProcInfo("CodeMod3",9+startProc) 
 							+ GetProcInfo("CodeMod4",9+startProc);
+						break;
+					case "P9IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",9+startProc);
+						break;
+					case "P9eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",9+startProc);
+						break;
+					#endregion P9
+					#region P10
+					case "P10SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(10,startProc);
 						break;
 					case "P10Date":
 						displayStrings[i]=GetProcInfo("Date",10+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3156,9 +3220,9 @@ namespace OpenDental{
 					case "P10CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",10+startProc);
 						break;
-					//case "P10UnitCode":
-					//	displayStrings[i]=GetProcInfo("UnitCode",10+startProc);
-					//	break;
+					case "P10Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",10+startProc);
+						break;
 					case "P10UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3180,12 +3244,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P10UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",10+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(10,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P10CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",10+startProc) 
 							+ GetProcInfo("CodeMod1",10+startProc) 
 							+ GetProcInfo("CodeMod2",10+startProc) 
 							+ GetProcInfo("CodeMod3",10+startProc) 
 							+ GetProcInfo("CodeMod4",10+startProc);
+						break;
+					case "P10IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",10+startProc);
+						break;
+					case "P10eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",10+startProc);
+						break;
+					#endregion P10
+					#region P11
+					case "P11SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(11,startProc);
 						break;
 					case "P11Date":
 						displayStrings[i]=GetProcInfo("Date",11+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3250,6 +3334,9 @@ namespace OpenDental{
 					case "P11CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",11+startProc);
 						break;
+					case "P11Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",11+startProc);
+						break;
 					case "P11UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3271,12 +3358,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P11UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",11+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(11,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P11CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",11+startProc)
 							+ GetProcInfo("CodeMod1",11+startProc)
 							+ GetProcInfo("CodeMod2",11+startProc)
 							+ GetProcInfo("CodeMod3",11+startProc)
 							+ GetProcInfo("CodeMod4",11+startProc);
+						break;
+					case "P11IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",11+startProc);
+						break;
+					case "P11eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",11+startProc);
+						break;
+					#endregion P11
+					#region P12
+					case "P12SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(12,startProc);
 						break;
 					case "P12Date":
 						displayStrings[i]=GetProcInfo("Date",12+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3341,6 +3448,9 @@ namespace OpenDental{
 					case "P12CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",12+startProc);
 						break;
+					case "P12Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",12+startProc);
+						break;
 					case "P12UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3362,12 +3472,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P12UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",12+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(12,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P12CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",12+startProc)
 							+ GetProcInfo("CodeMod1",12+startProc)
 							+ GetProcInfo("CodeMod2",12+startProc)
 							+ GetProcInfo("CodeMod3",12+startProc)
 							+ GetProcInfo("CodeMod4",12+startProc);
+						break;
+					case "P12IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",12+startProc);
+						break;
+					case "P12eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",12+startProc);
+						break;
+					#endregion P12
+					#region P13
+					case "P13SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(13,startProc);
 						break;
 					case "P13Date":
 						displayStrings[i]=GetProcInfo("Date",13+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3432,6 +3562,9 @@ namespace OpenDental{
 					case "P13CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",13+startProc);
 						break;
+					case "P13Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",13+startProc);
+						break;
 					case "P13UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3453,12 +3586,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P13UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",13+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(13,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P13CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",13+startProc)
 							+ GetProcInfo("CodeMod1",13+startProc)
 							+ GetProcInfo("CodeMod2",13+startProc)
 							+ GetProcInfo("CodeMod3",13+startProc)
 							+ GetProcInfo("CodeMod4",13+startProc);
+						break;
+					case "P13IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",13+startProc);
+						break;
+					case "P13eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",13+startProc);
+						break;
+					#endregion P13
+					#region P14
+					case "P14SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(14,startProc);
 						break;
 					case "P14Date":
 						displayStrings[i]=GetProcInfo("Date",14+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3523,6 +3676,9 @@ namespace OpenDental{
 					case "P14CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",14+startProc);
 						break;
+					case "P14Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",14+startProc);
+						break;
 					case "P14UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3544,12 +3700,32 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P14UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",14+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(14,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P14CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",14+startProc)
 							+ GetProcInfo("CodeMod1",14+startProc)
 							+ GetProcInfo("CodeMod2",14+startProc)
 							+ GetProcInfo("CodeMod3",14+startProc)
 							+ GetProcInfo("CodeMod4",14+startProc);
+						break;
+					case "P14IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",14+startProc);
+						break;
+					case "P14eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",14+startProc);
+						break;
+					#endregion P14
+					#region P15
+					case "P15SystemAndTeeth":
+						displayStrings[i]=GenerateSystemAndTeethField(15,startProc);
 						break;
 					case "P15Date":
 						displayStrings[i]=GetProcInfo("Date",15+startProc,ClaimFormCur.Items[i].FormatString);
@@ -3614,6 +3790,9 @@ namespace OpenDental{
 					case "P15CodeMod4":
 						displayStrings[i]=GetProcInfo("CodeMod4",15+startProc);
 						break;
+					case "P15Minutes":
+						displayStrings[i]=GetProcInfo("Minutes",15+startProc);
+						break;
 					case "P15UnitQty":
 						if(planCur.ShowBaseUnits) {
 							short bunit;
@@ -3635,6 +3814,15 @@ namespace OpenDental{
 							displayStrings[i]=qty.ToString();
 						}
 						break;
+					case "P15UnitQtyOrCount":
+						toothCount=GetToothRangeCount(GetProcInfo("ToothNum",15+startProc));
+						if(toothCount==-1) {//No toothrange specified
+							displayStrings[i]=CalculateUnitQtyField(15,startProc,planCur);
+						}
+						else {
+							displayStrings[i]=toothCount.ToString();
+						}
+						break;
 					case "P15CodeAndMods":
 						displayStrings[i]=GetProcInfo("Code",15+startProc)
 							+ GetProcInfo("CodeMod1",15+startProc)
@@ -3642,6 +3830,13 @@ namespace OpenDental{
 							+ GetProcInfo("CodeMod3",15+startProc)
 							+ GetProcInfo("CodeMod4",15+startProc);
 						break;
+					case "P15IsEmergency":
+						displayStrings[i]=GetProcInfo("IsEmergency",15+startProc);
+						break;
+					case "P15eClaimNote":
+						displayStrings[i]=GetProcInfo("eClaimNote",15+startProc);
+						break;
+					#endregion P15
 					case "TotalFee":
 						decimal fee=0;//fee only for this page. Each page is treated like a separate claim.
 						for(int f=startProc;f<startProc+totProcs;f++) {//eg f=0;f<10;f++
@@ -4153,199 +4348,175 @@ namespace OpenDental{
 			//remember that procIndex is 1 based, not 0 based, 
 			procIndex--;//so convert to 0 based
 			if(ListClaimProcs.Count <= procIndex){
-				//if(CultureInfo.CurrentCulture.Name=="nl-BE"){//Dutch Belgium
-				//	return"*   *   *";
-				//}
-				//else{
 				return "";
-				//}
-			}
-			if(field=="System") {
-				return "JP";
-			}
-			if(field=="Code") {
-				return ListClaimProcs[procIndex].CodeSent;
-			}
-			if(field=="System") {
-				return "JP";
-			}
-			if(field=="Fee") {
-				decimal totalProcFees=(decimal)ListClaimProcs[procIndex].FeeBilled;
-				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-					List<Procedure> labProcs=Procedures.GetCanadianLabFees(ListClaimProcs[procIndex].ProcNum,ListProc);
-					for(int i=0;i<labProcs.Count;i++) {
-						totalProcFees+=(decimal)labProcs[i].ProcFee;
-					}
-				}
-				if(stringFormat=="") {
-					return totalProcFees.ToString("F");
-				}
-				else if(stringFormat=="NoDec") {
-					return totalProcFees.ToString("F").Replace("."," ");
-				}
-				return totalProcFees.ToString(stringFormat);
 			}
 			Procedure ProcCur=Procedures.GetProcFromList(ListProc,ListClaimProcs[procIndex].ProcNum);
 			ProcedureCode procCode=ProcedureCodes.GetProcCode(ProcCur.CodeNum);
-			if(field=="RevCode"){
-				return ProcCur.RevCode;
-			}
-			if(field=="CodeMod1"){
-				return ProcCur.CodeMod1;
-			}
-			if(field=="CodeMod2"){
-				return ProcCur.CodeMod2;
-			}
-			if(field=="CodeMod3"){
-				return ProcCur.CodeMod3;
-			}
-			if(field=="CodeMod4"){
-				return ProcCur.CodeMod4;
-			}
-			if(field=="Minutes"){
-				if(ProcCur.ProcTime==TimeSpan.Zero || ProcCur.ProcTimeEnd==TimeSpan.Zero) {
-					return "";
-				}
-				return POut.Int((int)(ProcCur.ProcTimeEnd-ProcCur.ProcTime).TotalMinutes);
-			}
-			//if(field=="UnitCode"){
-			//	return ProcCur.UnitCode;
-			//}
-			if(field=="UnitQty"){
-				return ProcCur.UnitQty.ToString();
-			}
-			if(field=="BaseUnits"){
-				return ProcCur.BaseUnits.ToString();
-			}
-			if(field=="Desc") {
-				if(procCode.DrugNDC!="") {
-					//For UB04, we must show the procedure description as a standard drug format so that the drug can be easily recognized.
-					//The DrugNDC field is only used when medical features are turned on so this behavior won't take effect in many circumstances.
-					string drugUnit="UN";//Unit
-					float drugQty=ProcCur.DrugQty;
-					switch(ProcCur.DrugUnit) {
-						case EnumProcDrugUnit.Gram:
-							drugUnit="GR";
-							break;
-						case EnumProcDrugUnit.InternationalUnit:
-							drugUnit="F2";
-							break;
-						case EnumProcDrugUnit.Milligram:
-							drugUnit="GR";
-							drugQty=drugQty/1000;
-							break;
-						case EnumProcDrugUnit.Milliliter:
-							drugUnit="ML";
-							break;
-					}
-					return "N4"+procCode.DrugNDC+drugUnit+drugQty.ToString("f3");
-				}
-				else {
-					ProcedureCode procCodeCur=ProcedureCodes.GetProcCode(ProcCur.CodeNum);
-					ProcedureCode procCodeSent=ProcedureCodes.GetProcCode(ListClaimProcs[procIndex].CodeSent);
-					string descript=Procedures.GetClaimDescript(ListClaimProcs[procIndex],procCodeSent,ProcCur,procCodeCur,planCur);
-					if(procCodeSent.TreatArea==TreatmentArea.Quad) {
-						return ProcCur.Surf+" "+descript;
-					}
-					else {
-						return descript;
-					}
-				}
-			}
-			if(field=="Date"){
-				if(ClaimCur.ClaimType=="PreAuth") {//no date on preauth procedures
-					return "";
-				}
-				if(stringFormat=="") {
-					return ListClaimProcs[procIndex].ProcDate.ToShortDateString();
-				}
-				return ListClaimProcs[procIndex].ProcDate.ToString(stringFormat);
-			}
-			if(field=="TreatDentMedicaidID"){
-				if(ListClaimProcs[procIndex].ProvNum==0) {
-					return "";
-				}
-				else {
-					Provider providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-					Provider providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==ListClaimProcs[procIndex].ProvNum)??providerFirst;
-					return providerClaimProc.MedicaidID;
-				}
-			}
-			if(field=="TreatProvNPI"){
-				if(ListClaimProcs[procIndex].ProvNum==0) {
-					return "";
-				}
-				else {
-					Provider providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-					Provider providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==ListClaimProcs[procIndex].ProvNum)??providerFirst;
-					return providerClaimProc.NationalProvID;
-				}
-			}
-			if(field=="PlaceNumericCode"){
-				return X12object.GetPlaceService(ClaimCur.PlaceService);
-			}
-			//(Procedure)Procedures.HList[ClaimProcsForClaim[procIndex].ProcNum];
-			//Procedure ProcOld=ProcCur.Clone();
-			if(field=="Diagnosis"){
-				if(ProcCur.DiagnosticCode==""){
-					return "";
-				}
-				//string diagstr="";//would concat them together, but OD only allows one diagnosis per code anyway.
-				for(int d=0;d<diagnoses.Length;d++){
-					if(diagnoses[d]==ProcCur.DiagnosticCode){
-						return (d+1).ToString();
-					}
-				}
-				return ProcCur.DiagnosticCode;
-			}
-			if(field=="DiagnosisPoint") {
-				if(ProcCur.DiagnosticCode=="") {
-					return "";//No diagnosis codes present on procedure.
-				}
-				string pointer="";//Output will be in alphabetical order.
-				for(int d=0;d<arrayDiagnoses.Length;d++) {
-					if(arrayDiagnoses[d]=="") {
-						continue;
-					}
-					if(arrayDiagnoses[d]==ProcCur.DiagnosticCode || arrayDiagnoses[d]==ProcCur.DiagnosticCode2 ||
-						arrayDiagnoses[d]==ProcCur.DiagnosticCode3 || arrayDiagnoses[d]==ProcCur.DiagnosticCode4) 
-					{
-						pointer+=(Char)(d+(int)('A'));//Characters A through L.
-					}
-				}
-				return pointer;
-			}
-			if(field=="Lab") {// && ProcCur.LabFee>0) {
-				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-					List<Procedure> labProcs=Procedures.GetCanadianLabFees(ListClaimProcs[procIndex].ProcNum,ListProc);
-					decimal totalLabFees=0;
-					for(int i=0;i<labProcs.Count;i++) {
-						totalLabFees+=(decimal)labProcs[i].ProcFee;
+			switch(field) {
+				case "System":
+					return "JP";
+				case "Code":
+					return ListClaimProcs[procIndex].CodeSent;
+				case "Fee":
+					decimal totalProcFees=(decimal)ListClaimProcs[procIndex].FeeBilled;
+					if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
+						List<Procedure> labProcs=Procedures.GetCanadianLabFees(ListClaimProcs[procIndex].ProcNum,ListProc);
+						for(int i=0;i<labProcs.Count;i++) {
+							totalProcFees+=(decimal)labProcs[i].ProcFee;
+						}
 					}
 					if(stringFormat=="") {
-						return totalLabFees.ToString("F");
+						return totalProcFees.ToString("F");
 					}
 					else if(stringFormat=="NoDec") {
-						return totalLabFees.ToString("F").Replace("."," ");
+						return totalProcFees.ToString("F").Replace("."," ");
 					}
-					return totalLabFees.ToString(stringFormat);
-				}
-				return "";//ProcCur.LabFee.ToString("n");
-			}
-			if(field=="FeeMinusLab") {
-				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-					if(stringFormat=="") {
-						return ListClaimProcs[procIndex].FeeBilled.ToString("F");
+					return totalProcFees.ToString(stringFormat);
+				case "RevCode":
+					return ProcCur.RevCode;
+				case "CodeMod1":
+					return ProcCur.CodeMod1;
+				case "CodeMod2":
+					return ProcCur.CodeMod2;
+				case "CodeMod3":
+					return ProcCur.CodeMod3;
+				case "CodeMod4":
+					return ProcCur.CodeMod4;
+				case "Minutes":
+					if(ProcCur.ProcTime==TimeSpan.Zero || ProcCur.ProcTimeEnd==TimeSpan.Zero) {
+						return "";
 					}
-					else if(stringFormat=="NoDec") {
-						double amt = ListClaimProcs[procIndex].FeeBilled * 100;
-						return amt.ToString();
+					return POut.Int((int)(ProcCur.ProcTimeEnd-ProcCur.ProcTime).TotalMinutes);
+				case "UnitQty":
+					return ProcCur.UnitQty.ToString();
+				case "BaseUnits":
+					return ProcCur.BaseUnits.ToString();
+				case "Desc":
+					if(procCode.DrugNDC!="") {
+						//For UB04, we must show the procedure description as a standard drug format so that the drug can be easily recognized.
+						//The DrugNDC field is only used when medical features are turned on so this behavior won't take effect in many circumstances.
+						string drugUnit="UN";//Unit
+						float drugQty=ProcCur.DrugQty;
+						switch(ProcCur.DrugUnit) {
+							case EnumProcDrugUnit.Gram:
+								drugUnit="GR";
+								break;
+							case EnumProcDrugUnit.InternationalUnit:
+								drugUnit="F2";
+								break;
+							case EnumProcDrugUnit.Milligram:
+								drugUnit="GR";
+								drugQty=drugQty/1000;
+								break;
+							case EnumProcDrugUnit.Milliliter:
+								drugUnit="ML";
+								break;
+						}
+						return "N4"+procCode.DrugNDC+drugUnit+drugQty.ToString("f3");
 					}
 					else {
-						return ListClaimProcs[procIndex].FeeBilled.ToString(stringFormat);
+						ProcedureCode procCodeSent=ProcedureCodes.GetProcCode(ListClaimProcs[procIndex].CodeSent);
+						string descript=Procedures.GetClaimDescript(ListClaimProcs[procIndex],procCodeSent,ProcCur,procCode,planCur);
+						if(procCodeSent.TreatArea==TreatmentArea.Quad) {
+							return ProcCur.Surf+" "+descript;
+						}
+						else {
+							return descript;
+						}
 					}
-				}
-				return "";//(((ClaimProc)claimprocs[procIndex]).FeeBilled-ProcCur.LabFee).ToString("n");
+				case "Date":
+					if(ClaimCur.ClaimType=="PreAuth") {//no date on preauth procedures
+						return "";
+					}
+					if(stringFormat=="") {
+						return ListClaimProcs[procIndex].ProcDate.ToShortDateString();
+					}
+					return ListClaimProcs[procIndex].ProcDate.ToString(stringFormat);
+				case "TreatDentMedicaidID":
+					if(ListClaimProcs[procIndex].ProvNum==0) {
+						return "";
+					}
+					else {
+						Provider providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
+						Provider providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==ListClaimProcs[procIndex].ProvNum)??providerFirst;
+						return providerClaimProc.MedicaidID;
+					}
+				case "TreatProvNPI":
+					if(ListClaimProcs[procIndex].ProvNum==0) {
+						return "";
+					}
+					else {
+						Provider providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
+						Provider providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==ListClaimProcs[procIndex].ProvNum)??providerFirst;
+						return providerClaimProc.NationalProvID;
+					}
+				case "PlaceNumericCode":
+					return X12object.GetPlaceService(ClaimCur.PlaceService);
+				case "Diagnosis":
+					if(ProcCur.DiagnosticCode==""){
+						return "";
+					}
+					for(int d=0;d<diagnoses.Length;d++){
+						if(diagnoses[d]==ProcCur.DiagnosticCode){
+							return (d+1).ToString();
+						}
+					}
+					return ProcCur.DiagnosticCode;
+				case "DiagnosisPoint":
+					if(ProcCur.DiagnosticCode=="") {
+						return "";//No diagnosis codes present on procedure.
+					}
+					string pointer="";//Output will be in alphabetical order.
+					for(int d=0;d<arrayDiagnoses.Length;d++) {
+						if(arrayDiagnoses[d]=="") {
+							continue;
+						}
+						if(arrayDiagnoses[d]==ProcCur.DiagnosticCode || arrayDiagnoses[d]==ProcCur.DiagnosticCode2 ||
+							arrayDiagnoses[d]==ProcCur.DiagnosticCode3 || arrayDiagnoses[d]==ProcCur.DiagnosticCode4) 
+						{
+							pointer+=(Char)(d+(int)('A'));//Characters A through L.
+						}
+					}
+					return pointer;
+				case "Lab":
+					if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
+						List<Procedure> labProcs=Procedures.GetCanadianLabFees(ListClaimProcs[procIndex].ProcNum,ListProc);
+						decimal totalLabFees=0;
+						for(int i=0;i<labProcs.Count;i++) {
+							totalLabFees+=(decimal)labProcs[i].ProcFee;
+						}
+						if(stringFormat=="") {
+							return totalLabFees.ToString("F");
+						}
+						else if(stringFormat=="NoDec") {
+							return totalLabFees.ToString("F").Replace("."," ");
+						}
+						return totalLabFees.ToString(stringFormat);
+					}
+					return "";
+				case "FeeMinusLab":
+					if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
+						if(stringFormat=="") {
+							return ListClaimProcs[procIndex].FeeBilled.ToString("F");
+						}
+						else if(stringFormat=="NoDec") {
+							double amt = ListClaimProcs[procIndex].FeeBilled * 100;
+							return amt.ToString();
+						}
+						else {
+							return ListClaimProcs[procIndex].FeeBilled.ToString(stringFormat);
+						}
+					}
+					return "";//(((ClaimProc)claimprocs[procIndex]).FeeBilled-ProcCur.LabFee).ToString("n");
+				case "IsEmergency":
+					if(ProcCur.Urgency==ProcUrgency.Emergency) {
+						return "Y";
+					}
+					return "";
+				case "eClaimNote":
+					return ProcCur.ClaimNote;
+				default:
+					break;
 			}
 			string area="";
 			string toothNum="";
@@ -4508,11 +4679,16 @@ namespace OpenDental{
 		private string GenerateSystemAndTeethField(int index,int startProc) {
 			string toothNum=GetProcInfo("ToothNum",index+startProc);
 			if(String.IsNullOrEmpty(toothNum)) {
-				return "";//Procedure did not specify a toothnum
+				string area=GetProcInfo("Area",index+startProc);
+				if(string.IsNullOrEmpty(area)) {
+					return "";//Procedure did not specify a toothnum or area
+				}
+				//JO="ANSI/ADA/ISO Specification No. 3950-1984 Dentistry Designation System for Tooth and Areas of the Oral Cavity" (v. 02-12 1500 claim form)
+				return "JO"+area;
 			}
 			List<string> listToothNums=RemoveToothRangeFormat(toothNum);
 			//loop through the list and construct the field
-			return "JP"+String.Join(" ",listToothNums);
+			return "JP"+String.Join(" ",listToothNums);//JP="Universal/National Tooth Designation System" (v. 02-12 1500 claim form)
 		}
 
 		///<summary>In GetProcInfo() if the treament area is a ToothRange, the resulting string is formatted with a '-'.
