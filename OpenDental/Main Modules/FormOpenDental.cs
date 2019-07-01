@@ -3458,6 +3458,7 @@ namespace OpenDental{
 			else if(arrayITypes.Contains(InvalidType.Sheets) && userControlPatientDashboard.IsInitialized) {
 				LayoutControls();//The current dashboard may have changed.
 				userControlPatientDashboard.RefreshDashboard();
+				ResizeDashboard();
 				RefreshMenuDashboards();
 			}
 			else if(arrayITypes.Contains(InvalidType.Security) || isAll) {

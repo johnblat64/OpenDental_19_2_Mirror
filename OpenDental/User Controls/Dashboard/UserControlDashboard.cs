@@ -24,6 +24,9 @@ namespace OpenDental {
 		///<summary>The width of the widest open UserControlDashboardWidget.</summary>
 		public int WidgetWidth {
 			get {
+				if(ListOpenWidgets.IsNullOrEmpty()) {
+					return 0;
+				}
 				return ListOpenWidgets.Max(x => x.Width);
 			}
 		}
