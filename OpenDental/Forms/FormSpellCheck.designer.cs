@@ -31,6 +31,7 @@ namespace OpenDental{
 			this.butDelete = new OpenDental.UI.Button();
 			this.butAdd = new OpenDental.UI.Button();
 			this.butClose = new OpenDental.UI.Button();
+			this.label1 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// label4
@@ -66,9 +67,7 @@ namespace OpenDental{
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridMain.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridMain.HasAddButton = false;
 			this.gridMain.HasDropDowns = false;
-			this.gridMain.HasMultilineHeaders = false;
 			this.gridMain.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridMain.HeaderHeight = 15;
 			this.gridMain.HScrollVisible = false;
@@ -131,10 +130,22 @@ namespace OpenDental{
 			this.butClose.Text = "Close";
 			this.butClose.Click += new System.EventHandler(this.butClose_Click);
 			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.ForeColor = System.Drawing.Color.Red;
+			this.label1.Location = new System.Drawing.Point(157, 12);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(298, 13);
+			this.label1.TabIndex = 21;
+			this.label1.Text = "Foreign language Input Method Editor composition is enabled.";
+			this.label1.Visible = false;
+			// 
 			// FormSpellCheck
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.ClientSize = new System.Drawing.Size(535, 646);
+			this.Controls.Add(this.label1);
 			this.Controls.Add(this.checkBox1);
 			this.Controls.Add(this.butDelete);
 			this.Controls.Add(this.butAdd);
@@ -161,5 +172,6 @@ namespace OpenDental{
 		private System.Windows.Forms.TextBox textCustom;
 		private UI.Button butDelete;
 		private System.Windows.Forms.CheckBox checkBox1;
+		private System.Windows.Forms.Label label1;
 	}
 }
