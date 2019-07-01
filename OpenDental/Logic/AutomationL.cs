@@ -71,6 +71,7 @@ namespace OpenDental {
 						automationHappened=true;
 						continue;
 					case AutomationAction.PopUpThenDisable10Min:
+						Plugins.HookAddCode(null,"AutomationL.Trigger_PopUpThenDisable10Min_begin",listAutomations[i],procCodes,patNum);
 						long automationNum=listAutomations[i].AutomationNum;
 						bool hasAutomationBlock=FormOpenDental.DicBlockedAutomations.ContainsKey(automationNum);
 						if(hasAutomationBlock && FormOpenDental.DicBlockedAutomations[automationNum].ContainsKey(patNum)) {//Automation block exist for current patient.
