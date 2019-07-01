@@ -18,6 +18,7 @@ namespace OpenDental {
 		private SheetDef _sheetDefWidget;
 		private Sheet _sheetWidget;
 		private Patient _pat;
+		private List<SheetField> _listFieldsDrawnToGraphics=new List<SheetField>();
 		///<summary>Event is fired when the 'Close' context menu item is clicked.</summary>
 		public event WidgetClosedHandler WidgetClosed=null;
 		///<summary>Event is fired when the 'Refresh' context menu item is clicked.</summary>
@@ -98,10 +99,14 @@ namespace OpenDental {
 		public void RefreshView() {
 			this.InvokeIfRequired(() => {
 				RefreshDimensions();
+				_listFieldsDrawnToGraphics.Clear();
 				foreach(SheetField sheetField in _sheetWidget.SheetFields) {
 					RefreshSheetField(sheetField);
 				}
 				CleanupDisplay();
+				if(!_listFieldsDrawnToGraphics.IsNullOrEmpty()) {
+					Invalidate();
+				}
 			});
 		}
 
@@ -121,6 +126,10 @@ namespace OpenDental {
 				//_sheetDefWidget=null, before this method executes.
 				return;
 			}
+			if(IsSheetFieldDrawnDirectlyToGraphics(field)) {
+				_listFieldsDrawnToGraphics.Add(field);
+				return;
+			}
 			Type type=GetControlTypeForDisplay(field);
 			Control ctr=this.GetAllControls().FirstOrDefault(x => x.Name==GetSheetFieldID(field) && x.GetType()==type);
 			if(ctr==null) {
@@ -136,13 +145,38 @@ namespace OpenDental {
 			ctr.Visible=true;
 		}
 
+		protected override void OnPaint(PaintEventArgs e) {
+			base.OnPaint(e);
+			//Shapes need to be drawn directly to the hosting UserContrlDashboardWidget to support overlapping control transparency.
+			foreach(SheetField field in _listFieldsDrawnToGraphics) {
+				using(Pen pen=new Pen(field.ItemColor)) {
+					switch(field.FieldType) {
+						case SheetFieldType.Line:
+							Point p1=new Point(field.XPos,field.YPos);
+							Point p2=new Point(field.XPos+field.Width,field.YPos+field.Height);
+							e.Graphics.DrawLine(pen,p1,p2);
+							break;
+						case SheetFieldType.Rectangle:
+							e.Graphics.DrawRectangle(pen,field.XPos,field.YPos,field.Width,field.Height);
+							break;
+						default:
+							continue;
+					}
+				}
+			}
+		}
+
 		///<summary>Determines if the SheetFieldDef is supported in a Patient Dashboard.</summary>
 		public static bool IsSheetFieldDefSupported(SheetFieldDef sheetFieldDef) {
+			SheetField field=new SheetField() {
+				FieldName=sheetFieldDef.FieldName,
+				FieldType=sheetFieldDef.FieldType,
+			};
+			if(IsSheetFieldDrawnDirectlyToGraphics(field)) {
+				return true;
+			}
 			try {
-				GetControlTypeForDisplay(new SheetField() {
-					FieldName=sheetFieldDef.FieldName,
-					FieldType=sheetFieldDef.FieldType,
-				});
+				GetControlTypeForDisplay(field);
 				return true;
 			}
 			catch {
@@ -181,6 +215,18 @@ namespace OpenDental {
 					throw new NotImplementedException("FieldType: "+field.FieldType.GetDescription()+" has not been implemented for Dashboards.");
 			}
 			return type;
+		}
+
+		///<summary>Determines if a SheetField will be drawn directly to the UserControlDashboardWidget's graphics, rather than creating its own control.
+		///</summary>
+		private static bool IsSheetFieldDrawnDirectlyToGraphics(SheetField field) {
+			switch(field.FieldType) {
+				case SheetFieldType.Line:
+				case SheetFieldType.Rectangle:
+					return true;
+				default:
+					return false;
+			}
 		}
 
 		///<summary>Removes any controls that are no longer included in the SheetDef, i.e. SheetFieldDef was removed in between refreshes.</summary>

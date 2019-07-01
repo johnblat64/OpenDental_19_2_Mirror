@@ -240,7 +240,7 @@ namespace OpenDental {
 			if(areDashboardWidgetOptionsEnabled) {
 				//List of the only buttons that should be visible if in DashboardWidget edit mode.
 				listDashboardButtons=new List<UI.Button>() { butEdit,butAlignTop,butAlignLeft,butAlignCenterH,butAlignRight,butCancel,butAddStaticText
-					,butAddPatImage,butAddGrid,butAddSpecial };
+					,butAddPatImage,butAddGrid,butAddSpecial,butAddLine,butAddRect };
 				if(!IsInternal) {
 					listDashboardButtons.AddRange(new List<UI.Button>() { butOK,butDelete,butCopy,butPaste });
 				}

@@ -19,6 +19,9 @@ namespace OpenDental {
 		private Action _actionFillFamily;
 		public bool IsShowCompletePlanned;
 		private bool _isInDashboard;
+		///<summary>Indicates the appointment grid is executing a full refresh, ie queries are run.  Used to scroll the grid to the end when the Patient
+		///Dashboard is fully refreshed, which occurs when the selected patient changes or the user clicks "Refresh".</summary>
+		private bool _isFullRefresh;
 
 		///<summary>Returns the selected ApptOther.  Returns null if no ApptOther is selected.</summary>
 		public ApptOther SelectedApptOther {
@@ -128,6 +131,7 @@ namespace OpenDental {
 				.Exists(y => y.NextAptNum==x.AptNum && y.AptStatus==ApptStatus.Complete))
 				.OrderBy(x => x.ItemOrder).ToList();
 			_listProgNoteColorDefs=Defs.GetDefsForCategory(DefCat.ProgNoteColors);
+			_isFullRefresh=true;
 		}
 
 		public void RefreshView() {
@@ -141,6 +145,10 @@ namespace OpenDental {
 			}
 			else {
 				gridMain.HScrollVisible=false;
+			}
+			if(_isFullRefresh && _isInDashboard) {
+				gridMain.ScrollToEnd();
+				_isFullRefresh=false;
 			}
 		}
 

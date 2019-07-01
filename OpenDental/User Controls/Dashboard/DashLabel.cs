@@ -34,12 +34,12 @@ namespace OpenDental {
 		private ContentAlignment ConvertToContentAlignment(HorizontalAlignment align) {
 			switch(align) {
 				case HorizontalAlignment.Right:
-					return ContentAlignment.MiddleRight;
+					return ContentAlignment.TopRight;
 				case HorizontalAlignment.Center:
-					return ContentAlignment.MiddleCenter;
+					return ContentAlignment.TopCenter;
 				case HorizontalAlignment.Left:
 				default:
-					return ContentAlignment.MiddleLeft;
+					return ContentAlignment.TopLeft;
 			}
 		}
 	}

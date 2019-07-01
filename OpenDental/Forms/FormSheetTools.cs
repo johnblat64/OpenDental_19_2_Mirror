@@ -99,6 +99,11 @@ namespace OpenDental {
 						return;
 					}
 				}
+				if(SheetDefs.IsDashboardType(sheetdef)) {
+					//PatImage fields use FieldName as a FK to the Patient Image definition.  Since this FK may not be accurate across databases, determine 
+					//which Image Category Definition is set as PatImage
+					SheetDefs.SetPatImageFieldNames(sheetdef);
+				}
 				SheetDefs.InsertOrUpdate(sheetdef);
 				HasSheetsChanged=true;//Flag as true so we know to refresh the grid in FormSheetDefs.cs
 				ImportedSheetDefNum=sheetdef.SheetDefNum;//Set this so when we return to FormSheetDefs.cs we can select that row.
