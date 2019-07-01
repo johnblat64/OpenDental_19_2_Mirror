@@ -297,11 +297,11 @@ namespace OpenDental {
 			this.checkAgingEnterprise.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAgingEnterprise.Enabled = false;
 			this.checkAgingEnterprise.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkAgingEnterprise.Location = new System.Drawing.Point(177, 30);
+			this.checkAgingEnterprise.Location = new System.Drawing.Point(123, 30);
 			this.checkAgingEnterprise.Name = "checkAgingEnterprise";
-			this.checkAgingEnterprise.Size = new System.Drawing.Size(296, 18);
+			this.checkAgingEnterprise.Size = new System.Drawing.Size(350, 18);
 			this.checkAgingEnterprise.TabIndex = 59;
-			this.checkAgingEnterprise.Text = "Aging is enterprise";
+			this.checkAgingEnterprise.Text = "Aging for enterprise Galera cluster environments using FamAging Table";
 			this.checkAgingEnterprise.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textReportCheckInterval
