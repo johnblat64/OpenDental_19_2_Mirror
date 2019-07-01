@@ -177,10 +177,10 @@ namespace CodeBase {
 
 		private static string ProcessUrlHelper(string exePath="",string extraArgs="",string extraFilePath="",string extraFileData="") {
 			List<string> listParamStrs=new List<string>();
-			listParamStrs.Add(string.IsNullOrWhiteSpace(exePath) ? "" : $"exePath=\"{WebUtility.UrlEncode(exePath)}\"");
-			listParamStrs.Add(string.IsNullOrWhiteSpace(extraArgs) ? "" : $"extraArgs=\"{WebUtility.UrlEncode(extraArgs)}\"");
-			listParamStrs.Add(string.IsNullOrWhiteSpace(extraFilePath) ? "" : $"extraFilePath={WebUtility.UrlEncode(extraFilePath)}");
-			listParamStrs.Add(string.IsNullOrWhiteSpace(extraFileData) ? "" : $"extraFileData=\"{WebUtility.UrlEncode(extraFileData)}\"");
+			listParamStrs.Add(string.IsNullOrWhiteSpace(exePath) ? "" : $"exePath={WebUtility.UrlEncode("\""+exePath+"\"")}");
+			listParamStrs.Add(string.IsNullOrWhiteSpace(extraArgs) ? "" : $"extraArgs={WebUtility.UrlEncode("\""+extraArgs+"\"")}");
+			listParamStrs.Add(string.IsNullOrWhiteSpace(extraFilePath) ? "" : $"extraFilePath={WebUtility.UrlEncode("\""+extraFilePath+"\"")}");
+			listParamStrs.Add(string.IsNullOrWhiteSpace(extraFileData) ? "" : $"extraFileData={WebUtility.UrlEncode("\""+extraFileData+"\"")}");
 			listParamStrs.RemoveAll(x => string.IsNullOrWhiteSpace(x));
 			return "odcloud:"+string.Join("&",listParamStrs);
 		}
