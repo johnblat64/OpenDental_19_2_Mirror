@@ -68,7 +68,12 @@ namespace OpenDental {
 				row = new ODGridRow();
 				row.Cells.Add("");
 				row.Cells.Add(logCur.DateTStamp.ToString());
-				row.Cells.Add(dictUsers[logCur.UserNum].UserName);
+				if(dictUsers.TryGetValue(logCur.UserNum,out Userod user)) {
+					row.Cells.Add(user.UserName);
+				}
+				else {
+					row.Cells.Add(POut.Long(logCur.UserNum));//Unable to find the corresponding user.  
+				}
 				row.Cells.Add(logCur.LogType.ToString());
 				row.Cells.Add(logCur.FKey.ToString());
 				row.Cells.Add(logCur.Description);
