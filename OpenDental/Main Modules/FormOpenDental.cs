@@ -5528,6 +5528,9 @@ namespace OpenDental{
 						soundplay.Play();
 						FormTaskEdit FormT=new FormTaskEdit(taskPopup);
 						FormT.IsPopup=true;
+						if(taskPopup.ReminderType!=TaskReminderType.NoReminder) {//If a reminder task, make an audit trail entry
+							Tasks.TaskEditCreateLog(Permissions.TaskReminderPopup,$"Reminder task {taskPopup.TaskNum} shown to user",taskPopup);
+						}
 						FormT.Show();//non-modal
 					}
 				}
