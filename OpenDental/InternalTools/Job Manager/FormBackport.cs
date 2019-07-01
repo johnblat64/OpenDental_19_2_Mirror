@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,8 +13,6 @@ using static OpenDentBusiness.Backports;
 
 namespace OpenDental {
 	public partial class FormBackport:ODForm {
-		///<summary>Stores all versions information. There is one for each BackportVersion.</summary>
-		private List<ODVersion> _listVersions=new List<ODVersion>();
 		///<summary>The path in the textPath when the data is refreshed.</summary>
 		private string _pathOnRefresh;
 		///<summary>The path in the textIgnoreList when the data is refreshed.</summary>
@@ -27,51 +26,29 @@ namespace OpenDental {
 		private List<ODBackportResult> _listBackportResults=new List<ODBackportResult>();
 		///<summary>The current project on refresh. Provides support for SharedProjects.</summary>
 		private BackportProject _currentProject=BackportProjects.Unknown;
+		///<summary>The action to end the progress bar. Kept to have only one instance on this form.</summary>
+		private Action _progressBarAction=null;
 
-		///<summary>Returns a list of versions that are currently checked to be backported to.</summary>
-		private List<BackportVersion> _listVersionsToBackport {
+		///<summary>Returns a list of all versions that are currently available to be backported to.</summary>
+		private List<string> _listAvailableVersions {
 			get {
-				List<BackportVersion> listVersionsToBackport=new List<BackportVersion>();
-				if(checkBeta.Checked) {
-					listVersionsToBackport.Add(BackportVersion.Beta);
-				}
-				if(checkStable.Checked) {
-					listVersionsToBackport.Add(BackportVersion.Stable);
-				}
-				if(checkPrevStable.Checked) {
-					listVersionsToBackport.Add(BackportVersion.PreviousStable);
-				}
-				return listVersionsToBackport;
+				return listBoxVersions.AllTags<string>();
 			}
 		}
 
-		public FormBackport() {
+		///<summary>Returns a list of versions that are currently selected to be backported to.</summary>
+		private List<string> _listSelectedVersions {
+			get {
+				return listBoxVersions.SelectedTags<string>();
+			}
+		}
+
+		public FormBackport(long jobNum=0) {
 			InitializeComponent();
-			#region Initialize Versions
-			ODVersion odVersion=new ODVersion();
-			string versions=VersionReleases.GetLastReleases(3);
-			List<string> listVersions=versions.Split(';').Select(x => x.Substring(0,4)).ToList();
-			odVersion.BackportVersion=BackportVersion.PreviousStable;
-			odVersion.RawVersion=listVersions[0];
-			odVersion.Version=new Version(listVersions[0]);
-			_listVersions.Add(odVersion);
-			odVersion=new ODVersion();
-			odVersion.BackportVersion=BackportVersion.Stable;
-			odVersion.RawVersion=listVersions[1];
-			odVersion.Version=new Version(listVersions[1]);
-			_listVersions.Add(odVersion);
-			odVersion=new ODVersion();
-			odVersion.BackportVersion=BackportVersion.Beta;
-			odVersion.RawVersion=listVersions[2];
-			odVersion.Version=new Version(listVersions[2]);
-			_listVersions.Add(odVersion);
-			checkBeta.Text+=listVersions[2];
-			checkStable.Text+=listVersions[1];
-			checkPrevStable.Text+=listVersions[0];
-			butCompileBeta.Text+=listVersions[2];
-			butCompileStable.Text+=listVersions[1];
-			butCompilePrevStable.Text+=listVersions[0];
-			#endregion Initialize Versions
+			//Set the job num if they passed one in.
+			if(jobNum!=0) {
+				validJobNum.Text=jobNum.ToString();
+			}
 			FillGrid();
 		}
 
@@ -81,31 +58,26 @@ namespace OpenDental {
 			_arrayPreviousSelected=null;
 			//FillGrid
 			gridMain.BeginUpdate();
-			if(gridMain.Columns.Count==0) {
-				gridMain.Columns.Clear();
-				ODGridColumn col;
-				col=new ODGridColumn("Type",75);
-				gridMain.Columns.Add(col);
-				col=new ODGridColumn(_listVersions.Find(x => x.BackportVersion==BackportVersion.Beta).RawVersion,75);
-				gridMain.Columns.Add(col);
-				col=new ODGridColumn(_listVersions.Find(x => x.BackportVersion==BackportVersion.Stable).RawVersion,75);
-				gridMain.Columns.Add(col);
-				col=new ODGridColumn(_listVersions.Find(x => x.BackportVersion==BackportVersion.PreviousStable).RawVersion,75);
-				gridMain.Columns.Add(col);
-				col=new ODGridColumn("File Name",200);
-				gridMain.Columns.Add(col);
-				col=new ODGridColumn("File Path",50);
+			gridMain.Columns.Clear();
+			ODGridColumn col=new ODGridColumn("Type",75);
+			gridMain.Columns.Add(col);
+			foreach(string version in _listAvailableVersions) {
+				col=new ODGridColumn(version,75);
 				gridMain.Columns.Add(col);
 			}
+			col=new ODGridColumn("File Name",150);
+			gridMain.Columns.Add(col);
+			col=new ODGridColumn("File Path",50);
+			gridMain.Columns.Add(col);
 			gridMain.Rows.Clear();
 			ODGridRow row;
 			if(_listFileChanges!=null) {
 				foreach(ODFileChanges changedFile in _listFileChanges) {
 					row=new ODGridRow();
 					row.Cells.Add(Enum.GetName(changedFile.ModificationType.GetType(),changedFile.ModificationType));
-					row.Cells.Add(GetStatusCell(BackportVersion.Beta,changedFile));
-					row.Cells.Add(GetStatusCell(BackportVersion.Stable,changedFile));
-					row.Cells.Add(GetStatusCell(BackportVersion.PreviousStable,changedFile));
+					foreach(string version in _listAvailableVersions) {
+						row.Cells.Add(GetStatusCell(version,changedFile));
+					}
 					row.Cells.Add(changedFile.FileName);
 					//Only paste path after head/
 					row.Cells.Add(changedFile.FilePathHead.Substring(changedFile.FilePathHead.IndexOf("head")+4
@@ -123,9 +95,10 @@ namespace OpenDental {
 			//Quit all threads that are still running. The user may have changed the path. This way the grid will not be filled with false information.
 			listThreadsRunning.ForEach(x => x.QuitAsync());
 			//Store path
-			_pathOnRefresh=textPath.Text;
+			_pathOnRefresh=textPath.Text.TrimEnd('\\');
 			_ignoreListNameOnRefresh=textIgnoreList.Text;
 			_currentProject=BackportProjects.Unknown;
+			_listFileChanges=new List<ODFileChanges>();
 			//Clear Rows
 			gridMain.BeginUpdate();
 			gridMain.Rows.Clear();
@@ -151,17 +124,15 @@ namespace OpenDental {
 				MessageBox.Show("Could not find the correct project.");
 				return;
 			}
+			//Get available versions based on folder structure.
+			UpdateListVersions();
 			Cursor=Cursors.AppStarting;
 			//Refresh Data
 			string pathOnRefresh=_pathOnRefresh;
 			string ignoreListNameOnRefresh=_ignoreListNameOnRefresh;
 			BackportProject currentProject=_currentProject.Copy();
 			ODThread odThread=new ODThread((o) => {
-				List<ODFileChanges> listFileChanges=GetListOfFiles(pathOnRefresh,
-					_listVersions.Find(x => x.BackportVersion==BackportVersion.Beta).Version,
-					_listVersions.Find(x => x.BackportVersion==BackportVersion.Stable).Version,
-					_listVersions.Find(x => x.BackportVersion==BackportVersion.PreviousStable).Version,
-					ignoreListNameOnRefresh,currentProject);
+				List<ODFileChanges> listFileChanges=GetListOfFiles(pathOnRefresh,_listAvailableVersions,ignoreListNameOnRefresh,currentProject);
 				this.InvokeIfNotDisposed(() => {//If window quit, this action will not run and the thread will die.
 					if(o.HasQuit) {//If the user refreshed the path and this was marked to quit.
 						return;
@@ -170,9 +141,13 @@ namespace OpenDental {
 					_listFileChanges=listFileChanges;
 					labelCurProj.Text="Current Project: "+Enum.GetName(_currentProject.Name.GetType(),_currentProject.Name);
 					FillGrid();
+					_progressBarAction?.Invoke();
+					_progressBarAction=null;
 				});
 			});
 			odThread.AddExceptionHandler(ex => {
+				_progressBarAction?.Invoke();
+				_progressBarAction=null;
 				this.InvokeIfNotDisposed(() => {//If there's an exception after the form is closed, swallow and do not do anything.
 					FriendlyException.Show("Error refreshing data.",ex);
 				});
@@ -180,10 +155,30 @@ namespace OpenDental {
 			odThread.GroupName="FormBackport_Refresh";
 			odThread.Name="FormBackport_Refresh"+DateTime.Now.Millisecond;
 			odThread.Start();
+			if(_progressBarAction==null) {
+				_progressBarAction=ODProgress.Show();
+			}
+		}
+
+		///<summary>Updates the list of available versions to backport to. Call this after the backport project has been set. Will
+		///update the listbox UI.</summary>
+		private void UpdateListVersions() {
+			listBoxVersions.Items.Clear();
+			//Get all the dictionaries that are at least 4 characters long. This is so we can attempt to pull 
+			//the version off the end.
+			List<string> listDirectoryPaths=Directory.GetDirectories(_pathOnRefresh).Where(x => x.Length>=4).ToList();
+			//For every folder structure, the version is in the last 4 characters. e.g. 18_1, 19.2
+			List<string> listVersions=listDirectoryPaths.Select(x => x.Substring(x.Length-4,4).Replace('_','.')).ToList();
+			listVersions=listVersions.Where(x => Version.TryParse(x,out Version _)).OrderByDescending(x => x).ToList();
+			foreach(string version in listVersions) {
+				listBoxVersions.Items.Add(new ODBoxItem<string>(version,version));
+			}
+			//Fill to reflect the versions
+			FillGrid();
 		}
 
 		///<summary>Returns an ODGridCell formatted to show the status of the backport.</summary>
-		private ODGridCell GetStatusCell(BackportVersion backportVersion,ODFileChanges changedFile) {
+		private ODGridCell GetStatusCell(string backportVersion,ODFileChanges changedFile) {
 			ODGridCell cell=new ODGridCell();
 			ODBackportResult backportResult=_listBackportResults.Find(x => x.FilePathHead==changedFile.FilePathHead);
 			if(backportResult!=null) {
@@ -212,9 +207,18 @@ namespace OpenDental {
 		}
 
 		private void butBackport_Click(object sender,EventArgs e) {
+			DoBackport();
+		}
+
+		///<summary>Occurs when the click event fires.</summary>
+		private bool DoBackport() {
 			if(gridMain.SelectedIndices.Length==0) {
 				MessageBox.Show("Please select at least one file to backport first.");
-				return;
+				return false;
+			}
+			if(_listSelectedVersions.Count==0) {
+				MessageBox.Show("Please select at least one version to backport to.");
+				return false;
 			}
 			//Get only selected files and store in local copy
 			List<ODFileChanges> listFileChanges=_listFileChanges.Where(x => gridMain.SelectedTags<ODFileChanges>()
@@ -222,7 +226,7 @@ namespace OpenDental {
 			//Check only backporting Modified files
 			if(listFileChanges.Any(x => x.ModificationType!=FileModificationType.Modified)) {
 				MessageBox.Show("Only \"Modified\" files can be backported.");
-				return;
+				return false;
 			}
 			//Make sure it is a known project
 			if(_currentProject.Name==ProjectName.Unknown) {
@@ -241,13 +245,14 @@ namespace OpenDental {
 				}
 				MessageBox.Show("Unknown project. The currently supported projects are "+currentProjects+".\r\n\r\nNote: The opendental folder "
 					+"should be called \"OPEN DENTAL SUBVERSION\"");
-				return;
+				return false;
 			}
 			//Checks that the files are editable before beginning
 			if(AreValidFiles(listFileChanges)) {
 				//Begin the backportting process
-				BeginBackport(listFileChanges);
+				return BeginBackport(listFileChanges);
 			}
+			return false;
 		}
 
 		///<summary>Checks to make sure the files are able to be open. Returns true if they are and false if they are unavailable.</summary>
@@ -255,14 +260,14 @@ namespace OpenDental {
 			List<string> listErrors=new List<string>();
 			string message="";
 			foreach(ODFileChanges change in listFileChanges) {
-				foreach(BackportVersion versionToCheck in _listVersionsToBackport) {
+				foreach(string versionToCheck in _listSelectedVersions) {
 					try {
 						using(FileStream stream=File.Open(change.DictVersionFilePath[versionToCheck],FileMode.Open)) {
 							stream.Close();//The file could open, simply close it.
 						}
 					}
 					catch {
-						string error=change.FileName+" in "+_listVersions.Find(x => x.BackportVersion==versionToCheck).RawVersion;
+						string error=change.FileName+" in "+versionToCheck;
 						listErrors.Add(error);
 					}
 				}
@@ -294,19 +299,22 @@ namespace OpenDental {
 		}
 
 		///<summary>Begins the backporting process. All information in the FileChanges should be filled at this point.</summary>
-		public void BeginBackport(List<ODFileChanges> listFileChanges) {
-			foreach(BackportVersion version in _listVersionsToBackport) {
-				BackportFiles(version,listFileChanges);
+		public bool BeginBackport(List<ODFileChanges> listFileChanges) {
+			bool areAllSuccess=true;
+			foreach(string version in _listSelectedVersions) {
+				areAllSuccess&=BackportFiles(version,listFileChanges);
 			}
-			if(!_listVersionsToBackport.IsNullOrEmpty()) {
+			if(!_listSelectedVersions.IsNullOrEmpty()) {
 				FillGrid();
 			}
+			return areAllSuccess;
 		}
 
 		///<summary>This backports the files that have not been backported yet.</summary>
 		///<param name="backportVersion">The version that is being backported.</param>
 		///<param name="listFileChanges">A list of the files that will be backported.</param>
-		public void BackportFiles(BackportVersion backportVersion,List<ODFileChanges> listFileChanges) {
+		public bool BackportFiles(string backportVersion,List<ODFileChanges> listFileChanges) {
+			bool areAllFilesSuccessful=true;
 			foreach(ODFileChanges file in listFileChanges) {
 				ODBackportResult backportResult=new ODBackportResult();
 				backportResult.FilePathHead=file.FilePathHead;
@@ -315,34 +323,44 @@ namespace OpenDental {
 				}
 				ResultType resultType=backportResult.GetResult(backportVersion);
 				if(resultType!=ResultType.None) {//Skip already backported files
+					areAllFilesSuccessful&=resultType==ResultType.Ok;
 					continue;
 				}
 				resultType=ModifyFile(file,backportVersion,backportResult);
+				areAllFilesSuccessful&=resultType==ResultType.Ok;
 				backportResult.UpdateResult(backportVersion,resultType);
 				if(!_listBackportResults.Any(x => x.FilePathHead==file.FilePathHead)) {//If not added yet, add here.
 					_listBackportResults.Add(backportResult);
 				}
 			}
+			return areAllFilesSuccessful;
+		}
+
+		///<summary>An exception to the typical compilation pattern. ODXam has one single solution that
+		///contains all of the versionsd folders.</summary>
+		private void CompileODXam() {
+			if(!TryGetVsPath(out string vsPath)) {
+				return;
+			}
+			string path=$"{_pathOnRefresh}\\ODXam_Prod.sln";
+			if(!File.Exists(path)) {
+				MessageBox.Show("File does not exist.\r\n"+path);
+				return;
+			}
+			Cursor=Cursors.WaitCursor;
+			RunWindowsCommand(GenerateCompileCommand(vsPath,path),false);
+			Cursor=Cursors.Default;
 		}
 
 		///<summary>Compiles the given project by opening it in Visual Studio and automatically beginning the build.</summary>
-		private void Compile(BackportVersion backportVersion) {
+		private void Compile(string backportVersion) {
 			if(_currentProject.Name==ProjectName.Unknown) {
 				return;
 			}
-			Version versionCur=_listVersions.Find(x => x.BackportVersion==backportVersion).Version;
-			//Default path to VS 2019.
-			string vsPath=@"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe";
-			if(!File.Exists(vsPath)) {
-				//VS 2019 does not exist. Check VS 2015.
-				vsPath=@"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe";
-				if(!File.Exists(vsPath)) {
-					MessageBox.Show("Cannot find Visual Studio 2019 or 2015.");
-					return;
-				}
+			Version versionCur=new Version(backportVersion);
+			if(!TryGetVsPath(out string vsPath)) {
+				return;
 			}
-			string command=$"\"{vsPath}\""
-				+"/Run \"";
 			string path=_pathOnRefresh+"\\";
 			//add the versioned folder
 			if(_currentProject.PatternMajor==MajorMinorPattern.MajorDotMinor) {
@@ -378,8 +396,30 @@ namespace OpenDental {
 				return;
 			}
 			Cursor=Cursors.WaitCursor;
-			RunWindowsCommand(command+path+"\"",false);
+			RunWindowsCommand(GenerateCompileCommand(vsPath,path),false);
 			Cursor=Cursors.Default;
+		}
+
+		///<summary>Attempts to get the path for visual studio. Returns true if able to locate.</summary>
+		private bool TryGetVsPath(out string vsPath) {
+			//Default path to VS 2019.
+			vsPath=@"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\devenv.exe";
+			if(!File.Exists(vsPath)) {
+				//VS 2019 does not exist. Check VS 2015.
+				vsPath=@"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe";
+				if(!File.Exists(vsPath)) {
+					MessageBox.Show("Cannot find Visual Studio 2019 or 2015.");
+					vsPath="";
+					return false;
+				}
+			}
+			return true;
+		}
+
+		///<summary>Creates the command that can be used in the windows command line to run the specific solution
+		///passed in. Validate that solutionPath exists before calling this method.</summary>
+		private string GenerateCompileCommand(string vsPath,string solutionPath) {
+			return $"\"{vsPath}\"/Run \"{solutionPath}\"";
 		}
 
 		///<summary>Brings up the tortoise svn window for the currently selected path.</summary>
@@ -387,10 +427,47 @@ namespace OpenDental {
 			if(_currentProject==BackportProjects.Unknown || !Directory.Exists(_pathOnRefresh)) {
 				return;
 			}
-			string command="TortoiseProc.exe /command:commit /path:\""+_pathOnRefresh+"\" ";
+			string commitMessage="";
+			if(PIn.Long(validJobNum.Text,false)!=0) {
+				Job job=Jobs.GetOneFilled(PIn.Long(validJobNum.Text));
+				if(job!=null) {
+					commitMessage=GetCommitMessage(job);
+				}
+			}
 			Cursor=Cursors.WaitCursor;
-			RunWindowsCommand(command,false);
+			Process process=new Process();
+			string arguments="/command:commit /path:\""+_pathOnRefresh+"\" /logmsg:\""+commitMessage+"\"";
+			ProcessStartInfo startInfo=new ProcessStartInfo("TortoiseProc.exe",arguments);
+			process.StartInfo=startInfo;
+			process.Start();
 			Cursor=Cursors.Default;
+		}
+
+		///<summary>Returns the commit message for this job. Job should not be null.</summary>
+		private string GetCommitMessage(Job job) {
+			string description;
+			if(job.Category==JobCategory.Bug) {
+				Bug bug=Bugs.GetOne(job.ListJobLinks.Where(x => x.LinkType==JobLinkType.Bug).FirstOrDefault()?.FKey??0);
+				string bugDescription="";
+				if(bug!=null) {
+					bugDescription=bug.Description.Replace("\"","");
+				}
+				else {
+					bugDescription=job.Title;
+				}
+				description=job.Category.ToString().Substring(0,1)+job.JobNum+" - "
+					+bugDescription;
+			}
+			else {
+				description=job.Category.ToString().Substring(0,1)+job.JobNum+" - "+job.Title;
+			}
+			string reviewers=string.Join(", ",job.ListJobReviews
+				.Where(x => x.ReviewStatus==JobReviewStatus.Done || x.ReviewStatus==JobReviewStatus.NeedsAdditionalReview)
+				.DistinctBy(x => x.ReviewerNum)
+				.Select(x => Userods.GetName(x.ReviewerNum))
+				.OrderBy(x => x)
+				.ToList());
+			return $"{POut.String(description)}\r\nBackported to: {POut.String(job.JobVersion)}\r\nReviewed by: {POut.String(reviewers)}";
 		}
 
 		private void butRefresh_Click(object sender,EventArgs e) {
@@ -411,16 +488,23 @@ namespace OpenDental {
 			_arrayPreviousSelected=gridMain.SelectedIndices;
 		}
 
-		private void butCompileBeta_Click(object sender,EventArgs e) {
-			Compile(BackportVersion.Beta);
+		private void butBackportAndCommit_Click(object sender,EventArgs e) {
+			if(!DoBackport()) {
+				return;
+			}
+			Commit();
 		}
 
-		private void butCompileStable_Click(object sender,EventArgs e) {
-			Compile(BackportVersion.Stable);
-		}
-
-		private void butCompilePrevStable_Click(object sender,EventArgs e) {
-			Compile(BackportVersion.PreviousStable);
+		private void butCompileAll_Click(object sender,EventArgs e) {
+			//The ODXam project is special. There is one solution that contains all the versions. Regardless of 
+			//selected versions, we will open and build the solution.
+			if(_currentProject.Name==ProjectName.ODXam) {
+				CompileODXam();
+				return;
+			}
+			foreach(string version in _listSelectedVersions) {
+				Compile(version);
+			}
 		}
 
 		private void butCommit_Click(object sender,EventArgs e) {
@@ -430,6 +514,11 @@ namespace OpenDental {
 		private void butClose_Click(object sender,EventArgs e) {
 			DialogResult=DialogResult.OK;
 			Close();
+		}
+
+		private void FormBackport_FormClosing(object sender,FormClosingEventArgs e) {
+			_progressBarAction?.Invoke();
+			_progressBarAction=null;
 		}
 	}
 }

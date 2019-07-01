@@ -2936,7 +2936,7 @@ namespace OpenDental {
 		}
 
 		private void backportToolStripMenuItem_Click(object sender,EventArgs e) {
-			FormBackport formB=new FormBackport();
+			FormBackport formB=new FormBackport(userControlJobEdit.JobNumCur);
 			formB.Show();
 		}
 

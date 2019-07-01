@@ -68,6 +68,13 @@ namespace OpenDental.InternalTools.Job_Manager {
 			}
 		}
 
+		///<summary>The current job num. 0 if none selected.</summary>
+		public long JobNumCur {
+			get {
+				return _jobCur?.JobNum??0;
+			}
+		}
+
 		//FUNCTIONS
 		public UserControlJobEdit() {
 			InitializeComponent();

@@ -11,9 +11,7 @@ namespace OpenDentBusiness {
 	public class Backports {
 
 		///<summary>Gets a list of modified files with all changes recorded from SVN.</summary>
-		public static List<ODFileChanges> GetListOfFiles(string pathOnRefresh,Version betaVersion,Version stableVersion,Version prevStableVersion,
-			string ignoreListName,BackportProject currentProject) 
-		{
+		public static List<ODFileChanges> GetListOfFiles(string pathOnRefresh,List<string> listVersions,string ignoreListName,BackportProject currentProject) {
 			List<ODFileChanges> listFilesChanged=new List<ODFileChanges>();
 			string headString="";
 			if(currentProject.PatternHead==HeadPattern.head) {
@@ -44,7 +42,7 @@ namespace OpenDentBusiness {
 						break;
 				}
 				file.FilePathHead=modFile.Substring(1).Trim();//Remove the modification type from the beginning to get the file path.
-				file.GetFilePaths(betaVersion,stableVersion,prevStableVersion,currentProject,headString);
+				file.GetFilePaths(listVersions,currentProject,headString);
 				listFilesChanged.Add(file);
 			}
 			//Fill listFilesModified with information
@@ -114,7 +112,7 @@ namespace OpenDentBusiness {
 		///<param name="changeFile">The file that is being modified.</param>
 		///<param name="backportVersion">The version the file is being backported to.</param>
 		///<param name="backportResult">The objects where the results are stored.</param>
-		public static ResultType ModifyFile(ODFileChanges changeFile,BackportVersion backportVersion,ODBackportResult backportResult) {
+		public static ResultType ModifyFile(ODFileChanges changeFile,string backportVersion,ODBackportResult backportResult) {
 			ResultType result=ResultType.None;
 			string filePath=changeFile.DictVersionFilePath[backportVersion];
 			//Get the correct encoding of the head file. Filstream.CurrentEncoding is not accurate. Because our code uses special symbols on occasion, we 
@@ -242,13 +240,6 @@ namespace OpenDentBusiness {
 			return lines;
 		}
 
-		public enum BackportVersion {
-			Beta,
-			Stable,
-			[Description("Previous Stable")]
-			PreviousStable,
-		}
-
 		public enum FileModificationType {
 			Modified,
 			Added,
@@ -278,6 +269,7 @@ namespace OpenDentBusiness {
 			OpenDentalService, 
 			OpenDentalWebApps, 			   
 			PhoneTrackingServer,
+			ODXam,
 			//DatabaseMerge, //There has not been a recent release of this
 			//DatabaseSpliter, //There has not been a recent release of this
 			//MakeMsi, //No code to backport
@@ -313,8 +305,9 @@ namespace OpenDentBusiness {
 				HeadPattern.head);
 			public static BackportProject PhoneTrackingServer=new BackportProject(ProjectName.PhoneTrackingServer,MajorMinorPattern._Major_Minor,
 				HeadPattern.Name_head);
+			public static BackportProject ODXam=new BackportProject(ProjectName.ODXam,MajorMinorPattern._Major_Minor,HeadPattern.head);
 			public static List<BackportProject> ListProjects=new List<BackportProject> { CDT,EHR,ODCrypt,OpenDental,OpenDentalHelp,
-				OpenDentalService,OpenDentalWebApps,PhoneTrackingServer,Unknown };
+				OpenDentalService,OpenDentalWebApps,PhoneTrackingServer,ODXam,Unknown };
 		}
 
 		public class BackportProject {
@@ -338,7 +331,7 @@ namespace OpenDentBusiness {
 			///<summary>Full head file path for a given file.</summary>
 			public string FilePathHead;
 			///<summary>Dictionary that contains the path to the file for each backport version.</summary>
-			public Dictionary<BackportVersion,string> DictVersionFilePath=new Dictionary<BackportVersion,string>();
+			public Dictionary<string,string> DictVersionFilePath=new Dictionary<string,string>();
 			///<summary>File name only for a file. e.g. ContrAppt.cs</summary>
 			public string FileName;
 			///<summary>The type of modification. e.g. Modified, Added, etc</summary>
@@ -347,23 +340,27 @@ namespace OpenDentBusiness {
 			public List<ODLineChange> ListLineChanges=new List<ODLineChange>();
 
 			///<summary>After the FilePathHead is set, this takes the current beta and stable string and filles the rest of the paths in.</summary>
-			public void GetFilePaths(Version betaVersion,Version stableVersion,Version prevStableVersion,BackportProject currentProject,string headString) {
-				string betaPath="";
-				string stablePath="";
-				string prevStablePath="";
+			public void GetFilePaths(List<string> listVersions,BackportProject currentProject,string headString) {
 				if(currentProject.PatternMajor==MajorMinorPattern.MajorDotMinor) {
-					betaPath=Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+betaVersion.Major+"."+betaVersion.Minor;
-					stablePath=Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+stableVersion.Major+"."+stableVersion.Minor;
-					prevStablePath=Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+prevStableVersion.Major+"."+prevStableVersion.Minor;
+					foreach(string version in listVersions) {
+						Version v=new Version(version);
+						DictVersionFilePath.Add(version,
+							FilePathHead.Replace(headString,Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+v.Major+"."+v.Minor));
+					}
 				}
-				else if(currentProject.PatternMajor==MajorMinorPattern._Major_Minor) {
-					betaPath=Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+"_"+betaVersion.Major+"_"+betaVersion.Minor;
-					stablePath=Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+"_"+stableVersion.Major+"_"+stableVersion.Minor;
-					prevStablePath=Enum.GetName(currentProject.Name.GetType(),currentProject.Name)+"_"+prevStableVersion.Major+"_"+prevStableVersion.Minor;
+				else {//_Major_Minor
+					foreach(string version in listVersions) {
+						Version v=new Version(version);
+						string versionPath=FilePathHead.Replace(headString,Enum.GetName(currentProject.Name.GetType(),
+							currentProject.Name)+"_"+v.Major+"_"+v.Minor);
+						if(currentProject.Name==ProjectName.ODXam) {
+							//ODXam is special as we change more than just the one path name. We also change the folder+csproj name.
+							//This replace will fix both of those.
+							versionPath=versionPath.Replace("ODXam.Shared",$"ODXam_{v.Major}_{v.Minor}.Shared");
+						}
+						DictVersionFilePath.Add(version,versionPath);
+					}
 				}
-				DictVersionFilePath.Add(BackportVersion.Beta,FilePathHead.Replace(headString,betaPath));
-				DictVersionFilePath.Add(BackportVersion.Stable,FilePathHead.Replace(headString,stablePath));
-				DictVersionFilePath.Add(BackportVersion.PreviousStable,FilePathHead.Replace(headString,prevStablePath));
 				FileName=Path.GetFileName(FilePathHead);
 			}
 
@@ -482,64 +479,60 @@ namespace OpenDentBusiness {
 			}
 		}
 
-		///<summary>Used in backport tool only. Class that stores basic information about a version.</summary>
-		public class ODVersion {
-			///<summary>The backport version.</summary>
-			public BackportVersion BackportVersion;
-			///<summary>The raw version string in the format Major.Minor.</summary>
-			public string RawVersion;
-			///<summary>The version object for the specific version.</summary>
-			public Version Version;
-		}
-
 		///<summary>Used in backport tool only. Stores results for a single file for all versions.</summary>
 		public class ODBackportResult {
 			///<summary>Full head file path for a given file. Acts as the primary key as they will always be unique.</summary>
 			public string FilePathHead;
-			private List<BackportResult> _listBackportResults=new List<BackportResult> {
-				new BackportResult(BackportVersion.Beta,ResultType.None,new List<ODLineChange>()),
-				new BackportResult(BackportVersion.Stable,ResultType.None,new List<ODLineChange>()),
-				new BackportResult(BackportVersion.PreviousStable,ResultType.None,new List<ODLineChange>()),
-			};
+			private List<BackportResult> _listBackportResults=new List<BackportResult>();
 
 			///<summary>Updates the list of failed changes for the given version.</summary>
 			///<param name="version">The specific backport version.</param>
 			///<param name="listFailedChanges">The new list of failed line changes.</param>
-			public void UpdateListFailedChanges(BackportVersion version,List<ODLineChange> listFailedChanges) {
-				BackportResult backportResult=_listBackportResults.Find(x => x.BackportVersion==version);
+			public void UpdateListFailedChanges(string version,List<ODLineChange> listFailedChanges) {
+				BackportResult backportResult=GetBackportResultForVersion(version);
 				backportResult.ListFailedChanges=listFailedChanges;
 			}
 
 			///<summary>Updates the result for a given version.</summary>
 			///<param name="version">The specific backport version.</param>
 			///<param name="result">The new result.</param>
-			public void UpdateResult(BackportVersion version,ResultType result) {
-				BackportResult backportResult=_listBackportResults.Find(x => x.BackportVersion==version);
+			public void UpdateResult(string version,ResultType result) {
+				BackportResult backportResult=GetBackportResultForVersion(version);
 				backportResult.Result=result;
 			}
 
 			///<summary>Returns the result for a given version.</summary>
 			///<param name="version">The backport version.</param>
-			public ResultType GetResult(BackportVersion version) {
-				return _listBackportResults.Find(x => x.BackportVersion==version).Result;
+			public ResultType GetResult(string version) {
+				return GetBackportResultForVersion(version).Result;
 			}
 
 			///<summary>Returns the List of failed line changes for a given version.</summary>
 			///<param name="version">The backport version.</param>
-			public List<ODLineChange> GetFailedChanges(BackportVersion version) {
-				return _listBackportResults.Find(x => x.BackportVersion==version).ListFailedChanges;
+			public List<ODLineChange> GetFailedChanges(string version) {
+				return GetBackportResultForVersion(version).ListFailedChanges;
+			}
+
+			///<summary>Used to get the backport result for the given version. Lazy loads the backport result into the list.</summary>
+			private BackportResult GetBackportResultForVersion(string version) {
+				BackportResult backportResult=_listBackportResults.FirstOrDefault(x => x.BackportVersion==version);
+				if(backportResult==null) {
+					backportResult=new BackportResult(version,ResultType.None,new List<ODLineChange>());
+					_listBackportResults.Add(backportResult);
+				}
+				return backportResult;
 			}
 
 			///<summary>Private class used for a single BackportVersion that stores all relevant results for the version.</summary>
 			private class BackportResult {
 				///<summary>The version being backportted.</summary>
-				public BackportVersion BackportVersion;
+				public string BackportVersion;
 				///<summary>The result of the backport.</summary>
 				public ResultType Result;
 				///<summary>A List of line changes that failed to backport.</summary>
 				public List<ODLineChange> ListFailedChanges;
 
-				public BackportResult(BackportVersion version,ResultType result,List<ODLineChange> listFailedChanges) {
+				public BackportResult(string version,ResultType result,List<ODLineChange> listFailedChanges) {
 					BackportVersion=version;
 					Result=result;
 					ListFailedChanges=listFailedChanges;
