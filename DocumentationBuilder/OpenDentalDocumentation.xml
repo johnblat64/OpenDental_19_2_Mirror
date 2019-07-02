@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDocumentation.xsl"?>
-<database version="19.2.1.0">
+<database version="19.2.2.0">
     <table name="account">
         <summary>Used in the accounting section in chart of accounts.  Not related to patient accounts in any way.</summary>
         <column order="0" name="AccountNum" type="bigint(20)">
@@ -1703,42 +1703,33 @@
             <summary>Date of Current Illness, Injury, or Pregnancy (LMP).  (LMP = Last Menstrual Period)  For use in 1500 Medical Claim Form box 14.
             Identifies the first date of onset of illness, the actual date of injury, or the LMP for pregnancy.</summary>
         </column>
-        <column order="79" name="DateIllnessInjuryPregQualifier" type="tinyint(4)">
-            <summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
-            <Enumeration name="DateQualifier">
-                <summary>Used for 1500 Medical Claim Form, 'Qual' box portion of fields 14 and 15.  Populate with 3 digit enum value.</summary>
-                <EnumValue name="ReportStart">090 - Report Start</EnumValue>
-                <EnumValue name="ReportEnd">091 - Report End</EnumValue>
-                <EnumValue name="LatestVisitConsult">304 - Latest Visit or Consultation</EnumValue>
+        <column order="79" name="DateIllnessInjuryPregQualifier" type="smallint(6)">
+            <summary>Enum:DateIllnessInjuryPregQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
+            <Enumeration name="DateIllnessInjuryPregQualifier">
+                <summary />
+                <EnumValue name="None">0 - None</EnumValue>
                 <EnumValue name="OnsetCurSymptoms">431 - Onset of Current Symptoms or Illness</EnumValue>
-                <EnumValue name="Accident">439 - Accident</EnumValue>
-                <EnumValue name="FirstVisitConsult">444 - First Visit or Consultation</EnumValue>
-                <EnumValue name="ChronicCondManifest">453 - Acute Manifestation of a Chronic Condition</EnumValue>
-                <EnumValue name="InitialTreatment">454 - Initial Treatment</EnumValue>
-                <EnumValue name="LastXray">455 - Last X-ray</EnumValue>
-                <EnumValue name="Prescription">471 - Prescription</EnumValue>
                 <EnumValue name="LastMenstrualPeriod">484 - Last Menstrual Period</EnumValue>
             </Enumeration>
         </column>
         <column order="80" name="DateOther" type="date">
             <summary>Another date related to the patient's condition or treatment.  For use in 1500 Medical Claim Form box 15.</summary>
         </column>
-        <column order="81" name="DateOtherQualifier" type="tinyint(4)">
-            <summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
+        <column order="81" name="DateOtherQualifier" type="smallint(6)">
+            <summary>Enum:DateOtherQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
             453,454, 455, and 471.</summary>
-            <Enumeration name="DateQualifier">
+            <Enumeration name="DateOtherQualifier">
                 <summary>Used for 1500 Medical Claim Form, 'Qual' box portion of fields 14 and 15.  Populate with 3 digit enum value.</summary>
+                <EnumValue name="None">0 - None</EnumValue>
                 <EnumValue name="ReportStart">090 - Report Start</EnumValue>
                 <EnumValue name="ReportEnd">091 - Report End</EnumValue>
                 <EnumValue name="LatestVisitConsult">304 - Latest Visit or Consultation</EnumValue>
-                <EnumValue name="OnsetCurSymptoms">431 - Onset of Current Symptoms or Illness</EnumValue>
                 <EnumValue name="Accident">439 - Accident</EnumValue>
                 <EnumValue name="FirstVisitConsult">444 - First Visit or Consultation</EnumValue>
                 <EnumValue name="ChronicCondManifest">453 - Acute Manifestation of a Chronic Condition</EnumValue>
                 <EnumValue name="InitialTreatment">454 - Initial Treatment</EnumValue>
                 <EnumValue name="LastXray">455 - Last X-ray</EnumValue>
                 <EnumValue name="Prescription">471 - Prescription</EnumValue>
-                <EnumValue name="LastMenstrualPeriod">484 - Last Menstrual Period</EnumValue>
             </Enumeration>
         </column>
         <column order="82" name="IsOutsideLab" type="tinyint(4)">
@@ -1748,6 +1739,7 @@
             <summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
             <Enumeration name="ResubmitCode">
                 <summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
+                <EnumValue name="None">0 - None</EnumValue>
                 <EnumValue name="Replacement">7 - Replacement of prior claim</EnumValue>
                 <EnumValue name="VoidOrCancel">8 - Void/cancel of prior claim</EnumValue>
             </Enumeration>
@@ -6212,6 +6204,7 @@
                 <EnumValue name="PatientPortalLogin">175 - Logging into patient portal. Used for audit trail only.</EnumValue>
                 <EnumValue name="FAQEdit">176 - Allows user to create and edit FAQ objects shown by the help button(?).</EnumValue>
                 <EnumValue name="FeatureRequestEdit">177 - HQ only. Alows user to edit feature request.</EnumValue>
+                <EnumValue name="TaskReminderPopup">178- Logs when a reminder task is popped up.  Used for audit trail only.</EnumValue>
             </Enumeration>
         </column>
         <column order="5" name="FKey" type="bigint(20)">
@@ -10346,7 +10339,7 @@
         </column>
     </table>
     <table name="providerclinic">
-        <summary>Only used if clinics enabled.  Allows the user to specify DEA number override and other overrides for the provider at the specified 
+        <summary>Allows the user to specify DEA number override and other overrides for the provider at the specified 
             clinic. This is different from the ProviderClinicLink table. That table records which providers are restricted to which clinics.</summary>
         <column order="0" name="ProviderClinicNum" type="bigint(20)">
             <summary>Primary key.</summary>
@@ -12018,6 +12011,7 @@
                 <EnumValue name="PatientPortalLogin">175 - Logging into patient portal. Used for audit trail only.</EnumValue>
                 <EnumValue name="FAQEdit">176 - Allows user to create and edit FAQ objects shown by the help button(?).</EnumValue>
                 <EnumValue name="FeatureRequestEdit">177 - HQ only. Alows user to edit feature request.</EnumValue>
+                <EnumValue name="TaskReminderPopup">178- Logs when a reminder task is popped up.  Used for audit trail only.</EnumValue>
             </Enumeration>
         </column>
         <column order="2" name="UserNum" type="bigint(20)" fk="userod">
