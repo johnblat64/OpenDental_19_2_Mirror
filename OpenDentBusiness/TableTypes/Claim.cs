@@ -183,11 +183,11 @@ namespace OpenDentBusiness{
 		///<summary>Date of Current Illness, Injury, or Pregnancy (LMP).  (LMP = Last Menstrual Period)  For use in 1500 Medical Claim Form box 14.
 		///Identifies the first date of onset of illness, the actual date of injury, or the LMP for pregnancy.</summary>
 		public DateTime DateIllnessInjuryPreg;
-		///<summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
+		///<summary>Enum:DateIllnessInjuryPregQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
 		public DateIllnessInjuryPregQualifier DateIllnessInjuryPregQualifier;
 		///<summary>Another date related to the patient's condition or treatment.  For use in 1500 Medical Claim Form box 15.</summary>
 		public DateTime DateOther;
-		///<summary>Enum:DateQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
+		///<summary>Enum:DateOtherQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
 		///453,454, 455, and 471.</summary>
 		public DateOtherQualifier DateOtherQualifier;
 		///<summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
