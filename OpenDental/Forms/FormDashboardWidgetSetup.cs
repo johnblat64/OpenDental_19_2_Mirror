@@ -42,7 +42,8 @@ namespace OpenDental {
 		}
 
 		private void FillGridInternal() {
-			FillGrid(gridInternal,true,SheetsInternal.GetSheetDef(SheetInternalType.PatientDashboard));
+			FillGrid(gridInternal,true,SheetsInternal.GetSheetDef(SheetInternalType.PatientDashboard)
+				,SheetsInternal.GetSheetDef(SheetInternalType.PatientDashboardToothChart));
 		}
 
 		private void FillGridCustom(bool isSelectionMaintained=true,bool doRefreshCache=true) {

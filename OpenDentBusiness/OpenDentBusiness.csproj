@@ -2322,6 +2322,7 @@
     <None Include="Resources\PatientTransferCEMT.xml" />
     <None Include="Resources\Left.gif" />
     <None Include="Resources\PatientDashboard.xml" />
+    <None Include="Resources\PatientDashboardToothChart.xml" />
     <Content Include="Resources\PaymentPlan.xml" />
     <None Include="Resources\RXMulti.xml" />
     <None Include="Resources\TreatmentPlan.xml" />

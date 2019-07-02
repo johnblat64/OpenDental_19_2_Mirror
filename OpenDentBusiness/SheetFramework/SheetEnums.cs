@@ -186,6 +186,7 @@ namespace OpenDentBusiness {
 		PatientTransferCEMT,
 		ChartModule,
 		PatientDashboard,
+		PatientDashboardToothChart,
 	}
 
 	public enum OutInCheck{
