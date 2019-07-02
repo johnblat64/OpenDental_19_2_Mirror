@@ -16,6 +16,10 @@ namespace OpenDentBusiness {
 		public List<InsPlan> ListInsPlans;
 		public List<Benefit> ListBenefitsPrimary;
 
+		///<summary>For serialization ONLY.</summary>
+		public ProcFeeHelper() {
+		}
+
 		public ProcFeeHelper(long patNum) {
 			_patNum=patNum;
 		}
@@ -35,7 +39,7 @@ namespace OpenDentBusiness {
 			if(Pat!=null && ListPatPlans!=null && ListInsSubs!=null && ListInsPlans!=null && ListBenefitsPrimary!=null) {
 				return;//all data has already been filled.
 			}
-			ProcFeeHelper procFeeHelper=GetData(_patNum);
+			ProcFeeHelper procFeeHelper=GetData(_patNum,this);
 			Pat=procFeeHelper.Pat;
 			ListPatPlans=procFeeHelper.ListPatPlans;
 			ListInsSubs=procFeeHelper.ListInsSubs;
@@ -44,21 +48,24 @@ namespace OpenDentBusiness {
 		}
 
 		///<summary>Returns the data needed for ProcFeeHelper. Does not get ListFees.</summary>
-		public static ProcFeeHelper GetData(long patNum) {
+		public static ProcFeeHelper GetData(long patNum,ProcFeeHelper procFeeHelper) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<ProcFeeHelper>(MethodBase.GetCurrentMethod(),patNum);
+				//Not passing procFeeHelper because the null lists will get turned into empty lists which messes things up.
+				return Meth.GetObject<ProcFeeHelper>(MethodBase.GetCurrentMethod(),patNum,null);
 			}
-			ProcFeeHelper procFeeHelper=new ProcFeeHelper(patNum) {
-				Pat=Patients.GetPat(patNum),
-				ListPatPlans=PatPlans.GetPatPlansForPat(patNum)
-			};
-			procFeeHelper.ListInsSubs=InsSubs.GetMany(procFeeHelper.ListPatPlans.Select(x => x.InsSubNum).ToList());
-			procFeeHelper.ListInsPlans=InsPlans.GetPlans(procFeeHelper.ListInsSubs.Select(x => x.PlanNum).ToList());
+			procFeeHelper=procFeeHelper??new ProcFeeHelper(patNum);
+			procFeeHelper.Pat=procFeeHelper.Pat??Patients.GetPat(patNum);
+			procFeeHelper.ListPatPlans=procFeeHelper.ListPatPlans??PatPlans.GetPatPlansForPat(patNum);
+			procFeeHelper.ListInsSubs=procFeeHelper.ListInsSubs??InsSubs.GetMany(procFeeHelper.ListPatPlans.Select(x => x.InsSubNum).ToList());
+			procFeeHelper.ListInsPlans=procFeeHelper.ListInsPlans??InsPlans.GetPlans(procFeeHelper.ListInsSubs.Select(x => x.PlanNum).ToList());
 			if(procFeeHelper.ListPatPlans.Count>0) {
 				PatPlan priPatPlan=procFeeHelper.ListPatPlans[0];
 				InsSub priInsSub=InsSubs.GetSub(priPatPlan.InsSubNum,procFeeHelper.ListInsSubs);
 				InsPlan priInsPlan=InsPlans.GetPlan(priInsSub.PlanNum,procFeeHelper.ListInsPlans);
-				procFeeHelper.ListBenefitsPrimary=Benefits.RefreshForPlan(priInsPlan.PlanNum,priPatPlan.PatPlanNum);
+				procFeeHelper.ListBenefitsPrimary=procFeeHelper.ListBenefitsPrimary??Benefits.RefreshForPlan(priInsPlan.PlanNum,priPatPlan.PatPlanNum);
+			}
+			else {
+				procFeeHelper.ListBenefitsPrimary=new List<Benefit>();
 			}
 			return procFeeHelper;
 		}

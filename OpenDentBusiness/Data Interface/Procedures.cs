@@ -3793,6 +3793,7 @@ namespace OpenDentBusiness {
 			LogSources logSource=LogSources.None)
 		{ 
 			if(AptCur.AptStatus!=ApptStatus.Complete) {//appt is not set complete, just update necessary fields like ProvNum, ProcDate, and ClinicNum
+				ProcFeeHelper procFeeHelper=null;
 				foreach(int index in listProcSelectedIndices) {
 					//We only want to change the fields that just changed.  We don't want to undo any changes that are being made outside this window.  Note
 					//that if we make any other changes to this proc that are not in this section we should consolidate update statements.
@@ -3807,7 +3808,10 @@ namespace OpenDentBusiness {
 					}
 					UpdateProcInAppointment(AptCur,procCur);//Doesn't update DB
 					if(doUpdateProcFees) {
-						procCur.ProcFee=Fees.GetAmount0(procCur.CodeNum,Providers.GetProv(procCur.ProvNum).FeeSched,procCur.ClinicNum,procCur.ProvNum);
+						procFeeHelper=procFeeHelper??new ProcFeeHelper(pat,null,null,SubList,PlanList,null);
+						procFeeHelper.FillData();
+						procCur.ProcFee=GetProcFee(procFeeHelper.Pat,procFeeHelper.ListPatPlans,procFeeHelper.ListInsSubs,procFeeHelper.ListInsPlans,
+							procCur.CodeNum,procCur.ProvNum,procCur.ClinicNum,procCur.MedicalCode,procFeeHelper.ListBenefitsPrimary,procFeeHelper.ListFees);
 					}
 					Update(procCur,procOld);//Update fields if needed.
 				}
