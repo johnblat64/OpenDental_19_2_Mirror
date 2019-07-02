@@ -103,6 +103,9 @@ namespace OpenDentBusiness.Crud{
 				job.PatternReviewProject   = (OpenDentBusiness.JobPatternReviewProject)PIn.Int(row["PatternReviewProject"].ToString());
 				job.PatternReviewStatus    = (OpenDentBusiness.JobPatternReviewStatus)PIn.Int(row["PatternReviewStatus"].ToString());
 				job.ProposedVersion        = (OpenDentBusiness.JobProposedVersion)PIn.Int(row["ProposedVersion"].ToString());
+				job.DateTimeConceptApproval= PIn.DateT (row["DateTimeConceptApproval"].ToString());
+				job.DateTimeJobApproval    = PIn.DateT (row["DateTimeJobApproval"].ToString());
+				job.DateTimeImplemented    = PIn.DateT (row["DateTimeImplemented"].ToString());
 				retVal.Add(job);
 			}
 			return retVal;
@@ -153,6 +156,9 @@ namespace OpenDentBusiness.Crud{
 			table.Columns.Add("PatternReviewProject");
 			table.Columns.Add("PatternReviewStatus");
 			table.Columns.Add("ProposedVersion");
+			table.Columns.Add("DateTimeConceptApproval");
+			table.Columns.Add("DateTimeJobApproval");
+			table.Columns.Add("DateTimeImplemented");
 			foreach(Job job in listJobs) {
 				table.Rows.Add(new object[] {
 					POut.Long  (job.JobNum),
@@ -194,6 +200,9 @@ namespace OpenDentBusiness.Crud{
 					POut.Int   ((int)job.PatternReviewProject),
 					POut.Int   ((int)job.PatternReviewStatus),
 					POut.Int   ((int)job.ProposedVersion),
+					POut.DateT (job.DateTimeConceptApproval,false),
+					POut.DateT (job.DateTimeJobApproval,false),
+					POut.DateT (job.DateTimeImplemented,false),
 				});
 			}
 			return table;
@@ -213,7 +222,7 @@ namespace OpenDentBusiness.Crud{
 			if(useExistingPK || PrefC.RandomKeys) {
 				command+="JobNum,";
 			}
-			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion) VALUES(";
+			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion,DateTimeConceptApproval,DateTimeJobApproval,DateTimeImplemented) VALUES(";
 			if(useExistingPK || PrefC.RandomKeys) {
 				command+=POut.Long(job.JobNum)+",";
 			}
@@ -255,7 +264,10 @@ namespace OpenDentBusiness.Crud{
 				+    DbHelper.ParamChar+"paramRequirementsJSON,"
 				+    POut.Int   ((int)job.PatternReviewProject)+","
 				+    POut.Int   ((int)job.PatternReviewStatus)+","
-				+    POut.Int   ((int)job.ProposedVersion)+")";
+				+    POut.Int   ((int)job.ProposedVersion)+","
+				+    POut.DateT (job.DateTimeConceptApproval)+","
+				+    POut.DateT (job.DateTimeJobApproval)+","
+				+    POut.DateT (job.DateTimeImplemented)+")";
 			if(job.Implementation==null) {
 				job.Implementation="";
 			}
@@ -296,7 +308,7 @@ namespace OpenDentBusiness.Crud{
 			if(isRandomKeys || useExistingPK) {
 				command+="JobNum,";
 			}
-			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion) VALUES(";
+			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion,DateTimeConceptApproval,DateTimeJobApproval,DateTimeImplemented) VALUES(";
 			if(isRandomKeys || useExistingPK) {
 				command+=POut.Long(job.JobNum)+",";
 			}
@@ -338,7 +350,10 @@ namespace OpenDentBusiness.Crud{
 				+    DbHelper.ParamChar+"paramRequirementsJSON,"
 				+    POut.Int   ((int)job.PatternReviewProject)+","
 				+    POut.Int   ((int)job.PatternReviewStatus)+","
-				+    POut.Int   ((int)job.ProposedVersion)+")";
+				+    POut.Int   ((int)job.ProposedVersion)+","
+				+    POut.DateT (job.DateTimeConceptApproval)+","
+				+    POut.DateT (job.DateTimeJobApproval)+","
+				+    POut.DateT (job.DateTimeImplemented)+")";
 			if(job.Implementation==null) {
 				job.Implementation="";
 			}
@@ -404,7 +419,10 @@ namespace OpenDentBusiness.Crud{
 				+"RequirementsJSON       =  "+DbHelper.ParamChar+"paramRequirementsJSON, "
 				+"PatternReviewProject   =  "+POut.Int   ((int)job.PatternReviewProject)+", "
 				+"PatternReviewStatus    =  "+POut.Int   ((int)job.PatternReviewStatus)+", "
-				+"ProposedVersion        =  "+POut.Int   ((int)job.ProposedVersion)+" "
+				+"ProposedVersion        =  "+POut.Int   ((int)job.ProposedVersion)+", "
+				+"DateTimeConceptApproval=  "+POut.DateT (job.DateTimeConceptApproval)+", "
+				+"DateTimeJobApproval    =  "+POut.DateT (job.DateTimeJobApproval)+", "
+				+"DateTimeImplemented    =  "+POut.DateT (job.DateTimeImplemented)+" "
 				+"WHERE JobNum = "+POut.Long(job.JobNum);
 			if(job.Implementation==null) {
 				job.Implementation="";
@@ -577,6 +595,18 @@ namespace OpenDentBusiness.Crud{
 				if(command!="") { command+=",";}
 				command+="ProposedVersion = "+POut.Int   ((int)job.ProposedVersion)+"";
 			}
+			if(job.DateTimeConceptApproval != oldJob.DateTimeConceptApproval) {
+				if(command!="") { command+=",";}
+				command+="DateTimeConceptApproval = "+POut.DateT(job.DateTimeConceptApproval)+"";
+			}
+			if(job.DateTimeJobApproval != oldJob.DateTimeJobApproval) {
+				if(command!="") { command+=",";}
+				command+="DateTimeJobApproval = "+POut.DateT(job.DateTimeJobApproval)+"";
+			}
+			if(job.DateTimeImplemented != oldJob.DateTimeImplemented) {
+				if(command!="") { command+=",";}
+				command+="DateTimeImplemented = "+POut.DateT(job.DateTimeImplemented)+"";
+			}
 			if(command=="") {
 				return false;
 			}
@@ -715,6 +745,15 @@ namespace OpenDentBusiness.Crud{
 				return true;
 			}
 			if(job.ProposedVersion != oldJob.ProposedVersion) {
+				return true;
+			}
+			if(job.DateTimeConceptApproval != oldJob.DateTimeConceptApproval) {
+				return true;
+			}
+			if(job.DateTimeJobApproval != oldJob.DateTimeJobApproval) {
+				return true;
+			}
+			if(job.DateTimeImplemented != oldJob.DateTimeImplemented) {
 				return true;
 			}
 			return false;

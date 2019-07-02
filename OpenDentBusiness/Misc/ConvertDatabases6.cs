@@ -1489,5 +1489,55 @@ namespace OpenDentBusiness {
 			command="ALTER TABLE claim MODIFY DateIllnessInjuryPregQualifier smallint NOT NULL,MODIFY DateOtherQualifier smallint NOT NULL";
 			Db.NonQ(command);
 		}
+
+		private static void To19_2_3() {
+			string command;
+			DataTable table;
+			#region HQ Only
+			//We are running this section of code for HQ only
+			//This is very uncommon and normally manual queries should be run instead of doing a convert script.
+			command="SELECT ValueString FROM preference WHERE PrefName='DockPhonePanelShow'";
+			table=Db.GetTable(command);
+			if(table.Rows.Count > 0 && PIn.Bool(table.Rows[0][0].ToString())) {
+				//Add new columns
+				command="ALTER TABLE job ADD DateTimeConceptApproval datetime NOT NULL DEFAULT '0001-01-01 00:00:00'";
+				Db.NonQ(command);
+				command="ALTER TABLE job ADD DateTimeJobApproval datetime NOT NULL DEFAULT '0001-01-01 00:00:00'";
+				Db.NonQ(command);
+				command="ALTER TABLE job ADD DateTimeImplemented datetime NOT NULL DEFAULT '0001-01-01 00:00:00'";
+				Db.NonQ(command);
+				//Use JobLog rows to update correct info
+				command=@"UPDATE job j 
+									INNER JOIN(
+										SELECT jl.JobNum,MAX(jl.DateTimeEntry) SetDate
+										FROM JobLog jl
+										WHERE jl.Description LIKE '%Concept approved.%'
+										GROUP BY jl.JobNum) AS jl2 ON j.JobNum=jl2.JobNum
+									SET DateTimeConceptApproval=jl2.SetDate";
+				Db.NonQ(command);
+				command=@"UPDATE job j 
+									INNER JOIN (
+										SELECT jl.JobNum,MAX(jl.DateTimeEntry) SetDate
+										FROM JobLog jl
+										WHERE jl.Description LIKE '%Job approved.%' OR jl.Description LIKE '%Changes approved.%'
+										GROUP BY jl.JobNum) AS jl2 ON j.JobNum=jl2.JobNum
+									SET DateTimeJobApproval=jl2.SetDate";
+				Db.NonQ(command);
+				command=@"UPDATE job j 
+									INNER JOIN (
+										SELECT jl.JobNum,MAX(jl.DateTimeEntry) SetDate
+										FROM JobLog jl
+										WHERE jl.Description LIKE '%Job implemented.%' OR jl.Description LIKE '%to Complete.%'
+										GROUP BY jl.JobNum) AS jl2 ON j.JobNum=jl2.JobNum
+									SET DateTimeImplemented=jl2.SetDate";
+				Db.NonQ(command);
+			}
+			#endregion
+		}
+
+		private static void To19_3_0() {
+			string command;
+			DataTable table;
+		}//End of 19_3_0() method
 	}
 }

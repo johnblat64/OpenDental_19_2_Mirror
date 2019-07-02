@@ -1473,6 +1473,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			IsChanged=true;
 			_jobOld.UserNumApproverChange=0;//in case it was previously set.
 			_jobCur.IsApprovalNeeded=true;
+			_jobCur.DateTimeJobApproval=DateTime.Now;
 			SaveJob(_jobCur);
 		}
 		#endregion
@@ -1509,6 +1510,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			_jobCur.UserNumApproverJob=0;//in case it was previously set.
 			_jobCur.UserNumApproverChange=0;//in case it was previously set.
 			_jobCur.PhaseCur=JobPhase.Definition;
+			_jobCur.DateTimeConceptApproval=DateTime.Now;
 			SaveJob(_jobCur);
 			JobLogs.MakeLogEntryForRequirementApproval(_jobCur);
 		}
@@ -1604,6 +1606,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			if(_jobCur.PatternReviewProject==JobPatternReviewProject.OD) {
 				_jobCur.PatternReviewStatus=JobPatternReviewStatus.AwaitingApproval;
 			}
+			_jobCur.DateTimeJobApproval=DateTime.Now;
 			SaveJob(_jobCur);
 		}
 
@@ -1901,6 +1904,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			else {
 				_jobCur.PhaseCur=JobPhase.Documentation;
 			}
+			_jobCur.DateTimeImplemented=DateTime.Now;
 			SaveJob(_jobCur);
 		}
 

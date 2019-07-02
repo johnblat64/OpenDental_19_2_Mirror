@@ -108,6 +108,15 @@ namespace OpenDentBusiness {
 		public JobPatternReviewStatus PatternReviewStatus;
 		///<summary>Enum:JobProposedVersion The proposed version a job will be completed for.</summary>
 		public JobProposedVersion ProposedVersion;
+		///<summary>Used to mark the date and time the concept approval was made.</summary>
+		[CrudColumn(SpecialType = CrudSpecialColType.DateT)]
+		public DateTime DateTimeConceptApproval;
+		///<summary>Used to mark the date and time the job approval was made.</summary>
+		[CrudColumn(SpecialType = CrudSpecialColType.DateT)]
+		public DateTime DateTimeJobApproval;
+		///<summary>Used to mark the date and time the development was implemented.</summary>
+		[CrudColumn(SpecialType = CrudSpecialColType.DateT)]
+		public DateTime DateTimeImplemented;
 
 		//The following variables should be filled by the class that uses them, not filled from an S class.
 		//Just a convenient way to package a job for passing around in the job manager.
