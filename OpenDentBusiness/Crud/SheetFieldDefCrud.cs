@@ -183,18 +183,26 @@ namespace OpenDentBusiness.Crud{
 				+    POut.Bool  (sheetFieldDef.IsLocked)+","
 				+    POut.Int   (sheetFieldDef.ItemColor.ToArgb())+","
 				+    POut.Int   (sheetFieldDef.TabOrderMobile)+","
-				+"'"+POut.String(sheetFieldDef.UiLabelMobile)+"',"
-				+"'"+POut.String(sheetFieldDef.UiLabelMobileRadioButton)+"',"
+				+    DbHelper.ParamChar+"paramUiLabelMobile,"
+				+    DbHelper.ParamChar+"paramUiLabelMobileRadioButton,"
 				+    POut.Int   ((int)sheetFieldDef.LayoutMode)+")";
 			if(sheetFieldDef.FieldValue==null) {
 				sheetFieldDef.FieldValue="";
 			}
 			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(sheetFieldDef.FieldValue));
+			if(sheetFieldDef.UiLabelMobile==null) {
+				sheetFieldDef.UiLabelMobile="";
+			}
+			OdSqlParameter paramUiLabelMobile=new OdSqlParameter("paramUiLabelMobile",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobile));
+			if(sheetFieldDef.UiLabelMobileRadioButton==null) {
+				sheetFieldDef.UiLabelMobileRadioButton="";
+			}
+			OdSqlParameter paramUiLabelMobileRadioButton=new OdSqlParameter("paramUiLabelMobileRadioButton",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
 			if(useExistingPK || PrefC.RandomKeys) {
-				Db.NonQ(command,paramFieldValue);
+				Db.NonQ(command,paramFieldValue,paramUiLabelMobile,paramUiLabelMobileRadioButton);
 			}
 			else {
-				sheetFieldDef.SheetFieldDefNum=Db.NonQ(command,true,"SheetFieldDefNum","sheetFieldDef",paramFieldValue);
+				sheetFieldDef.SheetFieldDefNum=Db.NonQ(command,true,"SheetFieldDefNum","sheetFieldDef",paramFieldValue,paramUiLabelMobile,paramUiLabelMobileRadioButton);
 			}
 			return sheetFieldDef.SheetFieldDefNum;
 		}
@@ -241,18 +249,26 @@ namespace OpenDentBusiness.Crud{
 				+    POut.Bool  (sheetFieldDef.IsLocked)+","
 				+    POut.Int   (sheetFieldDef.ItemColor.ToArgb())+","
 				+    POut.Int   (sheetFieldDef.TabOrderMobile)+","
-				+"'"+POut.String(sheetFieldDef.UiLabelMobile)+"',"
-				+"'"+POut.String(sheetFieldDef.UiLabelMobileRadioButton)+"',"
+				+    DbHelper.ParamChar+"paramUiLabelMobile,"
+				+    DbHelper.ParamChar+"paramUiLabelMobileRadioButton,"
 				+    POut.Int   ((int)sheetFieldDef.LayoutMode)+")";
 			if(sheetFieldDef.FieldValue==null) {
 				sheetFieldDef.FieldValue="";
 			}
 			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(sheetFieldDef.FieldValue));
+			if(sheetFieldDef.UiLabelMobile==null) {
+				sheetFieldDef.UiLabelMobile="";
+			}
+			OdSqlParameter paramUiLabelMobile=new OdSqlParameter("paramUiLabelMobile",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobile));
+			if(sheetFieldDef.UiLabelMobileRadioButton==null) {
+				sheetFieldDef.UiLabelMobileRadioButton="";
+			}
+			OdSqlParameter paramUiLabelMobileRadioButton=new OdSqlParameter("paramUiLabelMobileRadioButton",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
 			if(useExistingPK || isRandomKeys) {
-				Db.NonQ(command,paramFieldValue);
+				Db.NonQ(command,paramFieldValue,paramUiLabelMobile,paramUiLabelMobileRadioButton);
 			}
 			else {
-				sheetFieldDef.SheetFieldDefNum=Db.NonQ(command,true,"SheetFieldDefNum","sheetFieldDef",paramFieldValue);
+				sheetFieldDef.SheetFieldDefNum=Db.NonQ(command,true,"SheetFieldDefNum","sheetFieldDef",paramFieldValue,paramUiLabelMobile,paramUiLabelMobileRadioButton);
 			}
 			return sheetFieldDef.SheetFieldDefNum;
 		}
@@ -282,15 +298,23 @@ namespace OpenDentBusiness.Crud{
 				+"IsLocked                =  "+POut.Bool  (sheetFieldDef.IsLocked)+", "
 				+"ItemColor               =  "+POut.Int   (sheetFieldDef.ItemColor.ToArgb())+", "
 				+"TabOrderMobile          =  "+POut.Int   (sheetFieldDef.TabOrderMobile)+", "
-				+"UiLabelMobile           = '"+POut.String(sheetFieldDef.UiLabelMobile)+"', "
-				+"UiLabelMobileRadioButton= '"+POut.String(sheetFieldDef.UiLabelMobileRadioButton)+"', "
+				+"UiLabelMobile           =  "+DbHelper.ParamChar+"paramUiLabelMobile, "
+				+"UiLabelMobileRadioButton=  "+DbHelper.ParamChar+"paramUiLabelMobileRadioButton, "
 				+"LayoutMode              =  "+POut.Int   ((int)sheetFieldDef.LayoutMode)+" "
 				+"WHERE SheetFieldDefNum = "+POut.Long(sheetFieldDef.SheetFieldDefNum);
 			if(sheetFieldDef.FieldValue==null) {
 				sheetFieldDef.FieldValue="";
 			}
 			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(sheetFieldDef.FieldValue));
-			Db.NonQ(command,paramFieldValue);
+			if(sheetFieldDef.UiLabelMobile==null) {
+				sheetFieldDef.UiLabelMobile="";
+			}
+			OdSqlParameter paramUiLabelMobile=new OdSqlParameter("paramUiLabelMobile",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobile));
+			if(sheetFieldDef.UiLabelMobileRadioButton==null) {
+				sheetFieldDef.UiLabelMobileRadioButton="";
+			}
+			OdSqlParameter paramUiLabelMobileRadioButton=new OdSqlParameter("paramUiLabelMobileRadioButton",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
+			Db.NonQ(command,paramFieldValue,paramUiLabelMobile,paramUiLabelMobileRadioButton);
 		}
 
 		///<summary>Updates one SheetFieldDef in the database.  Uses an old object to compare to, and only alters changed fields.  This prevents collisions and concurrency problems in heavily used tables.  Returns true if an update occurred.</summary>
@@ -386,11 +410,11 @@ namespace OpenDentBusiness.Crud{
 			}
 			if(sheetFieldDef.UiLabelMobile != oldSheetFieldDef.UiLabelMobile) {
 				if(command!="") { command+=",";}
-				command+="UiLabelMobile = '"+POut.String(sheetFieldDef.UiLabelMobile)+"'";
+				command+="UiLabelMobile = "+DbHelper.ParamChar+"paramUiLabelMobile";
 			}
 			if(sheetFieldDef.UiLabelMobileRadioButton != oldSheetFieldDef.UiLabelMobileRadioButton) {
 				if(command!="") { command+=",";}
-				command+="UiLabelMobileRadioButton = '"+POut.String(sheetFieldDef.UiLabelMobileRadioButton)+"'";
+				command+="UiLabelMobileRadioButton = "+DbHelper.ParamChar+"paramUiLabelMobileRadioButton";
 			}
 			if(sheetFieldDef.LayoutMode != oldSheetFieldDef.LayoutMode) {
 				if(command!="") { command+=",";}
@@ -403,9 +427,17 @@ namespace OpenDentBusiness.Crud{
 				sheetFieldDef.FieldValue="";
 			}
 			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(sheetFieldDef.FieldValue));
+			if(sheetFieldDef.UiLabelMobile==null) {
+				sheetFieldDef.UiLabelMobile="";
+			}
+			OdSqlParameter paramUiLabelMobile=new OdSqlParameter("paramUiLabelMobile",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobile));
+			if(sheetFieldDef.UiLabelMobileRadioButton==null) {
+				sheetFieldDef.UiLabelMobileRadioButton="";
+			}
+			OdSqlParameter paramUiLabelMobileRadioButton=new OdSqlParameter("paramUiLabelMobileRadioButton",OdDbType.Text,POut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
 			command="UPDATE sheetfielddef SET "+command
 				+" WHERE SheetFieldDefNum = "+POut.Long(sheetFieldDef.SheetFieldDefNum);
-			Db.NonQ(command,paramFieldValue);
+			Db.NonQ(command,paramFieldValue,paramUiLabelMobile,paramUiLabelMobileRadioButton);
 			return true;
 		}
 

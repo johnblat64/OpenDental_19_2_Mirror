@@ -34,7 +34,7 @@ namespace OpenDental{
 			// textUiLabelMobile
 			// 
 			this.textUiLabelMobile.Location = new System.Drawing.Point(106, 150);
-			this.textUiLabelMobile.MaxLength = 255;
+			this.textUiLabelMobile.MaxLength = 65535;
 			this.textUiLabelMobile.Name = "textUiLabelMobile";
 			this.textUiLabelMobile.Size = new System.Drawing.Size(197, 20);
 			this.textUiLabelMobile.TabIndex = 108;

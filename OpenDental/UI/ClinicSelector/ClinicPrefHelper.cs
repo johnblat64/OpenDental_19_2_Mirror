@@ -68,6 +68,10 @@ namespace OpenDental{
 			return _listClinicPrefs.First(x => x.ClinicNum==0 && x.PrefName==prefName).ValueString;
 		}
 
+		public List<ClinicPref> GetWhere(PrefName prefName,string valueString) {
+			return _listClinicPrefs.FindAll(x => x.PrefName==prefName && x.ValueString==valueString);
+		}
+
 		///<summary>Save all pref changes relating to prefs that were added in Init().</summary>>
 		public bool SyncAllPrefs() {
 			bool ret=false;

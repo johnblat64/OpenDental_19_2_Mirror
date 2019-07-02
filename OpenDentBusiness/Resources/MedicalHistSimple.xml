@@ -46,36 +46,6 @@
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>2</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>StaticText</FieldType>
-      <FieldName />
-      <FieldValue>None</FieldValue>
-      <FontSize>10</FontSize>
-      <FontName>Microsoft Sans Serif</FontName>
-      <FontIsBold>false</FontIsBold>
-      <XPos>88</XPos>
-      <YPos>583</YPos>
-      <Width>37</Width>
-      <Height>18</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup />
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>0</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>0</TabOrderMobile>
-      <UiLabelMobile />
-      <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
       <SheetFieldDefNum>3</SheetFieldDefNum>
       <SheetDefNum>0</SheetDefNum>
       <FieldType>InputField</FieldType>
@@ -85,9 +55,9 @@
       <FontName>Microsoft Sans Serif</FontName>
       <FontIsBold>false</FontIsBold>
       <XPos>75</XPos>
-      <YPos>603</YPos>
+      <YPos>584</YPos>
       <Width>682</Width>
-      <Height>140</Height>
+      <Height>159</Height>
       <GrowthBehavior>None</GrowthBehavior>
       <RadioButtonValue />
       <RadioButtonGroup />
@@ -99,7 +69,7 @@
       <IsPaymentOption>false</IsPaymentOption>
       <IsLocked>false</IsLocked>
       <TabOrderMobile>14</TabOrderMobile>
-      <UiLabelMobile>List any medical conditions you may have including: asthma, bleeding problems, cancer, diabetes, heart murmur, heart trouble, high blood pressure, joint replacement, kidney disease, liver disease, pregnancy, psychiatric treatment, sinus trouble, stroke, u</UiLabelMobile>
+      <UiLabelMobile>List any medical conditions you may have including: asthma, bleeding problems, cancer, diabetes, heart murmur, heart trouble, high blood pressure, joint replacement, kidney disease, liver disease, pregnancy, psychiatric treatment, sinus trouble, stroke, ulcers, or history of  rheumatic fever or of taking fen-phen:</UiLabelMobile>
       <UiLabelMobileRadioButton />
       <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
@@ -189,7 +159,7 @@
       <IsPaymentOption>false</IsPaymentOption>
       <IsLocked>false</IsLocked>
       <TabOrderMobile>15</TabOrderMobile>
-      <UiLabelMobile>Tobacco us? If so, what kind and how much?</UiLabelMobile>
+      <UiLabelMobile>Tobacco use? If so, what kind and how much?</UiLabelMobile>
       <UiLabelMobileRadioButton />
       <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
@@ -461,36 +431,6 @@
       <TabOrderMobile>18</TabOrderMobile>
       <UiLabelMobile>Are you in pain?</UiLabelMobile>
       <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
-      <SheetFieldDefNum>16</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>CheckBox</FieldType>
-      <FieldName>misc</FieldName>
-      <FieldValue />
-      <FontSize>0</FontSize>
-      <FontName />
-      <FontIsBold>false</FontIsBold>
-      <XPos>76</XPos>
-      <YPos>586</YPos>
-      <Width>10</Width>
-      <Height>10</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup>Medical Conditions</RadioButtonGroup>
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>13</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>13</TabOrderMobile>
-      <UiLabelMobile>List any medical conditions you may have including: asthma, bleeding problems, cancer, diabetes, heart murmur, heart trouble, high blood pressure, joint replacement, kidney disease, liver disease, pregnancy, psychiatric treatment, sinus trouble, stroke, u</UiLabelMobile>
-      <UiLabelMobileRadioButton>None</UiLabelMobileRadioButton>
       <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
@@ -1006,36 +946,6 @@
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>34</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>Rectangle</FieldType>
-      <FieldName />
-      <FieldValue />
-      <FontSize>0</FontSize>
-      <FontName />
-      <FontIsBold>false</FontIsBold>
-      <XPos>75</XPos>
-      <YPos>585</YPos>
-      <Width>11</Width>
-      <Height>11</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup />
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>0</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>0</TabOrderMobile>
-      <UiLabelMobile />
-      <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
       <SheetFieldDefNum>35</SheetFieldDefNum>
       <SheetDefNum>0</SheetDefNum>
       <FieldType>InputField</FieldType>
@@ -1045,9 +955,9 @@
       <FontName>Microsoft Sans Serif</FontName>
       <FontIsBold>false</FontIsBold>
       <XPos>75</XPos>
-      <YPos>385</YPos>
+      <YPos>366</YPos>
       <Width>682</Width>
-      <Height>140</Height>
+      <Height>159</Height>
       <GrowthBehavior>None</GrowthBehavior>
       <RadioButtonValue />
       <RadioButtonGroup />
@@ -1726,96 +1636,6 @@
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>58</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>Rectangle</FieldType>
-      <FieldName />
-      <FieldValue />
-      <FontSize>0</FontSize>
-      <FontName />
-      <FontIsBold>false</FontIsBold>
-      <XPos>75</XPos>
-      <YPos>186</YPos>
-      <Width>11</Width>
-      <Height>11</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup />
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>0</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>0</TabOrderMobile>
-      <UiLabelMobile />
-      <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
-      <SheetFieldDefNum>59</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>CheckBox</FieldType>
-      <FieldName>misc</FieldName>
-      <FieldValue />
-      <FontSize>0</FontSize>
-      <FontName />
-      <FontIsBold>false</FontIsBold>
-      <XPos>76</XPos>
-      <YPos>187</YPos>
-      <Width>10</Width>
-      <Height>10</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup>Medications Taking</RadioButtonGroup>
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>9</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>9</TabOrderMobile>
-      <UiLabelMobile>List all medications or drugs you are now taking</UiLabelMobile>
-      <UiLabelMobileRadioButton>None</UiLabelMobileRadioButton>
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
-      <SheetFieldDefNum>60</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>StaticText</FieldType>
-      <FieldName />
-      <FieldValue>None</FieldValue>
-      <FontSize>10</FontSize>
-      <FontName>Microsoft Sans Serif</FontName>
-      <FontIsBold>false</FontIsBold>
-      <XPos>88</XPos>
-      <YPos>184</YPos>
-      <Width>37</Width>
-      <Height>18</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup />
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>0</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>0</TabOrderMobile>
-      <UiLabelMobile />
-      <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
       <SheetFieldDefNum>61</SheetFieldDefNum>
       <SheetDefNum>0</SheetDefNum>
       <FieldType>InputField</FieldType>
@@ -1825,9 +1645,9 @@
       <FontName>Microsoft Sans Serif</FontName>
       <FontIsBold>false</FontIsBold>
       <XPos>75</XPos>
-      <YPos>204</YPos>
+      <YPos>185</YPos>
       <Width>682</Width>
-      <Height>140</Height>
+      <Height>159</Height>
       <GrowthBehavior>None</GrowthBehavior>
       <RadioButtonValue />
       <RadioButtonGroup />
@@ -1857,96 +1677,6 @@
       <XPos>75</XPos>
       <YPos>346</YPos>
       <Width>286</Width>
-      <Height>18</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup />
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>0</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>0</TabOrderMobile>
-      <UiLabelMobile />
-      <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
-      <SheetFieldDefNum>63</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>Rectangle</FieldType>
-      <FieldName />
-      <FieldValue />
-      <FontSize>0</FontSize>
-      <FontName />
-      <FontIsBold>false</FontIsBold>
-      <XPos>75</XPos>
-      <YPos>367</YPos>
-      <Width>11</Width>
-      <Height>11</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup />
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>0</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>0</TabOrderMobile>
-      <UiLabelMobile />
-      <UiLabelMobileRadioButton />
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
-      <SheetFieldDefNum>64</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>CheckBox</FieldType>
-      <FieldName>misc</FieldName>
-      <FieldValue />
-      <FontSize>0</FontSize>
-      <FontName />
-      <FontIsBold>false</FontIsBold>
-      <XPos>76</XPos>
-      <YPos>368</YPos>
-      <Width>10</Width>
-      <Height>10</Height>
-      <GrowthBehavior>None</GrowthBehavior>
-      <RadioButtonValue />
-      <RadioButtonGroup>Medication Allergies</RadioButtonGroup>
-      <IsRequired>false</IsRequired>
-      <ImageData />
-      <TabOrder>11</TabOrder>
-      <ReportableName />
-      <TextAlign>Left</TextAlign>
-      <IsPaymentOption>false</IsPaymentOption>
-      <IsLocked>false</IsLocked>
-      <TabOrderMobile>11</TabOrderMobile>
-      <UiLabelMobile>List all medications or drugs you are allergic to</UiLabelMobile>
-      <UiLabelMobileRadioButton>None</UiLabelMobileRadioButton>
-      <LayoutMode>Default</LayoutMode>
-      <ItemColor>-16777216</ItemColor>
-    </SheetFieldDef>
-    <SheetFieldDef>
-      <IsNew>false</IsNew>
-      <SheetFieldDefNum>65</SheetFieldDefNum>
-      <SheetDefNum>0</SheetDefNum>
-      <FieldType>StaticText</FieldType>
-      <FieldName />
-      <FieldValue>None</FieldValue>
-      <FontSize>10</FontSize>
-      <FontName>Microsoft Sans Serif</FontName>
-      <FontIsBold>false</FontIsBold>
-      <XPos>88</XPos>
-      <YPos>365</YPos>
-      <Width>37</Width>
       <Height>18</Height>
       <GrowthBehavior>None</GrowthBehavior>
       <RadioButtonValue />

@@ -280,6 +280,15 @@ namespace OpenDental {
 			FillGridEClipboardSheetInUse();
 			gridEClipboardSheetsInUse.SetSelected(swapIdx,setValue:true);
 		}
+
+		private void UpdateEClipboardDefaultsIfNeeded(PrefName prefName,string newVal) {
+			if(_clinicNumEClipboardTab==0) { //we are making changes to the default
+				foreach(ClinicPref cp in _clinicPrefHelperEClipboard.GetWhere(PrefName.EClipboardUseDefaults,"1")) {
+					_clinicPrefHelperEClipboard.ValChangedByUser(prefName,cp.ClinicNum,newVal);
+				}
+			}
+		}
+
 		#endregion Methods - Private
 
 		#region Events - Main
@@ -401,34 +410,40 @@ namespace OpenDental {
 		}
 
 		private void CheckEClipboardAllowCheckIn_Click(object sender, EventArgs e){
-			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardAllowSelfCheckIn,clinicPickerEClipboard.SelectedClinicNum,
-				POut.Bool(checkEClipboardAllowCheckIn.Checked));
+			string newVal=POut.Bool(checkEClipboardAllowCheckIn.Checked);
+			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardAllowSelfCheckIn,clinicPickerEClipboard.SelectedClinicNum, newVal);
+			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardAllowSelfCheckIn,newVal);
 		}
 
 		private void CheckEClipboardAllowSelfPortrait_Click(object sender, EventArgs e){
-			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardAllowSelfPortraitOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,
-				POut.Bool(checkEClipboardAllowSelfPortrait.Checked));
+			string newVal=POut.Bool(checkEClipboardAllowSelfPortrait.Checked);
+			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardAllowSelfPortraitOnCheckIn,clinicPickerEClipboard.SelectedClinicNum, newVal);
+			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardAllowSelfPortraitOnCheckIn,newVal);
 		}
 
 		private void CheckEClipboardAllowSheets_Click(object sender, EventArgs e){
-			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardPresentAvailableFormsOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,
-				POut.Bool(checkEClipboardAllowSheets.Checked));
+			string newVal=POut.Bool(checkEClipboardAllowSheets.Checked);
+			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardPresentAvailableFormsOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,newVal);
+			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardPresentAvailableFormsOnCheckIn,newVal);
 		}
 
 		private void CheckEClipboardCreateMissingForms_Click(object sender, EventArgs e){
 			SetUIEClipboardEnabled();
-			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardCreateMissingFormsOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,
-				POut.Bool(checkEClipboardCreateMissingForms.Checked));
+			string newVal=POut.Bool(checkEClipboardCreateMissingForms.Checked);
+			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardCreateMissingFormsOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,newVal);
+			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardCreateMissingFormsOnCheckIn,newVal);
 		}
 
 		private void CheckEClipboardPopupKiosk_Click(object sender, EventArgs e){
-			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardPopupKioskOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,
-				POut.Bool(checkEClipboardPopupKiosk.Checked));
+			string newVal=POut.Bool(checkEClipboardPopupKiosk.Checked);
+			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardPopupKioskOnCheckIn,clinicPickerEClipboard.SelectedClinicNum,newVal);
+			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardPopupKioskOnCheckIn,newVal);
 		}
 
 		private void TextEClipboardMessage_TextChanged(object sender, EventArgs e){
-			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardMessageComplete,clinicPickerEClipboard.SelectedClinicNum,
-				textEClipboardMessage.Text);
+			string newVal=textEClipboardMessage.Text;
+			_clinicPrefHelperEClipboard.ValChangedByUser(PrefName.EClipboardMessageComplete,clinicPickerEClipboard.SelectedClinicNum,newVal);
+			UpdateEClipboardDefaultsIfNeeded(PrefName.EClipboardMessageComplete,newVal);
 		}
 		#endregion Events - Prefs Section
 

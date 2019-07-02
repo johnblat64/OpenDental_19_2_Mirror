@@ -48,7 +48,7 @@ namespace OpenDental{
 			// 
 			this.textUiLabelMobile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.textUiLabelMobile.Location = new System.Drawing.Point(268, 43);
-			this.textUiLabelMobile.MaxLength = 255;
+			this.textUiLabelMobile.MaxLength = 65535;
 			this.textUiLabelMobile.Name = "textUiLabelMobile";
 			this.textUiLabelMobile.Size = new System.Drawing.Size(197, 20);
 			this.textUiLabelMobile.TabIndex = 106;

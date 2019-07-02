@@ -237,6 +237,7 @@ namespace OpenDental{
             this.textUiLabelMobileMisc.Name = "textUiLabelMobileMisc";
             this.textUiLabelMobileMisc.Size = new System.Drawing.Size(197, 20);
             this.textUiLabelMobileMisc.TabIndex = 1;
+			this.textUiLabelMobileMisc.MaxLength = 65535;
             // 
             // labelUiLabelMobileMisc
             // 
@@ -254,6 +255,7 @@ namespace OpenDental{
             this.textUiLabelMobileRadioButtonMisc.Name = "textUiLabelMobileRadioButtonMisc";
             this.textUiLabelMobileRadioButtonMisc.Size = new System.Drawing.Size(197, 20);
             this.textUiLabelMobileRadioButtonMisc.TabIndex = 2;
+			this.textUiLabelMobileRadioButtonMisc.MaxLength = 65535;
             // 
             // labelUiLabelMobileRadioButtonMisc
             // 
@@ -313,6 +315,7 @@ namespace OpenDental{
             this.textUiLabelMobile.Name = "textUiLabelMobile";
             this.textUiLabelMobile.Size = new System.Drawing.Size(197, 20);
             this.textUiLabelMobile.TabIndex = 121;
+			this.textUiLabelMobile.MaxLength = 65535;
             // 
             // labelUiLabelMobile
             // 
@@ -452,6 +455,7 @@ namespace OpenDental{
             this.textUiLabelMobileCheckBoxNonMisc.Name = "textUiLabelMobileCheckBoxNonMisc";
             this.textUiLabelMobileCheckBoxNonMisc.Size = new System.Drawing.Size(197, 20);
             this.textUiLabelMobileCheckBoxNonMisc.TabIndex = 119;
+			this.textUiLabelMobileCheckBoxNonMisc.MaxLength = 65535;
             // 
             // labelUiLabelMobileCheckBoxNonMisc
             // 

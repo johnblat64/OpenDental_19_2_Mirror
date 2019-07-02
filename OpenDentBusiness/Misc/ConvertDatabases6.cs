@@ -1533,6 +1533,15 @@ namespace OpenDentBusiness {
 				Db.NonQ(command);
 			}
 			#endregion
+			//Change the type of sheetfielddef.UiLabelMobile from varchar to text
+			LargeTableHelper.AlterLargeTable("sheetfielddef","SheetFieldDefNum",new List<Tuple<string, string>>() { 
+				Tuple.Create("UiLabelMobile","text NOT NULL"),
+				Tuple.Create("UiLabelMobileRadioButton","text NOT NULL")
+			});
+			LargeTableHelper.AlterLargeTable("sheetfield","SheetFieldNum",new List<Tuple<string, string>>() { 
+				Tuple.Create("UiLabelMobile","text NOT NULL"),
+				Tuple.Create("UiLabelMobileRadioButton","text NOT NULL")
+			});
 		}
 
 		private static void To19_3_0() {
