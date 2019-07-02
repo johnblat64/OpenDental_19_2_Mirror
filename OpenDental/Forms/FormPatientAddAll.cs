@@ -217,7 +217,7 @@ namespace OpenDental {
 			FillComboBillTypes(comboBillType3);
 			FillComboBillTypes(comboBillType4);
 			FillComboBillTypes(comboBillType5);
-			if(PrefC.HasClinicsEnabled) {
+			if(!PrefC.HasClinicsEnabled) {
 				labelClinic.Visible=false;
 			}
 			else if(PrefC.GetBool(PrefName.ClinicAllowPatientsAtHeadquarters)){
