@@ -24,6 +24,7 @@ namespace OpenDental {
                 return;
             }
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 

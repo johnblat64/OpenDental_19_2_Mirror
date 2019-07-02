@@ -95,6 +95,7 @@ namespace OpenDental {
 			SheetFieldDefCur.ItemColor=butColor.BackColor;
 			SheetFieldDefCur.IsLocked=checkIsLocked.Checked;
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 	}

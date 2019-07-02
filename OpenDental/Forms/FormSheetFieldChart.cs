@@ -36,6 +36,7 @@ namespace OpenDental {
 				//Switching from permanent tooth chart to primary tooth chart.  Primary tooth charts need 4 more tooth values.
 				SheetFieldDefCur.FieldValue="1;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;,,;";
 			}
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 	}

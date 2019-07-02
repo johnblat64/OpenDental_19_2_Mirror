@@ -116,7 +116,7 @@ namespace OpenDentBusiness{
 			ImageData="";
 		}
 
-		///<summary>Simple constructor, useful in conjunction with initializer.</summary>
+		///<summary>DEPRECATED. Simple constructor, useful in conjunction with initializer.</summary>
 		public SheetFieldDef(SheetFieldType fieldType,int x,int y,int width,int height,Font font=null,string fieldValue="") {
 			this.RadioButtonGroup="";
 			this.ImageData="";
@@ -134,7 +134,7 @@ namespace OpenDentBusiness{
 			this.ItemColor=Color.Black;
 		}
 
-		public SheetFieldDef(SheetFieldType fieldType,string fieldName,string fieldValue,
+		private SheetFieldDef(SheetFieldType fieldType,string fieldName,string fieldValue,
 			float fontSize,string fontName,bool fontIsBold,
 			int xPos,int yPos,int width,int height,
 			GrowthBehaviorEnum growthBehavior,string radioButtonValue,bool isPaymentOption=false,KnownColor itemColor=KnownColor.Black,HorizontalAlignment textAlign=HorizontalAlignment.Left,bool isNew=false) 
@@ -269,8 +269,8 @@ namespace OpenDentBusiness{
 				xPos,yPos,width,height,GrowthBehaviorEnum.None,"",isNew:true);
 		}
 
-		public static SheetFieldDef NewSpecial(int xPos,int yPos,int width,int height) {
-			return new SheetFieldDef(SheetFieldType.Special,"","",0,"Calibri",false,
+		public static SheetFieldDef NewSpecial(string fieldName,int xPos,int yPos,int width,int height,string fieldValue="") {
+			return new SheetFieldDef(SheetFieldType.Special,fieldName,fieldValue,0,"Calibri",false,
 				xPos,yPos,width,height,GrowthBehaviorEnum.None,"",isNew:true);
 		}
 

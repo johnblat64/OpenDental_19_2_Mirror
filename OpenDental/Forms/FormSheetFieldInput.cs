@@ -148,6 +148,7 @@ namespace OpenDental {
 			SheetFieldDefCur.TabOrder=PIn.Int(textTabOrder.Text);
 			SheetFieldDefCur.UiLabelMobile=textUiLabelMobile.Text;
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 	}

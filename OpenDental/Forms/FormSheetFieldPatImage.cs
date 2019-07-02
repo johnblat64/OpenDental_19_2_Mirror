@@ -44,6 +44,7 @@ namespace OpenDental {
 			}
 			SheetFieldDefCur.FieldName=_listImageCatDefs[comboImageCategory.SelectedIndex].DefNum.ToString();
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 	}

@@ -130,6 +130,7 @@ namespace OpenDental {
 				}
 				SheetFieldDefCur.FieldValue+=listboxComboOptions.Items[i].ToString();
 			}
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 	}

@@ -81,6 +81,7 @@ namespace OpenDental {
 				SheetFieldDefCur.Width=PIn.Int(textWidth.Text);
 				SheetFieldDefCur.GrowthBehavior=comboGrowthBehavior.SelectedTag<GrowthBehaviorEnum>();
 			}
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 	}

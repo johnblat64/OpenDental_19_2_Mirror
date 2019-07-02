@@ -33,6 +33,7 @@ namespace OpenDental {
 			SheetFieldDefCur.UiLabelMobile=textUiLabelMobile.Text;
 			SheetFieldDefCur.FieldName=textName.Text;
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 

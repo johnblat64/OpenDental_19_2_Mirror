@@ -62,6 +62,11 @@ namespace OpenDental {
 			textHeight.Enabled=true;
 			textWidth.Enabled=true;
 			textHeight.ReadOnly=false;
+			//These are set in the base constructor, but also need to be updated here for listBoxAvailable_SelectedIndexChanged
+			textXPos.Text=SheetFieldDefCur.XPos.ToString();
+			textYPos.Text=SheetFieldDefCur.YPos.ToString();
+			textWidth.Text=SheetFieldDefCur.Width.ToString();
+			textHeight.Text=SheetFieldDefCur.Height.ToString();
 			bool isDynamicSheetType=_sheetDefCur.SheetType.GetAttributeOrDefault<SheetLayoutAttribute>().IsDynamic;
 			SheetUtil.FillComboGrowthBehavior(comboGrowthBehavior,SheetFieldDefCur.GrowthBehavior,isDynamicSheetType);
 			textWidth.MinVal=-100;//Default for control in this window.
@@ -94,7 +99,10 @@ namespace OpenDental {
 
 		private void listBoxAvailable_SelectedIndexChanged(object sender,EventArgs e) {
 			if(!SheetFieldDefCur.IsNew) {
-				return; //should never happen
+				//We don't allow this to be changed once the field is no longer "new"
+				//If this method was like the ChangeCommited() this would not be needed but
+				//the setting of the index on a existing sheetfield comes into this method.
+				return;
 			}
 			if(listBoxAvailable.SelectedIndices.Count==0 || listBoxAvailable.SelectedIndex<0) {
 				return;
@@ -104,11 +112,11 @@ namespace OpenDental {
 		}
 
         protected override void OnDelete() {
-            SheetFieldDefCur=null;
 			if(SheetFieldDefCur.IsNew) {
 				DialogResult=DialogResult.Cancel;
 			}
 			else {
+				SheetFieldDefCur=null; //null this out so the calling form knows to delete this sheetfield
 				DialogResult=DialogResult.OK;
 			}
 		}
@@ -119,6 +127,7 @@ namespace OpenDental {
             }
 			SheetFieldDefCur.GrowthBehavior=comboGrowthBehavior.SelectedTag<GrowthBehaviorEnum>();
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 

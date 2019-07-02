@@ -347,8 +347,7 @@ namespace OpenDental {
 			}
 			foreach(object tag in formGridSelect.ListSelectedTags) {
 				string fieldName="Proc:"+((ProcedureCode)tag).ProcCode;
-				listBoxFields.Items.Add(new ODBoxItem<SheetFieldDef>(fieldName
-					,new SheetFieldDef(SheetFieldType.CheckBox,fieldName,"",0,"",false,0,0,0,0,GrowthBehaviorEnum.None,"")));
+				listBoxFields.Items.Add(new ODBoxItem<SheetFieldDef>(fieldName,SheetFieldDef.NewCheckBox(fieldName,0,0,0,0)));
 				listBoxFields.SetSelected(listBoxFields.Items.Count-1,true);
 			}
 		}
@@ -454,6 +453,7 @@ namespace OpenDental {
 			SheetFieldDefCur.IsRequired=checkRequired.Checked;
 			SheetFieldDefCur.TabOrder=PIn.Int(textTabOrder.Text);
 			//don't save to database here.
+			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;
 		}
 

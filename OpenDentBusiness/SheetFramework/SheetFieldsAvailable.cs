@@ -25,45 +25,45 @@ namespace OpenDentBusiness{
 			switch(sheetType) {
 				case SheetTypeEnum.PatientDashboardWidget:
 					retVal.AddRange(new[] {
-						new SheetFieldDef( SheetFieldType.Special,0,0,193,80) { FieldName="familyInsurance" },
-						new SheetFieldDef( SheetFieldType.Special,0,0,193,160) { FieldName="individualInsurance" },
-						new SheetFieldDef( SheetFieldType.Special,0,0,500,370) { FieldName="toothChart" },
-						new SheetFieldDef( SheetFieldType.Special,0,0,640,14) { FieldName="toothChartLegend" }
+						SheetFieldDef.NewSpecial("familyInsurance",0,0,193,80),
+						SheetFieldDef.NewSpecial("individualInsurance",0,0,193,160),
+						SheetFieldDef.NewSpecial("toothChart",0,0,500,370),
+						SheetFieldDef.NewSpecial("toothChartLegend",0,0,640,14)
 					});
 					break;
 				case SheetTypeEnum.TreatmentPlan:
 				case SheetTypeEnum.ReferralLetter:
 					retVal.AddRange(new[] {
-						new SheetFieldDef( SheetFieldType.Special,0,0,500,370) { FieldName="toothChart" },
-						new SheetFieldDef( SheetFieldType.Special,0,0,640,14) { FieldName="toothChartLegend" }
+						SheetFieldDef.NewSpecial("toothChart",0,0,500,370),
+						SheetFieldDef.NewSpecial("toothChartLegend",0,0,640,14)
 					});
 					break;
 				case SheetTypeEnum.ChartModule://Dynamic layout, some special fields have growthBehavior. See below and FormSheetFieldSpecial
 					retVal.AddRange(new[] {
-						new SheetFieldDef( SheetFieldType.Special,0,0,524,259) { FieldName="ChartModuleTabs"},
-						new SheetFieldDef( SheetFieldType.Special,0,0,412,69) { FieldName="TreatmentNotes"},
+						SheetFieldDef.NewSpecial("ChartModuleTabs",0,0,524,259),
+						SheetFieldDef.NewSpecial("TreatmentNotes",0,0,412,69),
 					});
 					if(!layoutMode.In(SheetFieldLayoutMode.MedicalPractice,SheetFieldLayoutMode.MedicalPracticeTreatPlan)) {
 						retVal.AddRange(new[] {
-							new SheetFieldDef( SheetFieldType.Special,0,0,410,307) { FieldName="toothChart"},
-							new SheetFieldDef( SheetFieldType.Special,0,0,329,27) { FieldName="TrackToothProcDates"}
+							SheetFieldDef.NewSpecial("toothChart",0,0,410,307),
+							SheetFieldDef.NewSpecial("TrackToothProcDates",0,0,329,27)
 						});
 					}
 					if(layoutMode.In(SheetFieldLayoutMode.TreatPlan,SheetFieldLayoutMode.EcwTreatPlan,SheetFieldLayoutMode.OrionTreatPlan,SheetFieldLayoutMode.MedicalPracticeTreatPlan)) {
 						retVal.AddRange(new[] {
-							new SheetFieldDef(SheetFieldType.Special,0,0,77,23) { FieldName="ButtonNewTP",FieldValue="New TP" },
-							new SheetFieldDef(SheetFieldType.Special,0,0,77,300) { FieldName="SetPriorityListBox" }//Has growthBehavior logic in FormSheetFieldSpecial.cs
+							SheetFieldDef.NewSpecial("ButtonNewTP",0,0,77,23,fieldValue:"New TP"),
+							SheetFieldDef.NewSpecial("SetPriorityListBox",0,0,77,300)//Has growthBehavior logic in FormSheetFieldSpecial.cs
 						});
 					}
 					if(layoutMode.In(SheetFieldLayoutMode.Ecw,SheetFieldLayoutMode.EcwTreatPlan)) {
-						retVal.Add(new SheetFieldDef( SheetFieldType.Special,0,0,411,50) { FieldName="PanelEcw"});//Has growthBehavior logic in FormSheetFieldSpecial.cs
+						retVal.Add(SheetFieldDef.NewSpecial("PanelEcw",0,0,411,50));//Has growthBehavior logic in FormSheetFieldSpecial.cs
 					}
 					if(PrefC.IsODHQ) {//Mimics ContrChart.InitializeLocalData(...)
 						retVal.AddRange(new[] { 
-							new SheetFieldDef( SheetFieldType.Special,0,0,75,14) { FieldName="ButtonErxAccess",FieldValue="Erx Access"},
-							new SheetFieldDef( SheetFieldType.Special,0,0,75,14) { FieldName="ButtonPhoneNums",FieldValue="Phone Nums"},
-							new SheetFieldDef( SheetFieldType.Special,0,0,75,14) { FieldName="ButtonForeignKey",FieldValue="Foreign Key"},
-							new SheetFieldDef( SheetFieldType.Special,0,0,75,14) { FieldName="ButtonUSAKey",FieldValue="USA Key"}
+							SheetFieldDef.NewSpecial("ButtonErxAccess",0,0,75,14,fieldValue:"Erx Access"),
+							SheetFieldDef.NewSpecial("ButtonPhoneNums",0,0,75,14,fieldValue:"Phone Nums"),
+							SheetFieldDef.NewSpecial("ButtonForeignKey",0,0,75,14,fieldValue:"Foreign Key"),
+							SheetFieldDef.NewSpecial("ButtonUSAKey",0,0,75,14,fieldValue:"USA Key")
 						});
 					}
 					break;
@@ -165,23 +165,24 @@ namespace OpenDentBusiness{
 		}
 
 		private static SheetFieldDef NewOutput(string fieldName) {
-			return new SheetFieldDef(SheetFieldType.OutputText,fieldName,"",0,"",false,0,0,0,0,GrowthBehaviorEnum.None,"");
+			return SheetFieldDef.NewOutput(fieldName,0,"",false,0,0,0,0,GrowthBehaviorEnum.None);
 		}
 
 		private static SheetFieldDef NewInput(string fieldName) {
-			return new SheetFieldDef(SheetFieldType.InputField,fieldName,"",0,"",false,0,0,0,0,GrowthBehaviorEnum.None,"");
+			return SheetFieldDef.NewInput(fieldName,0,"",false,0,0,0,0);
 		}
 
 		private static SheetFieldDef NewCheck(string fieldName) {
-			return new SheetFieldDef(SheetFieldType.CheckBox,fieldName,"",0,"",false,0,0,0,0,GrowthBehaviorEnum.None,"");
+			return SheetFieldDef.NewCheckBox(fieldName,0,0,0,0);
 		}
 
 		private static SheetFieldDef NewRadio(string fieldName,string radioButtonValue) {
-			return new SheetFieldDef(SheetFieldType.CheckBox,fieldName,"",0,"",false,0,0,0,0,GrowthBehaviorEnum.None,radioButtonValue);
+			return SheetFieldDef.NewRadioButton(fieldName,radioButtonValue,0,0,0,0);
 		}
 
 		private static SheetFieldDef NewSpecial(string fieldName) {
-			return new SheetFieldDef(SheetFieldType.Special,fieldName,"",0,"",false,0,0,0,0,GrowthBehaviorEnum.None,"");
+			return SheetFieldDef.NewSpecial(fieldName,0,0,0,0);
+
 		}
 
 		private static List<SheetFieldDef> GetLabelPatient(OutInCheck outInCheck) {
