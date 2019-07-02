@@ -3727,10 +3727,12 @@ namespace OpenDental {
 				if(_sheetLayoutControler.ListSheetDefsLayout.Any(x => x.SheetDefNum>0)) {//Menu has at least one custom layout def
 					listMenuItems.Add(new MenuItem("-"));//add separator between custom and internal
 				}
-				SheetDef sheetDefInternalLayout=_sheetLayoutControler.ListSheetDefsLayout.First(x => x.SheetDefNum==0);//There will always be an internal def.
-				listMenuItems.Add(
-					new MenuItem(sheetDefInternalLayout.Description,LayoutMenuItem_Click) { Tag=sheetDefInternalLayout,Checked=(selectedLayoutSheetDefNum==0) }
-				);
+				SheetDef sheetDefInternalLayout=_sheetLayoutControler.ListSheetDefsLayout.FirstOrDefault(x => x.SheetDefNum==0);
+				if(sheetDefInternalLayout!=null) {//Not sure how this could be null, but we've had bug submissions for it.
+					listMenuItems.Add(
+						new MenuItem(sheetDefInternalLayout.Description,LayoutMenuItem_Click) { Tag=sheetDefInternalLayout,Checked=(selectedLayoutSheetDefNum==0) }
+					);
+				}
 				button.DropDownMenu=new ContextMenu(listMenuItems.ToArray());
 				ToolBarMain.Buttons.Add(button);
 			}
