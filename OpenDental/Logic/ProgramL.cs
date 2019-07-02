@@ -434,11 +434,12 @@ namespace OpenDental{
 						fileTemplate=ReplaceHelper(fileTemplate,pat);
 						fileTemplate=fileTemplate.Replace("\n","\r\n");
 						ODFileUtils.WriteAllTextThenStart(outputFilePath,fileTemplate,path,cmdline);
+						//Nothing else to do so return;
+						return;
 					}
 				}
-				else {
-					ODFileUtils.ProcessStart(path,cmdline);
-				}
+				//We made it this far and we haven't started the program yet so start it.
+				ODFileUtils.ProcessStart(path,cmdline);
 			}
 			catch(Exception e){
 				MessageBox.Show(prog.ProgDesc+" is not available.");
