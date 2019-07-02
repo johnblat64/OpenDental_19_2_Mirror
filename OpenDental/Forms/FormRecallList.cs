@@ -1167,6 +1167,7 @@ namespace OpenDental{
 			string str="";
 			EmailAddress emailAddress;
 			int sentEmailCount=0;
+			List<PatRowTag> listRowsSent=new List<PatRowTag>();
 			for(int i=0;i<addrTable.Rows.Count;i++){
 				message=new EmailMessage();
 				message.PatNum=PIn.Long(addrTable.Rows[i]["emailPatNum"].ToString());
@@ -1257,8 +1258,25 @@ namespace OpenDental{
 				message.MsgDateTime=DateTime.Now;
 				message.SentOrReceived=EmailSentOrReceived.Sent;
 				EmailMessages.Insert(message);
-				ProcessComms(IsRecallGridSelected()?CommItemTypeAuto.RECALL:CommItemTypeAuto.REACT,CommItemMode.Email);
+				//Add current row to the list of rows sent.
+				if(IsRecallGridSelected()) {
+					List<long> listRecallNums=addrTable.Rows[i]["recallNums"].ToString().Split(',').Select(x => PIn.Long(x)).ToList();
+					for(int j=0;j<_gridCur.Rows.Count;j++) {
+						if(((PatRowTag)_gridCur.Rows[j].Tag).PriKeyNum.In(listRecallNums)) {
+							listRowsSent.Add((PatRowTag)_gridCur.Rows[j].Tag);
+						}
+					}
+				}
+				else {//Reactivation
+					List<long> listPatNums=addrTable.Rows[i]["patNums"].ToString().Split(',').Select(x => PIn.Long(x)).ToList();
+					for(int j=0;j<_gridCur.Rows.Count;j++) {
+						if(((PatRowTag)_gridCur.Rows[j].Tag).PatNum.In(listPatNums)) {
+							listRowsSent.Add((PatRowTag)_gridCur.Rows[j].Tag);
+						}
+					}
+				}
 			}
+			ProcessComms(IsRecallGridSelected() ? CommItemTypeAuto.RECALL : CommItemTypeAuto.REACT,CommItemMode.Email,listRowsSent);
 			_gridCur.FillGrid();
 			if(sentEmailCount>0) {
 				SecurityLogs.MakeLogEntry(Permissions.EmailSend,0,$"{(IsRecallGridSelected()?"Recall":"Reactivation")} Emails Sent: "+sentEmailCount);
@@ -1266,12 +1284,13 @@ namespace OpenDental{
 			Cursor=Cursors.Default;
 		}
 
-		///<summary>Shared functionality with Recalls and Reactivations, be careful when making changes.</summary>
-		private void ProcessComms(CommItemTypeAuto commType,CommItemMode mode=CommItemMode.Mail) {
+		///<summary>Shared functionality with Recalls and Reactivations, be careful when making changes. If gridRows is null, will make commlogs for
+		///the selected rows.</summary>
+		private void ProcessComms(CommItemTypeAuto commType,CommItemMode mode=CommItemMode.Mail,List<PatRowTag> listSentRows=null) {
 			Cursor=Cursors.WaitCursor;
 			long status=mode==CommItemMode.Mail?_statusMailed:_statusEmailed;
-			foreach(ODGridRow row in _gridCur.SelectedGridRows) {
-				PatRowTag tag=(PatRowTag)row.Tag;
+			listSentRows=listSentRows??_gridCur.SelectedTags<PatRowTag>();
+			foreach(PatRowTag tag in listSentRows) {
 				Commlogs.InsertForRecallOrReactivation(tag.PatNum,mode,tag.NumReminders,status,commType);
 				if(commType==CommItemTypeAuto.RECALL) { //RECALL
 					Recalls.UpdateStatus(tag.PatNum,status);
