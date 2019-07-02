@@ -1730,10 +1730,8 @@ namespace OpenDental {
 		private void comboProcStatus_SelectionChangeCommitted(object sender,EventArgs e) {
 			//status cannot be changed for completed procedures attached to a claim, except we allow changing status for preauths.
 			//cannot edit status for TPi procedures.
-			if(_procOld.ProcStatus==ProcStat.C && Procedures.IsAttachedToClaim(_procOld,_listClaimProcsForProc,false)) {
-				MsgBox.Show(this,"This is a completed procedure that is attached to a claim.  You must remove the procedure from the claim"+
-					" or delete the claim before editing the status.");
-				comboProcStatus.SelectedItem=ProcStat.C;//Complete
+			if(ProcedureL.IsProcCompleteAttachedToClaim(_procOld,_listClaimProcsForProc)) {
+				comboProcStatus.SetSelectedItem<ProcStat>(x => x==ProcStat.C,"");//Complete
 				return;
 			}
 			if(comboProcStatus.SelectedTag<ProcStat>()==ProcStat.TP) {//fee starts out 0 if EO, EC, etc.  This updates fee if changing to TP so it won't stay 0.

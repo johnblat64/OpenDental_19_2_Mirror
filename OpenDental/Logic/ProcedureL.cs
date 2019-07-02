@@ -141,6 +141,17 @@ namespace OpenDental {
 			return false;
 		}
 
+		///<summary>Checks if proc is Complete and has ClaimProcs attached to a Claim, and if so, prompts the user that this is invalid.</summary>
+		public static bool IsProcCompleteAttachedToClaim(Procedure proc,List<ClaimProc> listClaimProcs) {
+			if(proc.ProcStatus==ProcStat.C && Procedures.IsAttachedToClaim(proc,listClaimProcs.FindAll(x => x.ProcNum==proc.ProcNum),false)) {
+				//status cannot be changed for completed procedures attached to a claim, except we allow changing status for preauths.
+				MsgBox.Show("Procedures","This is a completed procedure that is attached to a claim.  You must remove the procedure from the claim"+
+					" or delete the claim before editing the status.");
+				return true;
+			}
+			return false;
+		}
+
 		public static List<ODBoxItem<ProcStat>> FillProcStatusCombo(ProcStat procCurStatus,bool isProcLocked,long procNum) {
 			List<ODBoxItem<ProcStat>> listProcStat=new List<ODBoxItem<ProcStat>>();
 			if(procCurStatus==ProcStat.D && isProcLocked) {//only set this when coming in with this status. 

@@ -11502,14 +11502,15 @@ namespace OpenDental {
 						MsgBox.Show(this,"Not allowed to modify the status of a procedure that has payments attached to it. Detach payments from the procedure first.");
 						return;
 					}
+					//Cannot set EC or EO on completed procs on a claim.
+					if(ProcedureL.IsProcCompleteAttachedToClaim(procOld,listClaimProcs)) {
+						return;
+					}
 					#endregion
 				}
 				if(procCur.ProcStatus==ProcStat.C) {//User is trying to change status to complete.
 					#region Setting proc to complete
-					if(Procedures.IsAttachedToClaim(procCur,listClaimProcs.FindAll(x => x.ProcNum==procCur.ProcNum),false)) {
-						//status cannot be changed for completed procedures attached to a claim, except we allow changing status for preauths.
-						MsgBox.Show(this,"This is a completed procedure that is attached to a claim.  You must remove the procedure from the claim"+
-							" or delete the claim before editing the status.");
+					if(ProcedureL.IsProcCompleteAttachedToClaim(procCur,listClaimProcs)) {
 						return;
 					}
 					if(appt!=null) {
