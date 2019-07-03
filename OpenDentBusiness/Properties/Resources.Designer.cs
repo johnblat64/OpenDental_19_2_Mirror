@@ -19,7 +19,7 @@ namespace OpenDentBusiness.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -803,7 +803,7 @@ namespace OpenDentBusiness.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;SheetDef xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
         ///  &lt;IsNew&gt;false&lt;/IsNew&gt;
-        ///  &lt;SheetDefNum&gt;1&lt;/SheetDefNum&gt;
+        ///  &lt;SheetDefNum&gt;0&lt;/SheetDefNum&gt;
         ///  &lt;Description&gt;Medical History New Patient&lt;/Description&gt;
         ///  &lt;SheetType&gt;MedicalHistory&lt;/SheetType&gt;
         ///  &lt;FontSize&gt;10&lt;/FontSize&gt;
@@ -845,7 +845,7 @@ namespace OpenDentBusiness.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;SheetDef xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
         ///  &lt;IsNew&gt;false&lt;/IsNew&gt;
-        ///  &lt;SheetDefNum&gt;2&lt;/SheetDefNum&gt;
+        ///  &lt;SheetDefNum&gt;0&lt;/SheetDefNum&gt;
         ///  &lt;Description&gt;Medical History Update&lt;/Description&gt;
         ///  &lt;SheetType&gt;MedicalHistory&lt;/SheetType&gt;
         ///  &lt;FontSize&gt;10&lt;/FontSize&gt;
@@ -912,8 +912,29 @@ namespace OpenDentBusiness.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;SheetDef xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
         ///  &lt;IsNew&gt;false&lt;/IsNew&gt;
+        ///  &lt;SheetDefNum&gt;24&lt;/SheetDefNum&gt;
+        ///  &lt;Description&gt;Patient Dashboard Default&lt;/Description&gt;
+        ///  &lt;SheetType&gt;PatientDashboardWidget&lt;/SheetType&gt;
+        ///  &lt;FontSize&gt;8&lt;/FontSize&gt;
+        ///  &lt;FontName&gt;Microsoft Sans Serif&lt;/FontName&gt;
+        ///  &lt;Width&gt;404&lt;/Width&gt;
+        ///  &lt;Height&gt;800&lt;/Height&gt;
+        ///  &lt;IsLandscape&gt;false&lt;/IsLandscape&gt;
+        ///  &lt;PageCount&gt;1&lt;/PageCount&gt;
+        ///  &lt;IsMultiPage&gt;fal [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string PatientDashboard {
+            get {
+                return ResourceManager.GetString("PatientDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;SheetDef xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+        ///  &lt;IsNew&gt;false&lt;/IsNew&gt;
         ///  &lt;SheetDefNum&gt;6131&lt;/SheetDefNum&gt;
-        ///  &lt;Description&gt;Patient Dashboard&lt;/Description&gt;
+        ///  &lt;Description&gt;Patient Dashboard ToothChart&lt;/Description&gt;
         ///  &lt;SheetType&gt;PatientDashboardWidget&lt;/SheetType&gt;
         ///  &lt;FontSize&gt;9&lt;/FontSize&gt;
         ///  &lt;FontName&gt;Microsoft Sans Serif&lt;/FontName&gt;
@@ -921,11 +942,11 @@ namespace OpenDentBusiness.Properties {
         ///  &lt;Height&gt;800&lt;/Height&gt;
         ///  &lt;IsLandscape&gt;false&lt;/IsLandscape&gt;
         ///  &lt;PageCount&gt;1&lt;/PageCount&gt;
-        ///  &lt;IsMultiPage&gt;false&lt;/Is [rest of string was truncated]&quot;;.
+        ///  &lt;IsMultiPag [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string PatientDashboard {
+        public static string PatientDashboardToothChart {
             get {
-                return ResourceManager.GetString("PatientDashboard", resourceCulture);
+                return ResourceManager.GetString("PatientDashboardToothChart", resourceCulture);
             }
         }
         
