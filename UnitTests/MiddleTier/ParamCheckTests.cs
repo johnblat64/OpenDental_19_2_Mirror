@@ -105,24 +105,82 @@ namespace UnitTests.MiddleTier.ParamCheck_Tests {
 					continue;
 				}
 				int indexOfCurrentMethod=listMethodInstructions.IndexOf(instructionCurrentMethod);
-				int parametersPassedIn=0;
 				//If a method is simply Method(params something) or Method(something[]), the machine code will likely be different. Generally when 
 				//passing parameters into a method such as Meth.GetObject, it will construct a new object[] and load objects into it. However, if the 
 				//only parameter it needs to pass in is already a param[], no new object[] needs to be constructed. It can simply call ldarg0 to load 
 				//the parameter directly in. Because of this, no ldc is called when MethodBase.GetCurrentMethod is called either. The result will be 
 				//placed on the stack already in order. However, there are exceptions such as if the parameter array is used in a lambda expression. 
-				//Instead of trying to handle each special case, if there are any ldc in the range of instructions, we will use those commands to 
-				//count parameters passed in. Otherwise, we will use ldarg if no ldc instructions are used.
+				//Instead of trying to handle each special case, if there are any ldc we will use the instruction that sets the number
+				//of items in the new object array. Otherwise, we will use ldarg if no ldc/ldnull instructions are used.
 				bool useLdc=listMethodInstructions.GetRange(indexOfCurrentMethod,indexOfMethodCall-indexOfCurrentMethod)
-					.Any(x => x.OpCode.Name.ToLower().StartsWith("ldc"));
-				if(!useLdc) {
-					//There will not be a ldarg for MethodBase.GetCurrentMethod as explained above as it is placed in the stack in correct order 
-					//already. Increment this parameter.
-					parametersPassedIn++;
+					.Any(x => x.OpCode.Name.ToLower().StartsWith("ldc") || x.OpCode.Name.ToLower().StartsWith("ldnull"));
+				//Start at 1 for the call to MethodBase.GetCurrentMethod.
+				int parametersPassedIn=1;
+				foreach(Instruction instruc in listMethodInstructions.GetRange(indexOfCurrentMethod,indexOfMethodCall-indexOfCurrentMethod)) {
+					if(!useLdc) {
+						if(instruc.OpCode.Name.ToLower().StartsWith("ldarg")) {
+							parametersPassedIn++;
+						}
+						continue;
+					}
+					//When looking at ldc, this generally means that a new object[] is being created for the params.
+					//Before making the array, an integer is loaded onto the stack with the number of items in the array.
+					//We need to look as this number as when we pass in a null as a parameter, no extra instructions are created
+					//or changed except for pushing a higher number on the stack. 
+					//A special case is a single null passed in as the params. The only thing it will have is a ldnull command.
+					if(instruc.OpCode.Name.ToLower().StartsWith("ldc.i4") || instruc.OpCode.Name.ToLower().StartsWith("ldnull")) {
+						//Once we find the very first instance of this, we know that this is for the new object array that is being created.
+						//There are many short hand instructions for loading a specific number such as ldc_i4_1 ldc_i4_1. If we are loading
+						//more than 8 arguments, we will use the ldc_i4 or ldc_i4_s instruction. In this case we will set the number as the operand.
+						switch(instruc.OpCode.Code) {
+							case Code.Ldc_I4_0:
+								parametersPassedIn+=0;
+								break;
+							case Code.Ldc_I4_1:
+							case Code.Ldnull:
+								parametersPassedIn+=1;
+								break;
+							case Code.Ldc_I4_2:
+								parametersPassedIn+=2;
+								break;
+							case Code.Ldc_I4_3:
+								parametersPassedIn+=3;
+								break;
+							case Code.Ldc_I4_4:
+								parametersPassedIn+=4;
+								break;
+							case Code.Ldc_I4_5:
+								parametersPassedIn+=5;
+								break;
+							case Code.Ldc_I4_6:
+								parametersPassedIn+=6;
+								break;
+							case Code.Ldc_I4_7:
+								parametersPassedIn+=7;
+								break;
+							case Code.Ldc_I4_8:
+								parametersPassedIn+=8;
+								break;
+							case Code.Ldc_I4_S:
+								if(instruc.Operand==null) {
+									Assert.Fail($"Operand is null for {instruc.OpCode.Code.ToString()}");
+								}
+								parametersPassedIn+=(sbyte)instruc.Operand;
+								break;
+							case Code.Ldc_I4:
+								if(instruc.Operand==null) {
+									Assert.Fail($"Operand is null for {instruc.OpCode.Code.ToString()}");
+								}
+								parametersPassedIn+=(int)instruc.Operand;
+								break;
+							default:
+								Assert.Fail($"An unhandled instruction of {instruc.OpCode.Code.ToString()}");
+								break;
+						}
+						//Since we made it here, we know how many parameters were passed in.
+						break;
+					}
 				}
-				//Count the parameters passed in.
-				parametersPassedIn+=listMethodInstructions.GetRange(indexOfCurrentMethod,indexOfMethodCall-indexOfCurrentMethod)
-					.Count(x => x.OpCode.Name.ToLower().StartsWith((useLdc ? "ldc" : "ldarg")));
 				if(parametersPassedIn-1!=method.Parameters.Count) {
 					strBuilderIncorrectParameters.AppendLine($"Class: {method.DeclaringType.Name}\r\nMethod: {method.Name}\r\n");
 				}
