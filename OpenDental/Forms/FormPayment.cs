@@ -4436,7 +4436,8 @@ namespace OpenDental {
 			}
 			if(!IsNew) {
 				SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_paymentCur.PatNum,"Delete for: "+Patients.GetLim(_paymentCur.PatNum).GetNameLF()+", "
-					+_paymentOld.PayAmt.ToString("c"),0,_paymentOld.SecDateTEdit);
+					+_paymentOld.PayAmt.ToString("c")+", with payment type '"+Payments.GetPaymentTypeDesc(_paymentOld,_listPaymentTypeDefs)+"'",
+					0,_paymentOld.SecDateTEdit);
 			}
 			DialogResult=DialogResult.OK;
 		}

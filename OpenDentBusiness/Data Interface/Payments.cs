@@ -272,7 +272,7 @@ namespace OpenDentBusiness{
 			}*/
 			Crud.PaymentCrud.Update(pay);
 			if(!excludeDepositNum) {
-				string command="UPDATE payment SET DepositNum="+POut.Long(pay.DepositNum)+" WHERE payNum = "+POut.Long(pay.PayNum);
+				string command="UPDATE payment SET DepositNum="+POut.Long(pay.DepositNum)+" WHERE PayNum = "+POut.Long(pay.PayNum);
 				Db.NonQ(command);
 			}
 		}
@@ -683,7 +683,7 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Returns the payment type string for the payment.</summary>
-		private static string GetPaymentTypeDesc(Payment payment,List<Def> listPayTypes=null) {
+		public static string GetPaymentTypeDesc(Payment payment,List<Def> listPayTypes=null) {
 			if(listPayTypes==null) {
 				listPayTypes=Defs.GetDefsForCategory(DefCat.PaymentTypes);
 			}
