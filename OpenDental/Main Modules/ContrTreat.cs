@@ -2181,7 +2181,7 @@ namespace OpenDental{
 						HistList,LoopList,false,
 						PatCur.Age,SubList,
 						null,false,true,_listSubstLinks,false,
-						loadActiveData.ListFees,null);
+						loadActiveData.ListFees,lookupFees);
 					//then, add this information to loopList so that the next procedure is aware of it.
 					LoopList.AddRange(ClaimProcs.GetHistForProc(ClaimProcList,listProcForTP[i].ProcNum,listProcForTP[i].CodeNum));
 				}
@@ -2198,7 +2198,7 @@ namespace OpenDental{
 							continue;
 					}
 					Procedures.ComputeEstimates(listProcForTP[i],PatCur.PatNum,ref ClaimProcList,false,InsPlanList,PatPlanList,BenefitList,HistList,LoopList
-						,false,PatCur.Age,SubList,listSubstLinks:_listSubstLinks);
+						,false,PatCur.Age,SubList,listSubstLinks:_listSubstLinks,lookupFees:lookupFees);
 					//then, add this information to loopList so that the next procedure is aware of it.
 					LoopList.AddRange(ClaimProcs.GetHistForProc(ClaimProcList,listProcForTP[i].ProcNum,listProcForTP[i].CodeNum));
 				}
