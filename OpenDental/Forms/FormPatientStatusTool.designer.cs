@@ -112,7 +112,6 @@ namespace OpenDental {
 			this.comboClinic.Name = "comboClinic";
 			this.comboClinic.Size = new System.Drawing.Size(197, 21);
 			this.comboClinic.TabIndex = 83;
-			this.comboClinic.Visible = false;
 			// 
 			// listOptions
 			// 

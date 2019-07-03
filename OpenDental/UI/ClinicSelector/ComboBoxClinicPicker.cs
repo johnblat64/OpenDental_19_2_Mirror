@@ -288,12 +288,6 @@ namespace OpenDental.UI {
 				return _listClinics[_selectedIndex].ClinicNum;
 			}
 			set {
-				if(value==CLINIC_NUM_ALL){
-					throw new ApplicationException("Clinic num cannot be set to -2.  Instead, set IsAllSelected=true.");
-				}
-				if(value==-1){
-					throw new ApplicationException("Clinic num cannot be set to -1.  Instead, set IsNothingSelected=true.");
-				}
 				int idx=_listClinics.FindIndex(x=>x.ClinicNum==value);
 				if(idx==-1){
 					//this user does not have permission for the selected clinic
