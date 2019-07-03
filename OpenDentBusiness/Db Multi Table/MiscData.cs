@@ -122,8 +122,14 @@ namespace OpenDentBusiness {
 			if(PrefC.GetStringNoCache(PrefName.UpdateStreamLinePassword)=="abracadabra") {
 				return;
 			}
-            bool useSameServer=string.IsNullOrWhiteSpace(serverName) 
-				|| DataConnection.GetServerName().Equals(serverName,StringComparison.CurrentCultureIgnoreCase);
+			string currentServerName=DataConnection.GetServerName().ToLower();
+			bool useSameServer=string.IsNullOrWhiteSpace(serverName) || currentServerName.Equals(serverName,StringComparison.CurrentCultureIgnoreCase);
+			if(currentServerName=="localhost" && serverName.ToLower()!="localhost") { //there could be a mismatch but technically the same server
+				useSameServer=serverName.Equals(Environment.MachineName,StringComparison.CurrentCultureIgnoreCase);
+			}
+			if(serverName.ToLower()=="localhost" && currentServerName!="localhost") { //there could be a mismatch but technically the same server
+				useSameServer=currentServerName.Equals(Environment.MachineName,StringComparison.CurrentCultureIgnoreCase);
+			}
 			//only used in two places: upgrading version, and upgrading mysql version.
 			//Both places check first to make sure user is using mysql.
 			//we have to be careful to throw an exception if the backup is failing.
@@ -176,6 +182,9 @@ namespace OpenDentBusiness {
 				else {
 					long count=PIn.Long(dcon.GetCount($"SELECT COUNT(*) FROM `{oldDb}`.`{tableName}`"));
 					int limit=10000;
+					if(tableName=="documentmisc") { //This table can have really large rows so just to be safe, handle the backup one row at a time
+						limit=1;
+					}
 					int offset=0;
 					while(count > offset) {
 						DataTable dtOld=dcon.GetTable($" SELECT * FROM `{oldDb}`.`{tableName}` LIMIT {limit} OFFSET {offset}");
