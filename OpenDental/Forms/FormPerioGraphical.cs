@@ -187,7 +187,10 @@ namespace OpenDental {
 				}
 				for(int j=0;j<toothChart.TcData.ListToothGraphics.Count;j++) {
 					if(toothChart.TcData.ListToothGraphics[j].ToothID==_toothChartData.ListToothGraphics[i].ToothID) {
-						toothChart.TcData.ListToothGraphics[j]=_toothChartData.ListToothGraphics[i];
+						toothChart.TcData.ListToothGraphics[j]=_toothChartData.ListToothGraphics[i].Copy(toothChart.TcData.ListToothGraphics[j]);
+						if(_toothChartData.ListToothGraphics[i].IsCrown) {
+							toothChart.SetCrown(toothChart.TcData.ListToothGraphics[j].ToothID,_toothChartData.ListToothGraphics[i].colorImplant);
+						}
 						break;
 					}
 				}
