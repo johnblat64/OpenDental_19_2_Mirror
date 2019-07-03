@@ -2741,7 +2741,7 @@ namespace OpenDental {
 							field.FieldValue=listDepositItems[11][2].PadLeft(15);
 						}
 						break;
-					case "checkNumberm13":
+					case "checkNumber13":
 						if(listDepositItems.Count>=13) {
 							field.FieldValue=listDepositItems[12][2].PadLeft(15);
 						}
