@@ -292,7 +292,7 @@ namespace OpenDentBusiness {
 			//Query the database for all phrases that we don't accept and see if the exception text passed in contains any of the phrases from the database.
 			DataAction.RunBugsHQ(() => {
 				listPhrases=Db.GetListString("SELECT Phrase FROM bugsubmissionfilter WHERE Phrase!=''");
-			},false);
+			});
 			return !listPhrases.Any(x => bug.ExceptionMessageText.Contains(x) || bug.ExceptionStackTrace.Contains(x));
 		}
 

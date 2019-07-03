@@ -15,9 +15,9 @@ namespace OpenDentBusiness {
 		private static List<Version> _versionsBlackList=new List<Version> { new Version(4,9),new Version(13,3), };
 
 		///<summary>Returns a list of all versions ordered by MajorNum, MinorNum, BuildNum, and IsForeign.</summary>
-		public static List<VersionRelease> Refresh() {
+		public static List<VersionRelease> Refresh(bool useConnectionStore=false) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<VersionRelease>>(MethodBase.GetCurrentMethod());
+				return Meth.GetObject<List<VersionRelease>>(MethodBase.GetCurrentMethod(),useConnectionStore);
 			}
 			List<VersionRelease> listVersionReleases=new List<VersionRelease>();
 			DataAction.RunBugsHQ(() => {
@@ -35,7 +35,7 @@ namespace OpenDentBusiness {
 				//The order is very important to other entites calling this method.
 				command+="ORDER BY MajorNum DESC,MinorNum DESC,BuildNum DESC,IsForeign";
 				listVersionReleases=RefreshAndFill(command);
-			},false);
+			},useConnectionStore);
 			return listVersionReleases;
 		}
 
@@ -49,7 +49,7 @@ namespace OpenDentBusiness {
 			int maxVersions;
 			Bugs.TryGetPrefValue<int>("BugSubmissionsCountPreviousVersions",out maxVersions);
 			maxVersions=Math.Max(1,maxVersions);
-			List<VersionRelease> listVersionReleases=Refresh();//Ordered by most recent release and then IsForeign
+			List<VersionRelease> listVersionReleases=Refresh(true);//Ordered by most recent release and then IsForeign
 			List<VersionRelease> listBetaVersionReleases=listVersionReleases
 				.Where(x => x.IsBeta
 					&& x.IsForeign==isForeign 
