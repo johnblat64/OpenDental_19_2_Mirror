@@ -1117,9 +1117,9 @@ namespace OpenDental{
 				}
 			}
 			//Check DB to see if payments have been linked to another deposit already.  Build list of currently selected PayNums
-			List<long> listPayNums=gridPat.SelectedIndices.OfType<int>().Select(x => PatPayList[x].PayNum).ToList();
-			if(listPayNums.Count>0) {
-				int alreadyAttached=Payments.GetCountAttachedToDeposit(listPayNums,_depositCur.DepositNum);//Depositnum might be 0
+			List<long> listSelectedPayNums=gridPat.SelectedIndices.OfType<int>().Select(x => PatPayList[x].PayNum).ToList();
+			if(listSelectedPayNums.Count>0) {
+				int alreadyAttached=Payments.GetCountAttachedToDeposit(listSelectedPayNums,_depositCur.DepositNum);//Depositnum might be 0
 				if(alreadyAttached>0) {
 					MessageBox.Show(this,alreadyAttached+" "+Lan.g(this,"patient payments are already attached to another deposit")+".");
 					//refresh
@@ -1127,9 +1127,9 @@ namespace OpenDental{
 				}
 			}
 			//Check DB to see if payments have been linked to another deposit already.  Build list of currently selected ClaimPaymentNums.
-			List<long> listClaimPaymentNums=gridIns.SelectedIndices.OfType<int>().Select(x => ClaimPayList[x].ClaimPaymentNum).ToList();
-			if(listClaimPaymentNums.Count>0) {
-				int alreadyAttached=ClaimPayments.GetCountAttachedToDeposit(listClaimPaymentNums,_depositCur.DepositNum);//Depositnum might be 0
+			List<long> listSelectedClaimPaymentNums=gridIns.SelectedIndices.OfType<int>().Select(x => ClaimPayList[x].ClaimPaymentNum).ToList();
+			if(listSelectedClaimPaymentNums.Count>0) {
+				int alreadyAttached=ClaimPayments.GetCountAttachedToDeposit(listSelectedClaimPaymentNums,_depositCur.DepositNum);//Depositnum might be 0
 				if(alreadyAttached>0) {
 					MessageBox.Show(this,alreadyAttached+" "+Lan.g(this,"insurance payments are already attached to another deposit")+".");
 					//refresh
@@ -1185,6 +1185,17 @@ namespace OpenDental{
 				if(_isOnOKClick && (_listPayNumsAttached.Count!=0 || _listClaimPaymentNumAttached.Count!=0)) {
 					//Detach any payments or claimpayments that were attached in the DB but no longer selected.
 					Deposits.DetachFromDeposit(_depositCur.DepositNum,_listPayNumsAttached,_listClaimPaymentNumAttached);
+				}
+				if(!_isOnOKClick) {
+					//The user has not saved the deposit. Check for payments that are no longer selected.
+					List<long> listDeselectedPayNums=_listPayNumsAttached.Except(listSelectedPayNums).ToList();
+					List<long> listDelectedClaimPaymentNums=_listClaimPaymentNumAttached.Except(listSelectedClaimPaymentNums).ToList();
+					if(!listDeselectedPayNums.IsNullOrEmpty() || !listDelectedClaimPaymentNums.IsNullOrEmpty()) {
+						Deposits.DetachFromDeposit(_depositCur.DepositNum,listDeselectedPayNums,listDelectedClaimPaymentNums);
+						//The deselected payments are no longer attached. Remove from class wide list.
+						listDeselectedPayNums.ForEach(x => _listPayNumsAttached.Remove(x));
+						listDelectedClaimPaymentNums.ForEach(x => _listClaimPaymentNumAttached.Remove(x));
+					}
 				}
 			}
 			_hasBeenSavedToDB=true;//So that we don't insert the deposit slip again when clicking Print or PDF or OK
