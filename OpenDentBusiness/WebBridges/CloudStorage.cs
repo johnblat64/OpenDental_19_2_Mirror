@@ -176,7 +176,7 @@ namespace OpenDentBusiness {
 					break;
 				case DataStorageType.SftpAtoZ:
 					if(!FileExists(path)) {
-						break;
+						return null;
 					}
 					state=new OpenDentalCloud.Sftp.Delete(ODSftp.Hostname,ODSftp.UserName,ODSftp.Password) {
 						Path=PathTidy(path),
