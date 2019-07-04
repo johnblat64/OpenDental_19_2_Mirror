@@ -480,7 +480,7 @@ namespace OpenDental.UI {
 						SelectedClinicNum=CLINIC_NUM_UNASSIGNED;
 					}
 					else if(DoIncludeAll) {
-						SelectedClinicNum=CLINIC_NUM_ALL;
+						SetSelectedClinicNum(CLINIC_NUM_ALL);
 					}
 				}
 				else {
@@ -521,6 +521,7 @@ namespace OpenDental.UI {
 			return str;
 		}
 
+		///<summary>This is used separately from the SelectedClinicNum setter in order to internally set to -2 without an exception.  But this doesn't work for -1.</summary>
 		private void SetSelectedClinicNum(long value){
 			int idx=_listClinics.FindIndex(x=>x.ClinicNum==value);
 			if(idx==-1){
