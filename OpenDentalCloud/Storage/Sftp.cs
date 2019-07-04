@@ -321,13 +321,10 @@ namespace OpenDentalCloud {
 			if(string.IsNullOrEmpty(path)) {
 				return;
 			}
-			if(path[0]=='/') {
-				path=path.Substring(1);
-			}
 			string currentDir="";
-			string[] directories=path.Split('/');
+			string[] directories=path.Split("/",StringSplitOptions.RemoveEmptyEntries);
 			for(int i=0;i<directories.Length;i++) {
-				if(i>0) {
+				if(i>0 || path[0]=='/') {
 					currentDir+="/";
 				}
 				currentDir+=directories[i];

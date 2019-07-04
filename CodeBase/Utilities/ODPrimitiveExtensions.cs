@@ -277,6 +277,11 @@ namespace CodeBase {
 			return value.Substring(value.IndexOf(afterThis)+afterThis.Length);
 		}
 
+		///<summary>When you want to specify StringSplitOptions and you just want to split using a string.</summary>
+		public static string[] Split(this string stringToSplit,string separator,StringSplitOptions splitOptions) {
+			return stringToSplit.Split(new string[] { separator },splitOptions);
+		}
+
 		///<summary>Compares the current dictionary to the dictionary passed in. 
 		///Requires the implementer to provide a func that will handle the comparison of individual "items" (within the TValue object).
 		///Throws if all keys and values match, otherwise returns silently.</summary>
