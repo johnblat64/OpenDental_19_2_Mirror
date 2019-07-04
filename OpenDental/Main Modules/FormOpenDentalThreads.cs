@@ -53,6 +53,7 @@ namespace OpenDental {
 			else {
 				timerSignals.Stop();
 				timerTimeIndic.Stop();
+				_hasSignalProcessingPaused=true;
 			}
 		}
 
