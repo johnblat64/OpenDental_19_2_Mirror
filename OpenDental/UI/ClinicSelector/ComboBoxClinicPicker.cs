@@ -45,7 +45,7 @@ namespace OpenDental.UI {
 		#region Fields - Private Constant 
 		///<summary>Represents all clinics.  This is done with a dummy clinic added to the top of the list with a ClinicNum of -2.</summary>
 		private const long CLINIC_NUM_ALL=-2;
-		///<summary>HQ/unassigned/default/none/all clinic with ClinicNum=0. Sometimes this dummy is filled with info from pref table instead of clinic table.</summary>
+		///<summary>HQ/unassigned/default/none clinic with ClinicNum=0. Sometimes this dummy is filled with info from pref table instead of clinic table.</summary>
 		private const long CLINIC_NUM_UNASSIGNED=0;
 		#endregion Fields - Private Constant 
 
@@ -59,7 +59,7 @@ namespace OpenDental.UI {
 		///<summary>Not exposed as public property.</summary>
 		private List<Clinic> _listClinics=new List<Clinic>();
 		///<summary>If the SelectedClinicNum gets set to a clinic that's not in the list because the user has no permission, then this is where that info is stored.  If this is null, then it instead behaves normally.</summary>
-		private Clinic _selectedClinicNoPerm;
+		private Clinic _selectedClinicNoPermission;
 		//<summary>Not exposed as public property. Must stay synched with _listSelectedIndices.</summary>
 		private int _selectedIndex=-1;
 		///<summary>Not exposed as public property. Must stay synched with _selectedIndex.</summary>
@@ -138,7 +138,7 @@ namespace OpenDental.UI {
 			if(ShowLabel && e.X<_widthLabelArea){
 				return;
 			}
-			if(_selectedClinicNoPerm!=null){
+			if(_selectedClinicNoPermission!=null){
 				MsgBox.Show("Not allowed");
 				return;
 			}
@@ -203,7 +203,7 @@ namespace OpenDental.UI {
 		}
 
 		[Category("OD")]
-		[Description("The display value for ClinicNum 0. Default is 'Unassigned', but might want 'Default', 'HQ', 'None', etc.  Do not specify 'All' here, because that would be easily confused with the other property.  Only used when 'DoIncludeUnassigned'")]
+		[Description("The display value for ClinicNum 0. Default is 'Unassigned', but might want 'Default', 'HQ', 'None', etc.  Do not specify 'All' here, because that is not accurate.  Only used when 'DoIncludeUnassigned'")]
 		[DefaultValue("Unassigned")]
 		public string HqDescription {
 			get {
@@ -223,7 +223,7 @@ namespace OpenDental.UI {
 				return SelectedClinicNum==CLINIC_NUM_ALL;
 			}
 			set{
-				SelectedClinicNum=CLINIC_NUM_ALL;
+				SetSelectedClinicNum(CLINIC_NUM_ALL);//bypasses the Property that would not allow this externally.
 			}
 		}
 
@@ -265,11 +265,16 @@ namespace OpenDental.UI {
 				return _selectedIndex==-1;
 			}
 			set{
-				SelectedClinicNum=-1;
+				//not going to check permission here because it's coming from code rather than user.
+				_selectedClinicNoPermission=null;
+				_selectedIndex=-1;
+				_listSelectedIndices=new List<int>();
+				OnSelectedIndexChanged(this,new EventArgs());
+				Invalidate();
 			}
 		}
 
-		///<summary>Getter returns -1 if no clinic is selected. The setter is special.  If you set it to a clinicNum that this user does not have permission for, then the combobox displays that and becomes read-only to prevent changing it.  0 (Unassigned) can also be set from here if it's present. This is common if pulling zero from the database.  But instead of manually setting to 0, you should use the property IsUnassignedSelected.  You are not allowed to set to -2 (All) or -1 (none) from here.  Instead, set IsAllSelected=true or IsNothingSelected=true.</summary>
+		///<summary>Getter returns -1 if no clinic is selected. The setter is special.  If you set it to a clinicNum that this user does not have permission for, then the combobox displays that and becomes read-only to prevent changing it.  0 (Unassigned) can also be set from here if it's present. This is common if pulling zero from the database.  But if you need to manually set to 0 in other situations, you should use the property IsUnassignedSelected.  You are not allowed to manually set to -2 (All) or -1 (none) from here.  Instead, set IsAllSelected=true or IsNothingSelected=true.</summary>
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public long SelectedClinicNum {
@@ -279,8 +284,8 @@ namespace OpenDental.UI {
 						return 0; //when clinics are turned off this control doesn't appear and the 0 clinic is implicitly always selected
 					}
 				}
-				if(_selectedClinicNoPerm!=null){
-					return _selectedClinicNoPerm.ClinicNum;
+				if(_selectedClinicNoPermission!=null){
+					return _selectedClinicNoPermission.ClinicNum;
 				}
 				if(_selectedIndex==-1) {
 					return -1;
@@ -288,34 +293,17 @@ namespace OpenDental.UI {
 				return _listClinics[_selectedIndex].ClinicNum;
 			}
 			set {
-				int idx=_listClinics.FindIndex(x=>x.ClinicNum==value);
-				if(idx==-1){
-					//this user does not have permission for the selected clinic
-					//so _selectedIndex and _listSelectedIndices are completely meaningless
-					if(_isTestModeNoDb){
-						_selectedClinicNoPerm=new Clinic{Abbr=value.ToString(), Description=value.ToString(),ClinicNum=value };
-					}
-					else{
-						_selectedClinicNoPerm=Clinics.GetClinic(value);
-						//could still possibly be null in a corrupted db.  In that case, we still need to be able to return what was set.
-						if(_selectedClinicNoPerm==null){
-							_selectedClinicNoPerm=new Clinic{Abbr=value.ToString(), Description=value.ToString(),ClinicNum=value };
-						}
-					}
+				if(value==CLINIC_NUM_ALL){
+					throw new ApplicationException("Clinic num cannot be set to -2.  Instead, set IsAllSelected=true.");
 				}
-				else{
-					_selectedClinicNoPerm=null;
-					_selectedIndex=idx;
-					_listSelectedIndices=new List<int>();
-					_listSelectedIndices.Add(idx);
-					_selectedClinicNoPerm=null;
+				if(value==-1){
+					throw new ApplicationException("Clinic num cannot be set to -1.  Instead, set IsNothingSelected=true.");
 				}
-				OnSelectedIndexChanged(this,new EventArgs());
-				Invalidate();
+				SetSelectedClinicNum(value);				
 			}
 		}
 
-		///<summary>Also can used when IsMultiSelect=false.  In the case where "All" is selected, this will return a list of all clinicNums in the list, which is not technically the same as All clinics in the database, because some clinics might be hidden from this user.  If unassigned(=0) is in the list when All is selected, then it will be included here.  If the calling form wishes to instead test All, and use other logic, it should test IsAllSelected. When setting, this isn't as rigorous as setting SelectedClinicNum.  This will simply skip setting any clinics that aren't present because of no permission.</summary>
+		///<summary>Also can used when IsMultiSelect=false.  In the case where "All" is selected, this will return a list of all clinicNums in the list, which is not technically the same as All clinics in the database, because some clinics might be hidden from this user.  If unassigned(=0) is in the list when All is selected, then it will be included here.  If the calling form wishes to instead test All, and use other logic, it should test IsAllSelected. When setting, this isn't as rigorous as setting SelectedClinicNum.  This property will simply skip setting any clinics that aren't present because of no permission, but it will not disable the control to prevent changes.</summary>
 		[Browsable(false)]
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public List<long> ListSelectedClinicNums {
@@ -328,8 +316,8 @@ namespace OpenDental.UI {
 					}
 				}
 				List<long> listSelectedClinicNums=new List<long>();
-				if(_selectedClinicNoPerm!=null){
-					listSelectedClinicNums.Add(_selectedClinicNoPerm.ClinicNum);
+				if(_selectedClinicNoPermission!=null){
+					listSelectedClinicNums.Add(_selectedClinicNoPermission.ClinicNum);
 					return listSelectedClinicNums;
 				}
 				if(_listSelectedIndices.Count==0) {
@@ -352,7 +340,7 @@ namespace OpenDental.UI {
 				return listSelectedClinicNums;
 			}
 			set{
-				_selectedClinicNoPerm=null;
+				_selectedClinicNoPermission=null;
 				_listSelectedIndices=new List<int>();
 				for(int i=0;i<_listClinics.Count;i++) {
 					if(value.Contains(_listClinics[i].ClinicNum)) {
@@ -514,8 +502,8 @@ namespace OpenDental.UI {
 			if(_listSelectedIndices.Contains(0) && _listClinics[0].ClinicNum==CLINIC_NUM_ALL){
 				return "All";
 			}
-			if(_selectedClinicNoPerm!=null){
-				return _selectedClinicNoPerm.Abbr;
+			if(_selectedClinicNoPermission!=null){
+				return _selectedClinicNoPermission.Abbr;
 			}
 			string str="";
 			for(int i=0;i<_listSelectedIndices.Count;i++){
@@ -531,6 +519,32 @@ namespace OpenDental.UI {
 				}
 			}
 			return str;
+		}
+
+		private void SetSelectedClinicNum(long value){
+			int idx=_listClinics.FindIndex(x=>x.ClinicNum==value);
+			if(idx==-1){
+				//this user does not have permission for the selected clinic
+				//so _selectedIndex and _listSelectedIndices are completely meaningless
+				if(_isTestModeNoDb){
+					_selectedClinicNoPermission=new Clinic{Abbr=value.ToString(), Description=value.ToString(),ClinicNum=value };
+				}
+				else{
+					_selectedClinicNoPermission=Clinics.GetClinic(value);
+					//could still possibly be null in a corrupted db.  In that case, we still need to be able to return what was set.
+					if(_selectedClinicNoPermission==null){
+						_selectedClinicNoPermission=new Clinic{Abbr=value.ToString(), Description=value.ToString(),ClinicNum=value };
+					}
+				}
+			}
+			else{
+				_selectedClinicNoPermission=null;
+				_selectedIndex=idx;
+				_listSelectedIndices=new List<int>();
+				_listSelectedIndices.Add(idx);
+			}
+			OnSelectedIndexChanged(this,new EventArgs());
+			Invalidate();
 		}
 		#endregion Methods - Private
 
