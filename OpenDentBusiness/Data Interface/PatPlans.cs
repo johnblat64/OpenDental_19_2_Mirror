@@ -49,6 +49,18 @@ namespace OpenDentBusiness{
 			//ordinal was already set using SetOrdinal, but it's harmless to set it again.
 			Crud.PatPlanCrud.Update(patPlan);
 		}
+		
+		public static void Update(PatPlan patPlanNew,PatPlan patPlanOld) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),patPlanNew,patPlanOld);
+				return;
+			}
+			if(patPlanOld==null) {
+				Update(patPlanNew);
+				return;
+			}
+			Crud.PatPlanCrud.Update(patPlanNew,patPlanOld);
+		}
 
 		///<summary></summary>
 		public static long Insert(PatPlan patPlan) {

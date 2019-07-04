@@ -143,8 +143,9 @@ namespace OpenDentBusiness {
 				default:
 					break;
 			}
+			InsEditLog logCur;
 			if(itemOld == null) { //new, just inserted. Show PriKey Column only.
-				InsEditLog logCur = new InsEditLog() {
+				logCur = new InsEditLog() {
 					FieldName = priKeyColName,
 					UserNum = userNumCur,
 					OldValue = "NEW",
@@ -157,6 +158,7 @@ namespace OpenDentBusiness {
 				Insert(logCur);
 				return;
 			}
+			List<InsEditLog> listLogsForInsert=new List<InsEditLog>();
 			foreach(FieldInfo prop in priKeyItem.GetType().GetFields()) {
 				if(prop.IsDefined(typeof(CrudColumnAttribute))
 				&& (((CrudColumnAttribute)prop.GetCustomAttribute(typeof(CrudColumnAttribute))).SpecialType.HasFlag(CrudSpecialColType.DateEntry)
@@ -168,7 +170,7 @@ namespace OpenDentBusiness {
 				}
 				object valOld = prop.GetValue(itemOld)??"";
 				if(itemCur==null) { //deleted, show all deleted columns
-					InsEditLog logCur = new InsEditLog() {
+					logCur = new InsEditLog() {
 						FieldName = prop.Name,
 						UserNum = userNumCur,
 						OldValue = valOld.ToString(),
@@ -178,14 +180,13 @@ namespace OpenDentBusiness {
 						ParentKey = parentKey,
 						Description = descript,
 					};
-					Insert(logCur);
 				}
 				else { //updated, just show changes.
 					object valCur = prop.GetValue(itemCur)??"";
 					if(valCur.ToString() == valOld.ToString()) {
 						continue;
 					}
-					InsEditLog logCur = new InsEditLog() {
+					logCur = new InsEditLog() {
 						FieldName = prop.Name,
 						UserNum = userNumCur,
 						OldValue = valOld.ToString(),
@@ -195,9 +196,21 @@ namespace OpenDentBusiness {
 						ParentKey = parentKey,
 						Description = descript,
 					};
-					Insert(logCur);
 				}
+				listLogsForInsert.Add(logCur);
 			}
+			if(listLogsForInsert.Count>0) {
+				InsertMany(listLogsForInsert);
+			}
+		}
+
+		private static void InsertMany(List<InsEditLog> listLogs) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),listLogs);
+				return;
+			}
+			Crud.InsEditLogCrud.InsertMany(listLogs);
+			return;
 		}
 
 		public static long Insert(InsEditLog logCur) {

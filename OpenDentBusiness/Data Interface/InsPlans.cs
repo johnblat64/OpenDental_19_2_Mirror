@@ -1142,70 +1142,70 @@ namespace OpenDentBusiness {
 		///Also deletes patplans, benefits, and claimprocs. 
 		///If canDeleteInsSub is true and there is only one inssub associated to the plan, it will also delete inssubs. 
 		///This should only really happen when an existing plan is being deleted.</summary>
-		public static void Delete(InsPlan plan,bool canDeleteInsSub=true) {
+		public static void Delete(InsPlan plan,bool canDeleteInsSub=true,bool doInsertInsEditLogs=true) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),plan,canDeleteInsSub);
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),plan,canDeleteInsSub,doInsertInsEditLogs);
 				return;
 			}
 			#region Validation
-			//first, check claims
-			string command="SELECT PatNum FROM claim "
-				+"WHERE PlanNum = '"+plan.PlanNum.ToString()+"' "+DbHelper.LimitAnd(1);
-			DataTable table=Db.GetTable(command);
-			if(table.Rows.Count!=0) {
+			//Claims
+			string command="SELECT 1 FROM claim WHERE PlanNum="+POut.Long(plan.PlanNum)+" "+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Not allowed to delete a plan with existing claims."));
 			}
-			//then, check claimprocs
-			command="SELECT PatNum FROM claimproc "
-				+"WHERE PlanNum = "+POut.Long(plan.PlanNum)
-				+" AND Status != "+POut.Int((int)ClaimProcStatus.Estimate)//ignore estimates
-				+" "+DbHelper.LimitAnd(1);
-			table=Db.GetTable(command);
-			if(table.Rows.Count!=0) {
+			//Claimprocs
+			command="SELECT 1 FROM claimproc "
+				+"WHERE PlanNum="+POut.Long(plan.PlanNum)+" AND Status!="+POut.Int((int)ClaimProcStatus.Estimate)+" "//ignore estimates
+				+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Not allowed to delete a plan attached to procedures."));
 			}
-			//Appointments  
-			//We only care about appointment statuses that are excluded in Appointments.UpdateInsPlansForPat()
-			command="SELECT COUNT(*) FROM appointment "
+			//Appointments
+			command="SELECT 1 FROM appointment "
 				+"WHERE (InsPlan1="+POut.Long(plan.PlanNum)+" OR InsPlan2="+POut.Long(plan.PlanNum)+") "
-				+"AND AptStatus IN ("+POut.Int((int)ApptStatus.Complete)
-					+","+POut.Int((int)ApptStatus.Broken)
-					+","+POut.Int((int)ApptStatus.PtNote)
-					+","+POut.Int((int)ApptStatus.PtNoteCompleted)+")";
-			if(Db.GetCount(command)!="0") {
+				+"AND AptStatus IN ("+POut.Int((int)ApptStatus.Complete)+","
+					+POut.Int((int)ApptStatus.Broken)+","
+					+POut.Int((int)ApptStatus.PtNote)+","
+					+POut.Int((int)ApptStatus.PtNoteCompleted)+") "//We only care about appt statuses that are excluded in Appointments.UpdateInsPlansForPat()
+					+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Not allowed to delete a plan attached to appointments."));
 			}
 			//PayPlans
-			command="SELECT COUNT(*) FROM payplan "
-				+"WHERE PlanNum="+POut.Long(plan.PlanNum);
-			if(Db.GetCount(command)!="0") {
+			command="SELECT 1 FROM payplan WHERE PlanNum="+POut.Long(plan.PlanNum)+" "+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Not allowed to delete a plan attached to payment plans."));
 			}
-			//throw error if more than one inssub
-			command="SELECT InsSubNum FROM inssub WHERE PlanNum = "+POut.Long(plan.PlanNum);
-			table=Db.GetTable(command);
-			if(table.Rows.Count>1) {
+			//InsSubs
+			//we want the InsSubNum if only 1, otherwise only need to know there's more than one.
+			command="SELECT InsSubNum FROM inssub WHERE PlanNum="+POut.Long(plan.PlanNum)+" "+DbHelper.LimitAnd(2);
+			List<long> listInsSubNums=Db.GetListLong(command);
+			if(listInsSubNums.Count>1) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Not allowed to delete a plan with more than one subscriber."));
 			}
-			else if(table.Rows.Count==1 && canDeleteInsSub) {//if there's only one inssub, delete it.
-				long insSubNum=PIn.Long(table.Rows[0]["InsSubNum"].ToString());
-				InsSubs.Delete(insSubNum);//Checks dependencies first;  If none, deletes the inssub, claimprocs, patplans, and recomputes all estimates.
+			else if(listInsSubNums.Count==1 && canDeleteInsSub) {//if there's only one inssub, delete it.
+				InsSubs.Delete(listInsSubNums[0]);//Checks dependencies first;  If none, deletes the inssub, claimprocs, patplans, and recomputes all estimates.
 			}
-			#endregion
+			#endregion Validation
 			command="SELECT * FROM benefit WHERE PlanNum="+POut.Long(plan.PlanNum);
-			List<Benefit> listBenefits = Crud.BenefitCrud.SelectMany(command);
-			command="DELETE FROM benefit WHERE PlanNum="+POut.Long(plan.PlanNum);
+			List<Benefit> listBenefits=Crud.BenefitCrud.SelectMany(command);
+			if(listBenefits.Count>0) {
+				command="DELETE FROM benefit WHERE PlanNum="+POut.Long(plan.PlanNum);
+				Db.NonQ(command);
+				//Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
+				if(doInsertInsEditLogs) {
+					listBenefits.ForEach(x => {
+						InsEditLogs.MakeLogEntry(null,x,InsEditLogType.Benefit,Security.CurUser.UserNum);//log benefit deletion
+					});
+				}
+			}
+			ClearFkey(plan.PlanNum);//Zero securitylog FKey column for rows to be deleted.
+			command="DELETE FROM insplan WHERE PlanNum="+POut.Long(plan.PlanNum);
 			Db.NonQ(command);
 			//Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
-			listBenefits.ForEach(x => {
-				InsEditLogs.MakeLogEntry(null,x,InsEditLogType.Benefit,Security.CurUser.UserNum); //log benefit deletion
-			});
-			InsPlans.ClearFkey(plan.PlanNum);//Zero securitylog FKey column for rows to be deleted.
-			command="DELETE FROM insplan "
-				+"WHERE PlanNum = '"+plan.PlanNum.ToString()+"'";
-			Db.NonQ(command);
-			//Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
-			InsEditLogs.MakeLogEntry(null,plan,InsEditLogType.InsPlan,Security.CurUser.UserNum); //log insplan deletion
+			if(doInsertInsEditLogs) {
+				InsEditLogs.MakeLogEntry(null,plan,InsEditLogType.InsPlan,Security.CurUser.UserNum); //log insplan deletion
+			}
 			InsVerifies.DeleteByFKey(plan.PlanNum,VerifyTypes.InsuranceBenefit);
 		}
 

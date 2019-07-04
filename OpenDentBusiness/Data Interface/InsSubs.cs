@@ -225,37 +225,22 @@ namespace OpenDentBusiness{
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),subNum,strict);
 				return;
 			}
-			string command;
-			string result;
-			//claim.InsSubNum/2
-			command="SELECT COUNT(*) FROM claim WHERE InsSubNum = "+POut.Long(subNum);
-			result=Db.GetScalar(command);
-			if(result!="0") {
+			string command="SELECT 1 FROM claim WHERE InsSubNum="+POut.Long(subNum)+" OR InsSubNum2="+POut.Long(subNum)+" "+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Subscriber has existing claims and so the subscriber cannot be deleted."));
 			}
-			command="SELECT COUNT(*) FROM claim WHERE InsSubNum2 = "+POut.Long(subNum);
-			result=Db.GetScalar(command);
-			if(result!="0") {
-				throw new ApplicationException(Lans.g("FormInsPlan","Subscriber has existing claims and so the subscriber cannot be deleted."));
-			}
-			//claimproc.InsSubNum
 			if(strict) {
-				command="SELECT COUNT(*) FROM claimproc WHERE InsSubNum = "+POut.Long(subNum)+" AND Status != "+POut.Int((int)ClaimProcStatus.Estimate);//ignore estimates
-				result=Db.GetScalar(command);
-				if(result!="0") {
+				command="SELECT 1 FROM claimproc WHERE InsSubNum="+POut.Long(subNum)+" AND Status!="+POut.Int((int)ClaimProcStatus.Estimate)+" "+DbHelper.LimitAnd(1);//ignore estimates
+				if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 					throw new ApplicationException(Lans.g("FormInsPlan","Subscriber has existing claim procedures and so the subscriber cannot be deleted."));
 				}
 			}
-			//etrans.InsSubNum
-			command="SELECT COUNT(*) FROM etrans WHERE InsSubNum = "+POut.Long(subNum);
-			result=Db.GetScalar(command);
-			if(result!="0") {
+			command="SELECT 1 FROM etrans WHERE InsSubNum="+POut.Long(subNum)+" "+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Subscriber has existing etrans entry and so the subscriber cannot be deleted."));
 			}
-			//payplan.InsSubNum
-			command="SELECT COUNT(*) FROM payplan WHERE InsSubNum = "+POut.Long(subNum);
-			result=Db.GetScalar(command);
-			if(result!="0") {
+			command="SELECT 1 FROM payplan WHERE InsSubNum="+POut.Long(subNum)+" "+DbHelper.LimitAnd(1);
+			if(!string.IsNullOrEmpty(Db.GetScalar(command))) {
 				throw new ApplicationException(Lans.g("FormInsPlan","Subscriber has existing insurance linked payment plans and so the subscriber cannot be deleted."));
 			}
 		}

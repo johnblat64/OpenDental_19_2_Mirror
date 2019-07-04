@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Text;
 
 namespace OpenDentBusiness.Crud{
 	public class InsEditLogCrud {
@@ -129,6 +130,66 @@ namespace OpenDentBusiness.Crud{
 				insEditLog.InsEditLogNum=Db.NonQ(command,true,"InsEditLogNum","insEditLog");
 			}
 			return insEditLog.InsEditLogNum;
+		}
+
+		///<summary>Inserts many InsEditLogs into the database.</summary>
+		public static void InsertMany(List<InsEditLog> listInsEditLogs) {
+			InsertMany(listInsEditLogs,false);
+		}
+
+		///<summary>Inserts many InsEditLogs into the database.  Provides option to use the existing priKey.</summary>
+		public static void InsertMany(List<InsEditLog> listInsEditLogs,bool useExistingPK) {
+			if(!useExistingPK && PrefC.RandomKeys) {
+				foreach(InsEditLog insEditLog in listInsEditLogs) {
+					Insert(insEditLog);
+				}
+			}
+			else {
+				StringBuilder sbCommands=null;
+				int index=0;
+				while(index < listInsEditLogs.Count) {
+					InsEditLog insEditLog=listInsEditLogs[index];
+					StringBuilder sbRow=new StringBuilder("(");
+					bool hasComma=false;
+					if(sbCommands==null) {
+						sbCommands=new StringBuilder();
+						sbCommands.Append("INSERT INTO inseditlog (");
+						if(useExistingPK) {
+							sbCommands.Append("InsEditLogNum,");
+						}
+						sbCommands.Append("FKey,LogType,FieldName,OldValue,NewValue,UserNum,ParentKey,Description) VALUES ");
+					}
+					else {
+						hasComma=true;
+					}
+					if(useExistingPK) {
+						sbRow.Append(POut.Long(insEditLog.InsEditLogNum)); sbRow.Append(",");
+					}
+					sbRow.Append(POut.Long(insEditLog.FKey)); sbRow.Append(",");
+					sbRow.Append(POut.Int((int)insEditLog.LogType)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(insEditLog.FieldName)+"'"); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(insEditLog.OldValue)+"'"); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(insEditLog.NewValue)+"'"); sbRow.Append(",");
+					sbRow.Append(POut.Long(insEditLog.UserNum)); sbRow.Append(",");
+					//DateTStamp can only be set by MySQL
+					sbRow.Append(POut.Long(insEditLog.ParentKey)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(insEditLog.Description)+"'"); sbRow.Append(")");
+					if(sbCommands.Length+sbRow.Length+1 > TableBase.MaxAllowedPacketCount) {
+						Db.NonQ(sbCommands.ToString());
+						sbCommands=null;
+					}
+					else {
+						if(hasComma) {
+							sbCommands.Append(",");
+						}
+						sbCommands.Append(sbRow.ToString());
+						if(index==listInsEditLogs.Count-1) {
+							Db.NonQ(sbCommands.ToString());
+						}
+						index++;
+					}
+				}
+			}
 		}
 
 		///<summary>Inserts one InsEditLog into the database.  Returns the new priKey.  Doesn't use the cache.</summary>

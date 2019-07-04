@@ -5,7 +5,7 @@ namespace OpenDentBusiness{
 	
 	///<summary></summary>
 	[Serializable()]
-	[CrudTable(IsLargeTable=true)]
+	[CrudTable(HasBatchWriteMethods=true,IsLargeTable=true)]
 	public class InsEditLog:TableBase{
 		///<summary>Primary key.</summary>
 		[CrudColumn(IsPriKey=true)]

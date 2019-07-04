@@ -82,6 +82,7 @@ namespace OpenDental{
 		private System.Windows.Forms.ListBox listAdj;
 		private System.Windows.Forms.Panel panelPat;
 		private PatPlan PatPlanCur;
+		private PatPlan _patPlanOld;
 		private ArrayList AdjAL;
 		private OpenDental.ValidNumber textOrdinal;
 		private OpenDental.UI.ODGrid gridBenefits;
@@ -269,6 +270,7 @@ namespace OpenDental{
 			_planCur=planCur;
 			_planOld=_planCur.Copy();
 			PatPlanCur=patPlanCur;
+			_patPlanOld=patPlanCur?.Copy();
 			_subCur=subCur;
 			listEmps=new ListBox();
 			listEmps.Location=new Point(tabControlInsPlan.Left+tabPageInsPlanInfo.Left+panelPlan.Left+groupPlan.Left+textEmployer.Left,
@@ -5450,6 +5452,7 @@ namespace OpenDental{
 
 		private void butOK_Click(object sender,System.EventArgs e) {
 			bool removeLogs=false;
+			#region Validation
 			if(PatPlanCur!=null) {
 				PatPlan ppExists=PatPlans.GetByPatPlanNum(PatPlanCur.PatPlanNum);
 				if(ppExists==null) {
@@ -5479,7 +5482,8 @@ namespace OpenDental{
 			if(comboFilingCodeSubtype.SelectedItem != null) {
 				_planCur.FilingCodeSubtype=((ODBoxItem<InsFilingCodeSubtype>)comboFilingCodeSubtype.SelectedItem).Tag.InsFilingCodeSubtypeNum;
 			}
-			#region 1
+			#endregion Validation
+			#region 1 - Validate Carrier Received Claims
 			try {
 			if(!FillPlanCurFromForm()) {//also fills SubCur if not null
 				return;
@@ -5502,8 +5506,8 @@ namespace OpenDental{
 				MessageBox.Show(Lan.g(this,"Error Code 1")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
-			#endregion 1
-			#region 2
+			#endregion 1 - Validate Carrier Received Claims
+			#region 2 - InsPlanChangeAssign Permission Check
 			try {
 			//We do not want to block users from creating new plans for subscribers if they do not have the InsPlanChangeAssign permission.
 			//Therefore, we will only check the permission if they are editing an old plan.
@@ -5526,8 +5530,8 @@ namespace OpenDental{
 				MessageBox.Show(Lan.g(this,"Error Code 2")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
-			#endregion 2
-			#region 3
+			#endregion 2 - InsPlanChangeAssign Permission Check
+			#region 3 - PatPlan
 			try {
 				//Validation is finished at this point.
 				//PatPlan-------------------------------------------------------------------------------------------
@@ -5543,7 +5547,10 @@ namespace OpenDental{
 					PatPlanCur.IsPending=checkIsPending.Checked;
 					PatPlanCur.Relationship=(Relat)comboRelationship.SelectedIndex;
 					PatPlanCur.PatID=textPatID.Text;
-					PatPlans.Update(PatPlanCur);
+					if(_patPlanOld!=null) {
+						_patPlanOld.PatID=_patPlanOld.PatID??"";
+					}
+					PatPlans.Update(PatPlanCur,_patPlanOld);
 					if(!PIn.Date(textDateLastVerifiedPatPlan.Text).Date.Equals(_datePatPlanLastVerified.Date)) {
 						InsVerify insVerify=InsVerifies.GetOneByFKey(PatPlanCur.PatPlanNum,VerifyTypes.PatientEnrollment);
 						if(insVerify!=null) {
@@ -5563,57 +5570,46 @@ namespace OpenDental{
 			if(_subCur!=null) {
 				_subCur.PlanNum=_planCur.PlanNum;
 			}
-			#endregion 3
+			#endregion 3 - PatPlan
 			//Sections 4 - 10 all deal with manipulating the insurance plan so make sure the user has permission to do so.
-			#region InsPlanEdit permission
+			#region InsPlan Edit
 			if(Security.IsAuthorized(Permissions.InsPlanEdit,true)) {
-				//InsPlan-----------------------------------------------------------------------------------------
 				if(_subCur==null) {//editing from big list.  No subscriber.  'pick from list' button not visible, making logic easier.
-					#region 4
+					#region 4 - InsPlan Null Subscriber
 					try {
-						//if(IsNewPlan) {//not yet implemented
-						//	if(InsPlans.AreEqualValue(PlanCur,PlanCurOriginal)) {//If no changes
-
-						//	}
-						//	else {//changes were made
-
-						//	}
-						//}
-						//else {//editing an existing plan from big list
 						if(InsPlans.AreEqualValue(_planCur,_planCurOriginal)) {//If no changes
-																																	 //pick button doesn't complicate things.  Simply nothing to do.
-																																	 //Also, no SubCur, so just close the form.
+							//pick button doesn't complicate things.  Simply nothing to do.  Also, no SubCur, so just close the form.
 							DialogResult=DialogResult.OK;
 						}
 						else {//changes were made
 							InsPlans.Update(_planCur);
 							DialogResult=DialogResult.OK;
 						}
-						//}
 					}
 					catch(Exception ex) {
 						MessageBox.Show(Lan.g(this,"Error Code 4")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 						return;
 					}
-					#endregion 4
-				}
+					#endregion 4 - InsPlan Null Subscriber
+				}//end if(_subCur==null)
 				else {//(subCur!=null) editing from within patient
-							//Be very careful here.  User could have clicked 'pick from list' button, which would have changed PlanNum.
-							//So we always compare with PlanNumOriginal.
+					//Be very careful here.  User could have clicked 'pick from list' button, which would have changed PlanNum.
+					//So we always compare with PlanNumOriginal.
 					if(IsNewPlan) {
 						if(InsPlans.AreEqualValue(_planCur,_planCurOriginal)) {//New plan, no changes
-							#region 5 - If the logic in this region changes, then also change region 5a below.
+							#region 5 - InsPlan Non-Null Subscriber, New Plan, No Changes Made
+							//If the logic in this region changes, then also change region 5a below.
 							try {
 								if(_planCur.PlanNum != _planOld.PlanNum) {//clicked 'pick from list' button
-																													//No need to update PlanCur because no changes.
-																													//delete original plan.
+									//No need to update PlanCur because no changes, delete original plan.
 									try {
 										if(_didAddInsHistCP) {
 											//Need to update InsHist with new PlanNum since user clicked 'pick from list' button
 											ClaimProcs.UpdatePlanNumForInsHist(PatPlanCur.PatNum,_planOld.PlanNum,_planCur.PlanNum);
 										}
 										//does dependency checking, throws if dependencies exist. the inssub should NOT be deleted as it is used below.
-										InsPlans.Delete(_planOld,canDeleteInsSub: false);
+										InsPlans.Delete(_planOld,canDeleteInsSub:false,doInsertInsEditLogs:false);
+										benefitListOld=new List<Benefit>();
 										removeLogs=true;
 									}
 									catch(ApplicationException ex) {
@@ -5626,27 +5622,21 @@ namespace OpenDental{
 										return;
 									}
 									_subCur.PlanNum=_planCur.PlanNum;
-									//PatPlanCur.PlanNum=PlanCur.PlanNum;
-									//PatPlans.Update(PatPlanCur);
-									//When 'pick from list' button was pushed, benfitList was filled with benefits from the picked plan.
-									//Then, those benefits may or may not have been changed.  
-									//benefitListOld will still contain the original defaults for a new plan, but they will be orphaned.
-									//So all the original benefits will be automatically deleted because they won't be found in the newlist.
-									//If any benefits were changed after picking, the synch further down will trigger updates for the benefits on the picked plan.
 								}
 								else {//new plan, no changes, not picked from list.
-											//do not need to update PlanCur because no changes were made.
+									//do not need to update PlanCur because no changes were made.
 								}
 							}
 							catch(Exception ex) { //catch any other exceptions and display
 								MessageBox.Show(Lan.g(this,"Error Code 5")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 								return;
 							}
-							#endregion 5
+							#endregion 5 - InsPlan Non-Null Subscriber, New Plan, No Changes Made
 						}
 						else {//new plan, changes were made
+							#region 6 - InsPlan Non-Null Subscriber, New Plan, Changes Made
 							if(_planCur.PlanNum != _planOld.PlanNum) {//clicked 'pick from list' button, and then made changes
-								#region 6 - If the logic in this region changes, then also change region 6a below.
+								//If the logic in this region changes, then also change region 6a below.
 								try {
 									if(radioChangeAll.Checked) {
 										InsPlans.Update(_planCur);//they might not realize that they would be changing an existing plan. Oh well.
@@ -5656,7 +5646,8 @@ namespace OpenDental{
 												ClaimProcs.UpdatePlanNumForInsHist(PatPlanCur.PatNum,_planOld.PlanNum,_planCur.PlanNum);
 											}
 											//does dependency checking, throws if dependencies exist. the inssub should NOT be deleted as it is used below.
-											InsPlans.Delete(_planOld,canDeleteInsSub: false);
+											InsPlans.Delete(_planOld,canDeleteInsSub:false,doInsertInsEditLogs:false);
+											benefitListOld=new List<Benefit>();
 											removeLogs=true;
 										}
 										catch(ApplicationException ex) {
@@ -5668,19 +5659,14 @@ namespace OpenDental{
 											return;
 										}
 										_subCur.PlanNum=_planCur.PlanNum;
-										//PatPlanCur.PlanNum=PlanCur.PlanNum;
-										//PatPlans.Update(PatPlanCur);
-										//Same logic applies to benefit list as the section above.
 									}
 									else {//option is checked for "create new plan if needed"
 										_planCur.PlanNum=_planOld.PlanNum;
 										InsPlans.Update(_planCur);
 										_subCur.PlanNum=_planCur.PlanNum;
-										//no need to update PatPlan.  Same old PlanNum.
-										//When 'pick from list' button was pushed, benfitList was filled with benefits from the picked plan.
-										//benefitListOld was not touched and still contains the old benefits.  So the original benefits will be automatically deleted.
-										//We force copies to be made in the database, but with different PlanNums.
-										//Any other changes will be preserved.
+										//no need to update PatPlan.  Same old PlanNum.  When 'pick from list' button was pushed, benfitList was filled with benefits from
+										//the picked plan.  benefitListOld was not touched and still contains the old benefits.  So the original benefits will be
+										//automatically deleted.  We force copies to be made in the database, but with different PlanNums.  Any other changes will be preserved.
 										for(int i = 0;i<benefitList.Count;i++) {
 											if(benefitList[i].PlanNum>0) {
 												benefitList[i].PlanNum=_planCur.PlanNum;
@@ -5693,43 +5679,41 @@ namespace OpenDental{
 									MessageBox.Show(Lan.g(this,"Error Code 6")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 									return;
 								}
-								#endregion 6
 							}
 							else {//new plan, changes made, not picked from list.
 								InsPlans.Update(_planCur);
 							}
-						}
-					}
+							#endregion 6 - InsPlan Non-Null Subscriber, New Plan, Changes Made
+						}//end else of if(InsPlans.AreEqual...
+					}//end if(IsNewPlan)
 					else {//editing an existing plan from within patient
 						if(InsPlans.AreEqualValue(_planCur,_planCurOriginal)) {//If no changes
-							#region 7
+							#region 7 - InsPlan Non-Null Subscriber, Not a New Plan, No Changes Made
 							try {
 								if(_planCur.PlanNum != _planOld.PlanNum) {//clicked 'pick from list' button, then made no changes
-																													//do not need to update PlanCur because no changes were made.
+									//do not need to update PlanCur because no changes were made.
 									if(_didAddInsHistCP) {
 										//Need to update InsHist with new PlanNum since user clicked 'pick from list' button
 										ClaimProcs.UpdatePlanNumForInsHist(PatPlanCur.PatNum,_planOld.PlanNum,_planCur.PlanNum);
 									}
 									_subCur.PlanNum=_planCur.PlanNum;
-									//PatPlanCur.PlanNum=PlanCur.PlanNum;
-									//PatPlans.Update(PatPlanCur);
 									//When 'pick from list' button was pushed, benefitListOld was filled with a shallow copy of the benefits from the picked list.
 									//So if any benefits were changed, the synch further down will trigger updates for the benefits on the picked plan.
 								}
 								else {//existing plan, no changes, not picked from list.
-											//do not need to update PlanCur because no changes were made.
+									//do not need to update PlanCur because no changes were made.
 								}
 							}
 							catch(Exception ex) {
 								MessageBox.Show(Lan.g(this,"Error Code 7")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 								return;
 							}
-							#endregion 7
-						}
+							#endregion 7 - InsPlan Non-Null Subscriber, Not a New Plan, No Changes Made
+						}//end if(InsPlans.AreEqual...
 						else {//changes were made
 							if(_planCur.PlanNum != _planOld.PlanNum) {//clicked 'pick from list' button, and then made changes
 								if(radioChangeAll.Checked) {
-									#region 8
+									#region 8 - InsPlan Non-Null Subscriber, Not a New Plan, Pick From List, Changes Made, Change All Checked
 									try {
 										//warn user here?
 										if(_didAddInsHistCP) {
@@ -5738,8 +5722,6 @@ namespace OpenDental{
 										}
 										InsPlans.Update(_planCur);
 										_subCur.PlanNum=_planCur.PlanNum;
-										//PatPlanCur.PlanNum=PlanCur.PlanNum;
-										//PatPlans.Update(PatPlanCur);
 										//When 'pick from list' button was pushed, benefitListOld was filled with a shallow copy of the benefits from the picked list.
 										//So if any benefits were changed, the synch further down will trigger updates for the benefits on the picked plan.
 									}
@@ -5747,24 +5729,20 @@ namespace OpenDental{
 										MessageBox.Show(Lan.g(this,"Error Code 8")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 										return;
 									}
-									#endregion 8
+									#endregion 8 - InsPlan Non-Null Subscriber, Not a New Plan, Pick From List, Changes Made, Change All Checked
 								}
 								else {//option is checked for "create new plan if needed"
-									#region 9
+									#region 9 - InsPlan Non-Null Subscriber, Not a New Plan, Pick From List, Changes Made, Create New Plan Checked
 									try {
 										if(textLinkedNum.Text=="0") {//if this is the only subscriber
 											InsPlans.Update(_planCur);
 											_subCur.PlanNum=_planCur.PlanNum;
-											//PatPlanCur.PlanNum=PlanCur.PlanNum;
-											//PatPlans.Update(PatPlanCur);
 											//When 'pick from list' button was pushed, benefitListOld was filled with a shallow copy of the benefits from the picked list.
 											//So if any benefits were changed, the synch further down will trigger updates for the benefits on the picked plan.
 										}
 										else {//if there are other subscribers
 											InsPlans.Insert(_planCur);//this gives it a new primary key.
 											_subCur.PlanNum=_planCur.PlanNum;
-											//PatPlanCur.PlanNum=PlanCur.PlanNum;
-											//PatPlans.Update(PatPlanCur);
 											//When 'pick from list' button was pushed, benefitListOld was filled with a shallow copy of the benefits from the picked list.
 											//We must clear the benefitListOld to prevent deletion of those benefits.
 											benefitListOld=new List<Benefit>();
@@ -5783,11 +5761,11 @@ namespace OpenDental{
 										MessageBox.Show(Lan.g(this,"Error Code 9")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 										return;
 									}
-									#endregion 9
+									#endregion 9 - InsPlan Non-Null Subscriber, Not a New Plan, Pick From List, Changes Made, Create New Plan Checked
 								}
 							}
 							else {//existing plan, changes made, not picked from list.
-								#region 10
+								#region 10 - InsPlan Non-Null Subscriber, Not a New Plan, Not Picked From List, Changes Made
 								try {
 									if(radioChangeAll.Checked) {
 										InsPlans.Update(_planCur);
@@ -5818,16 +5796,17 @@ namespace OpenDental{
 									MessageBox.Show(Lan.g(this,"Error Code 10")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 									return;
 								}
-								#endregion 10
+								#endregion 10 - InsPlan Non-Null Subscriber, Not a New Plan, Not Picked From List, Changes Made
 							}
-						}
-					}
-				}
+						}//end else of if(InsPlans.AreEqual...
+					}//end else of if(IsNewPlan)
+				}//end else of if(_subCur==null)
 			}//End InsPlanEdit permission check
 			else {//User does not have the InsPlanEdit permission.
 				if(_subCur!=null) {
 					if(IsNewPlan) {
-						#region 5a - If the logic in this region changes, then also change region 5 above.
+						#region 5a - User Without Permissions, InsPlan Non-Null Subscriber, New Plan
+						//If the logic in this region changes, then also change region 5 above.
 						try {
 							if(_planCur.PlanNum != _planOld.PlanNum) {//user clicked the "pick from list" button. 
 								//In a previous version, a user could still change some things about the plan even if they had no permissions to do so.
@@ -5841,7 +5820,8 @@ namespace OpenDental{
 										ClaimProcs.UpdatePlanNumForInsHist(PatPlanCur.PatNum,_planOld.PlanNum,_planCur.PlanNum);
 									}
 									//does dependency checking, throws if dependencies exist. the inssub should NOT be deleted as it is used below.
-									InsPlans.Delete(_planOld,canDeleteInsSub: false);
+									InsPlans.Delete(_planOld,canDeleteInsSub:false,doInsertInsEditLogs:false);
+									benefitListOld=new List<Benefit>();
 									removeLogs=true;
 								}
 								catch(ApplicationException ex) {
@@ -5858,81 +5838,80 @@ namespace OpenDental{
 							MessageBox.Show(Lan.g(this,"Error Code 5a")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 							return;
 						}
-						#endregion
+						#endregion 5a - User Without Permissions, InsPlan Non-Null Subscriber, New Plan
 					}
 				}
 			}
-			#endregion
-			#region 11
+			#endregion InsPlan Edit
+			#region InsSub and Benefit Sync
 			try {
-			if(!PIn.Date(textDateLastVerifiedBenefits.Text).Date.Equals(_dateInsPlanLastVerified.Date)) {
-				InsVerify insVerify=InsVerifies.GetOneByFKey(_planCur.PlanNum,VerifyTypes.InsuranceBenefit);
-				insVerify.DateLastVerified=PIn.Date(textDateLastVerifiedBenefits.Text);
-				InsVerifyHists.InsertFromInsVerify(insVerify);
-			}
-			//PatPlanCur.InsSubNum is already set before opening this window.  There is no possible way to change it from within this window.  Even if PlanNum changes, it's still the same inssub.  And even if inssub.Subscriber changes, it's still the same inssub.  So no change to PatPlanCur.InsSubNum is ever require from within this window.
-			//Synch benefits-----------------------------------------------------------------------------------------------
-			Benefits.UpdateList(benefitListOld,benefitList);
-			if(removeLogs) {
-				InsEditLogs.DeletePreInsertedLogsForPlanNum(_planOld.PlanNum);
-			}
-			//Update SubCur if needed-------------------------------------------------------------------------------------
-			if(_subCur!=null) {
-				//SubCur.PlanNum=PlanCur.PlanNum;//done above
-				InsSubs.Update(_subCur);//also saves the other fields besides PlanNum
-				//Udate all claims, claimprocs, payplans, and etrans that are pointing at the inssub.InsSubNum since it may now be pointing at a new insplan.PlanNum.
-				InsSubs.SynchPlanNumsForNewPlan(_subCur);
-				InsPlans.ComputeEstimatesForSubscriber(_subCur.Subscriber);
-			}
+				if(!PIn.Date(textDateLastVerifiedBenefits.Text).Date.Equals(_dateInsPlanLastVerified.Date)) {
+					InsVerify insVerify=InsVerifies.GetOneByFKey(_planCur.PlanNum,VerifyTypes.InsuranceBenefit);
+					insVerify.DateLastVerified=PIn.Date(textDateLastVerifiedBenefits.Text);
+					InsVerifyHists.InsertFromInsVerify(insVerify);
+				}
+				//PatPlanCur.InsSubNum is already set before opening this window.  There is no possible way to change it from within this window.  Even if PlanNum changes, it's still the same inssub.  And even if inssub.Subscriber changes, it's still the same inssub.  So no change to PatPlanCur.InsSubNum is ever require from within this window.
+				if(benefitListOld.Count>0 || benefitList.Count>0) {//Synch benefits
+					Benefits.UpdateList(benefitListOld,benefitList);
+				}
+				if(removeLogs) {
+					InsEditLogs.DeletePreInsertedLogsForPlanNum(_planOld.PlanNum);
+				}
+				if(_subCur!=null) {//Update SubCur if needed
+					InsSubs.Update(_subCur);//also saves the other fields besides PlanNum
+					//Udate all claims, claimprocs, payplans, and etrans that are pointing at the inssub.InsSubNum since it may now be pointing at a new insplan.PlanNum.
+					InsSubs.SynchPlanNumsForNewPlan(_subCur);
+					InsPlans.ComputeEstimatesForSubscriber(_subCur.Subscriber);
+				}
 			}
 			catch(Exception ex) {
 				MessageBox.Show(Lan.g(this,"Error Code 11")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
-			#endregion 11
-			#region 12
+			#endregion InsSub and Benefit Sync
+			#region Carrier
 			try {
-			//Check for changes in the carrier
-			if(_planCur.CarrierNum!=_planCurOriginal.CarrierNum) {
-				_hasCarrierChanged=true;
-				long patNum=0;
-				if(PatPlanCur!=null) {//PatPlanCur will be null if editing insurance plans from Lists > Insurance Plans.
-					patNum=PatPlanCur.PatNum;
+				//Check for changes in the carrier
+				if(_planCur.CarrierNum!=_planCurOriginal.CarrierNum) {
+					_hasCarrierChanged=true;
+					long patNum=0;
+					if(PatPlanCur!=null) {//PatPlanCur will be null if editing insurance plans from Lists > Insurance Plans.
+						patNum=PatPlanCur.PatNum;
+					}
+					string carrierNameOrig=Carriers.GetCarrier(_planCurOriginal.CarrierNum).CarrierName;
+					string carrierNameNew=Carriers.GetCarrier(_planCur.CarrierNum).CarrierName;
+					if(carrierNameOrig!=carrierNameNew) {//The CarrierNum could have changed but the CarrierName might not have changed.  Only make an audit entry if the name changed.
+						SecurityLogs.MakeLogEntry(Permissions.InsPlanChangeCarrierName,patNum,Lan.g(this,"Carrier name changed in Edit Insurance Plan window from")+" "
+						+carrierNameOrig+" "+Lan.g(this,"to")+" "+carrierNameNew,_planCur.PlanNum,_planCurOriginal.SecDateTEdit);
+					}
 				}
-				string carrierNameOrig=Carriers.GetCarrier(_planCurOriginal.CarrierNum).CarrierName;
-				string carrierNameNew=Carriers.GetCarrier(_planCur.CarrierNum).CarrierName;
-				if(carrierNameOrig!=carrierNameNew) {//The CarrierNum could have changed but the CarrierName might not have changed.  Only make an audit entry if the name changed.
-					SecurityLogs.MakeLogEntry(Permissions.InsPlanChangeCarrierName,patNum,Lan.g(this,"Carrier name changed in Edit Insurance Plan window from")+" "
-					+carrierNameOrig+" "+Lan.g(this,"to")+" "+carrierNameNew,_planCur.PlanNum,_planCurOriginal.SecDateTEdit);
-				}
-			}
 			}
 			catch(Exception ex) {
 				MessageBox.Show(Lan.g(this,"Error Code 12")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
-			#endregion 12
-			#region 13
+			#endregion Carrier
+			#region Carrier FeeSched
 			try {
-			Carrier carrierCur=Carriers.GetCarrier(_planCur.CarrierNum);
-			if(_planCurOriginal.FeeSched!=0 && _planCurOriginal.FeeSched!=_planCur.FeeSched) {
-				string feeSchedOld=FeeScheds.GetDescription(_planCurOriginal.FeeSched);
-				string feeSchedNew=FeeScheds.GetDescription(_planCur.FeeSched);
-				string logText=Lan.g(this,"The fee schedule associated with insurance plan number")+" "+_planCur.PlanNum.ToString()+" "+Lan.g(this,"for the carrier")+" "+carrierCur.CarrierName+" "+Lan.g(this,"was changed from")+" "+feeSchedOld+" "+Lan.g(this,"to")+" "+feeSchedNew;
-				SecurityLogs.MakeLogEntry(Permissions.InsPlanEdit,PatPlanCur==null?0:PatPlanCur.PatNum,logText,(_planCur==null)?0:_planCur.PlanNum,
-					_planCurOriginal.SecDateTEdit);
-			}
-			if(InsPlanCrud.UpdateComparison(_planCurOriginal,_planCur)) {
-				string logText=Lan.g(this,"Insurance plan")+" "+_planCur.PlanNum.ToString()+" "+Lan.g(this,"for the carrier")+" "+carrierCur.CarrierName+" "+Lan.g(this,"has changed.");
-				SecurityLogs.MakeLogEntry(Permissions.InsPlanEdit,PatPlanCur==null?0:PatPlanCur.PatNum,logText,(_planCur==null)?0:_planCur.PlanNum,
-					_planCurOriginal.SecDateTEdit);
-			}
+				Carrier carrierCur=Carriers.GetCarrier(_planCur.CarrierNum);
+				if(_planCurOriginal.FeeSched!=0 && _planCurOriginal.FeeSched!=_planCur.FeeSched) {
+					string feeSchedOld=FeeScheds.GetDescription(_planCurOriginal.FeeSched);
+					string feeSchedNew=FeeScheds.GetDescription(_planCur.FeeSched);
+					string logText=Lan.g(this,"The fee schedule associated with insurance plan number")+" "+_planCur.PlanNum.ToString()+" "+Lan.g(this,"for the carrier")+" "+carrierCur.CarrierName+" "+Lan.g(this,"was changed from")+" "+feeSchedOld+" "+Lan.g(this,"to")+" "+feeSchedNew;
+					SecurityLogs.MakeLogEntry(Permissions.InsPlanEdit,PatPlanCur==null?0:PatPlanCur.PatNum,logText,(_planCur==null)?0:_planCur.PlanNum,
+						_planCurOriginal.SecDateTEdit);
+				}
+				if(InsPlanCrud.UpdateComparison(_planCurOriginal,_planCur)) {
+					string logText=Lan.g(this,"Insurance plan")+" "+_planCur.PlanNum.ToString()+" "+Lan.g(this,"for the carrier")+" "+carrierCur.CarrierName+" "+Lan.g(this,"has changed.");
+					SecurityLogs.MakeLogEntry(Permissions.InsPlanEdit,PatPlanCur==null?0:PatPlanCur.PatNum,logText,(_planCur==null)?0:_planCur.PlanNum,
+						_planCurOriginal.SecDateTEdit);
+				}
 			}
 			catch(Exception ex) {
 				MessageBox.Show(Lan.g(this,"Error Code 13")+".  "+Lan.g(this,"Please contact support")+"\r\n"+"\r\n"+ex.Message+"\r\n"+ex.StackTrace);
 				return;
 			}
-			#endregion 13
+			#endregion Carrier FeeSched
 			DialogResult=DialogResult.OK;
 		}
 
@@ -5977,8 +5956,7 @@ namespace OpenDental{
 					if(_subCur!=null) {
 						InsSubs.Delete(_subCur.InsSubNum);
 					}
-					InsPlans.Delete(_planOld,canDeleteInsSub: false);//does dependency checking.
-					Benefits.DeleteForPlan(_planOld.PlanNum);
+					InsPlans.Delete(_planOld,canDeleteInsSub:false,doInsertInsEditLogs:false);//does dependency checking.
 					InsEditLogs.DeletePreInsertedLogsForPlanNum(_planOld.PlanNum);
 					//Ok to delete these adjustments because we deleted the benefits in Benefits.DeleteForPlan().
 					ClaimProcs.DeleteMany(AdjAL.ToArray().Cast<ClaimProc>().ToList());

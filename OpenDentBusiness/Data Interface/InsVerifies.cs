@@ -136,15 +136,6 @@ namespace OpenDentBusiness{
 			return new DateTime(Math.Max(dateTimeDaysUntilAppt.Ticks, dateTimeShowInVerificationList.Ticks));
 		}
 		#endregion
-
-
-		///<summary>Gets one InsVerify from the db.</summary>
-		public static InsVerify GetOne(long insVerifyNum) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<InsVerify>(MethodBase.GetCurrentMethod(),insVerifyNum);
-			}
-			return Crud.InsVerifyCrud.SelectOne(insVerifyNum);
-		}
 		
 		///<summary>Gets one InsVerify from the db that has the given fkey and verify type.</summary>
 		public static InsVerify GetOneByFKey(long fkey,VerifyTypes verifyType) {
@@ -154,28 +145,6 @@ namespace OpenDentBusiness{
 			string command="SELECT * FROM insverify WHERE FKey="+POut.Long(fkey)+" AND VerifyType="+POut.Int((int)verifyType)+"";
 			return Crud.InsVerifyCrud.SelectOne(command);
 		}
-		
-		///<summary>Gets one InsVerifyNum from the db that has the given fkey and verify type.</summary>
-		public static long GetInsVerifyNumByFKey(long fkey,VerifyTypes verifyType) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetLong(MethodBase.GetCurrentMethod(),fkey,verifyType);
-			}
-			string command="SELECT * FROM insverify WHERE FKey="+POut.Long(fkey)+" AND VerifyType="+POut.Int((int)verifyType)+"";
-			InsVerify insVerify=Crud.InsVerifyCrud.SelectOne(command);
-			if(insVerify==null) {
-				return 0;
-			}
-			return insVerify.InsVerifyNum;
-		}
-
-		///<summary></summary>
-		public static long Insert(InsVerify insVerify) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				insVerify.InsVerifyNum=Meth.GetLong(MethodBase.GetCurrentMethod(),insVerify);
-				return insVerify.InsVerifyNum;
-			}
-			return Crud.InsVerifyCrud.Insert(insVerify);
-		}
 
 		///<summary></summary>
 		public static void Update(InsVerify insVerify) {
@@ -184,15 +153,6 @@ namespace OpenDentBusiness{
 				return;
 			}
 			Crud.InsVerifyCrud.Update(insVerify);
-		}
-
-		///<summary></summary>
-		public static void Delete(long insVerifyNum) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),insVerifyNum);
-				return;
-			}
-			Crud.InsVerifyCrud.Delete(insVerifyNum);
 		}
 		
 		///<summary>Inserts a default InsVerify into the database based on the passed in patplan.  Used when inserting a new patplan.
@@ -225,8 +185,8 @@ namespace OpenDentBusiness{
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),fkey,verifyType);
 				return;
 			}
-			long insVerifyNum=GetInsVerifyNumByFKey(fkey,verifyType);
-			Crud.InsVerifyCrud.Delete(insVerifyNum);//Will do nothing if insVerifyNum was 0.
+			string command="DELETE FROM insverify WHERE FKey="+POut.Long(fkey)+" AND VerifyType="+POut.Int((int)verifyType);
+			Db.NonQ(command);
 		}
 
 		public static List<InsVerify> GetAll() {
