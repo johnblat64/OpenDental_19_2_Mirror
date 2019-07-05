@@ -6,7 +6,7 @@ namespace OpenDentBusiness{
 	
 	///<summary>This schema is copied directly from JRMT. Do not rename columns here.</summary>
 	[Serializable]
-	[CrudTable(IsMissingInGeneral=true)]
+	[CrudTable(IsMissingInGeneral=true,CrudExcludePrefC=true)]
 	public class Bug{
 		///<summary>Primary key.</summary>
 		[CrudColumn(IsPriKey=true)]

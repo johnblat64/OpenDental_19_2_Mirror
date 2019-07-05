@@ -15,7 +15,7 @@ namespace OpenDentBusiness {
 	///This table is only in OpenDentBusiness because the bug table from the bugs database lives here as well,
 	/// and we want to follow that pattern since this table links to it.</summary>
 	[Serializable]
-	[CrudTable(IsMissingInGeneral=true)]
+	[CrudTable(IsMissingInGeneral=true,CrudExcludePrefC=true)]
 	public class BugSubmission:TableBase {
 		///<summary>Primary key.</summary>
 		[CrudColumn(IsPriKey=true)]

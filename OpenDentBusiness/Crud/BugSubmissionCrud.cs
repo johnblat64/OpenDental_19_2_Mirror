@@ -104,15 +104,12 @@ namespace OpenDentBusiness.Crud{
 
 		///<summary>Inserts one BugSubmission into the database.  Provides option to use the existing priKey.</summary>
 		public static long Insert(BugSubmission bugSubmission,bool useExistingPK) {
-			if(!useExistingPK && PrefC.RandomKeys) {
-				bugSubmission.BugSubmissionNum=ReplicationServers.GetKey("bugsubmission","BugSubmissionNum");
-			}
 			string command="INSERT INTO bugsubmission (";
-			if(useExistingPK || PrefC.RandomKeys) {
+			if(useExistingPK) {
 				command+="BugSubmissionNum,";
 			}
 			command+="SubmissionDateTime,BugId,RegKey,DbVersion,ExceptionMessageText,ExceptionStackTrace,DbInfoJson,DevNote,IsHidden,CategoryTags) VALUES(";
-			if(useExistingPK || PrefC.RandomKeys) {
+			if(useExistingPK) {
 				command+=POut.Long(bugSubmission.BugSubmissionNum)+",";
 			}
 			command+=
@@ -142,7 +139,7 @@ namespace OpenDentBusiness.Crud{
 				bugSubmission.CategoryTags="";
 			}
 			OdSqlParameter paramCategoryTags=new OdSqlParameter("paramCategoryTags",OdDbType.Text,POut.StringParam(bugSubmission.CategoryTags));
-			if(useExistingPK || PrefC.RandomKeys) {
+			if(useExistingPK) {
 				Db.NonQ(command,paramExceptionStackTrace,paramDbInfoJson,paramDevNote,paramCategoryTags);
 			}
 			else {
@@ -158,16 +155,12 @@ namespace OpenDentBusiness.Crud{
 
 		///<summary>Inserts one BugSubmission into the database.  Provides option to use the existing priKey.  Doesn't use the cache.</summary>
 		public static long InsertNoCache(BugSubmission bugSubmission,bool useExistingPK) {
-			bool isRandomKeys=Prefs.GetBoolNoCache(PrefName.RandomPrimaryKeys);
 			string command="INSERT INTO bugsubmission (";
-			if(!useExistingPK && isRandomKeys) {
-				bugSubmission.BugSubmissionNum=ReplicationServers.GetKeyNoCache("bugsubmission","BugSubmissionNum");
-			}
-			if(isRandomKeys || useExistingPK) {
+			if(useExistingPK) {
 				command+="BugSubmissionNum,";
 			}
 			command+="SubmissionDateTime,BugId,RegKey,DbVersion,ExceptionMessageText,ExceptionStackTrace,DbInfoJson,DevNote,IsHidden,CategoryTags) VALUES(";
-			if(isRandomKeys || useExistingPK) {
+			if(useExistingPK) {
 				command+=POut.Long(bugSubmission.BugSubmissionNum)+",";
 			}
 			command+=
@@ -197,7 +190,7 @@ namespace OpenDentBusiness.Crud{
 				bugSubmission.CategoryTags="";
 			}
 			OdSqlParameter paramCategoryTags=new OdSqlParameter("paramCategoryTags",OdDbType.Text,POut.StringParam(bugSubmission.CategoryTags));
-			if(useExistingPK || isRandomKeys) {
+			if(useExistingPK) {
 				Db.NonQ(command,paramExceptionStackTrace,paramDbInfoJson,paramDevNote,paramCategoryTags);
 			}
 			else {
