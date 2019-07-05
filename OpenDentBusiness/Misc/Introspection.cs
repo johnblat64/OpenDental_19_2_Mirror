@@ -23,17 +23,14 @@ namespace OpenDentBusiness {
 				if(_dictOverrides!=null || !Prefs.GetContainsKey(nameof(PrefName.IntrospectionItems))) {
 					return _dictOverrides;
 				}
-				//The dictionary of overrides has not been filled before or the preference does not exist in the database.
+				//Try to extract the introspection overrides from the preference.
 				try {
 					string introspectionItems=PrefC.GetString(PrefName.IntrospectionItems);//Cache call so it is fine to do this a lot.  Purposefully throws exceptions.
 					//At this point we know the database has the IntrospectionItems preference so we need to instantiate _dictOverrides.
-					_dictOverrides=new Dictionary<IntrospectionEntity, string>();
-					//Try an deserialize the preference value into the dictionary.
-					//If this throws, the engineer will get a UE later in the program stating that their corresponding IntrospectionEntity could not be found (dictionary not filled out correctly).
 					_dictOverrides=JsonConvert.DeserializeObject<Dictionary<IntrospectionEntity,string>>(introspectionItems);
 				}
 				catch(Exception ex) {
-					ex.DoNothing();
+					throw new ApplicationException("Error encountered while deserializing introspection JSON. \r\nError: "+ex.Message);
 				}
 				return _dictOverrides;
 			}
@@ -94,7 +91,7 @@ namespace OpenDentBusiness {
 		"DentalXChangeDwsDebugURL":"https://prelive2.dentalxchange.com/dws/DwsService",
 		"DentalXChangeDeaDebugURL":"https://prelive2.dentalxchange.com/dea/DeaPartnerService",
 		"DoseSpotDebugURL":"https://my.staging.dosespot.com/webapi",
-		"PayConnectRestDebugURL":"https://https://prelive2.dentalxchange.com/pay/rest/PayService"
+		"PayConnectRestDebugURL":"https://https://prelive2.dentalxchange.com/pay/rest/PayService",
 		"PDMPDebugURL":"https://openid.logicoy.com/ilpdmp/test/getReport",
 	}'
  );
