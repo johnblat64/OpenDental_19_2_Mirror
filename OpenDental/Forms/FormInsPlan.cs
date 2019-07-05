@@ -2596,7 +2596,7 @@ namespace OpenDental{
 			_employerNameOrig=Employers.GetName(_planCur.EmployerNum);
 			_employerNameCur=Employers.GetName(_planCur.EmployerNum);
 			_carrierNumOrig=_planCur.CarrierNum;
-			_listClaimForms=ClaimForms.GetDeepCopy(true);
+			_listClaimForms=ClaimForms.GetDeepCopy(false);
 			foreach(NoSendElectType noSendElect in Enum.GetValues(typeof(NoSendElectType))) {//selected index set in FillFormWithPlanCur -> FillCarrier
 				comboSendElectronically.Items.Add(new ODBoxItem<NoSendElectType>(noSendElect.GetDescription(),noSendElect));
 			}
@@ -2747,16 +2747,21 @@ namespace OpenDental{
 			checkShowBaseUnits.Checked=_planCur.ShowBaseUnits;
 			FillComboFeeSched(comboFeeSched,_planCur.FeeSched,FeeSchedsStandard);//Combo Fee Sched
 			comboClaimForm.Items.Clear();
-			for(int i=0;i<_listClaimForms.Count;i++) {
-				comboClaimForm.Items.Add(_listClaimForms[i].Description);
-				if(_listClaimForms[i].ClaimFormNum==_planCur.ClaimFormNum) {
-					comboClaimForm.SelectedIndex=i;
+			foreach(ClaimForm claimForm in _listClaimForms) {
+				//The default claim form will always show even if hidden.
+				if(claimForm.IsHidden && claimForm.ClaimFormNum!=_planCur.ClaimFormNum && claimForm.ClaimFormNum!=PrefC.GetLong(PrefName.DefaultClaimForm)) {
+					continue;
+				}
+				comboClaimForm.Items.Add(new ODBoxItem<ClaimForm>(claimForm.Description+(claimForm.IsHidden?" (hidden)":""),claimForm));
+				if(claimForm.ClaimFormNum==_planCur.ClaimFormNum) {
+					comboClaimForm.SelectedIndex=comboClaimForm.Items.Count-1;
 				}
 			}
-			if(comboClaimForm.Items.Count>0 && comboClaimForm.SelectedIndex==-1) {
-				for(int i=0;i<_listClaimForms.Count;i++) {
-					if(_listClaimForms[i].ClaimFormNum==PrefC.GetLong(PrefName.DefaultClaimForm)) {
+			if(comboClaimForm.SelectedIndex==-1) {//Select the default claim form if no selection (always for new plans)
+				for(int i=0;i<comboClaimForm.Items.Count;i++) {
+					if(((ODBoxItem<ClaimForm>)comboClaimForm.Items[i]).Tag.ClaimFormNum==PrefC.GetLong(PrefName.DefaultClaimForm)) {
 						comboClaimForm.SelectedIndex=i;
+						break;
 					}
 				}
 			}
@@ -5268,7 +5273,7 @@ namespace OpenDental{
 			}
 			//plantype already handled.
 			if(comboClaimForm.SelectedIndex!=-1){
-				_planCur.ClaimFormNum=_listClaimForms[comboClaimForm.SelectedIndex].ClaimFormNum;
+				_planCur.ClaimFormNum=((ODBoxItem<ClaimForm>)comboClaimForm.Items[comboClaimForm.SelectedIndex]).Tag.ClaimFormNum;
 			}
 			_planCur.UseAltCode=checkAlternateCode.Checked;
 			_planCur.CodeSubstNone=checkCodeSubst.Checked;
