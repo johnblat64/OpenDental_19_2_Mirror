@@ -82,9 +82,9 @@ namespace OpenDentBusiness {
 					+"AND ChargeDate <= "+datesql+@"),0) '_accumInt', ";
 			command+=$@"COALESCE((SELECT SUM(SplitAmt) FROM paysplit WHERE paysplit.PayPlanNum=payplan.PayPlanNum ";
 			if(listHiddenUnearnedDefNums.Count>0) {
-				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)})),0) ";
+				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 			}
-			command+=@"AND paysplit.PayPlanNum!=0 '_paid', 
+			command+=@"AND paysplit.PayPlanNum!=0),0) '_paid', 
 					COALESCE((SELECT SUM(InsPayAmt) FROM claimproc WHERE claimproc.PayPlanNum=payplan.PayPlanNum 
 					AND claimproc.Status IN("
 					+POut.Int((int)ClaimProcStatus.Received)+","
