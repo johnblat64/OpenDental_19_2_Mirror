@@ -243,7 +243,7 @@ namespace OpenDentBusiness{
 				string val="";
 				DataAction.RunBugsHQ(() => {
 					val=Db.GetScalar("SELECT ValueString FROM preference WHERE PrefName='"+prefName+"'");
-				},false);
+				});
 				retVal=(T)Convert.ChangeType(val,typeof(T));
 			}
 			catch(Exception ex) {
