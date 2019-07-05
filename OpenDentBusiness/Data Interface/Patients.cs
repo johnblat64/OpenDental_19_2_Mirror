@@ -3408,6 +3408,15 @@ namespace OpenDentBusiness {
 				Referrals.RefreshCache();
 			}
 			Recalls.Synch(patTo);  //Update patient's recalls now that merge is completed.
+			if(PrefC.IsODHQ) {
+				//Merge webchats.  The webchat database is HQ only.
+				WebChatMisc.DbAction(delegate() {
+					command=@"UPDATE webchatsession
+									SET webchatsession.PatNum=("+POut.Long(patTo)+@") 
+									WHERE webchatsession.PatNum=("+POut.Long(patFrom)+")";
+					Db.NonQ(command);
+				});
+			}
 			//Create a link from the from patient to the to patient.
 			PatientLink patLink=new PatientLink();
 			patLink.PatNumFrom=patFrom;
