@@ -106,6 +106,10 @@
 			this.menuApt = new System.Windows.Forms.ContextMenu();
 			this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
 			this.menuWeeklyApt = new System.Windows.Forms.ContextMenu();
+			this.timerWaitingRoom = new System.Windows.Forms.Timer(this.components);
+			this.menuReminderEdit = new System.Windows.Forms.ContextMenu();
+			this.menuItemReminderDone = new System.Windows.Forms.MenuItem();
+			this.menuItemReminderGoto = new System.Windows.Forms.MenuItem();
 			this.panelCalendar.SuspendLayout();
 			this.panelArrows.SuspendLayout();
 			this.panelMakeButtons.SuspendLayout();
@@ -477,7 +481,6 @@
 			this.Calendar2.Name = "Calendar2";
 			this.Calendar2.ScrollChange = 1;
 			this.Calendar2.TabIndex = 23;
-			this.Calendar2.DateChanged += new System.Windows.Forms.DateRangeEventHandler(this.Calendar2_DateSelected);
 			this.Calendar2.DateSelected += new System.Windows.Forms.DateRangeEventHandler(this.Calendar2_DateSelected);
 			// 
 			// labelDate
@@ -716,6 +719,7 @@
 			this.gridReminders.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
 			this.gridReminders.TitleHeight = 18;
 			this.gridReminders.TranslationName = "TableReminders";
+			this.gridReminders.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridReminders_CellDoubleClick);
 			// 
 			// panelAptInfo
 			// 
@@ -1124,6 +1128,7 @@
 			this.contrApptPanel.ApptMainAreaRightClicked += new OpenDental.UI.ApptClickEventHandler(this.ContrApptPanel_ApptMainAreaRightClicked);
 			this.contrApptPanel.ApptRightClicked += new OpenDental.UI.ApptClickEventHandler(this.ContrApptPanel_ApptRightClicked);
 			this.contrApptPanel.ApptResized += new OpenDental.UI.ApptEventHandler(this.contrApptPanel_ApptResized);
+			this.contrApptPanel.DateChanged += new System.EventHandler(this.ContrApptPanel_DateChanged);
 			this.contrApptPanel.SelectedApptChanged += new OpenDental.UI.ApptDataEventHandler(this.contrApptPanel_SelectedApptChanged);
 			// 
 			// _menuOp
@@ -1140,6 +1145,28 @@
 			this.toolTip1.AutoPopDelay = 5000;
 			this.toolTip1.InitialDelay = 100;
 			this.toolTip1.ReshowDelay = 100;
+			// 
+			// timerWaitingRoom
+			// 
+			this.timerWaitingRoom.Enabled = true;
+			this.timerWaitingRoom.Interval = 1000;
+			this.timerWaitingRoom.Tick += new System.EventHandler(this.timerWaitingRoom_Tick);
+			// 
+			// menuReminderEdit
+			// 
+			this.menuReminderEdit.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.menuItemReminderDone,
+            this.menuItemReminderGoto});
+			// 
+			// menuItemReminderDone
+			// 
+			this.menuItemReminderDone.Index = 0;
+			this.menuItemReminderDone.Text = "Done (affects all users)";
+			// 
+			// menuItemReminderGoto
+			// 
+			this.menuItemReminderGoto.Index = 1;
+			this.menuItemReminderGoto.Text = "Go To";
 			// 
 			// ContrApptJ
 			// 
@@ -1260,5 +1287,9 @@
 		private System.Windows.Forms.ToolTip toolTip1;
 		private System.Windows.Forms.ContextMenu menuWeeklyApt;
 		private System.Windows.Forms.ImageList imageListMain;
+		private System.Windows.Forms.Timer timerWaitingRoom;
+		private System.Windows.Forms.ContextMenu menuReminderEdit;
+		private System.Windows.Forms.MenuItem menuItemReminderDone;
+		private System.Windows.Forms.MenuItem menuItemReminderGoto;
 	}
 }

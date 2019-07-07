@@ -15,7 +15,7 @@ namespace OpenDental.UI {
 		//<summary>As user begins a drag, this starts out false.  Flips to true after 3 pixels.  But consequences are local, so useless to have here.</summary>
 		//private bool _boolApptMoved;
 		///<summary>This user control is how we drag appts over to the main appt area.  In beginning, it gets added to parent, where it stays and gets reused repeatedly.  We control it from here to hide the complexity.</summary>
-		private DoubleBufferedControl contrTempPinAppt;
+		private UserControlDoubleBuffered contrTempPinAppt;
 		private bool _isMouseDown;
 		private List<PinBoardItem> _listPinBoardItems;
 		///<summary>Initial position of the appointment being dragged, in coordinates of ContrAppt.</summary>
@@ -237,7 +237,7 @@ namespace OpenDental.UI {
 		protected override void OnHandleCreated(EventArgs e) {
 			base.OnHandleCreated(e);
 			if(!DesignMode){
-				contrTempPinAppt=new DoubleBufferedControl();
+				contrTempPinAppt=new UserControlDoubleBuffered();
 				contrTempPinAppt.Visible=false;
 				contrTempPinAppt.Size=new Size(100,100);
 				contrTempPinAppt.Paint+=TempPinAppt_Paint;

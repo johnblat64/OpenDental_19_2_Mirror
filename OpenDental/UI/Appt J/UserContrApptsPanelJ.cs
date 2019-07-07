@@ -18,6 +18,23 @@ using CodeBase;
 namespace OpenDental.UI{
 	/// <summary>Under heavy development.  Soon to replace ApptDrawing, ContrApptSheet, ContrApptSingle, and ApptOverlapOrdering.  Encapsulates both Data and Drawing for the main area of Appt module and the operatories header.  The Appt module gathers the data and stores it here.  This class does its drawing based mostly on the information passed in, although it does use the standard cache sometimes. It has defaults so that we will always be able to draw something reasonable, even if we're missing data. This class contains extra data that it doesn't actually need.  Appt module uses this data for other things besides drawing appointments.  This class intentionally supports a single thread only.  The suffix J is for Jordan, which can later be changed after all similar old classes are removed.</summary>
 	public partial class UserControlApptsPanelJ:UserControl {
+
+		///<summary>This allows appointment overlap.  There's another one of these in ContrApptJ.  This will be removed when we finalize that we don't want this to be optional.</summary>
+		private bool _tempAllowOverlap=true;
+
+		#region Fields - Public Printing
+		///<summary>AKA colsPerpage. Used to overrride _countCol for printing as a parameter on ComputeColWidth.  Only affected daily view and was 0 by default.  Now, only used in one calc during printing.</summary>
+		public int PrintingColsPerPage=0;
+		///<summary>This was being passed in when printing as pageColumn.  Otherwise zero.</summary>
+		public int PrintingPageColumn;
+		public DateTime	DateTimePrintStart;
+		public DateTime DateTimePrintStop;
+		public bool IsPrintPreview;
+		public int PagesPrinted;
+		public int PrintingPageRow;
+		public float PrintingSizeFont;
+		#endregion Fields - Public Printing
+
 		#region Fields - Private isValid flags
 		//Main-------------------------------------------------------------------------------------------
 		///<summary>This will trigger redrawing everything in the main area, including appointments. Always set _isValidProvBars at the same time.</summary>
@@ -42,29 +59,25 @@ namespace OpenDental.UI{
 		#endregion Fields - Private isValid flags
 
 		#region Fields - Private Measurements
-		///<summary>The number of columns.  Stays consistent even if weekly view.  The number of colums showing for one day.  Derived from VisOps.  Altered when printing in order to print a certain number of columns per page.</summary>
-		private float _countCol=3f;
-		///<summary>Usually VisProvs.Count, but is(or can be?) changed to 0 for weekview.</summary>
-		private float _countProv=1f;
 		///<summary>Height of single line.  User has no control over this during display.  But it does get changed during each PrintPage event.</summary>
 		private float _heightLine=12f;
-		///<summary>Height of the main appt area, including the parts that are not visible due to scrolling.  Always calculated internally and does not depend on size of control.  Changed during printing.</summary>
+		///<summary>Height of the main appt area, including the parts that are not visible due to scrolling.  Always calculated internally and does not depend on size of control. Does not include headers.  ProvBars and timeBars are also this high.  Changed during printing.</summary>
 		private int _heightMain=500;
 		///<summary>Height of the main appt area portion that is visible.  Derived from other dimensions when resizing.  Also same as height of timebar and provbar.  Ignored during printing; just use _heightMain.</summary>
 		private int _heightMainVisible=500;
 		///<summary>Height of prov header and ops header. Starts out at 16, but can be bumped up to 27 if any visible op requires double row title.</summary>
 		private float _heightProvOpHeaders=16f;
-		//<summary>Including headers.  Normally set to this.Height, but during printing, it's changed temporarily to the height available on a single printed page.</summary>
-		//private float _heightTotal;//probably useless.  Just use _heightMain.
 		///<summary>Allows us to skip some redrawing until the control is actually loaded.</summary>
 		private bool _isControlLoaded;
 		///<summary>This was being passed in.  Now, it's set during each PrintPage event.</summary>
 		private bool _isPrinting=false;
 		///<summary></summary>
 		private bool _isUpdating;
+		///<summary>Keeps track of where are the appointments are located.</summary>
+		private List<ApptLayoutInfo> _listApptLayoutInfos;
 		///<summary>Typical values would be 10,15,5,or 7.5.  Derived from minPerIncr_10 / RowsPerIncr_2 =5. </summary>
 		private float _minPerRow=10f;
-		///<summary>Typically 5 or 7. Only used with weekview.</summary>
+		///<summary>Typically 5 or 7. Only used with weekview. Although I don't see any way to change it to be anything other than 7.</summary>
 		private int _numOfWeekDaysToDisplay=7;
 		///<summary>Stores the shading info for the provider bars on the left of the appointments module.  First dim is number of visible providers.  Second dim is cells.</summary>
 		private int[][] _provBar=new int[0][];
@@ -72,20 +85,20 @@ namespace OpenDental.UI{
 		private static float _radiusCorn=2f;
 		///<summary>Rows per hour.  Derived from 60/MinPerIncr*RowsPerIncr</summary>
 		private float _rowsPerHr=6;
+		///<summary>Currently, this is used to show the provbars for day view, but not show them for week view.  Later, this could be independently controlled for either view.</summary>
+		private bool _showProvBars=true;
 		///<summary>Only used for printing, but could be expanded.  Was originally passed in as part of drawing command. 0 means not in use.</summary>
 		private TimeSpan _timeStart=TimeSpan.Zero;
 		///<summary>Only used for printing, but could be expanded.  Was originally passed in as part of drawing command. 0 means not in use.</summary>
 		private TimeSpan _timeStop=TimeSpan.Zero;	
 		///<summary>Width of each operatory.  Math is based solely on _widthMain and number of ops.</summary>
 		private float _widthCol=200f;
-		///<summary>Width of main appt area.  Derived from other dimensions when resizing.  Depends on number of providers showing in provbars.</summary>
+		///<summary>Width of main appt area, not including timebars, provbars, headers, or any other peripheral objects.  Derived from other dimensions when resizing.  Depends on number of providers showing in provbars.</summary>
 		private int _widthMain=800;
 		///<summary>Appointments are a little narrower on the right so that we can see blockouts underneath.</summary>
 		private float _widthNarrowedOnRight=3f;
-		///<summary>Width of single provider bar.</summary>
+		///<summary>Width of single provider bar. Also used as the width of the provbar section on the left of an individual appt, although this is also hard-coded in places.  Currently constant at 8f.</summary>
 		private float _widthProv=8f;
-		//<summary>Width of a single appt. Not needed because it's instead passed around locally.</summary>
-		//private float _widthSingleAppt;
 		///<summary>Width of timebars.</summary>
 		private float _widthTime=37f;
 		//<summary>Including timebars, provbars, visible main area, and scrollbar.  Normally set to this.Width, but during printing, it's changed temporarily to the width available on a single printed page.</summary>
@@ -130,21 +143,7 @@ namespace OpenDental.UI{
 		//TempApptSingle-------------------------------------------------------------------------------
 		///<summary>The bitmap that shows on TempApptSingle.</summary>
 		private Bitmap _bitmapTempApptSingle;
-		//Graphics 1:1 with bitmaps above-------------------------------------------------------------
-		private Graphics _graphicsBack;
-		private Graphics _graphicsBackAppts;
-		private Graphics _graphicsBackApptsOutlineSelected;
-		private Graphics _graphicsMainWithRed;
-		private Graphics _graphicsProvBarsBack;
-		private Graphics _graphicsProvBars;
-		private Graphics _graphicsProvBarsWithRed;
-		private Graphics _graphicsProvBarsHeader;
-		private Graphics _graphicsOpsHeader;
-		private Graphics _graphicsTimebarLeft;
-		private Graphics _graphicsTimebarRight;
-		private Graphics _graphicsTimebarLeftWithRed;
-		private Graphics _graphicsTimebarRightWithRed;
-		//Brushes and pens are rarely changed, so disposing is overkill
+		//The Brushes and pens below will not change once set, and will exist as long as OD is open, so disposing is overkill
 		//Some colors such as prov and blockout are handled locally, since they change frequently
 		private Brush _brushBackground=SystemBrushes.Control;
 		private Brush _brushTimeBar=Brushes.LightGray;
@@ -164,6 +163,8 @@ namespace OpenDental.UI{
 		private Font _fontBlockout=new Font("Arial",9f);//_fontSize);
 		///<summary>This is the main font.  Used for appts, not timebars.</summary>
 		private Font _font=new Font(FontFamily.GenericSansSerif,8f);
+		///<summary>This font is just for Ops headers because we don't want them changing during printing.</summary>
+		private Font _fontOpsHeaders=new Font(FontFamily.GenericSansSerif,8f);
 		private Pen _penTimeLine=new Pen(Color.Red);//Width gets set below, and color gets reset
 		///<summary>On the left bar of each appt, the horizontal lines for time divisions</summary>
 		private Pen _penTimeDiv=Pens.Silver;
@@ -217,7 +218,7 @@ namespace OpenDental.UI{
 		///<summary>The exact time that user clicked on, not rounded in any way.  Gets set in mousedown, then used in double click as well as external.</summary>
 		private TimeSpan _timeClicked;
 		///<summary>This user control is how we will drag appts around in this control as well as over to pinboard.  In beginning, it gets added to parent, where it stays and gets reused repeatedly.  We control it from here to hide the complexity and also to handle the drawing.</summary>
-		private DoubleBufferedControl contrTempAppt;
+		private UserControlDoubleBuffered contrTempAppt;
 
 		#endregion Fields - Private Mouse
 
@@ -231,23 +232,929 @@ namespace OpenDental.UI{
 		private Panel panelInfoBubble;
 		private Panel panelHeaderTip;
 		private OpenDental.UI.ODPictureBox pictureBoxPat;
-		///<summary>The position of the pointer the last time the bubble was drawn or the timer was started.  Used to show after timer is up.</summary>
+		///<summary>The position of the pointer the last time the bubble was drawn or the timer was started.  Used to show after timer is up.  In coordinates of this control.</summary>
 		private Point _pointBubble;
 		private Timer timerInfoBubble;
 		#endregion Fields - Private InfoBubble and Tooltip
 
-		#region Fields - Public Printing
-		///<summary>AKA colsPerpage. Overrrides _countCol for printing.  Otherwise, use 0.  Was originally a parameter on ComputeColWidth.  Only affects daily view.</summary>
-		public int PrintingColsPerPage=0;
-		///<summary>This was being passed in when printing as pageColumn.  Otherwise zero.</summary>
-		public int PrintingPageColumn;
-		public DateTime	DateTimePrintStart;
-		public DateTime DateTimePrintStop;
-		public bool IsPrintPreview;
-		public int PagesPrinted;
-		public int PrintingPageRow;
-		public int PrintingSizeFont;
-		#endregion Fields - Public Printing
+		#region Constructor
+		public UserControlApptsPanelJ() {
+			InitializeComponent();
+			this.MouseWheel+=UserControlApptsPanel_MouseWheel;
+			//So dummy ops and provs will draw nicely, even if not initialized properly.
+			ListOpsVisible.Add(new Operatory());
+			ListOpsVisible.Add(new Operatory());
+			ListOpsVisible.Add(new Operatory());
+			ListProvsVisible.Add(new Provider());
+			panelInfoBubble=new Panel();
+			panelInfoBubble.Visible=false;
+			panelInfoBubble.Size=new Size(200,300);
+			panelInfoBubble.MouseMove+=new MouseEventHandler(InfoBubble_MouseMove);
+			panelInfoBubble.BackColor=Color.FromArgb(255,250,190);
+			pictureBoxPat=new OpenDental.UI.ODPictureBox();
+			pictureBoxPat.Location=new Point(6,17);
+			pictureBoxPat.Size=new Size(100,100);
+			pictureBoxPat.BackColor=Color.FromArgb(232,220,190);
+			pictureBoxPat.TextNullImage="Patient Picture Unavailable";
+			pictureBoxPat.MouseMove+=new MouseEventHandler(PictureBoxPat_MouseMove);
+			panelInfoBubble.Controls.Clear();
+			panelInfoBubble.Controls.Add(pictureBoxPat);
+			this.Controls.Add(panelInfoBubble);
+			timerInfoBubble=new Timer();
+			timerInfoBubble.Interval = 300;
+			timerInfoBubble.Tick += new System.EventHandler(this.timerInfoBubble_Tick);
+			panelHeaderTip=new Panel();
+			panelHeaderTip.Visible=false;
+			panelHeaderTip.Size=new Size(200,17);
+			panelHeaderTip.MouseMove+=new MouseEventHandler(panelOpHoverTip_MouseMove);
+			panelHeaderTip.BackColor=Color.White;
+			panelHeaderTip.BorderStyle=BorderStyle.FixedSingle;
+			labelHeaderTip=new Label();
+			labelHeaderTip.Location=new Point(0,0);
+			labelHeaderTip.Width=300;//arbitrarily long
+			panelHeaderTip.Controls.Add(labelHeaderTip);
+			this.Controls.Add(panelHeaderTip);
+		}
+		#endregion Constructor
+
+		#region Events - Raise
+		///<summary>Passes the request up to the parent form, which shows the edit window.</summary>
+		private void OnApptDoubleClicked(Appointment appt) {
+			ApptDoubleClicked?.Invoke(this,new ApptEventArgs(appt,null));
+		}
+		[Category("Appointment"),Description("Occurs when an appointment is double clicked.")]
+		public event ApptEventHandler ApptDoubleClicked;
+		
+		///<summary>If we find an appointment that is null, then raise this event so that the parent form will show message and refresh.  Also, instead of the old AptIsNull, just do if(appt==null), then raise this event.</summary>
+		private void OnApptNullFound() {
+			ApptNullFound?.Invoke(this,new EventArgs());
+		}
+		[Category("Appointment"),Description("Occurs when a null appointment is found.")]
+		public event EventHandler ApptNullFound;
+
+		///<summary>Passes the request up to the parent form, which does the db interaction and a refresh.</summary>
+		private void OnApptMoved(Appointment appt,Appointment apptOld) {
+			ApptMoved?.Invoke(this,new ApptEventArgs(appt,apptOld));
+		}
+		[Category("Appointment"),Description("Occurs when an appointment is moved.")]
+		public event ApptEventHandler ApptMoved;
+
+		///<summary>Passes the datarow up to the parent form, which then passes it to the pinboard.</summary>
+		private void OnApptMovedToPinboard(DataRow dataRow) {
+			ApptMovedToPinboard?.Invoke(this,new ApptDataEventArgs(dataRow,null,new Point(0,0)));
+		}
+		[Category("Appointment"),Description("Occurs when an appointment is dragged to pinboard.")]
+		public event ApptDataEventHandler ApptMovedToPinboard;
+
+		///<summary>Passes the request up to the parent form, which handles the rest, such as adding patient and showing appt edit window.</summary>
+		private void OnApptMainAreaDoubleClicked(DateTime dateT,long opNum,Point location) {
+			ApptMainAreaDoubleClicked?.Invoke(this,new ApptClickEventArgs(dateT,opNum,location));
+		}
+		[Category("Appointment"),Description("Occurs when the main blank area is double clicked.")]
+		public event ApptClickEventHandler ApptMainAreaDoubleClicked;
+
+		///<summary>Parent window will show context menu.</summary>
+		private void OnApptMainAreaRightClicked(DateTime dateT,long opNum,Point location) {
+			ApptMainAreaRightClicked?.Invoke(this,new ApptClickEventArgs(dateT,opNum,location));
+		}
+		[Category("Appointment"),Description("Occurs when the main blank area is right clicked.")]
+		public event ApptClickEventHandler ApptMainAreaRightClicked;
+
+		///<summary>Parent window will show context menu.</summary>
+		private void OnApptRightClicked(DateTime dateT,long opNum,Point location) {
+			ApptRightClicked?.Invoke(this,new ApptClickEventArgs(dateT,opNum,location));
+		}
+		[Category("Appointment"),Description("Occurs when an appointment is right clicked.")]
+		public event ApptClickEventHandler ApptRightClicked;
+
+		///<summary>Parent window will refresh.</summary>
+		private void OnApptResized(Appointment appt) {
+			ApptResized?.Invoke(this,new ApptEventArgs(appt,null));
+		}
+		[Category("Appointment"),Description("Occurs when an appointment is resized.")]
+		public event ApptEventHandler ApptResized;
+
+		///<summary>Parent window will handle a refresh.</summary>
+		private void OnDateChanged() {
+			DateChanged?.Invoke(this,new EventArgs());
+		}
+		[Category("Appointment"),Description("Occurs when date is changed by the user clicking on op header.")]
+		public event EventHandler DateChanged;
+
+		///<summary></summary>
+		private void OnSelectedApptChanged(DataRow dataRow) {
+			SelectedApptChanged?.Invoke(this,new ApptDataEventArgs(dataRow,null,new Point(0,0)));
+		}
+		[Category("Appointment"),Description("Occurs when user clicks to change selected appt.  Changing SelectedAptNum externally does not cause this event to fire.")]
+		public event ApptDataEventHandler SelectedApptChanged;
+		#endregion Events 
+
+		#region Events - Standard
+		private void UserControlApptsPanel_Load(object sender,EventArgs e) {
+			_isControlLoaded=true;
+			LayoutRecalcAfterResize();
+			contrTempAppt=new UserControlDoubleBuffered();//DoubleBufferedControl is defined below.
+			contrTempAppt.Visible=false;
+			contrTempAppt.Size=new Size(100,100);
+			contrTempAppt.Paint+=TempApptSingle_Paint;
+			Parent.Controls.Add(contrTempAppt);
+		}
+
+		private void UserControlApptsPanel_Resize(object sender,EventArgs e) {
+			//seems to resize about 13 times before it's even loaded. Doing it this way causes just a single layout.
+			if(!_isControlLoaded){
+				return;
+			}
+			LayoutRecalcAfterResize();
+		}
+
+		private void LayoutRecalcAfterResize(){
+			if(_showProvBars){//this is also present in ListProvsVisible.set and IsWeeklyView.set
+				_widthMain=this.Width-(int)_widthTime*2-(int)(_widthProv*_listProvsVisible.Count)-vScrollBar1.Width-1;
+			}
+			else{
+				_widthMain=this.Width-(int)_widthTime*2-vScrollBar1.Width-1;
+			}
+			_heightMainVisible=this.Height-(int)_heightProvOpHeaders;
+			//there is one actual control which needs to be placed and sized:
+			vScrollBar1.Location=new Point(this.Width-vScrollBar1.Width-1,(int)_heightProvOpHeaders);
+			vScrollBar1.Height=_heightMainVisible;			
+			//Width has changed, so need to redraw everything
+			_isValidAllMain=false;
+			//_isValidProvBars=false;//provbars don't need to redraw on resize
+			//_isValidProvBarsHeader=false;
+			_isValidOpsHeader=false;
+			//_isValidTimebars=false;//timebars don't need to redraw on resize
+			if(!_isUpdating){
+				RedrawAsNeeded();
+			}
+		}
+
+		private void vScrollBar1_Scroll(object sender,ScrollEventArgs e) {
+			Invalidate();
+		}
+
+		private void UserControlApptsPanel_MouseWheel(object sender,MouseEventArgs e) {
+			//this behavior changed in Win10 because the "Scroll inactive windows when I hover over them" option is turned by default. 
+			//This means we don't have to have focus to scroll.  Nice.
+			//e.delta value is pretty useless.  So we are only going to test whether it's scrolling up or down, 
+			bool isNeg=e.Delta<0;
+			int valueNew=vScrollBar1.Value;
+			if(isNeg){
+				valueNew+=vScrollBar1.SmallChange;
+			}
+			else{
+				valueNew-=vScrollBar1.SmallChange;
+			}
+			if(valueNew<vScrollBar1.Minimum){
+				valueNew=vScrollBar1.Minimum;
+			}
+			if(valueNew>vScrollBar1.Maximum-vScrollBar1.LargeChange+1){
+				valueNew=vScrollBar1.Maximum-vScrollBar1.LargeChange+1;
+			}
+			vScrollBar1.Value=valueNew;
+			Invalidate();
+		}
+
+		private void UserControlApptsPanel_DoubleClick(object sender,EventArgs e) {
+			
+		}
+		#endregion Events - Standard
+
+		#region Events - Mouse
+		protected override void OnDoubleClick(EventArgs e) {
+			base.OnDoubleClick(e);
+			HideDraggableTempApptSingle();
+			//this logic is a little different than mouse down for now because on the first click of a 
+			//double click, an appointment control is created under the mouse.
+			if(SelectedAptNum>0) {//on appt
+				long patnum=PIn.Long(_dataRowTempAppt["PatNum"].ToString());
+				//on mousedown, we didn't check this
+				Appointment appt=Appointments.GetOneApt(SelectedAptNum);
+				if(appt==null) {
+					OnApptNullFound();
+					return;
+				}
+				OnApptDoubleClicked(appt);//event raised to parent.
+			}
+			//not on apt, so trying to schedule an appointment---------------------------------------------------------------------
+			else {
+				if(!Security.IsAuthorized(Permissions.AppointmentCreate)) {
+					return;
+				}
+				if(ListOpsVisible.Count==0) {//no ops visible.
+					return;
+				}
+				//First we'll check to see if the location the user clicked on is a blockout with the type NoSchedule
+				//DateTime dateSelected=_dateSelected;
+				TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,MinPerIncr);
+				DateTime dateTimeStart=DateSelected+timeSpanNew;
+				if(IsWeeklyView) {
+					dateTimeStart=dateTimeStart.AddDays(_dayClicked);
+				}
+				if(Appointments.CheckTimeForBlockoutOverlap(dateTimeStart,_opNumClicked)) {
+					MsgBox.Show(this, "Appointment cannot be created on a blockout marked as 'Block appointment scheduling'");
+					return;
+				}
+				OnApptMainAreaDoubleClicked(dateTimeStart,_opNumClicked,_pointMouseOrigin);
+			}
+		}
+
+		protected override void OnMouseDown(MouseEventArgs e) {
+			base.OnMouseDown(e);
+			if(ListOpsVisible.Count==0) {//no ops visible.
+				return;
+			}
+			if(_isMouseDown) {//if user clicks right mouse button while dragging
+				return;
+			}
+			if(e.Y<_heightProvOpHeaders
+				&& e.X>_widthTime 
+				&& e.X<_widthTime+_widthProv*_listProvsVisible.Count)
+			{
+				//clicked in prov header.  Do nothing.
+			}
+			else if(e.Y<_heightProvOpHeaders
+				&& e.X>_widthTime 
+				&& e.X<this.Width-vScrollBar1.Width-_widthTime)
+			{
+				//clicked in operatory or weekday header
+				if(IsWeeklyView){
+					int dayI=XPosToDay(e.X);
+					DateSelected=DateStart.AddDays(dayI);
+					IsWeeklyView=false;
+					OnDateChanged();
+					return;
+				}
+				string txt="";
+				for(int i=0;i<ListOpsVisible.Count;i++){
+					if(i==ListOpsVisible.Count-1
+						|| e.X<_widthTime+_widthProv*_listProvsVisible.Count+_widthCol*(float)(i+1))//compare to the righthand side of op
+					{
+						//found op where we clicked
+						txt=ListOpsVisible[i].OpName;
+						//_opNumHeaderTipLast=ListOpsVisible[i].OperatoryNum;//not needed here.  Handled in mouseMove
+						Provider prov=Providers.GetProv(ListOpsVisible[i].ProvDentist);//We can enhance this later to show Hygienist.
+						if(prov==null){
+							txt+="\r\nThere is no provider associated with this operatory.";
+						}
+						else{
+							Def defProvSpecialty=Defs.GetDef(DefCat.ProviderSpecialties,prov.Specialty);
+							if(defProvSpecialty!=null) {
+								txt+="\r\n"+"Default: "+prov.FName+" "+prov.LName+", "+defProvSpecialty.ItemName;
+							}
+						}
+						//Get the subset of schedules from ListSchedules that is linked to this op
+						List<Schedule> listScheds=Schedules.GetProvSchedsForOp(ListSchedules,ListOpsVisible[i]);
+						Provider providerScheduled;
+						//Get the provider for each Schedule and show that provider's info.
+						foreach(Schedule schedule in listScheds) {
+							providerScheduled=Providers.GetProv(schedule.ProvNum);
+							if(providerScheduled==null) {
+								return;
+							}
+							Def defScheduledProv=Defs.GetDef(DefCat.ProviderSpecialties,providerScheduled.Specialty);
+							string schedProcDef="";
+							if(defScheduledProv!=null) {
+								schedProcDef=", "+defScheduledProv.ItemName;
+							}
+							txt+="\r\nScheduled "+schedule.StartTime.ToShortTimeString()+"-"+schedule.StopTime.ToShortTimeString()+": "
+								+providerScheduled.GetFormalName()+schedProcDef;
+							txt+=string.IsNullOrWhiteSpace(providerScheduled.SchedNote) ? "": "\r\n\t("+providerScheduled.SchedNote+")";
+						}
+						if(PrefC.HasClinicsEnabled && Clinics.ClinicNum!=0) {//HQ cannot have clinic specialties.
+							Clinic clinic=Clinics.GetClinic(Clinics.ClinicNum);
+							string clinicSchedNote=clinic.SchedNote;
+							if(!string.IsNullOrEmpty(clinicSchedNote)) {
+								if(txt!="") {
+									txt+="\r\n------";
+								}
+								List<DefLink> listSpecialties=DefLinks.GetListByFKey(clinic.ClinicNum,DefLinkType.Clinic);
+								txt+="\r\n"+string.Join(", ",listSpecialties.Select(x => Defs.GetName(DefCat.ClinicSpecialty,x.DefNum)))
+									+"\r\n"+clinicSchedNote;
+							}
+						}
+						break;
+					}
+				}
+				panelHeaderTip.Width=TextRenderer.MeasureText(txt,_font).Width+2;
+				panelHeaderTip.Height=TextRenderer.MeasureText(txt,_font).Height+3;
+				labelHeaderTip.Height=panelHeaderTip.Height;//auto?
+				labelHeaderTip.Text=txt;
+				int xval=e.X;
+				int yval=e.Y+20;
+				if(xval+panelHeaderTip.Width>this.Width-vScrollBar1.Width-3){
+					xval=this.Width-panelHeaderTip.Width-vScrollBar1.Width-3;
+				}
+				panelHeaderTip.Location=new Point(xval,yval);
+				panelHeaderTip.Visible=true;
+			}
+			TimeSpan? timeClicked=YPosToTime(e.Y);
+			if(timeClicked==null){//clicked outside the main bitmap
+				return;//?
+			}
+			_pointMouseOrigin=e.Location;
+			_timeClicked=timeClicked.Value;
+			//MessageBox.Show(_timeClicked.ToShortTimeString());
+			int idxAppt=HitTestAppt(e.Location);
+			DataRow dataRow=null;
+			if(idxAppt!=-1){
+				dataRow=TableAppointments.Rows[idxAppt];
+			}
+			_opNumClicked=ListOpsVisible[XPosToOpIdx(e.X)].OperatoryNum;
+			_dayClicked=XPosToDay(e.X);
+			long clickedAptNum=0;
+			if(dataRow!=null){
+				clickedAptNum=PIn.Long(dataRow["AptNum"].ToString());
+			}
+			if(SelectedAptNum!=clickedAptNum){//if selected appt changed
+				SelectedAptNum=clickedAptNum;
+				OnSelectedApptChanged(dataRow);
+			}
+			//TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,_minPerIncr);//not going to round down for now
+			DateTime dateTimeClicked=DateSelected+_timeClicked;
+			if(IsWeeklyView) {
+				dateTimeClicked=dateTimeClicked.AddDays(_dayClicked);
+			}
+			//while mouse is down, there is no appt bubble.  Includes dragging, context menus, etc.
+			panelInfoBubble.Visible=false;
+			timerInfoBubble.Enabled=false;
+			if(clickedAptNum!=0) {//if clicked on an appt
+				if(e.Button==MouseButtons.Right) {
+					OnApptRightClicked(dateTimeClicked,_opNumClicked,e.Location);
+				}
+				else{//left button
+					if(HitTestApptBottom(e.Location,idxAppt)) {
+						_isResizingAppt=true;
+					}
+					else {
+						_isResizingAppt=false;
+					}
+					ShowDraggableApptSingle(idxAppt);//this sets _isMouseDown
+					_pointApptOrigin=contrTempAppt.Location;
+					if(_isResizingAppt){
+						_heightResizingOriginal=contrTempAppt.Height;
+					}
+				}
+			}
+			else {//not clicked on appt
+				if(e.Button==MouseButtons.Right){
+					OnApptMainAreaRightClicked(dateTimeClicked,_opNumClicked,e.Location);
+				}
+			}
+			//Todo: In old ContrAppt, this section was here:
+			//Need to revisit and test, because this now happens in OnSelectedApptChanged up above
+			/*if(PatCur!=null && PatCur.PatNum!=oldPatNum) {
+				//This needs to be called after ShowDraggableContrApptSingle(...)
+				//due to S_Contr_PatientSelected(...) indirectly stopping the drag if there are any popups.
+				FormOpenDental.S_Contr_PatientSelected(PatCur,true,false);
+			}
+			else {
+				//This is called either way. But we avoid some code by calling it directly here.
+				RefreshModuleScreenPatient();
+			}*/
+		}
+
+		protected override void OnMouseUp(MouseEventArgs e) {
+			base.OnMouseUp(e);
+			if(!_isMouseDown) {
+				return;
+			}
+			//try/finally only. No catch. We probably want a handy exception to popup if there is a real bug.
+			//Any return from this point forward will cause HideDraggableContrApptSingle() and ResizingAppt=false.
+			try {
+				//int thisIndex=GetIndex(ContrApptSingle.SelectedAptNum);
+				Appointment apptOld;
+				if(_isResizingAppt) {
+					#region Resizing, not moving.
+					//if(!TempApptSingle.Visible) {//click with no drag?
+					//	return;
+					//}
+					//convert Bottom to a time
+					TimeSpan? timeSpanBottom=YPosToTime(contrTempAppt.Bottom-this.Location.Y);
+					if(timeSpanBottom==null){
+						return;
+					}
+					TimeSpan timeSpanBottomRounded=RoundTimeToNearestIncrement(timeSpanBottom.Value,MinPerIncr);					
+					//subtract to get the new length of appt
+					DateTime dateTimeTempAppt=PIn.DateT(_dataRowTempAppt["AptDateTime"].ToString());
+					TimeSpan newspan=timeSpanBottomRounded-dateTimeTempAppt.TimeOfDay;
+					//check if the appointment is being dragged to the next day
+					if(dateTimeTempAppt.Day!=(dateTimeTempAppt+newspan).Day) {//I don't think this can get hit
+						MsgBox.Show(this,"You cannot have an appointment that starts and ends on different days.");
+						return;
+					}
+					int newpatternL=Math.Max((int)newspan.TotalMinutes/5,1);
+					if(newpatternL<MinPerIncr/5) {//eg. if 1 < 10/5, would make appt too short. 
+						newpatternL=(int)MinPerIncr/5;//sets new pattern length at one increment, typically 2 or 3 5min blocks
+					}
+					else if(newpatternL>78) {//max length of 390 minutes
+						newpatternL=78;
+					}
+					string pattern=PIn.String(_dataRowTempAppt["Pattern"].ToString());
+					if(newpatternL<pattern.Length) {//shorten to match new pattern length
+						pattern=pattern.Substring(0,newpatternL);
+					}
+					else if(newpatternL>pattern.Length) {//make pattern longer.
+						pattern=pattern.PadRight(newpatternL,'/');
+					}
+					//Now, check for overlap with other appts.
+					//Loop through all other appts in the op and make sure the new pattern will not overlap.
+					long aptNumTemp=PIn.Long(_dataRowTempAppt["AptNum"].ToString());
+					if(!_tempAllowOverlap){
+						long opNumTemp=PIn.Long(_dataRowTempAppt["Op"].ToString());
+						for(int i=0;i<TableAppointments.Rows.Count;i++){
+							if(PIn.Long(TableAppointments.Rows[i]["Op"].ToString())!=opNumTemp){
+								continue;
+							}
+							if(PIn.Long(TableAppointments.Rows[i]["AptNum"].ToString())==aptNumTemp){
+								continue;
+							}
+							DateTime dateTimeApptInSameOp=PIn.DateT(TableAppointments.Rows[i]["AptDateTime"].ToString());
+							if(IsWeeklyView && dateTimeApptInSameOp.Date!=dateTimeTempAppt.Date) {
+								continue;
+							}
+							if(dateTimeApptInSameOp < dateTimeTempAppt) {
+								continue;//we don't care about appointments that are earlier than this one
+							}
+							if(dateTimeApptInSameOp.TimeOfDay < dateTimeTempAppt.TimeOfDay+TimeSpan.FromMinutes(5*pattern.Length)) {
+								//New pattern overlaps so back it up to butt up against this appt. This will shorten the desired pattern to prevent overlap.
+								newspan=dateTimeApptInSameOp.TimeOfDay-dateTimeTempAppt.TimeOfDay;
+								newpatternL=Math.Max((int)newspan.TotalMinutes/5,1);
+								pattern=pattern.Substring(0,newpatternL);						
+							}
+						}
+					}
+					//Check for any overlap with blockouts with the "No Schedule" flag and shorten the pattern
+					Appointment curApt=Appointments.GetOneApt(aptNumTemp);
+					if(curApt==null){
+						OnApptNullFound();
+						return;
+					}
+					curApt.Pattern=pattern;
+					DateTime datePrevious=curApt.DateTStamp;
+					Schedule overlappingBlockout=Appointments.GetOverlappingBlockouts(curApt).OrderBy(x => x.StartTime).FirstOrDefault();
+					if(overlappingBlockout!=null) {
+						//Figure out the amount of time between them and divide by 5 because of how time patterns are stored for appointments.  
+						//This happens when resizing.
+						//Appointments can be in the middle of a blocking blockout if the blockout type is changed after the appointment is placed.  
+						//In this case we are going to leave the appointment because it has precedence.
+						if(!(overlappingBlockout.SchedDate.Add(overlappingBlockout.StartTime)<=curApt.AptDateTime)) {
+							newpatternL=(int)(overlappingBlockout.SchedDate.Add(overlappingBlockout.StartTime)-curApt.AptDateTime).TotalMinutes/5;
+							pattern=pattern.Substring(0,newpatternL);	//Minimum newpatternL is 1, because an appointment can't be places on a valid blockout
+						}
+					}
+					if(pattern=="") {
+						pattern="///";
+					}
+					Appointments.SetPattern(curApt,pattern); //Appointments S-Class handles Signalods
+					SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,curApt.PatNum,"Appointment resized from the appointment module.",curApt.AptNum,datePrevious);//Generate FKey to the appointment to show the audit entry in the ApptEdit window.
+					OnApptResized(curApt);
+					#endregion Resizing, not moving.
+					return;					
+				}//end if(_isResizingAppt)
+				if((Math.Abs(e.X-_pointMouseOrigin.X)<7) && (Math.Abs(e.Y-_pointMouseOrigin.Y)<7)) { //Mouse has not moved enough to be considered an appt move.
+					_boolApptMoved=false;
+				}
+				if(!_boolApptMoved) { //Click with no drag.
+					return;
+				}
+				if(contrTempAppt.Location.X>this.Right) { //Dragging to pinboard, so place a copy there.
+					#region Dragging to pinboard
+					long patNum=PIn.Long(_dataRowTempAppt["PatNum"].ToString());
+					if(!Security.IsAuthorized(Permissions.AppointmentMove) || PatRestrictionL.IsRestricted(patNum,PatRestrict.ApptSchedule)){
+						return;
+					}
+					if((ApptStatus)PIn.Int(_dataRowTempAppt["AptStatus"].ToString())==ApptStatus.Complete) {//could cause completed procs to change date
+						MsgBox.Show("Not allowed to move completed appointments.");
+						return;
+					}
+					//HideDraggableTempApptSingle() handled down below
+					SelectedAptNum=-1;
+					
+					OnApptMovedToPinboard(_dataRowTempAppt);
+
+					/*
+					int prevSel=GetIndex(SelectedAptNum);
+					List<long> list=new List<long>();
+					list.Add(SelectedAptNum);
+					SendToPinboard(list);//sets selectedAptNum=-1. do before refresh prev
+					if(prevSel!=-1) {
+						ContrApptSheet2.DoubleBufferDraw(drawToScreen: true);
+					}
+					RefreshModuleDataPatient(PatCur.PatNum);
+					FormOpenDental.S_Contr_PatientSelected(PatCur,true,false);*/
+					#endregion Dragging to pinboard
+					return;
+				}
+				//We got this far so we are moving the appt to a new location.
+				Appointment appt=Appointments.GetOneApt(SelectedAptNum);
+				if(appt==null){
+					OnApptNullFound();
+					return;
+				}
+				Plugins.HookAddCode(this, "ContrAppt.ContrApptSheet2_MouseUp_validation_end",appt);//after we know we have a valid appointment.
+				apptOld=appt.Copy();
+				TimeSpan? timeSpanNew=YPosToTime(contrTempAppt.Location.Y-this.Location.Y);
+				if(timeSpanNew==null){
+					return;
+				}
+				TimeSpan timeSpanNewRounded=RoundTimeToNearestIncrement(timeSpanNew.Value,MinPerIncr);
+				RoundToNearestDateAndOp(contrTempAppt.Location.X-this.Location.X,//passing in as coordinates of this control
+					out DateTime dateNew,
+					out int opIdx);
+				if(opIdx<0){
+					MsgBox.Show("Invalid operatory");
+					return;
+				}
+				if(timeSpanNewRounded!=appt.AptDateTime.TimeOfDay
+					|| ListOpsVisible[opIdx].OperatoryNum!=appt.Op
+					|| dateNew!=appt.AptDateTime.Date)
+				{
+					#region Prompt or block
+					if(appt.AptStatus==ApptStatus.PtNote || appt.AptStatus==ApptStatus.PtNoteCompleted) {
+						//no question for notes
+						if(!Security.IsAuthorized(Permissions.AppointmentMove) || PatRestrictionL.IsRestricted(appt.PatNum,PatRestrict.ApptSchedule)) {
+							return;
+						}
+					}
+					else {
+						if(!Security.IsAuthorized(Permissions.AppointmentMove)
+							|| (appt.AptStatus==ApptStatus.Complete && (!Security.IsAuthorized(Permissions.AppointmentCompleteEdit)))
+							|| PatRestrictionL.IsRestricted(appt.PatNum,PatRestrict.ApptSchedule))
+						{
+							return;
+						}
+						if(!MsgBox.Show(MsgBoxButtons.YesNo,"Move Appointment?")){
+							return;
+						}
+					}
+					#endregion Prompt or block
+				}
+				appt.AptDateTime=dateNew+timeSpanNewRounded;
+				//Compare beginning of new appointment against end to see if the appointment spans two days
+				if(appt.AptDateTime.Day!=appt.AptDateTime.AddMinutes(appt.Pattern.Length*5).Day) {
+					MsgBox.Show("You cannot have an appointment that starts and ends on different days.");
+					return;
+				}
+				//Prevent double-booking of certain procedures
+				if(IsDoubleBooked(appt)) {
+					return;
+				}
+				//Operatory operatoryCur=_visOps[ApptDrawing.ConvertToOp(TempApptSingle.Location.X-ContrApptSheet2.Location.X)];
+				appt.Op=ListOpsVisible[opIdx].OperatoryNum;
+				OnApptMoved(appt,apptOld);
+				//MoveAppointment(new List<Appointment>() { appt },new List<Appointment>() { apptOld },curOp,timeWasMoved,isOpChanged);//Apt's time has already been changed at this point.  Internally calls Appointments S-class to insert invalid signal.				
+			}
+			finally { //Cleanup. We are done with mouse up so we can't possibly be resizing or moving an appt.
+				_isResizingAppt=false;
+				HideDraggableTempApptSingle();//sets mouseup
+			}
+		}
+
+		protected override void OnMouseMove(MouseEventArgs e) {
+			base.OnMouseMove(e);
+			if(!_isMouseDown) {
+				int idxAppt=HitTestAppt(e.Location);
+				InfoBubbleDraw(e.Location,idxAppt);//could be -1 to not show
+				HeaderTipDraw(e.Location);
+				//decide what the pointer should look like.
+				if(HitTestApptBottom(e.Location,idxAppt)) {
+					Cursor=Cursors.SizeNS;
+				}
+				else {
+					Cursor=Cursors.Default;
+				}
+				return;
+			}
+			//if resizing an appointment
+			if(_isResizingAppt) {
+				//already set in contrDraggableAppt in mousedown.  Just fiddle with height
+				contrTempAppt.Visible=true;//show visible with even the slightest movement.
+				contrTempAppt.Height=_heightResizingOriginal+e.Y-_pointMouseOrigin.Y;
+				if(contrTempAppt.Height<4) {//too small
+					contrTempAppt.Height=4;
+				}
+
+				//SetBitmapTempAppt();//no, only do this on mouse down
+				contrTempAppt.Invalidate();
+				return;
+			}
+			//Moving appt
+			//int thisIndex=GetIndex(ContrApptSingle.SelectedAptNum);
+			if((Math.Abs(e.X-_pointMouseOrigin.X)<3)//enhances double clicking
+				&&(Math.Abs(e.Y-_pointMouseOrigin.Y)<3)) {
+				_boolApptMoved=false;
+				return;
+			}
+			_boolApptMoved=true;
+			//since this usercontrol belongs to the parent, coordinates are in ContrAppt frame.
+			contrTempAppt.Location=new Point(
+				_pointApptOrigin.X+e.X-_pointMouseOrigin.X+this.Location.X,
+				_pointApptOrigin.Y+e.Y-_pointMouseOrigin.Y+this.Location.Y);
+			contrTempAppt.Visible=true;
+		}
+
+		protected override void OnMouseEnter(EventArgs e) {
+			base.OnMouseEnter(e);
+		}
+
+		protected override void OnMouseLeave(EventArgs e) {
+			base.OnMouseLeave(e);
+			HeaderTipDraw(new Point(-1,-1));//to trigger hiding it
+		}
+		#endregion Events - Mouse
+
+		#region Events - OnPaint
+		/// <summary></summary>
+		protected override void OnPaint(PaintEventArgs e) {
+			base.OnPaint(e);
+			Graphics graphics=e.Graphics;
+			Rectangle rectangleOnControl;//the rectangle of the entire area under consideration. We cycle through subsections of the control.
+			Rectangle rectangleClip;//frequently smaller than e.ClipRectangle. 
+			Rectangle rectangleSource;//source within the bitmap we are pulling from
+			float widthProvs;
+			if(_showProvBars){
+				widthProvs=_widthProv*_listProvsVisible.Count;
+			}
+			else{
+				widthProvs=0;
+			}
+			//main area
+			rectangleOnControl=new Rectangle(Round(_widthTime+widthProvs),Round(_heightProvOpHeaders),_widthMain,_heightMainVisible);
+			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+				//We don't want to redraw the entire image.  If we are dragging a small appt across this, we only want to redraw a small rect.
+				rectangleClip=Rectangle.Intersect(rectangleOnControl,e.ClipRectangle);
+				rectangleSource=new Rectangle(rectangleClip.X-Round(_widthTime+widthProvs),
+					rectangleClip.Y-Round(_heightProvOpHeaders)+vScrollBar1.Value,
+					rectangleClip.Width,rectangleClip.Height);
+				//img,dest,source,graphicsUnit:
+				graphics.DrawImage(_bitmapMainWithRed,rectangleClip,rectangleSource,GraphicsUnit.Pixel);
+			}
+			//the other areas are small enough that we don't bother with calculating clip rectangles and smaller bitmaps.
+			//prov bars header
+			if(_showProvBars){
+				rectangleOnControl=new Rectangle(Round(_widthTime),0,Round(widthProvs),Round(_heightProvOpHeaders));
+				if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+					graphics.DrawImage(_bitmapProvBarsHeader,_widthTime,0);
+				}
+			}
+			//ops header
+			rectangleOnControl=new Rectangle(Round(_widthTime+widthProvs),0,_widthMain,Round(_heightProvOpHeaders));
+			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+				graphics.DrawImage(_bitmapOpsHeader,_widthTime+widthProvs,0);
+			}
+			//Prov bars
+			if(_showProvBars){
+				rectangleOnControl=new Rectangle(Round(_widthTime),Round(_heightProvOpHeaders),Round(widthProvs),_heightMainVisible);
+				if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+					rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(widthProvs),_heightMainVisible);
+					graphics.DrawImage(_bitmapProvBarsWithRed,_widthTime,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
+				}
+			}
+			//timebars
+			rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(_widthTime),_heightMainVisible);
+			rectangleOnControl=new Rectangle(0,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
+			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+				graphics.DrawImage(_bitmapTimebarLeftWithRed,0,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
+			}
+			rectangleOnControl=new Rectangle(this.Width-vScrollBar1.Width-Round(_widthTime)-1,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
+			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+				graphics.DrawImage(_bitmapTimebarRightWithRed,this.Width-vScrollBar1.Width-_widthTime-1,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
+			}
+			graphics.DrawLine(_penVertPrimary,Width-1,_heightProvOpHeaders,Width-1,Height);
+		}
+
+		///<summary></summary>
+		private void TempApptSingle_Paint(object sender,PaintEventArgs e) {
+			e.Graphics.DrawImage(_bitmapTempApptSingle,0,0);
+			if(_isResizingAppt){
+				using(Pen pen=new Pen(Color.Black,1f)){
+					e.Graphics.DrawLine(pen,0,contrTempAppt.Height-1,contrTempAppt.Width,contrTempAppt.Height-1);
+				}
+			}
+		}
+		#endregion Events - OnPaint
+
+		#region Events - PrintPage
+		public void PrintPage(object sender,System.Drawing.Printing.PrintPageEventArgs e) {
+			_isPrinting=true;
+			Rectangle rectanglePageBounds=e.PageBounds;
+			//Header, footer, provbars, and timebars are present on all pages so that the appointment area is consistent in size and easier to calc for now.
+			//The margins defined here are for the appointment drawing area, excluding the text of the simple headers and footers
+			//Within these margins, a series of image portions needs to be drawn,
+			//including _bitmapBackAppts, _bitmapProvBars,_bitmapOpsHeader,_bitmapProvBarsHeader, and_bitmapTimebarLeft/Right
+			Rectangle rectangleMarginBounds=new Rectangle(30,65,rectanglePageBounds.Width-30-30,rectanglePageBounds.Height-65-40);
+			//the next few lines are instead of LayoutRecalcAfterResize()
+			float widthProvs;
+			if(_showProvBars){
+				widthProvs=_widthProv*_listProvsVisible.Count;
+			}
+			else{
+				widthProvs=0;
+			}
+			float widthMainOnePage=(float)rectangleMarginBounds.Width-_widthTime*2-(widthProvs);
+			float widthCol=widthMainOnePage/(float)PrintingColsPerPage;//widthCol should be ignored for WeekView
+			if(IsWeeklyView){
+				_widthMain=(int)widthMainOnePage; //Always just one page wide for week
+			}
+			else{
+				_widthMain=(int)(widthCol*ListOpsVisible.Count);//This is for multiple pages. This entire width will be split across the pages later
+			}
+			_font=new Font(FontFamily.GenericSansSerif,PrintingSizeFont);
+			_heightLine=_font.Height;
+			int startHour=DateTimePrintStart.Hour;
+			int stopHour=DateTimePrintStop.Hour;
+			if(stopHour==0) {
+				stopHour=24;
+			}
+			_heightMain=(int)(_heightLine*_rowsPerHr*24f);//This is for multiple pages, 24 hrs 
+			//This entire height will be split among the pages later. Automatically rounded down.
+			_isValidAllMain=false;
+			_isValidProvBars=false;
+			_isValidProvBarsHeader=false;
+			_isValidOpsHeader=false;
+			_isValidTimebars=false;
+			RedrawAsNeeded();//All redrawn with these new widths and heights
+			int heightMainOnePage=rectangleMarginBounds.Height-(int)_heightProvOpHeaders;
+			int pagesAcross=(int)Math.Ceiling((decimal)_listOpsVisible.Count/(decimal)PrintingColsPerPage);//Rounds up.  We frequently fall exactly on a boudary for rounding.
+			int pagesTall=(int)Math.Ceiling((double)(_heightLine*_rowsPerHr*(stopHour-startHour))/(double)heightMainOnePage);//rounds up. Unlikely to be any close rounding issues here.
+			int totalPages=pagesAcross*pagesTall;
+			if(IsWeeklyView) {
+				pagesAcross=1;
+				totalPages=1*pagesTall;
+			}
+			#region Rows and Cols for this Page
+			double dHoursPerPage=(float)heightMainOnePage /_heightLine/_rowsPerHr;
+			int hoursPerPage=(int)Math.Truncate(dHoursPerPage);//rounds down
+			int hourBegin=startHour+(hoursPerPage*PrintingPageRow);//PrintingPageRow=0 for first page
+			int hourEnd=hourBegin+hoursPerPage;
+			if(hourEnd>stopHour) {//Don't show too many hours on the last page
+				hourEnd=stopHour;
+			}
+			if(hourEnd>23) {//Midnight must be 0.
+				hourEnd=0;
+			}
+			DateTime dateTimeBegin=new DateTime(1,1,1,hourBegin,0,0);
+			DateTime dateTimeEnd=new DateTime(1,1,1,hourEnd,0,0);
+			int colStart=PrintingPageColumn*PrintingColsPerPage;
+			int colStop=colStart+PrintingColsPerPage;
+			if(colStop>_listOpsVisible.Count){
+				colStop=_listOpsVisible.Count;
+			}
+			#endregion Rows and Cols for this Page
+			Graphics g=e.Graphics;
+			g.InterpolationMode=InterpolationMode.High;//reduces blur in print preview.  We're scaling an image smaller, so this is the best we can do.
+			//Looks good in actual printing, regardless of this setting.
+			//Main-----------------------------------------------------------------------------------------------------------
+			RectangleF rectangleSourceMain;//source within _bitmapBackAppts that we are pulling from
+			if(IsWeeklyView){
+				rectangleSourceMain=new RectangleF(
+					colStart*widthCol,//colStart is 0 on first page
+					(float)hourBegin*_heightLine*_rowsPerHr,
+					_widthMain,
+					(hourEnd-hourBegin)*_heightLine*_rowsPerHr);
+			}
+			else{
+				rectangleSourceMain=new RectangleF(
+					colStart*widthCol,
+					(float)hourBegin*_heightLine*_rowsPerHr,
+					(colStop-colStart)*widthCol,
+					(hourEnd-hourBegin)*_heightLine*_rowsPerHr);
+			}
+			//destination rect width and height must be specified or it will be 4% too big because it's at 100dpi instead of 96dpi
+			RectangleF rectangleDestMain=new RectangleF(
+				rectangleMarginBounds.X+_widthTime+widthProvs,
+				rectangleMarginBounds.Y+_heightProvOpHeaders,
+				rectangleSourceMain.Width,
+				rectangleSourceMain.Height);
+			g.DrawImage(_bitmapBackAppts,rectangleDestMain,rectangleSourceMain,GraphicsUnit.Pixel);
+			//Prov Bars------------------------------------------------------------------------------------------------------
+			if(_showProvBars){
+				RectangleF rectangleSourceProvBars=new RectangleF(
+					0,
+					(float)hourBegin*_heightLine*_rowsPerHr,
+					widthProvs,
+					(hourEnd-hourBegin)*_heightLine*_rowsPerHr);
+				RectangleF rectangleDestProvBars=new RectangleF(
+					rectangleMarginBounds.X+_widthTime,
+					rectangleMarginBounds.Y+_heightProvOpHeaders,
+					rectangleSourceProvBars.Width,
+					rectangleSourceProvBars.Height);
+				g.DrawImage(_bitmapProvBars,rectangleDestProvBars,rectangleSourceProvBars,GraphicsUnit.Pixel);
+			}
+			//ProvBars Header---------------------------------------------------------------------------------------------------
+			if(_showProvBars){
+				g.DrawImage(_bitmapProvBarsHeader,
+					rectangleMarginBounds.X+_widthTime,
+					rectangleMarginBounds.Y,
+					_bitmapProvBarsHeader.Width,
+					_bitmapProvBarsHeader.Height);
+			}
+			//Ops Header-------------------------------------------------------------------------------------------------------
+			RectangleF rectangleSourceOpsHeader;
+			if(IsWeeklyView){
+				rectangleSourceOpsHeader=new RectangleF(
+					colStart*widthCol,
+					0,
+					_widthMain,
+					_heightProvOpHeaders);
+			}
+			else{
+				rectangleSourceOpsHeader=new RectangleF(
+					colStart*widthCol,
+					0,
+					(colStop-colStart)*widthCol,
+					_heightProvOpHeaders);
+			}
+			RectangleF retangleDestOpsHeader=new RectangleF(
+				rectangleMarginBounds.X+_widthTime+widthProvs,
+				rectangleMarginBounds.Y,
+				rectangleSourceOpsHeader.Width,
+				rectangleSourceOpsHeader.Height);
+			g.DrawImage(_bitmapOpsHeader,retangleDestOpsHeader,rectangleSourceOpsHeader,GraphicsUnit.Pixel);
+			//Time Bars--------------------------------------------------------------------------------------------------------
+			RectangleF rectangleSourceTime=new RectangleF(
+				0,
+				(float)hourBegin*_heightLine*_rowsPerHr,
+				_widthTime,
+				(hourEnd-hourBegin)*_heightLine*_rowsPerHr);
+			RectangleF rectangleDestTime=new RectangleF(
+				rectangleMarginBounds.X,
+				rectangleMarginBounds.Y+_heightProvOpHeaders,
+				rectangleSourceTime.Width,
+				rectangleSourceTime.Height);
+			g.DrawImage(_bitmapTimebarLeft,rectangleDestTime,rectangleSourceTime,GraphicsUnit.Pixel);
+			rectangleDestTime=new RectangleF(
+				rectangleDestMain.Right,
+				//rectangleMarginBounds.X+_widthTime+_widthProv*_listProvsVisible.Count+widthMainOnePage,
+				rectangleMarginBounds.Y+_heightProvOpHeaders,
+				rectangleSourceTime.Width,
+				rectangleSourceTime.Height);
+			g.DrawImage(_bitmapTimebarRight,rectangleDestTime,rectangleSourceTime,GraphicsUnit.Pixel);
+			//g.DrawRectangle(Pens.Red,rectangleMarginBounds);//just for testing
+			DrawPrintingHeaderFooter(e.Graphics,totalPages,rectanglePageBounds.Width,rectanglePageBounds.Height);
+			PagesPrinted++;
+			PrintingPageColumn++;
+			if(totalPages==PagesPrinted) {
+				PagesPrinted=0;
+				PrintingPageRow=0;
+				PrintingPageColumn=0;
+				e.HasMorePages=false;
+			}
+			else {
+				e.HasMorePages=true;
+				if(PagesPrinted==pagesAcross*(PrintingPageRow+1)) {
+					PrintingPageRow++;
+					PrintingPageColumn=0;
+				}
+			}
+			_heightLine=12;//Reset to default.
+			_font=new Font(FontFamily.GenericSansSerif,8f);
+			_isPrinting=false;//if there is another page to print, this gets set back to true again at the top of this event.
+			if(!e.HasMorePages){
+				ComputeHeight();//must come after set _isPrinting=false
+				LayoutRecalcAfterResize();//for _widthMain
+				_isValidAllMain=false;
+				_isValidProvBars=false;
+				_isValidProvBarsHeader=false;
+				_isValidOpsHeader=false;
+				_isValidTimebars=false;
+				RedrawAsNeeded();
+			}
+		}
+
+		///<summary></summary>
+		private void DrawPrintingHeaderFooter(Graphics g,int totalPages,float pageWidth,float pageHeight) {
+			float xPos=0;//starting pos
+			float yPos=25f;//starting pos
+			//Print Title------------------------------------------------------------------------------
+			string title;
+			string date;
+			if(IsWeeklyView) {
+				title="Weekly Appointments";
+				date=DateStart.DayOfWeek.ToString()+" "+DateStart.ToShortDateString()
+					+" - "+DateEnd.DayOfWeek.ToString()+" "+DateEnd.ToShortDateString();
+			}
+			else {
+				title=Lan.g(this,"Daily Appointments");
+				date=DateSelected.DayOfWeek.ToString()+"   "+DateSelected.ToShortDateString();
+			}
+			Font titleFont=new Font("Arial",12,FontStyle.Bold);
+			float xTitle = (float)((pageWidth/2)-((g.MeasureString(title,titleFont).Width/2)));
+			g.DrawString(title,titleFont,Brushes.Black,xTitle,yPos);//centered
+			//Print Date--------------------------------------------------------------------------------
+			Font dateFont=new Font("Arial",8,FontStyle.Regular);
+			float xDate = (float)((pageWidth/2)-((g.MeasureString(date,dateFont).Width/2)));
+			yPos+=20;
+			g.DrawString(date,dateFont,Brushes.Black,xDate,yPos);//centered
+			//Print Footer-----------------------------------------------------------------------------
+			string page=(PagesPrinted+1)+" / "+totalPages;
+			float xPage = pageWidth/2f-g.MeasureString(page,dateFont).Width/2f;
+			yPos=pageHeight-35;
+			g.DrawString(page,dateFont,Brushes.Black,xPage,yPos);
+		}
+		#endregion Events - PrintPage 
 
 		#region Properties - Complex Data (tables and lists)
 		///<summary>Subset of ListApptViewItems. Just items for rowElements, including apptfielddefs. If no view is selected, then the elements are filled with default info.  Ignore ApptViewItemL.ApptRows.  Only use this one.</summary>
@@ -287,7 +1194,7 @@ namespace OpenDental.UI{
 			get{ return _listOpsVisible; }
 			set{
 				_listOpsVisible=value;
-				_countCol=_listOpsVisible.Count;
+				//_countCol=_listOpsVisible.Count;
 				_dictOpNumToColumnNum=_listOpsVisible.ToDictionary(x => x.OperatoryNum,x => _listOpsVisible.FindIndex(y => y.OperatoryNum==x.OperatoryNum));
 				_isValidAllMain=false;//Must be because it changes the width of all ops and appts.
 				_isValidOpsHeader=false;
@@ -309,13 +1216,17 @@ namespace OpenDental.UI{
 			get{ return _listProvsVisible; }
 			set{
 				_listProvsVisible=value;
-				_countProv=_listProvsVisible.Count;
 				_dictProvNumToColumnNum=_listProvsVisible.ToDictionary(x => x.ProvNum,x => _listProvsVisible.FindIndex(y => y.ProvNum==x.ProvNum));
 				_provBar=new int[ListProvsVisible.Count][];
 				for(int i=0;i<ListProvsVisible.Count;i++) {
 					_provBar[i]=new int[24*(int)_rowsPerHr];//RowsPerHr=60/MinPerIncr*RowsPerIncr.
 				}
-				_widthMain=this.Width-(int)_widthTime*2-(int)(_widthProv*_countProv)-vScrollBar1.Width-1;
+				if(_showProvBars){//this is also present in IsWeeklyView.set and LayoutRecalcAfterResize()
+					_widthMain=this.Width-(int)_widthTime*2-(int)(_widthProv*_listProvsVisible.Count)-vScrollBar1.Width-1;
+				}
+				else{
+					_widthMain=this.Width-(int)_widthTime*2-vScrollBar1.Width-1;
+				}
 				_isValidAllMain=false;//Must be because it changes the width of all ops and appts.
 				_isValidProvBars=false;//not just appts
 				_isValidProvBarsHeader=false;
@@ -538,12 +1449,19 @@ namespace OpenDental.UI{
 						_dateStart=DateSelected.AddDays(1-(int)DateSelected.DayOfWeek).Date;//go back to current monday
 					}
 					_dateEnd=_dateStart.AddDays(_numOfWeekDaysToDisplay-1).Date;
+					_showProvBars=false;
 				}
 				else {//changing to daily view
 					_dateStart=DateSelected;
 					_dateEnd=DateSelected;
+					_showProvBars=true;
 				}
-				//Not sure about these flags.  Revisit.
+				if(_showProvBars){//this is also present in ListProvsVisible.set and LayoutRecalcAfterResize()
+					_widthMain=this.Width-(int)_widthTime*2-(int)(_widthProv*_listProvsVisible.Count)-vScrollBar1.Width-1;
+				}
+				else{
+					_widthMain=this.Width-(int)_widthTime*2-vScrollBar1.Width-1;
+				}
 				_isValidAllMain=false;
 				_isValidProvBars=false;
 				_isValidProvBarsHeader=false;
@@ -643,851 +1561,307 @@ namespace OpenDental.UI{
 		}
 		#endregion Properties - Simple Data
 
-		#region Constructor
-		public UserControlApptsPanelJ() {
-			InitializeComponent();
-			this.MouseWheel+=UserControlApptsPanel_MouseWheel;
-			//=new List<ContrApptSingleJ>();
-			//So dummy ops and provs will draw nicely, even if not initialized properly.
-			ListOpsVisible.Add(new Operatory());
-			ListOpsVisible.Add(new Operatory());
-			ListOpsVisible.Add(new Operatory());
-			ListProvsVisible.Add(new Provider());
-			panelInfoBubble=new Panel();
-			panelInfoBubble.Visible=false;
-			panelInfoBubble.Size=new Size(200,300);
-			panelInfoBubble.MouseMove+=new MouseEventHandler(InfoBubble_MouseMove);
-			panelInfoBubble.BackColor=Color.FromArgb(255,250,190);
-			pictureBoxPat=new OpenDental.UI.ODPictureBox();
-			pictureBoxPat.Location=new Point(6,17);
-			pictureBoxPat.Size=new Size(100,100);
-			pictureBoxPat.BackColor=Color.FromArgb(232,220,190);
-			pictureBoxPat.TextNullImage="Patient Picture Unavailable";
-			pictureBoxPat.MouseMove+=new MouseEventHandler(PictureBoxPat_MouseMove);
-			panelInfoBubble.Controls.Clear();
-			panelInfoBubble.Controls.Add(pictureBoxPat);
-			this.Controls.Add(panelInfoBubble);
-			timerInfoBubble=new Timer();
-			timerInfoBubble.Interval = 300;
-			timerInfoBubble.Tick += new System.EventHandler(this.timerInfoBubble_Tick);
-			panelHeaderTip=new Panel();
-			panelHeaderTip.Visible=false;
-			panelHeaderTip.Size=new Size(200,17);
-			panelHeaderTip.MouseMove+=new MouseEventHandler(panelOpHoverTip_MouseMove);
-			panelHeaderTip.BackColor=Color.White;
-			panelHeaderTip.BorderStyle=BorderStyle.FixedSingle;
-			labelHeaderTip=new Label();
-			labelHeaderTip.Location=new Point(0,0);
-			labelHeaderTip.Width=300;//arbitrarily long
-			panelHeaderTip.Controls.Add(labelHeaderTip);
-			this.Controls.Add(panelHeaderTip);
+		#region Methods - Public
+		public void GetBitmapForPinboard(Graphics g,DataRow dataRow,string patternShowing,float width,float height){
+			g.SmoothingMode=SmoothingMode.HighQuality;
+			DrawOneAppt(g,dataRow,patternShowing,width-1,height-1);
 		}
-		#endregion Constructor
 
-		#region Events - Raise
-		///<summary>Passes the request up to the parent form, which shows the edit window.</summary>
-		private void OnApptDoubleClicked(Appointment appt) {
-			if(ApptDoubleClicked!=null){
-				ApptDoubleClicked(this,new ApptEventArgs(appt,null));
+		///<summary>Was ApptSingleDrawing.GetPatternShowing.  This converts the dbPattern in 5 minute interval into the pattern that will be viewed based on RowsPerIncrement and AppointmentTimeIncrement.  So it will always depend on the current view.Therefore, it should only be used for visual display purposes rather than within the FormAptEdit. If height of appointment allows a half row, then this includes an increment for that half row.</summary>
+		public string GetPatternShowing(string dbPattern) {
+			StringBuilder strBTime=new StringBuilder();
+			for(int i=0;i<dbPattern.Length;i++) {
+				for(int j=0;j<RowsPerIncr;j++) {
+					strBTime.Append(dbPattern.Substring(i,1));
+				}
+				if(MinPerIncr==10) {
+					i++;//skip
+				}
+				if(MinPerIncr==15) {
+					i++;
+					i++;//skip two
+				}
 			}
+			return strBTime.ToString();
 		}
-		[Category("Appointment"),Description("Occurs when an appointment is double clicked.")]
-		public event ApptEventHandler ApptDoubleClicked;
-		
-		///<summary>If we find an appointment that is null, then raise this event so that the parent form will show message and refresh.  Also, instead of the old AptIsNull, just do if(appt==null), then raise this event.</summary>
-		private void OnApptNullFound() {
-			if(ApptNullFound!=null){
-				ApptNullFound(this,new EventArgs());
+
+		public DataRow GetDataRowForSelected(){
+			if(SelectedAptNum==-1){
+				return null;
 			}
-		}
-		[Category("Appointment"),Description("Occurs when a null appointment is found.")]
-		public event EventHandler ApptNullFound;
-
-		///<summary>Passes the request up to the parent form, which does the db interaction and a refresh.</summary>
-		private void OnApptMoved(Appointment appt,Appointment apptOld) {
-			if(ApptMoved!=null){
-				ApptMoved(this,new ApptEventArgs(appt,apptOld));
+			for(int i=0;i<TableAppointments.Rows.Count;i++){
+				if(TableAppointments.Rows[i]["AptNum"].ToString()==SelectedAptNum.ToString()){
+					return TableAppointments.Rows[i];
+				}
 			}
+			return null;
 		}
-		[Category("Appointment"),Description("Occurs when an appointment is moved.")]
-		public event ApptEventHandler ApptMoved;
 
-		///<summary>Passes the datarow up to the parent form, which then passes it to the pinboard.</summary>
-		private void OnApptMovedToPinboard(DataRow dataRow) {
-			if(ApptMovedToPinboard!=null){
-				ApptMovedToPinboard(this,new ApptDataEventArgs(dataRow,null,new Point(0,0)));
+		///<summary>Returns the index of the opNum within VisOps.  Returns -1 if not in VisOps.</summary>
+		public int GetIndexOp(long opNum) {
+			//No need to check RemotingRole; no call to db.
+			int index;
+			if(_dictOpNumToColumnNum.TryGetValue(opNum,out index)){
+				return index;
 			}
-		}
-		[Category("Appointment"),Description("Occurs when an appointment is dragged to pinboard.")]
-		public event ApptDataEventHandler ApptMovedToPinboard;
-
-		///<summary>Passes the request up to the parent form, which handles the rest, such as adding patient and showing appt edit window.</summary>
-		private void OnApptMainAreaDoubleClicked(DateTime dateT,long opNum,Point location) {
-			if(ApptMainAreaDoubleClicked!=null){
-				ApptMainAreaDoubleClicked(this,new ApptClickEventArgs(dateT,opNum,location));
-			}
-		}
-		[Category("Appointment"),Description("Occurs when the main blank area is double clicked.")]
-		public event ApptClickEventHandler ApptMainAreaDoubleClicked;
-
-		///<summary>Parent window will show context menu.</summary>
-		private void OnApptMainAreaRightClicked(DateTime dateT,long opNum,Point location) {
-			if(ApptMainAreaRightClicked!=null){
-				ApptMainAreaRightClicked(this,new ApptClickEventArgs(dateT,opNum,location));
-			}
-		}
-		[Category("Appointment"),Description("Occurs when the main blank area is right clicked.")]
-		public event ApptClickEventHandler ApptMainAreaRightClicked;
-
-		///<summary>Parent window will show context menu.</summary>
-		private void OnApptRightClicked(DateTime dateT,long opNum,Point location) {
-			if(ApptRightClicked!=null){
-				ApptRightClicked(this,new ApptClickEventArgs(dateT,opNum,location));
-			}
-		}
-		[Category("Appointment"),Description("Occurs when an appointment is right clicked.")]
-		public event ApptClickEventHandler ApptRightClicked;
-
-		///<summary>Parent window will refresh.</summary>
-		private void OnApptResized(Appointment appt) {
-			if(ApptResized!=null){
-				ApptResized(this,new ApptEventArgs(appt,null));
-			}
-		}
-		[Category("Appointment"),Description("Occurs when an appointment is resized.")]
-		public event ApptEventHandler ApptResized;
-
-		///<summary></summary>
-		private void OnSelectedApptChanged(DataRow dataRow) {
-			if(SelectedApptChanged!=null){
-				SelectedApptChanged(this,new ApptDataEventArgs(dataRow,null,new Point(0,0)));
-			}
-		}
-		[Category("Appointment"),Description("Occurs when user clicks to change selected appt.  Changing SelectedAptNum externally does not cause this event to fire.")]
-		public event ApptDataEventHandler SelectedApptChanged;
-		#endregion Events - Raise
-
-		#region Events - Standard
-		private void UserControlApptsPanel_Load(object sender,EventArgs e) {
-			_isControlLoaded=true;
-			LayoutRecalcAfterResize();
-			contrTempAppt=new DoubleBufferedControl();//DoubleBufferedControl is defined below.
-			contrTempAppt.Visible=false;
-			contrTempAppt.Size=new Size(100,100);
-			contrTempAppt.Paint+=TempApptSingle_Paint;
-			Parent.Controls.Add(contrTempAppt);
-		}
-
-		private void UserControlApptsPanel_Resize(object sender,EventArgs e) {
-			//seems to resize about 13 times before it's even loaded. Doing it this way causes just a single layout.
-			if(!_isControlLoaded){
-				return;
-			}
-			LayoutRecalcAfterResize();
-		}
-
-		private void LayoutRecalcAfterResize(){
-			_widthMain=this.Width-(int)_widthTime*2-(int)(_widthProv*_countProv)-vScrollBar1.Width-1;
-			_heightMainVisible=this.Height-(int)_heightProvOpHeaders;
-			//there is one actual control which needs to be placed and sized:
-			vScrollBar1.Location=new Point(this.Width-vScrollBar1.Width-1,(int)_heightProvOpHeaders);
-			vScrollBar1.Height=_heightMainVisible;			
-			//Width has changed, so need to redraw everything
-			_isValidAllMain=false;
-			//_isValidProvBars=false;//provbars don't need to redraw on resize
-			//_isValidProvBarsHeader=false;
-			_isValidOpsHeader=false;
-			//_isValidTimebars=false;//timebars don't need to redraw on resize
-			if(!_isUpdating){
-				RedrawAsNeeded();
+			else{
+				return -1;
 			}
 		}
 
-		private void vScrollBar1_Scroll(object sender,ScrollEventArgs e) {
+		///<summary>Returns the index of the provNum within VisProvs, or -1.</summary>
+		public int GetIndexProv(long provNum) {
+			//No need to check RemotingRole; no call to db.
+			int index;
+			return _dictProvNumToColumnNum.TryGetValue(provNum,out index) ? index : -1;
+		}
+
+		///<summary>Call this whenever control should be redrawn, like after data is fetched, or when red timebar should move down.  Usually just grabs existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from as basis for new bitmap, as well as a variety of ancillary bitmaps for outside the main area. It all depends on what data is invalid.  So it usually doesn't need to redraw much.</summary>
+		public void RedrawAsNeeded(){
+			if(!_isValidAllMain){
+				ComputeColWidth();//super fast.
+			}
+			if(!_isValidOpsHeader){//need widths above in order to calc whether text will wrap
+				ComputeHeightProvOpHeader();
+			}
+			if(!_isValidAllMain || !_isValidOpsHeader){
+				ComputeHeight();
+			}
+			SetBitmapMain();
+			SetBitmapProvBars();
+			SetBitmapProvBarsHeader();
+			SetBitmapOpsHeader();
+			SetBitmapsTimebar();
 			Invalidate();
 		}
 
-		private void UserControlApptsPanel_MouseWheel(object sender,MouseEventArgs e) {
-			//this behavior changed in Win10 because the "Scroll inactive windows when I hover over them" option is turned by default. 
-			//This means we don't have to have focus to scroll.  Nice.
-			//e.delta value is pretty useless.  So we are only going to test whether it's scrolling up or down, 
-			bool isNeg=e.Delta<0;
-			int valueNew=vScrollBar1.Value;
-			if(isNeg){
-				valueNew+=vScrollBar1.SmallChange;
-			}
-			else{
-				valueNew-=vScrollBar1.SmallChange;
-			}
+		///<summary>Called on startup and if color prefs change.</summary>
+		public void SetColors(Color colorOpen,Color colorClosed,Color colorHoliday,Color colorBlockText,Color colorTimeLine){
+			//Example pseudocode hints used before calling this method:
+			//List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AppointmentColors);
+			//colorOpen=(listDefs[0].ItemColor);
+			//colorClosed=(listDefs[1].ItemColor);
+			//colorHoliday=(listDefs[3].ItemColor);
+			//colorBlockText=Defs.GetDefsForCategory(DefCat.AppointmentColors,true)[4].ItemColor;
+			//colorTimeLine=PrefC.GetColor(PrefName.AppointmentTimeLineColor)
+			_brushOpen=new SolidBrush(colorOpen);
+			_brushClosed=new SolidBrush(colorClosed);
+			_brushHoliday=new SolidBrush(colorHoliday);
+			_brushBlockText=new SolidBrush(colorBlockText);
+			_penTimeLine=new Pen(colorTimeLine,1.55f);//there's a big difference between 1.5 and 1.55.  ??
+			_isValidAllMain=false;//if we change colors, redraw everything in main
+			_isValidProvBars=false;
+		}
+
+		public void SetScrollByTime(TimeSpan timeOfDay){
+			int valueNew=(int)(timeOfDay.TotalHours*_heightLine*(double)_rowsPerHr);
 			if(valueNew<vScrollBar1.Minimum){
 				valueNew=vScrollBar1.Minimum;
 			}
-			if(valueNew>vScrollBar1.Maximum-vScrollBar1.LargeChange+1){
-				valueNew=vScrollBar1.Maximum-vScrollBar1.LargeChange+1;
+			if(valueNew>vScrollBar1.Maximum-vScrollBar1.LargeChange){
+				valueNew=vScrollBar1.Maximum-vScrollBar1.LargeChange;
 			}
 			vScrollBar1.Value=valueNew;
+			//no bitmaps need to be redrawn
+			Invalidate();//just a quick redraw
+		}
+
+		///<summary>Was ApptSingleDrawing.SetSize.  Used for Planned apt and pinboard instead of SetLocation so that the location won't be altered.  Send in the actual timepattern in 5 min increments, not the PatternShowing.  Sets size in pixels.  If sizing an actual control, follow this by rounding.</summary>
+		public SizeF SetSize(string pattern) {
+			float widthSingleAppt;
+			if(_widthCol<5){
+				widthSingleAppt=0;
+			}
+			else{
+				widthSingleAppt=_widthCol-3;
+			}
+			if(IsWeeklyView) {
+				widthSingleAppt=_widthWeekAppt;
+			}
+			//height is based on original 5 minute pattern. Might result in half-rows
+			float heightSingleAppt=pattern.Length*_heightLine*RowsPerIncr;
+			if(MinPerIncr==10) {
+				heightSingleAppt=heightSingleAppt/2f;
+			}
+			if(MinPerIncr==15) {
+				heightSingleAppt=heightSingleAppt/3f;
+			}
+			return new SizeF(widthSingleAppt,heightSingleAppt);
+		}
+
+		///<summary>Used by parent form when a dialog needs to be displayed, but mouse might be down.  This forces a mouse up, and cleans up any mess so that dlg can show.</summary>
+		public void MouseUpForced() {
+			HideDraggableTempApptSingle();	
+		}
+		#endregion Methods - Public
+
+		#region Methods - Public BeginEndUpdate
+		///<summary>Call this before making complex changes to properties.</summary>
+		public void BeginUpdate() {
+			_isUpdating=true;
+		}
+
+		///<summary>Call after BeginUpdate and when done making complex changes.</summary>
+		public void EndUpdate() {
+			_isUpdating=false;
+			RedrawAsNeeded();
 			Invalidate();
 		}
+		#endregion Methods - Public BeginEndUpdate
 
-		private void UserControlApptsPanel_DoubleClick(object sender,EventArgs e) {
-			
-		}
-		#endregion Events - Standard
-
-		#region Events - Mouse
-		protected override void OnDoubleClick(EventArgs e) {
-			base.OnDoubleClick(e);
-			HideDraggableTempApptSingle();
-			//this logic is a little different than mouse down for now because on the first click of a 
-			//double click, an appointment control is created under the mouse.
-			if(SelectedAptNum!=0) {//on appt
-				long patnum=PIn.Long(_dataRowTempAppt["PatNum"].ToString());
-				//on mousedown, we didn't check this
-				Appointment appt=Appointments.GetOneApt(SelectedAptNum);
-				if(appt==null) {
-					OnApptNullFound();
-					return;
-				}
-				OnApptDoubleClicked(appt);//event raised to parent.
+		#region Methods - Public Dropping
+		///<summary>Pass in Y as coordinate of this entire control.</summary>
+		public TimeSpan? YPosToTime(int yPos){
+			if(yPos<_heightProvOpHeaders){
+				return null;
 			}
-			//not on apt, so trying to schedule an appointment---------------------------------------------------------------------
-			else {
-				if(!Security.IsAuthorized(Permissions.AppointmentCreate)) {
-					return;
-				}
-				if(ListOpsVisible.Count==0) {//no ops visible.
-					return;
-				}
-				//First we'll check to see if the location the user clicked on is a blockout with the type NoSchedule
-				//DateTime dateSelected=_dateSelected;
-				TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,MinPerIncr);
-				DateTime dateTimeStart=DateSelected+timeSpanNew;
-				if(IsWeeklyView) {
-					dateTimeStart=dateTimeStart.AddDays(_dayClicked);
-				}
-				if(Appointments.CheckTimeForBlockoutOverlap(dateTimeStart,_opNumClicked)) {
-					MsgBox.Show(this, "Appointment cannot be created on a blockout marked as 'Block appointment scheduling'");
-					return;
-				}
-				OnApptMainAreaDoubleClicked(dateTimeStart,_opNumClicked,_pointMouseOrigin);
-			}
+			float yMain=yPos-_heightProvOpHeaders+vScrollBar1.Value;//now it's in bitmapMain coordinates
+			double hours=(double)yMain/(double)_rowsPerHr/(double)_heightLine;//this is hours and decimal minutes
+			TimeSpan timeSpan=TimeSpan.FromHours(hours);
+			return timeSpan;
 		}
 
-		protected override void OnMouseDown(MouseEventArgs e) {
-			base.OnMouseDown(e);
-			if(ListOpsVisible.Count==0) {//no ops visible.
+		///<summary>Used when dropping an appointment to a new location or resizing. Rounds time up or down to the nearest valid increment.  Static for unit test.</summary>
+		public static TimeSpan RoundTimeToNearestIncrement(TimeSpan timeSpanIn,double minPerIncr){
+			double base10Increment=minPerIncr/60d;//For example, 10 min becomes .167
+			double totalIncrements=timeSpanIn.TotalHours/base10Increment;//not rounded, this is how many increments since midnight.
+			double roundedIncrements=Math.Round(totalIncrements);
+			double totalHours=roundedIncrements*base10Increment;//for example, 8:10a would be 8.167
+			TimeSpan timeSpanRounded=TimeSpan.FromHours(totalHours);//but there might be a stray second
+			return new TimeSpan(timeSpanRounded.Hours,timeSpanRounded.Minutes,0);
+		}
+
+		///<summary>Used when clicking. Rounds time down to the nearest valid increment.  Static for unit test.</summary>
+		public static TimeSpan RoundTimeDown(TimeSpan timeSpanIn,double minPerIncr){
+			double base10Increment=minPerIncr/60d;//For example, 10 min becomes .167
+			double totalIncrements=timeSpanIn.TotalHours/base10Increment;//not rounded, this is how many increments since midnight.
+			double truncatedIncrements=Math.Truncate(totalIncrements);//rounded down
+			double totalHours=truncatedIncrements*base10Increment;//for example, 8:10a would be 8.167
+			TimeSpan timeSpanTruncated=TimeSpan.FromHours(totalHours);//but there might be a stray second
+			return new TimeSpan(timeSpanTruncated.Hours,timeSpanTruncated.Minutes,0);
+		}
+
+		public long GetOpNumClicked(){
+			return _opNumClicked;
+		}
+
+		public TimeSpan GetTimeClicked(){
+			return _timeClicked;
+		}
+
+		///<summary>Used when dropping an appointment to a new location.  Converts x-coordinate to date and opIdx.  Used in both daily and weekly views.  It is very different from XPosToOpIdx, which doesn't round the same way. Pass in X in coords of this entire control.  Date will always be reasonable, but opIdx might be -1 if unable to resolve.</summary>
+		public void RoundToNearestDateAndOp(int xPos,out DateTime date,out int opIdx) {
+			//This cannot be two separate methods because the rounding increment is op, so date and op are interdependent.
+			date=DateStart;//for daily view, this is the same as DateSelected
+			opIdx=-1;
+			if(ListOpsVisible.Count==0){
 				return;
 			}
-			if(_isMouseDown) {//if user clicks right mouse button while dragging
+			float xPosMain;//for bitmapMain coordinates instead of control coords
+			if(_showProvBars){
+				xPosMain=xPos-_widthTime-_listProvsVisible.Count*_widthProv;
+			}
+			else{
+				xPosMain=xPos-_widthTime;
+			}
+			if(xPosMain<0){
+				//user might have dragged it slightly into left timebar
+				date=DateStart;//=DateSelected for daily
+				opIdx=0;
 				return;
 			}
-			if(e.Y<_heightProvOpHeaders
-				&& e.X>_widthTime 
-				&& e.X<this.Width-vScrollBar1.Width-_widthTime)
-			{
-				//clicked in operatory header
-				string txt="";
-				for(int i=0;i<ListOpsVisible.Count;i++){
-					if(i==ListOpsVisible.Count-1
-						|| e.X<_widthTime+_widthProv*_countProv+_widthCol*(float)(i+1))//compare to the righthand side of op
-					{
-						//found op where we clicked
-						txt=ListOpsVisible[i].OpName;
-						//_opNumHeaderTipLast=ListOpsVisible[i].OperatoryNum;//not needed here.  Handled in mouseMove
-						Provider prov=Providers.GetProv(ListOpsVisible[i].ProvDentist);//We can enhance this later to show Hygienist.
-						if(prov==null){
-							txt+="\r\nThere is no provider associated with this operatory.";
-						}
-						else{
-							Def defProvSpecialty=Defs.GetDef(DefCat.ProviderSpecialties,prov.Specialty);
-							if(defProvSpecialty!=null) {
-								txt+="\r\n"+"Default: "+prov.FName+" "+prov.LName+", "+defProvSpecialty.ItemName;
-							}
-						}
-						//Get the subset of schedules from ListSchedules that is linked to this op
-						List<Schedule> listScheds=Schedules.GetProvSchedsForOp(ListSchedules,ListOpsVisible[i]);
-						Provider providerScheduled;
-						//Get the provider for each Schedule and show that provider's info.
-						foreach(Schedule schedule in listScheds) {
-							providerScheduled=Providers.GetProv(schedule.ProvNum);
-							if(providerScheduled==null) {
-								return;
-							}
-							Def defScheduledProv=Defs.GetDef(DefCat.ProviderSpecialties,providerScheduled.Specialty);
-							string schedProcDef="";
-							if(defScheduledProv!=null) {
-								schedProcDef=", "+defScheduledProv.ItemName;
-							}
-							txt+="\r\nScheduled "+schedule.StartTime.ToShortTimeString()+"-"+schedule.StopTime.ToShortTimeString()+": "
-								+providerScheduled.GetFormalName()+schedProcDef;
-							txt+=string.IsNullOrWhiteSpace(providerScheduled.SchedNote) ? "": "\r\n\t("+providerScheduled.SchedNote+")";
-						}
-						if(PrefC.HasClinicsEnabled && Clinics.ClinicNum!=0) {//HQ cannot have clinic specialties.
-							Clinic clinic=Clinics.GetClinic(Clinics.ClinicNum);
-							string clinicSchedNote=clinic.SchedNote;
-							if(!string.IsNullOrEmpty(clinicSchedNote)) {
-								if(txt!="") {
-									txt+="\r\n------";
-								}
-								List<DefLink> listSpecialties=DefLinks.GetListByFKey(clinic.ClinicNum,DefLinkType.Clinic);
-								txt+="\r\n"+string.Join(", ",listSpecialties.Select(x => Defs.GetName(DefCat.ClinicSpecialty,x.DefNum)))
-									+"\r\n"+clinicSchedNote;
-							}
-						}
-						break;
-					}
+			int idxNearestOp;
+			if(!IsWeeklyView){
+				idxNearestOp=Round(xPosMain/_widthCol);
+				//just within a single day
+				if(idxNearestOp>ListOpsVisible.Count-1){
+					idxNearestOp=ListOpsVisible.Count-1;
 				}
-				panelHeaderTip.Width=TextRenderer.MeasureText(txt,_font).Width+2;
-				panelHeaderTip.Height=TextRenderer.MeasureText(txt,_font).Height+3;
-				labelHeaderTip.Height=panelHeaderTip.Height;//auto?
-				labelHeaderTip.Text=txt;
-				int xval=e.X;
-				int yval=e.Y+20;
-				if(xval+panelHeaderTip.Width>this.Width-vScrollBar1.Width-3){
-					xval=this.Width-panelHeaderTip.Width-vScrollBar1.Width-3;
-				}
-				panelHeaderTip.Location=new Point(xval,yval);
-				panelHeaderTip.Visible=true;
-			}
-			TimeSpan? timeClicked=YPosToTime(e.Y);
-			if(timeClicked==null){//clicked outside the main bitmap
-				return;//?
-			}
-			_pointMouseOrigin=e.Location;
-			_timeClicked=timeClicked.Value;
-			//MessageBox.Show(_timeClicked.ToShortTimeString());
-			DataRow dataRow=HitTestAppt(e.Location);
-			_opNumClicked=ListOpsVisible[XPosToOpIdx(e.X)].OperatoryNum;
-			_dayClicked=XPosToDay(e.X);
-			long clickedAptNum=0;
-			if(dataRow!=null){
-				clickedAptNum=PIn.Long(dataRow["AptNum"].ToString());
-			}
-			if(SelectedAptNum!=clickedAptNum){//if selected appt changed
-				SelectedAptNum=clickedAptNum;
-				OnSelectedApptChanged(dataRow);
-			}
-			//TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,_minPerIncr);//not going to round down for now
-			DateTime dateTimeClicked=DateSelected+_timeClicked;
-			if(IsWeeklyView) {
-				dateTimeClicked=dateTimeClicked.AddDays(_dayClicked);
-			}
-			//while mouse is down, there is no appt bubble.  Includes dragging, context menus, etc.
-			panelInfoBubble.Visible=false;
-			timerInfoBubble.Enabled=false;
-			if(clickedAptNum!=0) {//if clicked on an appt
-				if(e.Button==MouseButtons.Right) {
-					OnApptRightClicked(dateTimeClicked,_opNumClicked,e.Location);
-				}
-				else{//left button
-					if(HitTestApptBottom(e.Location)) {
-						_isResizingAppt=true;
-					}
-					else {
-						_isResizingAppt=false;
-					}
-					ShowDraggableApptSingle(dataRow);//this sets _isMouseDown
-					_pointApptOrigin=contrTempAppt.Location;
-					if(_isResizingAppt){
-						_heightResizingOriginal=contrTempAppt.Height;
-					}
-				}
-			}
-			else {//not clicked on appt
-				if(e.Button==MouseButtons.Right){
-					OnApptMainAreaRightClicked(dateTimeClicked,_opNumClicked,e.Location);
-				}
-			}
-			//Todo: In old ContrAppt, this section was here:
-			//Need to revisit and test, because this now happens in OnSelectedApptChanged up above
-			/*if(PatCur!=null && PatCur.PatNum!=oldPatNum) {
-				//This needs to be called after ShowDraggableContrApptSingle(...)
-				//due to S_Contr_PatientSelected(...) indirectly stoping the drag if there are any popups.
-				FormOpenDental.S_Contr_PatientSelected(PatCur,true,false);
-			}
-			else {
-				//This is called either way. But we avoid some code by calling it directly here.
-				RefreshModuleScreenPatient();
-			}*/
-		}
-
-		protected override void OnMouseUp(MouseEventArgs e) {
-			base.OnMouseUp(e);
-			if(!_isMouseDown) {
+				opIdx=idxNearestOp;
 				return;
 			}
-			//try/finally only. No catch. We probably want a handy exception to popup if there is a real bug.
-			//Any return from this point forward will cause HideDraggableContrApptSingle() and ResizingAppt=false.
-			try {
-				//int thisIndex=GetIndex(ContrApptSingle.SelectedAptNum);
-				Appointment apptOld;
-				if(_isResizingAppt) {
-					#region Resizing, not moving.
-					//if(!TempApptSingle.Visible) {//click with no drag?
-					//	return;
-					//}
-					//convert Bottom to a time
-					TimeSpan? timeSpanBottom=YPosToTime(contrTempAppt.Bottom-this.Location.Y);
-					if(timeSpanBottom==null){
-						return;
-					}
-					TimeSpan timeSpanBottomRounded=RoundTimeToNearestIncrement(timeSpanBottom.Value,MinPerIncr);					
-					//subtract to get the new length of appt
-					DateTime dateTimeTempAppt=PIn.DateT(_dataRowTempAppt["AptDateTime"].ToString());
-					TimeSpan newspan=timeSpanBottomRounded-dateTimeTempAppt.TimeOfDay;
-					//check if the appointment is being dragged to the next day
-					if(dateTimeTempAppt.Day!=(dateTimeTempAppt+newspan).Day) {//I don't think this can get hit
-						MsgBox.Show(this,"You cannot have an appointment that starts and ends on different days.");
-						return;
-					}
-					int newpatternL=Math.Max((int)newspan.TotalMinutes/5,1);
-					if(newpatternL<MinPerIncr/5) {//eg. if 1 < 10/5, would make appt too short. 
-						newpatternL=(int)MinPerIncr/5;//sets new pattern length at one increment, typically 2 or 3 5min blocks
-					}
-					else if(newpatternL>78) {//max length of 390 minutes
-						newpatternL=78;
-					}
-					string pattern=PIn.String(_dataRowTempAppt["Pattern"].ToString());
-					if(newpatternL<pattern.Length) {//shorten to match new pattern length
-						pattern=pattern.Substring(0,newpatternL);
-					}
-					else if(newpatternL>pattern.Length) {//make pattern longer.
-						pattern=pattern.PadRight(newpatternL,'/');
-					}
-					//Now, check for overlap with other appts.
-					//Loop through all other appts in the op and make sure the new pattern will not overlap.
-					long opNumTemp=PIn.Long(_dataRowTempAppt["Op"].ToString());
-					long aptNumTemp=PIn.Long(_dataRowTempAppt["AptNum"].ToString());
-					for(int i=0;i<TableAppointments.Rows.Count;i++){
-						if(PIn.Long(TableAppointments.Rows[i]["Op"].ToString())!=opNumTemp){
-							continue;
-						}
-						if(PIn.Long(TableAppointments.Rows[i]["AptNum"].ToString())==aptNumTemp){
-							continue;
-						}
-						DateTime dateTimeApptInSameOp=PIn.DateT(TableAppointments.Rows[i]["AptDateTime"].ToString());
-						if(IsWeeklyView && dateTimeApptInSameOp.Date!=dateTimeTempAppt.Date) {
-							continue;
-						}
-						if(dateTimeApptInSameOp < dateTimeTempAppt) {
-							continue;//we don't care about appointments that are earlier than this one
-						}
-						if(dateTimeApptInSameOp.TimeOfDay < dateTimeTempAppt.TimeOfDay+TimeSpan.FromMinutes(5*pattern.Length)) {
-							//New pattern overlaps so back it up to butt up against this appt. This will shorten the desired pattern to prevent overlap.
-							newspan=dateTimeApptInSameOp.TimeOfDay-dateTimeTempAppt.TimeOfDay;
-							newpatternL=Math.Max((int)newspan.TotalMinutes/5,1);
-							pattern=pattern.Substring(0,newpatternL);						
-						}
-					}
-					//Check for any overlap with blockouts with the "No Schedule" flag and shorten the pattern
-					Appointment curApt=Appointments.GetOneApt(aptNumTemp);
-					if(curApt==null){
-						OnApptNullFound();
-						return;
-					}
-					curApt.Pattern=pattern;
-					DateTime datePrevious=curApt.DateTStamp;
-					Schedule overlappingBlockout=Appointments.GetOverlappingBlockouts(curApt).OrderBy(x => x.StartTime).FirstOrDefault();
-					if(overlappingBlockout!=null) {
-						//Figure out the amount of time between them and divide by 5 because of how time patterns are stored for appointments.  
-						//This happens when resizing.
-						//Appointments can be in the middle of a blocking blockout if the blockout type is changed after the appointment is placed.  
-						//In this case we are going to leave the appointment because it has precedence.
-						if(!(overlappingBlockout.SchedDate.Add(overlappingBlockout.StartTime)<=curApt.AptDateTime)) {
-							newpatternL=(int)(overlappingBlockout.SchedDate.Add(overlappingBlockout.StartTime)-curApt.AptDateTime).TotalMinutes/5;
-							pattern=pattern.Substring(0,newpatternL);	//Minimum newpatternL is 1, because an appointment can't be places on a valid blockout
-						}
-					}
-					if(pattern=="") {
-						pattern="///";
-					}
-					Appointments.SetPattern(curApt,pattern); //Appointments S-Class handles Signalods
-					SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,curApt.PatNum,"Appointment resized from the appointment module.",curApt.AptNum,datePrevious);//Generate FKey to the appointment to show the audit entry in the ApptEdit window.
-					OnApptResized(curApt);
-					#endregion Resizing, not moving.
-					return;					
-				}//end if(_isResizingAppt)
-				if((Math.Abs(e.X-_pointMouseOrigin.X)<7) && (Math.Abs(e.Y-_pointMouseOrigin.Y)<7)) { //Mouse has not moved enough to be considered an appt move.
-					_boolApptMoved=false;
-				}
-				if(!_boolApptMoved) { //Click with no drag.
-					return;
-				}
-				if(contrTempAppt.Location.X>this.Right) { //Dragging to pinboard, so place a copy there.
-					#region Dragging to pinboard
-					long patNum=PIn.Long(_dataRowTempAppt["PatNum"].ToString());
-					if(!Security.IsAuthorized(Permissions.AppointmentMove) || PatRestrictionL.IsRestricted(patNum,PatRestrict.ApptSchedule)){
-						return;
-					}
-					if((ApptStatus)PIn.Int(_dataRowTempAppt["AptStatus"].ToString())==ApptStatus.Complete) {//could cause completed procs to change date
-						MsgBox.Show("Not allowed to move completed appointments.");
-						return;
-					}
-					//HideDraggableTempApptSingle() handled down below
-					SelectedAptNum=-1;
-					
-					OnApptMovedToPinboard(_dataRowTempAppt);
-
-					/*
-					int prevSel=GetIndex(SelectedAptNum);
-					List<long> list=new List<long>();
-					list.Add(SelectedAptNum);
-					SendToPinboard(list);//sets selectedAptNum=-1. do before refresh prev
-					if(prevSel!=-1) {
-						ContrApptSheet2.DoubleBufferDraw(drawToScreen: true);
-					}
-					RefreshModuleDataPatient(PatCur.PatNum);
-					FormOpenDental.S_Contr_PatientSelected(PatCur,true,false);*/
-					#endregion Dragging to pinboard
-					return;
-				}
-				//We got this far so we are moving the appt to a new location.
-				Appointment appt=Appointments.GetOneApt(SelectedAptNum);
-				if(appt==null){
-					OnApptNullFound();
-					return;
-				}
-				Plugins.HookAddCode(this, "ContrAppt.ContrApptSheet2_MouseUp_validation_end",appt);//after we know we have a valid appointment.
-				apptOld=appt.Copy();
-				TimeSpan? timeSpanNew=YPosToTime(contrTempAppt.Location.Y-this.Location.Y);
-				if(timeSpanNew==null){
-					return;
-				}
-				TimeSpan timeSpanNewRounded=RoundTimeToNearestIncrement(timeSpanNew.Value,MinPerIncr);
-				int opIdx=RoundToNearestOp(contrTempAppt.Location.X-this.Location.X);//passing in as coordinates of this control
-				long opNum=ListOpsVisible[opIdx].OperatoryNum;
-				//_listOpsVisible[XPosToOpIdx(controlDraggableAppt.Location.X-this.Left)].OperatoryNum;//using frame of this control instead of parent
-				bool isTimeDifferent=timeSpanNewRounded!=appt.AptDateTime.TimeOfDay;
-				bool isOpDifferent=opNum!=appt.Op;
-				if(isTimeDifferent||isOpDifferent) {
-					#region Prompt or block
-					if(appt.AptStatus==ApptStatus.PtNote | appt.AptStatus==ApptStatus.PtNoteCompleted) {
-						//no question for notes
-						if(!Security.IsAuthorized(Permissions.AppointmentMove)||PatRestrictionL.IsRestricted(appt.PatNum,PatRestrict.ApptSchedule)) {
-							return;
-						}
-					}
-					else {
-						if(!Security.IsAuthorized(Permissions.AppointmentMove)
-							|| (appt.AptStatus==ApptStatus.Complete && (!Security.IsAuthorized(Permissions.AppointmentCompleteEdit)))
-							|| PatRestrictionL.IsRestricted(appt.PatNum,PatRestrict.ApptSchedule))
-						{
-							return;
-						}
-						if(!MsgBox.Show(MsgBoxButtons.YesNo,"Move Appointment?")){
-							return;
-						}
-					}
-					#endregion Prompt or block
-				}
-				DateTime dateNew=appt.AptDateTime.Date;
-				if(IsWeeklyView) {
-					dateNew=DateStart.AddDays(RoundToNearestDay(contrTempAppt.Location.X-this.Location.X));
-				}
-				appt.AptDateTime=dateNew+timeSpanNewRounded;
-				//Compare beginning of new appointment against end to see if the appointment spans two days
-				if(appt.AptDateTime.Day!=appt.AptDateTime.AddMinutes(appt.Pattern.Length*5).Day) {//I don't think this gets hit
-					MsgBox.Show(this,"You cannot have an appointment that starts and ends on different days.");
-					return;
-				}
-				//Prevent double-booking
-				if(IsDoubleBooked(appt)) {
-					return;
-				}
-				//Operatory operatoryCur=_visOps[ApptDrawing.ConvertToOp(TempApptSingle.Location.X-ContrApptSheet2.Location.X)];
-				appt.Op=opNum;
-				OnApptMoved(appt,apptOld);
-				//MoveAppointment(new List<Appointment>() { appt },new List<Appointment>() { apptOld },curOp,timeWasMoved,isOpChanged);//Apt's time has already been changed at this point.  Internally calls Appointments S-class to insert invalid signal.				
+			//weekly from here down--------------------------------------------------------------------------------------------
+			idxNearestOp=Round(xPosMain/_widthWeekAppt);//895/100=9
+			//in this case, it will be across multiple days
+			//On the last day, in the last op, in the right half, it would round up to the first op of the following day.  This is not allowed.
+			int maxOps=_listOpsVisible.Count*_numOfWeekDaysToDisplay;//e.g. 2*7=14
+			if(idxNearestOp==maxOps){//14 not allowed
+				idxNearestOp=maxOps-1;//13, which is last op on 7th day
 			}
-			finally { //Cleanup. We are done with mouse up so we can't possibly be resizing or moving an appt.
-				_isResizingAppt=false;
-				HideDraggableTempApptSingle();//sets mouseup
+			int idxDay=(int)((float)idxNearestOp/(float)ListOpsVisible.Count); //rounds down.  e.g. 9/2=4.5= day 4
+			//impossible for idxDay to be out of range
+			date=DateStart.AddDays(idxDay);
+			opIdx=idxNearestOp-(idxDay*ListOpsVisible.Count);//9-(4*2)=1
+			if(opIdx>ListOpsVisible.Count-1){
+				opIdx=ListOpsVisible.Count-1;
+			}
+			if(opIdx<0){
+				opIdx=0;
 			}
 		}
-
-		protected override void OnMouseMove(MouseEventArgs e) {
-			base.OnMouseMove(e);
-			if(!_isMouseDown) {
-				InfoBubbleDraw(e.Location);
-				HeaderTipDraw(e.Location);
-				//decide what the pointer should look like.
-				if(HitTestApptBottom(e.Location)) {
-					Cursor=Cursors.SizeNS;
-				}
-				else {
-					Cursor=Cursors.Default;
-				}
-				return;
+		
+		public bool IsDoubleBooked(Appointment appt) {
+			if(AppointmentRules.GetCount() == 0) { //If no rules exist then don't bother checking.
+				return false;
 			}
-			//if resizing an appointment
-			if(_isResizingAppt) {
-				//already set in contrDraggableAppt in mousedown.  Just fiddle with height
-				contrTempAppt.Visible=true;//show visible with even the slightest movement.
-				contrTempAppt.Height=_heightResizingOriginal+e.Y-_pointMouseOrigin.Y;
-				if(contrTempAppt.Height<4) {//too small
-					contrTempAppt.Height=4;
-				}
-
-				//SetBitmapTempAppt();//no, only do this on mouse down
-				contrTempAppt.Invalidate();
-				return;
+			List<long> listAptNums=new List<long>();
+			for(int i=0;i<TableAppointments.Rows.Count;i++){
+				listAptNums.Add(PIn.Long(TableAppointments.Rows[i]["AptNum"].ToString()));
 			}
-			//Moving appt
-			//int thisIndex=GetIndex(ContrApptSingle.SelectedAptNum);
-			if((Math.Abs(e.X-_pointMouseOrigin.X)<3)//enhances double clicking
-				&&(Math.Abs(e.Y-_pointMouseOrigin.Y)<3)) {
-				_boolApptMoved=false;
-				return;
+			List<Procedure> procsMultApts=Procedures.GetProcsMultApts(listAptNums);
+			Procedure[] procsForOne=Procedures.GetProcsOneApt(appt.AptNum,procsMultApts);
+			ArrayList doubleBookedCodes=Appointments.GetDoubleBookedCodes(appt,TableAppointments.Copy(),procsMultApts,procsForOne);
+			if(doubleBookedCodes.Count==0) {
+				return false;
 			}
-			_boolApptMoved=true;
-			//since this usercontrol belongs to the parent, coordinates are in ContrAppt frame.
-			contrTempAppt.Location=new Point(
-				_pointApptOrigin.X+e.X-_pointMouseOrigin.X+this.Location.X,
-				_pointApptOrigin.Y+e.Y-_pointMouseOrigin.Y+this.Location.Y);
-			contrTempAppt.Visible=true;
+			//if some codes would be double booked
+			if(AppointmentRules.IsBlocked(doubleBookedCodes)) {
+				MessageBox.Show("Not allowed to double book: "
+					+AppointmentRules.GetBlockedDescription(doubleBookedCodes));
+				return true;
+			}
+			return false;
 		}
-
-		protected override void OnMouseEnter(EventArgs e) {
-			base.OnMouseEnter(e);
-		}
-
-		protected override void OnMouseLeave(EventArgs e) {
-			base.OnMouseLeave(e);
-			HeaderTipDraw(new Point(-1,-1));//to trigger hiding it
-		}
-		#endregion Events - Mouse
-
-		#region Events - OnPaint
-		/// <summary></summary>
-		protected override void OnPaint(PaintEventArgs e) {
-			base.OnPaint(e);
-			Graphics graphics=e.Graphics;
-			Rectangle rectangleOnControl;//the rectangle of the entire area under consideration. We cycle through subsections of the control.
-			Rectangle rectangleClip;//frequently smaller than e.ClipRectangle. 
-			Rectangle rectangleSource;//source within the bitmap we are pulling from
-			//main area
-			rectangleOnControl=new Rectangle(Round(_widthTime+_widthProv*_countProv),Round(_heightProvOpHeaders),_widthMain,_heightMainVisible);
-			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				//We don't want to redraw the entire image.  If we are dragging a small appt across this, we only want to redraw a small rect.
-				rectangleClip=Rectangle.Intersect(rectangleOnControl,e.ClipRectangle);
-				rectangleSource=new Rectangle(rectangleClip.X-Round(_widthTime+_widthProv*_countProv),
-					rectangleClip.Y-Round(_heightProvOpHeaders)+vScrollBar1.Value,
-					rectangleClip.Width,rectangleClip.Height);
-				//img,dest,source,graphicsUnit:
-				graphics.DrawImage(_bitmapMainWithRed,rectangleClip,rectangleSource,GraphicsUnit.Pixel);
-			}
-			//the other areas are small enough that we don't bother with calculating clip rectangles and smaller bitmaps.
-			//prov bars header
-			rectangleOnControl=new Rectangle(Round(_widthTime),0,Round(_widthProv*_countProv),Round(_heightProvOpHeaders));
-			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				graphics.DrawImage(_bitmapProvBarsHeader,_widthTime,0);
-			}
-			//ops header
-			rectangleOnControl=new Rectangle(Round(_widthTime+_widthProv*_countProv),0,_widthMain,Round(_heightProvOpHeaders));
-			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				graphics.DrawImage(_bitmapOpsHeader,_widthTime+_widthProv*_countProv,0);
-			}
-			//Prov bars
-			rectangleOnControl=new Rectangle(Round(_widthTime),Round(_heightProvOpHeaders),Round(_widthProv*_countProv),_heightMainVisible);
-			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(_widthProv*_countProv),_heightMainVisible);
-				graphics.DrawImage(_bitmapProvBarsWithRed,_widthTime,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
-			}
-			//timebars
-			rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(_widthTime),_heightMainVisible);
-			rectangleOnControl=new Rectangle(0,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
-			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				graphics.DrawImage(_bitmapTimebarLeftWithRed,0,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
-			}
-			rectangleOnControl=new Rectangle(this.Width-vScrollBar1.Width-Round(_widthTime)-1,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
-			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				graphics.DrawImage(_bitmapTimebarRightWithRed,this.Width-vScrollBar1.Width-_widthTime-1,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
-			}
-			graphics.DrawLine(_penVertPrimary,Width-1,_heightProvOpHeaders,Width-1,Height);
-		}
-
-		///<summary></summary>
-		private void TempApptSingle_Paint(object sender,PaintEventArgs e) {
-			e.Graphics.DrawImage(_bitmapTempApptSingle,0,0);
-			if(_isResizingAppt){
-				using(Pen pen=new Pen(Color.Black,1f)){
-					e.Graphics.DrawLine(pen,0,contrTempAppt.Height-1,contrTempAppt.Width,contrTempAppt.Height-1);
-				}
-			}
-		}
-		#endregion Events - OnPaint
-
-		#region Events - PrintPage
-		public void PrintPage(object sender,System.Drawing.Printing.PrintPageEventArgs e) {
-			_isPrinting=true;
-			Rectangle pageBounds=e.PageBounds;
-			int headerOffset=75;
-			int footerOffset=40;
-			int marginOffset=30;
-			//the next few lines are instead of LayoutRecalcAfterResize()
-			_widthMain=pageBounds.Width-((marginOffset*2)+15)//not sure what the 15 is for
-				-(int)_widthTime*2-(int)(_widthProv*_countProv);
-			//Dont set _heightMain here.  We don't know how many pages yet.
-			//_heightMain=pageBounds.Height-headerOffset-footerOffset-(int)_heightProvOpHeaders;
-			_heightLine=new Font("Arial",PrintingSizeFont).Height;//Measure font size set by user
-			_isValidAllMain=false;
-			_isValidProvBars=false;//?
-			_isValidProvBarsHeader=false;//?
-			_isValidOpsHeader=false;
-			_isValidTimebars=false;//? Will probably draw, then grab sections as needed
-			RedrawAsNeeded();//widths and heights are computed inside here
-			int startHour=DateTimePrintStart.Hour;
-			int stopHour=DateTimePrintStop.Hour;
-			if(stopHour==0) {
-				stopHour=24;
-			}
-			float heightMultiPage=_heightLine*_rowsPerHr*(stopHour-startHour);//Actually the same thing as _heightMain
-			//Figure out how many pages are needed to print.
-			int pagesAcross=(int)Math.Ceiling((decimal)_listOpsVisible.Count/(decimal)PrintingColsPerPage);
-			int pagesTall=(int)Math.Ceiling((decimal)heightMultiPage/(decimal)(pageBounds.Height-(headerOffset+footerOffset)));//not sure about provOpHeaders
-			int totalPages=pagesAcross*pagesTall;
-			if(IsWeeklyView) {
-				pagesAcross=1;
-				totalPages=1*pagesTall;
-			}
-			//Decide what page currently on, thus knowing what hours to print.
-			#region HoursOnPage
-			int hoursPerPage=(int)Math.Floor((decimal)(pageBounds.Height-(headerOffset+footerOffset))/(decimal)(_heightLine*_rowsPerHr));
-			int hourBegin=startHour;
-			int hourEnd=hourBegin+hoursPerPage;
-			if(PrintingPageRow>0) {
-				hourBegin=startHour+(hoursPerPage*PrintingPageRow);
-				hourEnd=hourBegin+hoursPerPage;
-			}
-			if(hourEnd>stopHour) {//Don't show too many hours.
-				hourEnd=stopHour;
-			}
-			_heightMain=(int)_heightLine*(int)_rowsPerHr*(hourEnd-hourBegin);
-			if(hourEnd>23) {//Midnight must be 0.
-				hourEnd=0;
-			}
-			DateTime dateTimeBegin=new DateTime(1,1,1,hourBegin,0,0);
-			DateTime dateTimeEnd=new DateTime(1,1,1,hourEnd,0,0);
-			#endregion
-			e.Graphics.TranslateTransform(marginOffset,headerOffset);//Compensate for header and margin.
-
-
-			/*
-
-			ApptDrawing.DrawAllButAppts(e.Graphics,false,dateTimeBegin,dateTimeEnd,apptPrintColsPerPage,pageColumn,apptPrintFontSize,true);
-			//Draw the appointments.
-			#region ApptSingleDrawing
-			//Clear out the ProvBar from previous page.
-			ApptDrawing.ProvBar=new int[ApptDrawing.VisProvs.Count][];
-			for(int i=0;i<ApptDrawing.VisProvs.Count;i++) {
-				ApptDrawing.ProvBar[i]=new int[24*ApptDrawing.RowsPerHr]; //[144]; or 24*6
-			}			
-			foreach(ContrApptSingle ctrl in ContrApptSheet2.ListContrApptSingles) {
-				if(!ApptDrawing.IsWeeklyView) {
-					ApptDrawing.ProvBarShading(ctrl.DataRoww);//Always fill prov bars.
-				}
-				//Filter the list of appointments here for those those within the time frame.
-				if(!ApptSingleDrawing.ApptWithinTimeFrame(ctrl.OpNum,ctrl.AptDateTime,ctrl.Pattern,dateTimeBegin,dateTimeEnd,apptPrintColsPerPage,pageColumn)) {
-					continue;
-				}
-				ContrApptSingle contrApptSingle=new ContrApptSingle(
-					ctrl.DataRoww,
-					ctrl.TableApptFields,
-					ctrl.TablePatFields,
-					ApptSingleDrawing.SetLocation(ctrl.DataRoww,hourBegin,apptPrintColsPerPage,pageColumn),
-					ContrApptSheet2.OverlapOrdering.GetOverlapTimes(ctrl.AptNum));
-				e.Graphics.ResetTransform();
-				e.Graphics.TranslateTransform(contrApptSingle.Location.X+marginOffset,contrApptSingle.Location.Y+headerOffset);
-				ApptSingleDrawing.DrawEntireAppt(e.Graphics,contrApptSingle.DataRoww,contrApptSingle.PatternShowing,contrApptSingle.Size.Width,contrApptSingle.Size.Height,
-					false,false,-1,ApptViewItemL.ApptRows,ApptViewItemL.ApptViewCur,contrApptSingle.TableApptFields,contrApptSingle.TablePatFields,apptPrintFontSize,true,
-					ContrApptSheet2.OverlapOrdering.GetOverlapTimes(contrApptSingle.AptNum));
-			}
-			#endregion
-			e.Graphics.ResetTransform();
-			//Cover the portions of the appointments that don't belong on the page.
-			e.Graphics.FillRectangle(new SolidBrush(Color.White),0,0,pageBounds.Width,headerOffset-1);
-			e.Graphics.FillRectangle(new SolidBrush(Color.White),0,ApptDrawing.ApptSheetHeight+headerOffset,pageBounds.Width,heightMultiPage);
-			//Draw the header
-			DrawPrintingHeader(e.Graphics,totalPages,pageBounds.Width,pageBounds.Height);
-			pagesPrinted++;
-			pageColumn++;
-			if(totalPages==pagesPrinted) {
-				pagesPrinted=0;
-				pageRow=0;
-				pageColumn=0;
-				e.HasMorePages=false;
-			}
-			else {
-				e.HasMorePages=true;
-				if(pagesPrinted==pagesAcross*(pageRow+1)) {
-					pageRow++;
-					pageColumn=0;
-				}
-			}
-			_heightLine=12;//Reset to default.
-			_isPrinting=false;//if there is another page to print, this can be set true again when this event fires.*/
-/*
-			public int PrintingColCountOverride=0;
-		///<summary>This was being passed in when printing as pageColumn.  Otherwise zero.</summary>
-		public int PrintingPageColumn;
-		public DateTime	DateTimePrintStart;
-		public DateTime DateTimePrintStop;
-		public bool IsPrintPreview;
-		public int PagesPrinted;
-		public int PrintingPageRow;
-		public int PrintingSizeFont;*/
-
-		}
-		#endregion Events - PrintPage 
+		#endregion Methods - Public Dropping
 
 		#region Methods - Private Set Bitmaps
 		///<summary>Usually just grabs an existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from, depending on what data is invalid.  So it usually doesn't need to redraw much.  Triggered much less frequently than OnPaint.</summary>
 		private void SetBitmapMain(){
-			//Disposing of each bitmap and graphics to free memory before reinitializing
-			//On the first call to this method, they will be null, causing silent exception.
+			//Disposing of each bitmap to free memory before reinitializing
 			if(!_isValidAllMain){
-				ODException.SwallowAnyException(() => {
-					_bitmapBack.Dispose();
-					_graphicsBack.Dispose();
-				});
+				_bitmapBack?.Dispose();
 				_bitmapBack=new Bitmap(_widthMain,_heightMain);
-				_graphicsBack=Graphics.FromImage(_bitmapBack);
-				_graphicsBack.SmoothingMode=SmoothingMode.HighQuality;
-				DrawBackground(_graphicsBack);
+				using(Graphics g=Graphics.FromImage(_bitmapBack)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					DrawBackground(g);
+				}
 			}
 			if(!_isValidAllMain || !_isValidApptsMain){
-				ODException.SwallowAnyException(() => {
-					_bitmapBackAppts.Dispose();
-					_graphicsBackAppts.Dispose();
-
-				});
+				_bitmapBackAppts?.Dispose();
 				_bitmapBackAppts=new Bitmap(_widthMain,_heightMain);
-				_graphicsBackAppts=Graphics.FromImage(_bitmapBackAppts);
-				_graphicsBackAppts.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsBackAppts.DrawImage(_bitmapBack,0,0);
-				DrawAppts(_graphicsBackAppts);
+				using(Graphics g=Graphics.FromImage(_bitmapBackAppts)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					g.DrawImage(_bitmapBack,0,0);
+					DrawAppts(g);
+				}
 			}
 			if(!_isValidAllMain || !_isValidApptsMain || !_isValidOutlineSelected){
-				ODException.SwallowAnyException(() => {
-					_bitmapBackApptsOutlineSelected.Dispose();
-					_graphicsBackApptsOutlineSelected.Dispose();
-				});
+				_bitmapBackApptsOutlineSelected?.Dispose();
 				_bitmapBackApptsOutlineSelected=new Bitmap(_widthMain,_heightMain);
-				_graphicsBackApptsOutlineSelected=Graphics.FromImage(_bitmapBackApptsOutlineSelected);
-				_graphicsBackApptsOutlineSelected.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsBackApptsOutlineSelected.DrawImage(_bitmapBackAppts,0,0);
-				DrawOutlineSelected(_graphicsBackApptsOutlineSelected);
+				using(Graphics g=Graphics.FromImage(_bitmapBackApptsOutlineSelected)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					g.DrawImage(_bitmapBackAppts,0,0);
+					DrawOutlineSelected(g);
+				}
 			}
-			ODException.SwallowAnyException(() => {
-				_bitmapMainWithRed.Dispose();
-				_graphicsMainWithRed.Dispose();
-			});
+			_bitmapMainWithRed?.Dispose();
 			_bitmapMainWithRed=new Bitmap(_widthMain,_heightMain);
-			_graphicsMainWithRed=Graphics.FromImage(_bitmapMainWithRed);
-			_graphicsMainWithRed.SmoothingMode=SmoothingMode.HighQuality;
-			_graphicsMainWithRed.DrawImage(_bitmapBackApptsOutlineSelected,0,0);
-			//Always paints the red timeline.  This is not cached.
-			DrawRedTimeLineMain(_graphicsMainWithRed);
+			using(Graphics g=Graphics.FromImage(_bitmapMainWithRed)){
+				g.SmoothingMode=SmoothingMode.HighQuality;
+				g.DrawImage(_bitmapBackApptsOutlineSelected,0,0);
+				//Always paints the red timeline.  This is not cached.
+				DrawRedTimeLineMain(g);
+			}
 			_isValidAllMain=true;
 			_isValidApptsMain=true;
 			_isValidOutlineSelected=true;
@@ -1496,41 +1870,33 @@ namespace OpenDental.UI{
 		///<summary>Always draws a red timeline, even if _bitmapProvBars doesn't need a redraw.</summary>
 		private void SetBitmapProvBars(){
 			if(!_isValidProvBars){
-				ODException.SwallowAnyException(() => {
-					_bitmapProvBarsBack.Dispose();
-					_graphicsProvBarsBack.Dispose();					
-				});
-				_bitmapProvBarsBack=new Bitmap((int)(_countProv*_widthProv),_heightMain);
-				_graphicsProvBarsBack=Graphics.FromImage(_bitmapProvBarsBack);
-				_graphicsProvBarsBack.SmoothingMode=SmoothingMode.HighQuality;
-				DrawProvBarsBackground(_graphicsProvBarsBack);
-				if(!IsWeeklyView) {
-					DrawProvScheds(_graphicsProvBarsBack);
-					//DrawProvBars(g);
+				_bitmapProvBarsBack?.Dispose();			
+				_bitmapProvBarsBack=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				using(Graphics g=Graphics.FromImage(_bitmapProvBarsBack)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					DrawProvBarsBackground(g);
+					if(!IsWeeklyView) {
+						DrawProvScheds(g);
+						//DrawProvBars(g);
+					}
 				}
 			}
 			if(!_isValidProvBars || !_isValidProvBarsAppts){
-				ODException.SwallowAnyException(() => {
-					_bitmapProvBars.Dispose();
-					_graphicsProvBars.Dispose();
-
-				});
-				_bitmapProvBars=new Bitmap((int)(_countProv*_widthProv),_heightMain);
-				_graphicsProvBars=Graphics.FromImage(_bitmapProvBars);
-				_graphicsProvBars.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsProvBars.DrawImage(_bitmapProvBarsBack,0,0);
-				DrawProvBarsAppts(_graphicsProvBars);
+				_bitmapProvBars?.Dispose();
+				_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				using(Graphics g=Graphics.FromImage(_bitmapProvBars)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					g.DrawImage(_bitmapProvBarsBack,0,0);
+					DrawProvBarsAppts(g);
+				}
 			}
-			ODException.SwallowAnyException(() => {
-				_bitmapProvBarsWithRed.Dispose();
-				_graphicsProvBarsWithRed.Dispose();
-
-			});
-			_bitmapProvBarsWithRed=new Bitmap((int)(_countProv*_widthProv),_heightMain);
-			_graphicsProvBarsWithRed=Graphics.FromImage(_bitmapProvBarsWithRed);
-			_graphicsProvBarsWithRed.SmoothingMode=SmoothingMode.HighQuality;
-			_graphicsProvBarsWithRed.DrawImage(_bitmapProvBars,0,0);
-			DrawRedTimeLineProvBars(_graphicsProvBarsWithRed);
+			_bitmapProvBarsWithRed?.Dispose();
+			_bitmapProvBarsWithRed=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+			using(Graphics g=Graphics.FromImage(_bitmapProvBarsWithRed)){
+				g.SmoothingMode=SmoothingMode.HighQuality;
+				g.DrawImage(_bitmapProvBars,0,0);
+				DrawRedTimeLineProvBars(g);
+			}
 			_isValidProvBars=true;
 			_isValidProvBarsAppts=true;
 		}
@@ -1538,15 +1904,13 @@ namespace OpenDental.UI{
 		///<summary>Does nothing unless _bitmapProvBarsHeader needs a redraw.</summary>
 		private void SetBitmapProvBarsHeader(){
 			if(!_isValidProvBarsHeader){
-				ODException.SwallowAnyException(() => {
-					_bitmapProvBarsHeader.Dispose();
-					_graphicsProvBarsHeader.Dispose();
-				});
-				_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_countProv),(int)_heightProvOpHeaders);
-				_graphicsProvBarsHeader=Graphics.FromImage(_bitmapProvBarsHeader);
-				_graphicsProvBarsHeader.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsProvBarsHeader.TextRenderingHint=TextRenderingHint.AntiAlias;
-				DrawProvBarsHeader(_graphicsProvBarsHeader);
+				_bitmapProvBarsHeader?.Dispose();
+				_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
+				using(Graphics g=Graphics.FromImage(_bitmapProvBarsHeader)){
+				g.SmoothingMode=SmoothingMode.HighQuality;
+					g.TextRenderingHint=TextRenderingHint.AntiAlias;
+					DrawProvBarsHeader(g);
+				}
 			}
 			_isValidProvBarsHeader=true;
 		}
@@ -1554,15 +1918,13 @@ namespace OpenDental.UI{
 		///<summary>Does nothing unless _bitmapOpsHeader needs a redraw.</summary>
 		private void SetBitmapOpsHeader(){
 			if(!_isValidOpsHeader){
-				ODException.SwallowAnyException(() => {
-					_bitmapOpsHeader.Dispose();
-					_graphicsOpsHeader.Dispose();
-				});
+				_bitmapOpsHeader?.Dispose();
 				_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
-				_graphicsOpsHeader=Graphics.FromImage(_bitmapOpsHeader);
-				_graphicsOpsHeader.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsOpsHeader.TextRenderingHint=TextRenderingHint.AntiAlias;
-				DrawOpsHeader(_graphicsOpsHeader);
+				using(Graphics g=Graphics.FromImage(_bitmapOpsHeader)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					g.TextRenderingHint=TextRenderingHint.AntiAlias;
+					DrawOpsHeader(g);
+				}
 			}
 			_isValidOpsHeader=true;
 		}
@@ -1570,41 +1932,37 @@ namespace OpenDental.UI{
 		///<summary>Always draws the red timeline, even if _bitmapTimebarLeft/Right don't need a redraw.</summary>
 		private void SetBitmapsTimebar(){
 			if(!_isValidTimebars){
-				ODException.SwallowAnyException(() => {
-					_bitmapTimebarLeft.Dispose();
-					_graphicsTimebarLeft.Dispose();
-					_bitmapTimebarRight.Dispose();
-					_graphicsTimebarRight.Dispose();
-				});
+				_bitmapTimebarLeft?.Dispose();
+				_bitmapTimebarRight?.Dispose();
 				_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-				_graphicsTimebarLeft=Graphics.FromImage(_bitmapTimebarLeft);
-				_graphicsTimebarLeft.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsTimebarLeft.TextRenderingHint=TextRenderingHint.AntiAlias;
-				DrawTimebar(_graphicsTimebarLeft,true);
+				using(Graphics g=Graphics.FromImage(_bitmapTimebarLeft)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					g.TextRenderingHint=TextRenderingHint.AntiAlias;
+					DrawTimebar(g,true);
+				}
 				_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-				_graphicsTimebarRight=Graphics.FromImage(_bitmapTimebarRight);
-				_graphicsTimebarRight.SmoothingMode=SmoothingMode.HighQuality;
-				_graphicsTimebarRight.TextRenderingHint=TextRenderingHint.AntiAlias;
-				DrawTimebar(_graphicsTimebarRight,false);
+				using(Graphics g=Graphics.FromImage(_bitmapTimebarRight)){
+					g.SmoothingMode=SmoothingMode.HighQuality;
+					g.TextRenderingHint=TextRenderingHint.AntiAlias;
+					DrawTimebar(g,false);
+				}
 			}
-			ODException.SwallowAnyException(() => {
-				_bitmapTimebarLeftWithRed.Dispose();
-				_graphicsTimebarLeftWithRed.Dispose();
-				_bitmapTimebarRightWithRed.Dispose();
-				_graphicsTimebarRightWithRed.Dispose();
-			});
+			_bitmapTimebarLeftWithRed?.Dispose();
+			_bitmapTimebarRightWithRed?.Dispose();
 			_bitmapTimebarLeftWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-			_graphicsTimebarLeftWithRed=Graphics.FromImage(_bitmapTimebarLeftWithRed);
-			_graphicsTimebarLeftWithRed.SmoothingMode=SmoothingMode.HighQuality;
-			_graphicsTimebarLeftWithRed.TextRenderingHint=TextRenderingHint.AntiAlias;
-			_graphicsTimebarLeftWithRed.DrawImage(_bitmapTimebarLeft,0,0);
-			DrawRedTimeLineTimebar(_graphicsTimebarLeftWithRed);
+			using(Graphics g=Graphics.FromImage(_bitmapTimebarLeftWithRed)){
+				g.SmoothingMode=SmoothingMode.HighQuality;
+				g.TextRenderingHint=TextRenderingHint.AntiAlias;
+				g.DrawImage(_bitmapTimebarLeft,0,0);
+				DrawRedTimeLineTimebar(g);
+			}
 			_bitmapTimebarRightWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-			_graphicsTimebarRightWithRed=Graphics.FromImage(_bitmapTimebarRightWithRed);
-			_graphicsTimebarRightWithRed.SmoothingMode=SmoothingMode.HighQuality;
-			_graphicsTimebarRightWithRed.TextRenderingHint=TextRenderingHint.AntiAlias;
-			_graphicsTimebarRightWithRed.DrawImage(_bitmapTimebarRight,0,0);
-			DrawRedTimeLineTimebar(_graphicsTimebarRightWithRed);
+			using(Graphics g=Graphics.FromImage(_bitmapTimebarRightWithRed)){
+				g.SmoothingMode=SmoothingMode.HighQuality;
+				g.TextRenderingHint=TextRenderingHint.AntiAlias;
+				g.DrawImage(_bitmapTimebarRight,0,0);
+				DrawRedTimeLineTimebar(g);
+			}
 			_isValidTimebars=true;
 		}
 
@@ -1612,9 +1970,7 @@ namespace OpenDental.UI{
 		private void SetBitmapTempAppt(){
 			//no isValid to track. Just call this to redraw the bitmap
 			//See TempApptSingle_Paint, which simply paint the bitmap at 0,0, then draws a lower border.
-			if(_bitmapTempApptSingle!=null){
-				_bitmapTempApptSingle.Dispose();
-			}
+			_bitmapTempApptSingle?.Dispose();
 			int heightTemp=0;
 			if(_isResizingAppt){
 				heightTemp=1000;//8hrs x 12incr x 12pix = 1152
@@ -1630,7 +1986,7 @@ namespace OpenDental.UI{
 			}
 			using(Graphics g = Graphics.FromImage(_bitmapTempApptSingle)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
-				DrawOneAppt(g,_dataRowTempAppt,patternShowing,(float)contrTempAppt.Width-1f,(float)heightTemp-1f,false,new List<DateRange>());
+				DrawOneAppt(g,_dataRowTempAppt,patternShowing,(float)contrTempAppt.Width-1f,(float)heightTemp-1f);
 			}
 		}
 		#endregion Methods - Private Set Bitmaps
@@ -1639,15 +1995,9 @@ namespace OpenDental.UI{
 		///<summary></summary>
 		private void DrawBackground(Graphics g) {
 			g.FillRectangle(_brushBackground,0,0,_widthMain,_heightMain);
-			//g.FillRectangle(_brushTimeBar,0,0,_timeWidth,_height);//L time bar
-			//g.FillRectangle(_brushTimeBar,_timeWidth+_colWidth*_colCount+_provWidth*_provCount,0,_timeWidth,_height);//R time bar
 			DrawMainBackground(g);
 			DrawBlockouts(g);
 			DrawWebSchedASAPSlots(g);
-			//if(!IsWeeklyView) {
-				//DrawProvScheds(g);//goes on other bitmap
-				//DrawProvBars(g);
-			//}
 			DrawGridLinesMain(g);
 		}
 
@@ -1655,7 +2005,7 @@ namespace OpenDental.UI{
 		private void DrawMainBackground(Graphics g) {
 			List<Schedule> provSchedsForOp;
 			//one giant rectangle for everything closed
-			g.FillRectangle(_brushClosed,0,0,_widthCol*_countCol,_heightMain);
+			g.FillRectangle(_brushClosed,0,0,_widthCol*ListOpsVisible.Count,_heightMain);
 			if(ListSchedules==null){
 				return;
 			}
@@ -1669,11 +2019,11 @@ namespace OpenDental.UI{
 						.Any(x => (int)x.SchedDate.DayOfWeek==d+1 //for this day of the week
 							&& (x.ClinicNum==0 || (PrefC.HasClinicsEnabled && x.ClinicNum==Clinics.ClinicNum)))) //and either practice or for this clinic
 					{
-						g.FillRectangle(_brushHoliday,_widthTime+1+d*_widthWeekDay,0,_widthWeekDay,_heightMain);
+						g.FillRectangle(_brushHoliday,d*_widthWeekDay,0,_widthWeekDay,_heightMain);
 					}
 					//DayOfWeek enum goes from Sunday to Saturday 0-6, OD goes Monday to Sunday 0-6
 					DayOfWeek dayofweek=(DayOfWeek)((d+1)%7);//when d==0, dayofweek=monday (or (DayOfWeek)1).  when d==6 we want dayofweek=sunday (or (DayOfWeek)0)
-					for(int i=0;i<_countCol;i++) {//for each operatory visible for this view and day
+					for(int i=0;i<ListOpsVisible.Count;i++) {//for each operatory visible for this view and day
 						provSchedsForOp=Schedules.GetProvSchedsForOp(ListSchedules,dayofweek,ListOpsVisible[i]);
 						//for each schedule assigned to this op
 						foreach(Schedule schedCur in provSchedsForOp.Where(x => x.SchedType==ScheduleType.Provider)) {
@@ -1693,18 +2043,13 @@ namespace OpenDental.UI{
 				if(ListSchedules.FindAll(x => x.SchedType==ScheduleType.Practice && x.Status==SchedStatus.Holiday) //find all holidays
 					.Any(x => x.ClinicNum==0 || (PrefC.HasClinicsEnabled && x.ClinicNum==Clinics.ClinicNum)))//for the practice or clinic
 				{
-					g.FillRectangle(_brushHoliday,0,0,_widthCol*_countCol,_heightMain);
+					g.FillRectangle(_brushHoliday,0,0,_widthCol*ListOpsVisible.Count,_heightMain);
 				}
-				for(int i=0;i<_countCol;i++) {//ops per page in day view
+				for(int i=0;i<ListOpsVisible.Count;i++) {//ops per page in day view
 					if(i==ListOpsVisible.Count) {//for printing, when _countCol is a smaller per-page loop
 						break;
 					}
-//todo: re-evealuate this block in the context of printing:
-					//int k=colsPerPage*pageColumn+i;//pageColumn is always 0. All that's left is i.  Whole thing was redundant.
-					//if(k>=ApptDrawing.VisOps.Count) {
-					//	break;
-					//}
-					//this next line needs to eventually be moved into this class:
+					//Todo: this next line needs to eventually be moved into this class:
 					provSchedsForOp=Schedules.GetProvSchedsForOp(ListSchedules,ListOpsVisible[i]);
 					foreach(Schedule schedCur in provSchedsForOp) {
 						if(schedCur.StartTime.Hours>=24 || (_timeStop.Hours!=0 && schedCur.StartTime.Hours>=_timeStop.Hours)) {
@@ -1763,10 +2108,10 @@ namespace OpenDental.UI{
 						if(schedForType[i].StopTime.Hours<=stopHour) {
 							stopHour=schedForType[i].StopTime.Hours;
 						}
-						if(GetIndexOp(schedForType[i].Ops[o])>=(PrintingColsPerPage*PrintingPageColumn+PrintingColsPerPage)
-						|| GetIndexOp(schedForType[i].Ops[o])<PrintingColsPerPage*PrintingPageColumn) {
-							continue;//Blockout not on current page.
-						}
+						//if(GetIndexOp(schedForType[i].Ops[o])>=(PrintingColsPerPage*PrintingPageColumn+PrintingColsPerPage)
+						//|| GetIndexOp(schedForType[i].Ops[o])<PrintingColsPerPage*PrintingPageColumn) {
+						//	continue;//Blockout not on current page.
+						//}
 					}
 					if(IsWeeklyView) {
 						if(GetIndexOp(schedForType[i].Ops[o])==-1) {
@@ -1779,7 +2124,7 @@ namespace OpenDental.UI{
 						}
 						rect=new RectangleF(
 							(dayofweek)*_widthWeekDay
-							+_widthWeekAppt*(GetIndexOp(schedForType[i].Ops[o],ListOpsVisible)-(PrintingColsPerPage*PrintingPageColumn))
+							+_widthWeekAppt*(GetIndexOp(schedForType[i].Ops[o],ListOpsVisible))
 							,(schedForType[i].StartTime.Hours-startHour)*_heightLine*_rowsPerHr
 							+schedForType[i].StartTime.Minutes*_heightLine/_minPerRow
 							,_widthWeekAppt-1
@@ -1791,8 +2136,7 @@ namespace OpenDental.UI{
 							continue;//don't display if op not visible
 						}
 						rect=new RectangleF(
-							//_widthProv*_countProv
-							_widthCol*(GetIndexOp(schedForType[i].Ops[o],ListOpsVisible)-(PrintingColsPerPage*PrintingPageColumn))
+							_widthCol*(GetIndexOp(schedForType[i].Ops[o],ListOpsVisible))
 							+_widthProv*2//so they don't overlap prov bars
 							,(schedForType[i].StartTime.Hours-startHour)*_heightLine*_rowsPerHr
 							+schedForType[i].StartTime.Minutes*_heightLine/_minPerRow
@@ -1835,10 +2179,10 @@ namespace OpenDental.UI{
 						if(schedulesForWebSchedASAP[i].StopTime.Hours<=stopHour) {
 							stopHour=schedulesForWebSchedASAP[i].StopTime.Hours;
 						}
-						if(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o])>=(PrintingColsPerPage*(PrintingPageColumn+1))
-						|| GetIndexOp(schedulesForWebSchedASAP[i].Ops[o])<PrintingColsPerPage*PrintingPageColumn) {
-							continue;//Blockout not on current page.
-						}
+						//if(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o])>=(PrintingColsPerPage*(PrintingPageColumn+1))
+						//|| GetIndexOp(schedulesForWebSchedASAP[i].Ops[o])<PrintingColsPerPage*PrintingPageColumn) {
+						//	continue;//Blockout not on current page.
+						//}
 					}
 					if(IsWeeklyView) {
 						if(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o])==-1) {
@@ -1851,7 +2195,7 @@ namespace OpenDental.UI{
 						}
 						rectF=new RectangleF(
 							(dayofweek)*_widthWeekDay
-							+_widthWeekAppt*(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o],ListOpsVisible)-(PrintingColsPerPage*PrintingPageColumn))
+							+_widthWeekAppt*(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o],ListOpsVisible))//-(PrintingColsPerPage*PrintingPageColumn))
 							,(schedulesForWebSchedASAP[i].StartTime.Hours-startHour)*_heightLine*_rowsPerHr
 							+schedulesForWebSchedASAP[i].StartTime.Minutes*_heightLine/_minPerRow
 							,_widthWeekAppt-5 //Shortened so that blockouts will be visible underneath
@@ -1863,7 +2207,7 @@ namespace OpenDental.UI{
 							continue;//don't display if op not visible
 						}
 						rectF=new RectangleF(
-							_widthCol*(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o],ListOpsVisible)-(PrintingColsPerPage*PrintingPageColumn))
+							_widthCol*(GetIndexOp(schedulesForWebSchedASAP[i].Ops[o],ListOpsVisible))//-(PrintingColsPerPage*PrintingPageColumn))
 							+_widthProv*2//so they don't overlap prov bars
 							,(schedulesForWebSchedASAP[i].StartTime.Hours-startHour)*_heightLine*_rowsPerHr
 							+schedulesForWebSchedASAP[i].StartTime.Minutes*_heightLine/_minPerRow
@@ -1946,45 +2290,45 @@ namespace OpenDental.UI{
 				}
 			}
 			else {
-				for(float i=0;i<_countCol;i++) {
+				for(float i=0;i<_listOpsVisible.Count;i++) {
 					g.DrawLine(_penVertPrimary,_widthCol*i,0,_widthCol*i,_heightMain);
 				}
 			}
 			//horiz gray
 			for(float i=0;i<_heightMain;i+=_heightLine*RowsPerIncr) {
-				g.DrawLine(_penHorizMinutes,0,i,_widthCol*_countCol,i);
+				g.DrawLine(_penHorizMinutes,0,i,_widthCol*_listOpsVisible.Count,i);
 			}
 			//horiz Hour lines
 			for(float i=0;i<_heightMain;i+=_heightLine*_rowsPerHr) {
-				g.DrawLine(_penHorizMinutes,0,i-1,_widthCol*_countCol,i-1);
+				g.DrawLine(_penHorizMinutes,0,i-1,_widthCol*_listOpsVisible.Count,i-1);
 				//the line below is black in the main area and dark gray in the timebar areas
-				g.DrawLine(_penHorizBlack,0,i,_widthCol*_countCol,i);
+				g.DrawLine(_penHorizBlack,0,i,_widthCol*_listOpsVisible.Count,i);
 			}
 		}
 		#endregion Methods - Private DrawBackground
 
 		#region Methods - Private DrawProvBars
 		private void DrawProvBarsBackground(Graphics g){
-			g.FillRectangle(_brushClosed,0,0,_widthProv*_countProv,_heightMain);
+			g.FillRectangle(_brushClosed,0,0,_widthProv*_listProvsVisible.Count,_heightMain);
 			if(IsWeeklyView) {
 				for(int d=0;d<_numOfWeekDaysToDisplay;d++) {
 					g.DrawLine(_penVertPrimary,_widthWeekDay*d,0,_widthWeekDay*d,_heightMain);
 				}
 			}
 			else {//only one day showing
-				for(int i=0;i<_countProv;i++) {
+				for(int i=0;i<_listProvsVisible.Count;i++) {
 					g.DrawLine(_penVertPrimary,_widthProv*i,0,_widthProv*i,_heightMain);
 				}
 			}
 			//horiz gray
 			for(float i=0;i<_heightMain;i+=_heightLine*RowsPerIncr) {
-				g.DrawLine(_penHorizMinutes,0,i,_widthProv*_countProv,i);
+				g.DrawLine(_penHorizMinutes,0,i,_widthProv*_listProvsVisible.Count,i);
 			}
 			//horiz Hour lines
 			for(float i=0;i<_heightMain;i+=_heightLine*_rowsPerHr) {
-				g.DrawLine(_penHorizMinutes,0,i-1,_widthProv*_countProv,i-1);
+				g.DrawLine(_penHorizMinutes,0,i-1,_widthProv*_listProvsVisible.Count,i-1);
 				//the line below is black in the main area and dark gray in the timebar areas
-				g.DrawLine(_penHorizBlack,0,i,_widthProv*_countProv,i);
+				g.DrawLine(_penHorizBlack,0,i,_widthProv*_listProvsVisible.Count,i);
 			}
 		}
 
@@ -2022,7 +2366,9 @@ namespace OpenDental.UI{
 
 		///<summary>This draws the squares for actual appointments onto the prov bars area.</summary>
 		private void DrawProvBarsAppts(Graphics g){
-			if(!IsWeeklyView) {
+			if(!IsWeeklyView 
+				&& !_isPrinting) //printing does a loop for each page, which is too much shading
+			{
 				foreach(DataRow dataRow in TableAppointments.Rows) {
 					ProvBarShading(dataRow);
 				}
@@ -2072,19 +2418,12 @@ namespace OpenDental.UI{
 
 		#region Methods - Private Draw ProvAndOp Headers
 		private void DrawProvBarsHeader(Graphics g){
-			g.FillRectangle(_brushBackground,0,0,_widthProv*_countProv,_heightProvOpHeaders);
-			if(IsWeeklyView) {
-				for(int d=0;d<_numOfWeekDaysToDisplay;d++) {//for each day of the week displayed
-
+			g.FillRectangle(_brushBackground,0,0,_widthProv*_listProvsVisible.Count,_heightProvOpHeaders);
+			for(int i=0;i<ListProvsVisible.Count;i++){
+				using(SolidBrush solidBrushProvColor=new SolidBrush(ListProvsVisible[i].ProvColor)) {
+					g.FillRectangle(solidBrushProvColor,_widthProv*i,0,_widthProv,_heightProvOpHeaders);
 				}
-			}
-			else{//only one day showing
-				for(int i=0;i<ListProvsVisible.Count;i++){
-					using(SolidBrush solidBrushProvColor=new SolidBrush(ListProvsVisible[i].ProvColor)) {
-						g.FillRectangle(solidBrushProvColor,_widthProv*i,0,_widthProv,_heightProvOpHeaders);
-					}
-					g.DrawLine(_penVertPrimary,_widthProv*i,0,_widthProv*i,_heightProvOpHeaders);//to left of prov cell
-				}
+				g.DrawLine(_penVertPrimary,_widthProv*i,0,_widthProv*i,_heightProvOpHeaders);//to left of prov cell
 			}
 			//outline
 			//g.DrawRectangle(_penVertPrimary,0,0,_provWidth*_provCount-1,_heightProvOpHeaders-1);
@@ -2094,11 +2433,15 @@ namespace OpenDental.UI{
 			g.FillRectangle(_brushBackground,0,0,_widthMain,_heightProvOpHeaders);
 			if(IsWeeklyView) {
 				for(int d=0;d<_numOfWeekDaysToDisplay;d++) {//for each day of the week displayed
-
+					string strDay=DateStart.AddDays(d).ToString("dddd-d");//Wednesday-24
+					float widthText=g.MeasureString(strDay,_fontOpsHeaders).Width;
+					float xPos=d*_widthWeekDay+(_widthWeekDay/2f)-(widthText/2f);//centered
+					g.DrawString(strDay,_fontOpsHeaders,_brushTextBlack,new RectangleF(xPos,2,widthText,_heightProvOpHeaders-2));
+					g.DrawLine(_penVertPrimary,((float)d)*_widthWeekDay,0,((float)d)*_widthWeekDay,_heightProvOpHeaders);//to left of op cell
 				}
 			}
 			else{//only one day showing
-				for(int i=0;i<_countCol;i++) {//ops per page in day view
+				for(int i=0;i<_listOpsVisible.Count;i++) {//ops per page in day view
 					if(i==ListOpsVisible.Count) {//for printing
 						break;
 					}
@@ -2115,7 +2458,7 @@ namespace OpenDental.UI{
 							g.FillRectangle(solidBrushProvColor,(float)i*_widthCol,0,_widthCol,_heightProvOpHeaders);
 						}
 					}
-					SizeF sizeTextMeasured=g.MeasureString(ListOpsVisible[i].OpName,_font);
+					SizeF sizeTextMeasured=g.MeasureString(ListOpsVisible[i].OpName,_fontOpsHeaders);
 					float widthText=sizeTextMeasured.Width;
 					float xPos;
 					if(widthText>_widthCol-2){
@@ -2127,7 +2470,7 @@ namespace OpenDental.UI{
 					}
 					PointF locationText=new PointF(xPos,2);
 					float heightText=_heightProvOpHeaders-2;
-					g.DrawString(ListOpsVisible[i].OpName,_font,_brushTextBlack,new RectangleF(locationText.X,locationText.Y,widthText,heightText));
+					g.DrawString(ListOpsVisible[i].OpName,_fontOpsHeaders,_brushTextBlack,new RectangleF(locationText.X,locationText.Y,widthText,heightText));
 					g.DrawLine(_penVertPrimary,((float)i)*_widthCol,0,((float)i)*_widthCol,_heightProvOpHeaders);//to left of op cell
 				}
 			}
@@ -2210,36 +2553,218 @@ namespace OpenDental.UI{
 		#region Methods - Private DrawAppts
 		/// <summary></summary>
 		private void DrawAppts(Graphics g){
-			//Filling ContrApptSheet2 with appointments was originally in OD ContrAppt.RefreshModuleScreenPeriod line 1978
-			foreach(DataRow dataRow in TableAppointments.Rows) {
-				if(PIn.Date(dataRow["AptDateTime"].ToString()).Date < DateStart.Date || PIn.Date(dataRow["AptDateTime"].ToString()).Date > DateEnd.Date){
+			_listApptLayoutInfos=PlaceAppointments(TableAppointments,_listOpsVisible,_heightLine,_isWeeklyView,
+				_minPerIncr,_numOfWeekDaysToDisplay,_rowsPerIncr,_widthMain,_widthNarrowedOnRight,
+				DateStart,DateEnd);
+			for(int i=0;i<TableAppointments.Rows.Count;i++){
+				DataRow dataRow=TableAppointments.Rows[i];
+				if(_listApptLayoutInfos[i].RectangleBounds.Width==0){
 					continue;//Appointment is outside of our date range.
 				}
-				PointF location=SetLocation(dataRow,0,ListOpsVisible.Count,0);
-				List<CodeBase.DateRange> listDateRangesOverlap=new List<DateRange>();
 				string pattern=PIn.String(dataRow["Pattern"].ToString());
 				string patternShowing=GetPatternShowing(pattern);
-				//Size was originally set in ContrApptSingle.ResetData
-				SizeF sizeAppt=SetSize(pattern);
-				if(sizeAppt.Width<1){
+				RectangleF rect=_listApptLayoutInfos[i].RectangleBounds;
+				g.TranslateTransform(rect.X,rect.Y);
+				DrawOneAppt(g,dataRow,patternShowing,rect.Width,rect.Height);
+				g.ResetTransform();
+			}
+		}
+
+		///<summary>Loops through all the appointments and decides where to place them.  Uses rectangles to define the positions.  If there is any overlap, then it makes appointments narrower so that they will fit side by side.  It does this by revising previous rectangles on the fly rather than any advance planning.  We do not store this layout in the db in any way.</summary>
+		public static List<ApptLayoutInfo> PlaceAppointments(DataTable tableAppointments,List<Operatory> listOperatories, 
+			float heightLine, bool isWeeklyView,float minPerIncr,int numOfWeekDaysToDisplay,float rowsPerIncr,
+			int widthMain, float widthNarrowedOnRight,DateTime dateStart,DateTime dateEnd)
+		{
+			//This is public with parameters because we will need to build a variety of unit tests for it.
+			if(tableAppointments==null || listOperatories==null){
+				return null;
+			}
+			List<ApptLayoutInfo> listApptLayoutInfos=new List<ApptLayoutInfo>();
+			//The following math is analogous to ComputeColWidth() to generate more of the useful variables without having to pass them in
+			float widthCol;
+			float widthWeekDay=0;
+			float widthWeekAppt=0;
+			if(listOperatories.Count==0) {
+				widthCol=0;
+			}
+			else {
+				if(isWeeklyView) {
+					widthWeekDay=(float)widthMain/(float)numOfWeekDaysToDisplay;
+					widthWeekAppt=(float)(widthWeekDay)/(float)listOperatories.Count;
+				}
+				widthCol=(float)(widthMain)/(float)listOperatories.Count;
+			}
+			ApptLayoutInfo apptLayoutInfo;
+			for(int i=0;i<tableAppointments.Rows.Count;i++){
+				DataRow dataRow=tableAppointments.Rows[i];
+				string strAptDateTime=dataRow["AptDateTime"].ToString();
+				DateTime aptDateTime=PIn.Date(strAptDateTime);
+				if(aptDateTime.Date < dateStart || aptDateTime.Date > dateEnd){
+					//Appointment is outside of our date range
+					apptLayoutInfo=new ApptLayoutInfo();
+					apptLayoutInfo.idxInTableAppointments=i;
+					apptLayoutInfo.RectangleBounds=new RectangleF(0,0,0,0);
+					listApptLayoutInfos.Add(apptLayoutInfo);
 					continue;
 				}
-				//bitmap drawing was originally in ContrApptSheet.DoubleBufferDraw line 255
-				g.TranslateTransform(location.X,location.Y);
-				DrawOneAppt(g,dataRow,patternShowing,sizeAppt.Width-_widthNarrowedOnRight,sizeAppt.Height,false,listDateRangesOverlap);
-				g.ResetTransform();
-				//if(!IsWeeklyView) {
-				//	ProvBarShading(dataRow);//moved over to provbar drawing
-				//}
+				PointF pointF=new PointF();
+				int idxOp=listOperatories.FindIndex(x=>x.OperatoryNum==PIn.Long(dataRow["Op"].ToString()));
+				if(isWeeklyView) {
+					//the next few lines are because we start on Monday instead of Sunday
+					int dayofweek=(int)PIn.DateT(dataRow["AptDateTime"].ToString()).DayOfWeek-1;
+					if(dayofweek==-1) {
+						dayofweek=6;
+					}
+					pointF.X=widthWeekDay*(dayofweek)+(widthWeekAppt*idxOp);
+				}
+				else {
+					pointF.X=widthCol*idxOp;
+				}
+				pointF.Y=(float)(((double)(aptDateTime.Hour)*(double)60
+					/(double)minPerIncr
+					+(double)aptDateTime.Minute
+					/(double)minPerIncr
+					)*(double)heightLine*rowsPerIncr);
+				//List<CodeBase.DateRange> listDateRangesOverlap=new List<DateRange>();
+				string pattern=PIn.String(dataRow["Pattern"].ToString());
+				//string patternShowing=GetPatternShowing(pattern);
+				//copied from SetSize(pattern):
+				SizeF sizeF=new SizeF();
+				if(widthCol<5){
+					sizeF.Width=0;
+				}
+				else{
+					sizeF.Width=widthCol-widthNarrowedOnRight;
+				}
+				if(isWeeklyView) {
+					sizeF.Width=widthWeekAppt;
+				}
+				//height is based on original 5 minute pattern. Might result in half-rows
+				sizeF.Height=pattern.Length*heightLine*rowsPerIncr;
+				if(minPerIncr==10) {
+					sizeF.Height/=2f;
+				}
+				if(minPerIncr==15) {
+					sizeF.Height/=3f;
+				}
+				apptLayoutInfo=new ApptLayoutInfo();
+				apptLayoutInfo.idxInTableAppointments=i;
+				apptLayoutInfo.RectangleBounds=new RectangleF(pointF,sizeF);
+				if(isWeeklyView){
+					listApptLayoutInfos.Add(apptLayoutInfo);
+					continue;//don't do any overlap arranging.  Weekly view just stacks them in their ops.
+				}
+				//don't actually add it until it will fit
+				//The newest appointment that we are adding is still full size, and won't be narrowed unless it's literally sitting on top of other appts.
+				List<ApptLayoutInfo> listOverlaps=listApptLayoutInfos.FindAll(x => x.RectangleBounds.IntersectsWith(apptLayoutInfo.RectangleBounds));
+				if(listOverlaps.Count==0){
+					listApptLayoutInfos.Add(apptLayoutInfo);
+					continue;
+				}
+				//If we use RectangleF, the C# precision will be about 6-9 digits for testing intersectsWith.
+				//This can cause false positives from rounding errors, where they look like they're just touching, but C# says they intersect.
+				//If we use Rectangle, and they are touching, C# does not call this intersection. Example 0,0,100,100 does not intersect with 100,0,100,100.
+				//One approach would be to build a custom RectangleF.IntersectsWith method with a precision parameter.
+				//An easier approach is to trunc the rectangles down to nearest pixel before testing intersection to eliminate false positives.
+				//Truncating x,y shifts the rectangle closer to other rectangles, but I think that's ok.
+				//This will return true only if they overlap by at least one pixel. 
+				//This might return false negatives if the layout is very narrow, where appointments are approaching one pixel width.
+				//All the appointments in this list overlap the one we're trying to place, but not necessarily each other
+				//It can get very messy very quickly.  The unit test project graphically tests every layout I could think of. 
+				//Look for an open spot that won't require shrinking other appointments----------------------------------------------------------------------
+				//Start by determining the narrowest of the overlaps
+				float narrowest=listOverlaps.Max(x=>x.OverlapSections);//example 5 to indicate there might be a 1/5 slot open
+				//The only rare problem is when overlapping appointments are of varying widths.  
+				//If we just shrink any wide ones, then this might create an empty slot.
+				for(int k=0;k<listOverlaps.Count;k++){
+					if(listOverlaps[k].OverlapSections==(int)narrowest){
+						continue;
+					}
+					listOverlaps[k].OverlapSections=(int)narrowest;
+					listOverlaps[k].RectangleBounds=new RectangleF(widthCol*idxOp+listOverlaps[k].OverlapPosition*((widthCol-widthNarrowedOnRight)/narrowest),
+						listOverlaps[k].RectangleBounds.Y,
+						(widthCol-widthNarrowedOnRight)/narrowest,listOverlaps[k].RectangleBounds.Height);
+				}
+				//Look for an open spot
+				bool foundSpot=false;
+				for(int j=0;j<narrowest;j++){//example loop 0 to 4
+					Rectangle rectNarrow=new Rectangle((int)(widthCol*idxOp+(float)j*((widthCol-widthNarrowedOnRight)/narrowest)),
+						(int)apptLayoutInfo.RectangleBounds.Y,
+						(int)((widthCol-widthNarrowedOnRight)/narrowest),(int)apptLayoutInfo.RectangleBounds.Height);
+					if(listOverlaps.Exists(x=> Rectangle.Truncate(x.RectangleBounds).IntersectsWith(rectNarrow))){
+						continue;
+					}
+					//we found an open spot. 
+					apptLayoutInfo.OverlapSections=(int)narrowest;//example 5
+					apptLayoutInfo.OverlapPosition=j;//example 1/5
+					//Give it float values
+					apptLayoutInfo.RectangleBounds=new RectangleF(widthCol*idxOp+(float)j*((widthCol-widthNarrowedOnRight)/narrowest),
+						apptLayoutInfo.RectangleBounds.Y,
+						(widthCol-widthNarrowedOnRight)/narrowest,apptLayoutInfo.RectangleBounds.Height);
+					foundSpot=true;
+					break;
+				}
+				if(foundSpot){
+					listApptLayoutInfos.Add(apptLayoutInfo);
+					continue;//done with this appt
+				}
+				//No open spots. Push our way in----------------------------------------------------------------------------------------------------------------
+				//New appt goes on right-hand side, and shrink the appts to our left
+				//This turns out to be very safe and reliable, as the unit tests show
+				apptLayoutInfo.OverlapSections=(int)narrowest+1;//example 6
+				apptLayoutInfo.OverlapPosition=(int)narrowest;//example 5/6
+				apptLayoutInfo.RectangleBounds=new RectangleF(widthCol*idxOp+(widthCol-widthNarrowedOnRight)*narrowest/(narrowest+1),//5/6
+					apptLayoutInfo.RectangleBounds.Y,
+					(widthCol-widthNarrowedOnRight)/(narrowest+1),//  w/6
+					apptLayoutInfo.RectangleBounds.Height);
+				listApptLayoutInfos.Add(apptLayoutInfo);
+				for(int k=0;k<listOverlaps.Count;k++){
+					listOverlaps[k].OverlapSections=(int)narrowest+1;//example 6
+					//OverlapPosition remains unchanged.  Haven't yet found a scenario where this fails.
+					listOverlaps[k].RectangleBounds=new RectangleF(
+						widthCol*(float)idxOp+(widthCol-widthNarrowedOnRight)*(float)listOverlaps[k].OverlapPosition/(float)listOverlaps[k].OverlapSections,//3/6
+						listOverlaps[k].RectangleBounds.Y,
+						(widthCol-widthNarrowedOnRight)/(float)listOverlaps[k].OverlapSections,// 1/6
+						listOverlaps[k].RectangleBounds.Height);
+				}
+				//Some secondary and tertiary overlaps can be created in rare situations.  Fix those.
+				//This seems like a waste of resources, but it only gets triggered when we push our way in at the right.
+				//And it goes fast because we only pass in the short list of appointments that we moved
+				ProcessOverlaps(listApptLayoutInfos,listOverlaps,widthCol,idxOp,widthNarrowedOnRight);
+			}
+			return listApptLayoutInfos;
+		}
 
+		///<summary>A recursive function for rare secondary and tertiary overlaps created by adding a single appointment that shifted other tall appts.</summary>
+		private static void ProcessOverlaps(List<ApptLayoutInfo> listApptLayoutInfos,List<ApptLayoutInfo> listOverlapsPrevious,float widthCol,
+			int idxOp,float widthNarrowedOnRight){
+			for(int k=0;k<listOverlapsPrevious.Count;k++){
+				for(int i=0;i<listApptLayoutInfos.Count;i++){
+					if(listApptLayoutInfos[i].idxInTableAppointments==listOverlapsPrevious[k].idxInTableAppointments){
+						continue;//self
+					}
+					if(listApptLayoutInfos[i].RectangleBounds.IntersectsWith(listOverlapsPrevious[k].RectangleBounds)){
+						//there is overlap, so fix it
+						//we are leaving overlapPrevious alone, and changing the other one
+						listApptLayoutInfos[i].OverlapSections=listOverlapsPrevious[k].OverlapSections;  //size it to match overlapPrevious
+						//OverlapPosition remains unchanged.
+						listApptLayoutInfos[i].RectangleBounds=new RectangleF(
+							widthCol*(float)idxOp+(widthCol-widthNarrowedOnRight)*(float)listApptLayoutInfos[i].OverlapPosition/(float)listApptLayoutInfos[i].OverlapSections,//3/6
+							listApptLayoutInfos[i].RectangleBounds.Y,
+							(widthCol-widthNarrowedOnRight)/(float)listApptLayoutInfos[i].OverlapSections,// 1/6
+							listApptLayoutInfos[i].RectangleBounds.Height);
+						//now, send this fixed appt in recursively to see if it affected anything else
+						ProcessOverlaps(listApptLayoutInfos,new List<ApptLayoutInfo>(){listOverlapsPrevious[k]},//just pass in this single
+							widthCol,idxOp,widthNarrowedOnRight);
+					}
+				}
 			}
 		}
 
 		///<summary>Set default fontSize to 8 unless printing.  isIntFit means that the overall size is an int, used when drawing on a control.</summary>
-		private void DrawOneAppt(Graphics g,DataRow dataRoww,string patternShowing,float totalWidth,float totalHeight,
-			bool isPrinting,List<DateRange> listOverlapTimes)
-		{
+		private void DrawOneAppt(Graphics g,DataRow dataRoww,string patternShowing,float totalWidth,float totalHeight){
 			//These used to be passed in:
+			//isPrinting,List<DateRange> listOverlapTimes
 			//bool isSelected,bool thisIsPinBoard,long selectedAptNum,//these have more to do with outlines than drawing appt
 			//int fontSize
 			SolidBrush brushProvBackground;
@@ -2290,7 +2815,7 @@ namespace OpenDental.UI{
 			}
 			SolidBrush brushBack=new SolidBrush(backColor);
 			GraphicsPath graphicsPathRightSide=new GraphicsPath();
-			graphicsPathRightSide.AddLine(8f,0,totalWidth-_radiusCorn,0);//top
+			graphicsPathRightSide.AddLine(_widthProv,0,totalWidth-_radiusCorn,0);//top
 			graphicsPathRightSide.AddArc(totalWidth-_radiusCorn*2f,0,_radiusCorn*2,_radiusCorn*2,270,90);//UR
 			graphicsPathRightSide.AddLine(totalWidth,_radiusCorn,totalWidth,totalHeight-_radiusCorn);//right
 			graphicsPathRightSide.AddArc(totalWidth-_radiusCorn*2f,totalHeight-_radiusCorn*2,_radiusCorn*2,_radiusCorn*2,0,90);//LR
@@ -2299,7 +2824,7 @@ namespace OpenDental.UI{
 			g.FillPath(brushBack,graphicsPathRightSide);
 			//g.FillRectangle(brushBack,8f,0,totalWidth-8,totalHeight);
 			GraphicsPath graphicsPathLeftSide=new GraphicsPath();
-			graphicsPathLeftSide.AddLine(8f,totalHeight,_radiusCorn,totalHeight);//bottom
+			graphicsPathLeftSide.AddLine(_widthProv,totalHeight,_radiusCorn,totalHeight);//bottom
 			graphicsPathLeftSide.AddArc(0,totalHeight-_radiusCorn*2,_radiusCorn*2,_radiusCorn*2,90,90);//LL
 			graphicsPathLeftSide.AddLine(0,totalHeight-_radiusCorn,0,_radiusCorn);//left
 			graphicsPathLeftSide.AddArc(0,0,_radiusCorn*2,_radiusCorn*2,180,90);//UL
@@ -2308,27 +2833,17 @@ namespace OpenDental.UI{
 			//g.FillRectangle(_brushWhite,0,0,8f,totalHeight);
 			for(int i=0;i<patternShowing.Length;i++) {//Info.MyApt.Pattern.Length;i++){
 				if(patternShowing.Substring(i,1)=="X") {
-					if(isPrinting) {
-						g.FillRectangle(brushProvBackground,0,(float)i*_heightLine,8f,_heightLine);
-					}
-					else {
-						g.FillRectangle(brushProvBackground,1f,(float)i*_heightLine+1,8f,_heightLine);
-					}
+					g.FillRectangle(brushProvBackground,1f,(float)i*_heightLine+1,8f,_heightLine);
 				}
 				else {
 					//leave empty
 				}
 				if(Math.IEEERemainder((double)i,(double)RowsPerIncr)==0) {//0/1
-					if(isPrinting) {
-						g.DrawLine(_penTimeDiv,0,(float)i*_heightLine,8f,(float)i*_heightLine);
-					}
-					else {
-						g.DrawLine(_penTimeDiv,1,(float)i*_heightLine,8f,(float)i*_heightLine);
-					}
+					g.DrawLine(_penTimeDiv,1,(float)i*_heightLine,8f,(float)i*_heightLine);
 				}
 			}
 			g.DrawLine(_penBlack,8f,0,8f,totalHeight);
-			#region Double Booked Lines
+			#region Overlap Lines
 			/*
 			foreach(DateRange overlapTimeRange in listOverlapTimes) {
 				int totalIntervals=dataRoww["Pattern"].ToString().Length;
@@ -2340,62 +2855,51 @@ namespace OpenDental.UI{
 				RectangleF rect=new RectangleF(7,startOverlapHeight,(int)totalWidth-7,overlapHeight);
 				FillWithDiagonalLines(g,rect,Pens.Gray,12,true);
 			}*/
-			#endregion Double Booked Lines
+			#endregion Overlap Lines
 			#region Main rows
-			PointF drawLoc=new PointF(9,0);
+			PointF pointDraw=new PointF(_widthProv+1,0);
 			int elementI=0;
-			while(drawLoc.Y<totalHeight && elementI<ListApptViewItemRowElements.Count) {
+			while(pointDraw.Y<totalHeight && elementI<ListApptViewItemRowElements.Count) {
 				if(ListApptViewItemRowElements[elementI].ElementAlignment!=ApptViewAlignment.Main) {
 					elementI++;
 					continue;
 				}
-				drawLoc=DrawElement(g,elementI,drawLoc,ApptViewStackBehavior.Vertical,ApptViewAlignment.Main,brushBack,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight,isPrinting);//set the drawLoc to a new point, based on space used by element
+				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewStackBehavior.Vertical,ApptViewAlignment.Main,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight);//set the drawLoc to a new point, based on space used by element
 				elementI++;
 			}
 			#endregion
 			#region UR
-			drawLoc=new Point((int)totalWidth-1,0);//in the UR area, we refer to the upper right corner of each element.
+			pointDraw=new Point((int)totalWidth-1,0);//in the UR area, we refer to the upper right corner of each element.
 			elementI=0;
-			while(drawLoc.Y<totalHeight && elementI<ListApptViewItemRowElements.Count) {
+			while(pointDraw.Y<totalHeight && pointDraw.X>0 && elementI<ListApptViewItemRowElements.Count) {
 				if(ListApptViewItemRowElements[elementI].ElementAlignment!=ApptViewAlignment.UR) {
 					elementI++;
 					continue;
 				}
-				drawLoc=DrawElement(g,elementI,drawLoc,ApptViewCur.StackBehavUR,ApptViewAlignment.UR,brushBack,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight,isPrinting);
+				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewCur.StackBehavUR,ApptViewAlignment.UR,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight);
 				elementI++;
 			}
-			Plugins.HookAddCode(null,"OpenDentBusiness.UI.ApptSingleDrawing.DrawEntireAppt_UR",dataRoww,g,drawLoc);
+			Plugins.HookAddCode(null,"OpenDentBusiness.UI.ApptSingleDrawing.DrawEntireAppt_UR",dataRoww,g,pointDraw);
 			#endregion
 			#region LR
-			drawLoc=new Point((int)totalWidth-1,(int)totalHeight-1);//in the LR area, we refer to the lower right corner of each element.
+			pointDraw=new Point((int)totalWidth-1,(int)totalHeight-1);//in the LR area, we refer to the lower right corner of each element.
 			elementI=ListApptViewItemRowElements.Count-1;//For lower right, draw the list backwards.
-			while(drawLoc.Y>0 && elementI>=0) {
+			while(pointDraw.Y>0 && elementI>=0) {
 				if(ListApptViewItemRowElements[elementI].ElementAlignment!=ApptViewAlignment.LR) {
 					elementI--;
 					continue;
 				}
-				drawLoc=DrawElement(g,elementI,drawLoc,ApptViewCur.StackBehavLR,ApptViewAlignment.LR,brushBack,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight,isPrinting);
+				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewCur.StackBehavLR,ApptViewAlignment.LR,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight);
 				elementI--;
 			}
 			#endregion
-			//Main outline
-			if(isPrinting) {
-				g.DrawRectangle(_penBlack,0,0,totalWidth,totalHeight);
-			}
-			else{// if(isIntFit){
-				//g.DrawRectangle(_penBlack,0,0,totalWidth-1,totalHeight-1);
-			//
-			//{ 
-				g.DrawPath(_penBlack,graphicsPathRightSide);
-				g.DrawPath(_penBlack,graphicsPathLeftSide);
-				//g.DrawRectangle(_penBlack,0,0,totalWidth,totalHeight);
-			}
+			g.DrawPath(_penBlack,graphicsPathRightSide);
+			g.DrawPath(_penBlack,graphicsPathLeftSide);
 			//broken X
 			if(dataRoww["AptStatus"].ToString()==((int)ApptStatus.Broken).ToString()) {
 				g.DrawLine(_penBlack,8,1,totalWidth-1,totalHeight-1);
 				g.DrawLine(_penBlack,8,totalHeight-1,totalWidth-1,1);
 			}
-			//Dispose of the objects.
 			DisposeObjects(brushProvBackground,brushBack);
 		}
 
@@ -2413,26 +2917,26 @@ namespace OpenDental.UI{
 			return graphicsPath;
 		}
 
-		///<summary></summary>
-		private PointF DrawElement(Graphics g,int elementI,PointF drawLoc,ApptViewStackBehavior stackBehavior,ApptViewAlignment align,Brush backBrush,DataRow dataRoww,List<ApptViewItem> apptRows,float totalWidth,float totalHeight,bool isPrinting) 
-			{
-			//was passed in:
-			//fontSize
-			//Font baseFont=new Font("Arial",fontSize);
+		///<summary>Returns the point where the next element should draw.</summary>
+		private PointF DrawElement(Graphics g,int idxItem,PointF pointDraw,ApptViewStackBehavior stackBehavior,ApptViewAlignment align,DataRow dataRoww,List<ApptViewItem> listApptViewItems,float widthAppt,float heightAppt) 
+		{
+			if(widthAppt<_widthProv+5){//Appointment is too narrow to draw anything
+				return new PointF(pointDraw.X,heightAppt);
+			}
 			string text="";
 			bool isNote=false;
 			bool isInsuranceColor=false;
-			#region FillText
+			#region Fill Text
 			if(PIn.Long(dataRoww["AptStatus"].ToString()) == (int)ApptStatus.PtNote
 				|| PIn.Long(dataRoww["AptStatus"].ToString()) == (int)ApptStatus.PtNoteCompleted) {
 				isNote=true;
 			}
 			bool isGraphic=false;
-			if(apptRows[elementI].ElementDesc=="ConfirmedColor") {
+			if(listApptViewItems[idxItem].ElementDesc=="ConfirmedColor") {
 				isGraphic=true;
 			}
-			if(apptRows[elementI].ApptFieldDefNum>0) {
-				string fieldName=ApptFieldDefs.GetFieldName(apptRows[elementI].ApptFieldDefNum);
+			if(listApptViewItems[idxItem].ApptFieldDefNum>0) {
+				string fieldName=ApptFieldDefs.GetFieldName(listApptViewItems[idxItem].ApptFieldDefNum);
 				for(int i=0;i<TableApptFields.Rows.Count;i++) {
 					if(TableApptFields.Rows[i]["AptNum"].ToString()!=dataRoww["AptNum"].ToString()) {
 						continue;
@@ -2443,8 +2947,8 @@ namespace OpenDental.UI{
 					text=TableApptFields.Rows[i]["FieldValue"].ToString();
 				}
 			}
-			else if(apptRows[elementI].PatFieldDefNum>0) {
-				string fieldName=PatFieldDefs.GetFieldName(apptRows[elementI].PatFieldDefNum);
+			else if(listApptViewItems[idxItem].PatFieldDefNum>0) {
+				string fieldName=PatFieldDefs.GetFieldName(listApptViewItems[idxItem].PatFieldDefNum);
 				for(int i=0;i<TablePatFields.Rows.Count;i++) {
 					if(TablePatFields.Rows[i]["PatNum"].ToString()!=dataRoww["PatNum"].ToString()) {
 						continue;
@@ -2455,7 +2959,7 @@ namespace OpenDental.UI{
 					text=TablePatFields.Rows[i]["FieldValue"].ToString();
 				}
 			}
-			else switch(apptRows[elementI].ElementDesc) {
+			else switch(listApptViewItems[idxItem].ElementDesc) {
 					case "Address":
 						if(isNote) {
 							text="";
@@ -2647,7 +3151,7 @@ namespace OpenDental.UI{
 						value=System.Web.HttpUtility.HtmlDecode(value);
 						string[] lines=value.Split(new string[] { "</span>" },StringSplitOptions.RemoveEmptyEntries);
 						PointF tempPt=new PointF();
-						tempPt=drawLoc;
+						tempPt=pointDraw;
 						int lastH=0;
 						int count=1;
 						for(int i=0;i<lines.Length;i++) {
@@ -2662,20 +3166,18 @@ namespace OpenDental.UI{
 								proc+=",";
 							}
 							if(rgbInt=="") {
-								rgbInt=apptRows[elementI].ElementColorXml.ToString();
+								rgbInt=listApptViewItems[idxItem].ElementColorXml.ToString();
 							}
 							Color c=Color.FromArgb(PIn.Int(rgbInt,false));
-							SizeF procSize=g.MeasureString(proc,_font,(int)totalWidth-9,new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+							SizeF procSize=g.MeasureString(proc,_font,(int)widthAppt-9,new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
 							procSize.Width=(float)Math.Ceiling((double)procSize.Width);
-							if(tempPt.X+procSize.Width>totalWidth) {
-								tempPt.X=drawLoc.X;
+							if(tempPt.X+procSize.Width>widthAppt) {
+								tempPt.X=pointDraw.X;
 								tempPt.Y+=lastH;
 								count++;
 							}
-							//When printing the appointment module, make sure that we do not draw off of the appointment bubble.
-							if(tempPt.Y+procSize.Height > totalHeight && isPrinting) {
-								//No need to do this check when drawing to the appt screen cause its just an image on a control which clips itself.
-								//When printing, we can't draw this so return with the new drawLoc. 
+							if(tempPt.Y+procSize.Height > heightAppt) {
+								//Faster to skip lines that would be below bottom of appt
 								break;
 							}
 							RectangleF procRect=new RectangleF(tempPt,procSize);
@@ -2687,8 +3189,8 @@ namespace OpenDental.UI{
 								lastH=(int)procRect.Height;
 							}
 						}
-						drawLoc.Y+=lastH*count;
-						return drawLoc;
+						pointDraw.Y+=lastH*count;
+						return pointDraw;
 					case "Production":
 						if(isNote) {
 							text="";
@@ -2749,62 +3251,66 @@ namespace OpenDental.UI{
 						}
 						break;
 				}
-			#endregion
-			object[] parameters={ dataRoww["PatNum"].ToString(),apptRows[elementI].PatFieldDefNum,text };
+			#endregion Fill Text
+			object[] parameters={ dataRoww["PatNum"].ToString(),listApptViewItems[idxItem].PatFieldDefNum,text };
 			Plugins.HookAddCode(null,"ApptSingleDrawing.DrawElement_afterFillText",parameters);
 			text=(string)parameters[2];
 			if(text=="" && !isGraphic) {
-				return drawLoc;//next element will draw at the same position as this one would have.
+				return pointDraw;//next element will draw at the same position as this one would have.
 			}
-			SolidBrush brush=new SolidBrush(apptRows[elementI].ElementColor);
+			SolidBrush brush=new SolidBrush(listApptViewItems[idxItem].ElementColor);
 			//SolidBrush noteTitlebrush = new SolidBrush(Defs.Long[(int)DefCat.AppointmentColors][8].ItemColor);
-			StringFormat format=new StringFormat();
-			format.Alignment=StringAlignment.Near;
+			StringFormat stringFormatLeft=new StringFormat();
+			stringFormatLeft.Alignment=StringAlignment.Near;
 			int charactersFitted;//not used, but required as 'out' param for measureString.
 			int linesFilled;
-			SizeF noteSize;
-			RectangleF rect;
+			SizeF sizeNote;
+			SizeF sizeText;
+			RectangleF rectangleLayout;
 			RectangleF rectBack;
 			#region Main
 			if(align==ApptViewAlignment.Main) {//always stacks vertical
 				if(isGraphic) {
 					Bitmap bitmap=new Bitmap(12,12);
-					noteSize=new SizeF(bitmap.Width,bitmap.Height);
-					rect=new RectangleF(drawLoc,noteSize);
+					sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+					rectangleLayout=new RectangleF(pointDraw,sizeNote);
 					using(Graphics gfx=Graphics.FromImage(bitmap)) {
 						gfx.SmoothingMode=SmoothingMode.HighQuality;
-						Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
-						SolidBrush confirmBrush=new SolidBrush(confirmColor);
-						gfx.FillEllipse(confirmBrush,0,0,11,11);
+						Color colorConfirm=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
+						SolidBrush brushConfirm=new SolidBrush(colorConfirm);
+						gfx.FillEllipse(brushConfirm,0,0,11,11);
 						gfx.DrawEllipse(_penBlack,0,0,11,11);
-						confirmBrush.Dispose();
+						brushConfirm.Dispose();
 					}
-					g.DrawImage(bitmap,drawLoc.X,drawLoc.Y);
-					DisposeObjects(brush,format,bitmap);
-					return new PointF(drawLoc.X,drawLoc.Y+noteSize.Height);
+					g.DrawImage(bitmap,pointDraw.X,pointDraw.Y);
+					DisposeObjects(brush,stringFormatLeft,bitmap);
+					return new PointF(pointDraw.X,pointDraw.Y+sizeNote.Height);
 				}
 				else {
+					SizeF sizeLayoutArea=new SizeF();
+					sizeLayoutArea.Width=widthAppt-_widthProv-1;
+					sizeLayoutArea.Height=heightAppt-pointDraw.Y;
+					sizeText=g.MeasureString(text,_font,sizeLayoutArea,stringFormatLeft,out charactersFitted,out linesFilled);
 					//In rare scenarios the last character in some lines would get partially drawn (show as red / light gray).
 					//By default the boundary rectangle returned by the MeasureString method excludes the space at the end of each line.
 					//Make sure to use a string format with the MeasureTrailingSpaces flag as to correctly measure the width.
-					noteSize=g.MeasureString(text,_font,(int)totalWidth-9,new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
+					//sizeNote=g.MeasureString(text,_font,(int)(widthAppt-_widthProv-1),new StringFormat(StringFormatFlags.MeasureTrailingSpaces));
 					//Problem: "limited-tooth bothering him ", the trailing space causes measuring error, resulting in m getting partially chopped off.
 					//Tried TextRenderer, but it caused premature wrapping
 					//Size noteSizeInt=TextRenderer.MeasureText(text,baseFont,new Size(totalWidth-9,1000));
 					//noteSize=new SizeF(noteSizeInt.totalWidth,noteSizeInt.totalHeight);
-					noteSize.Width=(float)Math.Ceiling((double)noteSize.Width);//round up to nearest int solves specific problem discussed above.
-					if(drawLoc.Y+noteSize.Height>totalHeight && isPrinting) {
-						//This keeps text from drawing off the appointment when font is large. Only if isPrinting cause not sure if this will cause bugs.
-						//No need to do this check when drawing to the appt screen cause its just an image on a control which clips itself.
-						noteSize.Height=totalHeight-drawLoc.Y;
-					}
-					SizeF stringSize=g.MeasureString(text,_font,noteSize,format,out charactersFitted,out linesFilled);
-					if(isInsuranceColor) {
+					//sizeNote.Width=(float)Math.Ceiling((double)sizeNote.Width);//round up to nearest int solves specific problem discussed above.
+					//if(drawLoc.Y+noteSize.Height>totalHeight && isPrinting) {
+						//This keeps text from drawing off the appointment when text is large
+					//	noteSize.Height=totalHeight-drawLoc.Y;
+					//}
+					//SizeF sizeString=g.MeasureString(text,_font,sizeNote,stringFormatLeft,out charactersFitted,out linesFilled);
+					/*if(isInsuranceColor) {
 						if(dataRoww["insColor1"].ToString()!="") {
 							Color color=Color.FromArgb(PIn.Int(dataRoww["insColor1"].ToString()));
 							if(color!=Color.Black) {
-								PointF pt=new PointF(drawLoc.X,drawLoc.Y+2);
-								SizeF size=new SizeF(totalWidth,(linesFilled==0 ? linesFilled : stringSize.Height/linesFilled)); //avoid division by 0
+								PointF pt=new PointF(pointDraw.X,pointDraw.Y+2);
+								SizeF size=new SizeF(widthAppt,(linesFilled==0 ? linesFilled : sizeString.Height/linesFilled)); //avoid division by 0
 								size.Height-=1;
 								RectangleF rectF=new RectangleF(pt,size);
 								g.FillRectangle(new SolidBrush(color),rectF);
@@ -2813,30 +3319,31 @@ namespace OpenDental.UI{
 						if(dataRoww["insColor2"].ToString()!="") {
 							Color color=Color.FromArgb(PIn.Int(dataRoww["insColor2"].ToString()));
 							if(color!=Color.Black) {
-								PointF pt=new PointF(drawLoc.X,drawLoc.Y+2+(int)(linesFilled==0 ? linesFilled : noteSize.Height/linesFilled)); //avoid division by 0
-								SizeF size=new SizeF(totalWidth,(linesFilled==0 ? linesFilled : stringSize.Height/linesFilled)); //avoid division by 0
+								PointF pt=new PointF(pointDraw.X,pointDraw.Y+2+(int)(linesFilled==0 ? linesFilled : sizeNote.Height/linesFilled)); //avoid division by 0
+								SizeF size=new SizeF(widthAppt,(linesFilled==0 ? linesFilled : sizeString.Height/linesFilled)); //avoid division by 0
 								size.Height-=1;
 								RectangleF rectF=new RectangleF(pt,size);
 								g.FillRectangle(new SolidBrush(color),rectF);
 							}
 						}
-					}
-					rect=new RectangleF(drawLoc,noteSize);
-					g.DrawString(text,_font,brush,rect,format);
-					DisposeObjects(brush,format);
-					return new PointF(drawLoc.X,drawLoc.Y+linesFilled*_heightLine);
+					}*/
+					rectangleLayout=new RectangleF(pointDraw,sizeText);
+					g.DrawString(text,_font,brush,rectangleLayout,stringFormatLeft);
+					DisposeObjects(brush,stringFormatLeft);
+					//to make each row line up, we need to use heightLine instead of rectangleLayout.Bottom
+					return new PointF(pointDraw.X,pointDraw.Y+linesFilled*_heightLine);
 				}
 			}
 			#endregion
 			#region UR
 			else if(align==ApptViewAlignment.UR) {
 				if(stackBehavior==ApptViewStackBehavior.Vertical) {
-					float w=totalWidth-9;
+					float w=widthAppt-9;
 					if(isGraphic) {
 						Bitmap bitmap=new Bitmap(12,12);
-						noteSize=new SizeF(bitmap.Width,bitmap.Height);
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,drawLoc.Y+1);//upper left corner of this element
-						rect=new RectangleF(drawLoc,noteSize);
+						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y+1);//upper left corner of this element
+						rectangleLayout=new RectangleF(pointDraw,sizeNote);
 						using(Graphics gfx=Graphics.FromImage(bitmap)) {
 							gfx.SmoothingMode=SmoothingMode.HighQuality;
 							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
@@ -2846,41 +3353,40 @@ namespace OpenDental.UI{
 							confirmBrush.Dispose();
 						}
 						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,format,bitmap);
-						return new PointF(drawLoc.X,drawLoc.Y+(int)noteSize.Height);
+						DisposeObjects(brush,stringFormatLeft,bitmap);
+						return new PointF(pointDraw.X,pointDraw.Y+(int)sizeNote.Height);
 					}
 					else {
-						noteSize=g.MeasureString(text,_font,(int)w);
-						noteSize=new SizeF(noteSize.Width,_heightLine+1);//only allowed to be one line high.
-						if(noteSize.Width<5) {
-							noteSize=new SizeF(5,noteSize.Height);
+						sizeNote=g.MeasureString(text,_font,(int)w);
+						sizeNote=new SizeF(sizeNote.Width,_heightLine+1);//only allowed to be one line high.
+						if(sizeNote.Width<5) {
+							sizeNote=new SizeF(5,sizeNote.Height);
 						}
 						//g.MeasureString(text,baseFont,noteSize,format,out charactersFitted,out linesFilled);
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,drawLoc.Y);//upper left corner of this element
-						rect=new RectangleF(drawLocThis,noteSize);
-						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,noteSize.Width,_heightLine);
-						if(apptRows[elementI].ElementDesc=="MedOrPremed[+]"
-							|| apptRows[elementI].ElementDesc=="HasIns[I]"
-							|| apptRows[elementI].ElementDesc=="InsToSend[!]") {
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y);//upper left corner of this element
+						rectangleLayout=new RectangleF(drawLocThis,sizeNote);
+						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,sizeNote.Width,_heightLine);
+						if(listApptViewItems[idxItem].ElementDesc=="MedOrPremed[+]"
+							|| listApptViewItems[idxItem].ElementDesc=="HasIns[I]"
+							|| listApptViewItems[idxItem].ElementDesc=="InsToSend[!]") {
 							g.FillRectangle(brush,rectBack);
-							g.DrawString(text,_font,_brushBlack,rect,format);
+							g.DrawString(text,_font,_brushBlack,rectangleLayout,stringFormatLeft);
 						}
 						else {
 							g.FillRectangle(_brushWhite,rectBack);
-							g.DrawString(text,_font,brush,rect,format);
+							g.DrawString(text,_font,brush,rectangleLayout,stringFormatLeft);
 						}
 						g.DrawRectangle(_penBlack,rectBack.X,rectBack.Y,rectBack.Width,rectBack.Height);
-						DisposeObjects(brush,format);
-						return new PointF(drawLoc.X,drawLoc.Y+_heightLine);//move down a certain number of lines for next element.
+						DisposeObjects(brush,stringFormatLeft);
+						return new PointF(pointDraw.X,pointDraw.Y+_heightLine);//move down a certain number of lines for next element.
 					}
 				}
 				else {//horizontal
-					float w=drawLoc.X-9;//drawLoc is upper right of each element.  The first element draws at (totalWidth-1,0).
 					if(isGraphic) {
 						Bitmap bitmap=new Bitmap(12,12);
-						noteSize=new SizeF(bitmap.Width,bitmap.Height);
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,drawLoc.Y+1);//upper left corner of this element
-						rect=new RectangleF(drawLoc,noteSize);
+						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y+1);//upper left corner of this element
+						rectangleLayout=new RectangleF(pointDraw,sizeNote);
 						using(Graphics gfx=Graphics.FromImage(bitmap)) {
 							gfx.SmoothingMode=SmoothingMode.HighQuality;
 							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
@@ -2890,31 +3396,34 @@ namespace OpenDental.UI{
 							confirmBrush.Dispose();
 						}
 						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,format,bitmap);
-						return new PointF(drawLoc.X-(int)noteSize.Width-2,drawLoc.Y);
+						DisposeObjects(brush,stringFormatLeft,bitmap);
+						return new PointF(pointDraw.X-(int)sizeNote.Width-2,pointDraw.Y);
 					}
 					else {
-						noteSize=g.MeasureString(text,_font,(int)w);
-						noteSize=new SizeF(noteSize.Width,_heightLine+1);//only allowed to be one line high.  Needs an extra pixel.
-						if(noteSize.Width<5) {
-							noteSize=new SizeF(5,noteSize.Height);
+						if(pointDraw.X<9){//if the appointment is too narrow
+							DisposeObjects(brush,stringFormatLeft);
+							return new PointF(0,pointDraw.Y);
 						}
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,drawLoc.Y);//upper left corner of this element
-						rect=new RectangleF(drawLocThis,noteSize);
-						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,noteSize.Width,_heightLine);
-						if(apptRows[elementI].ElementDesc=="MedOrPremed[+]"
-							|| apptRows[elementI].ElementDesc=="HasIns[I]"
-							|| apptRows[elementI].ElementDesc=="InsToSend[!]") {
+						SizeF sizeLayoutArea=new SizeF();
+						sizeLayoutArea.Width=pointDraw.X-9;//drawLoc is upper right of each element.  The first element draws at (totalWidth-1,0).
+						sizeLayoutArea.Height=_heightLine+1;//only allowed to be one line high.  Needs an extra pixel.
+						sizeText=g.MeasureString(text,_font,sizeLayoutArea);
+						rectangleLayout=new RectangleF(pointDraw.X-sizeText.Width,pointDraw.Y,sizeText.Width,sizeText.Height);//upper left corner of this element
+						rectBack=new RectangleF(rectangleLayout.X,rectangleLayout.Y,rectangleLayout.Width,_heightLine);
+						if(listApptViewItems[idxItem].ElementDesc=="MedOrPremed[+]"
+							|| listApptViewItems[idxItem].ElementDesc=="HasIns[I]"
+							|| listApptViewItems[idxItem].ElementDesc=="InsToSend[!]") 
+						{
 							g.FillRectangle(brush,rectBack);
-							g.DrawString(text,_font,_brushBlack,rect,format);
+							g.DrawString(text,_font,_brushBlack,rectangleLayout,stringFormatLeft);
 						}
 						else {
 							g.FillRectangle(_brushWhite,rectBack);
-							g.DrawString(text,_font,brush,rect,format);
+							g.DrawString(text,_font,brush,rectangleLayout,stringFormatLeft);
 						}
 						g.DrawRectangle(_penBlack,rectBack.X,rectBack.Y,rectBack.Width,rectBack.Height);
-						DisposeObjects(brush,format);
-						return new PointF(drawLoc.X-(int)noteSize.Width-1,drawLoc.Y);//Move to left.  Might also have to subtract a little from x to space out elements.
+						DisposeObjects(brush,stringFormatLeft);
+						return new PointF(pointDraw.X-(int)rectangleLayout.Width-1,pointDraw.Y);//Move to left.  Might also have to subtract a little from x to space out elements.
 					}
 				}
 			}
@@ -2922,12 +3431,12 @@ namespace OpenDental.UI{
 			#region LR
 			else {//LR
 				if(stackBehavior==ApptViewStackBehavior.Vertical) {
-					float w=totalWidth-9;
+					float w=widthAppt-9;
 					if(isGraphic) {
 						Bitmap bitmap=new Bitmap(12,12);
-						noteSize=new SizeF(bitmap.Width,bitmap.Height);
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,drawLoc.Y+1-_heightLine);//upper left corner of this element
-						rect=new RectangleF(drawLoc,noteSize);
+						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y+1-_heightLine);//upper left corner of this element
+						rectangleLayout=new RectangleF(pointDraw,sizeNote);
 						using(Graphics gfx=Graphics.FromImage(bitmap)) {
 							gfx.SmoothingMode=SmoothingMode.HighQuality;
 							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
@@ -2937,41 +3446,41 @@ namespace OpenDental.UI{
 							confirmBrush.Dispose();
 						}
 						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,format,bitmap);
-						return new PointF(drawLoc.X,drawLoc.Y-(int)noteSize.Height);
+						DisposeObjects(brush,stringFormatLeft,bitmap);
+						return new PointF(pointDraw.X,pointDraw.Y-(int)sizeNote.Height);
 					}
 					else {
-						noteSize=g.MeasureString(text,_font,(int)w);
-						noteSize=new SizeF(noteSize.Width,_heightLine+1);//only allowed to be one line high.  Needs an extra pixel.
-						if(noteSize.Width<5) {
-							noteSize=new SizeF(5,noteSize.Height);
+						sizeNote=g.MeasureString(text,_font,(int)w);
+						sizeNote=new SizeF(sizeNote.Width,_heightLine+1);//only allowed to be one line high.  Needs an extra pixel.
+						if(sizeNote.Width<5) {
+							sizeNote=new SizeF(5,sizeNote.Height);
 						}
 						//g.MeasureString(text,baseFont,noteSize,format,out charactersFitted,out linesFilled);
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,drawLoc.Y-_heightLine);//upper left corner of this element
-						rect=new RectangleF(drawLocThis,noteSize);
-						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,noteSize.Width,_heightLine);
-						if(apptRows[elementI].ElementDesc=="MedOrPremed[+]"
-							|| apptRows[elementI].ElementDesc=="HasIns[I]"
-							|| apptRows[elementI].ElementDesc=="InsToSend[!]") {
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y-_heightLine);//upper left corner of this element
+						rectangleLayout=new RectangleF(drawLocThis,sizeNote);
+						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,sizeNote.Width,_heightLine);
+						if(listApptViewItems[idxItem].ElementDesc=="MedOrPremed[+]"
+							|| listApptViewItems[idxItem].ElementDesc=="HasIns[I]"
+							|| listApptViewItems[idxItem].ElementDesc=="InsToSend[!]") {
 							g.FillRectangle(brush,rectBack);
-							g.DrawString(text,_font,_brushBlack,rect,format);
+							g.DrawString(text,_font,_brushBlack,rectangleLayout,stringFormatLeft);
 						}
 						else {
 							g.FillRectangle(_brushWhite,rectBack);
-							g.DrawString(text,_font,brush,rect,format);
+							g.DrawString(text,_font,brush,rectangleLayout,stringFormatLeft);
 						}
 						g.DrawRectangle(_penBlack,rectBack.X,rectBack.Y,rectBack.Width,rectBack.Height);
-						DisposeObjects(brush,format);
-						return new PointF(drawLoc.X,drawLoc.Y-_heightLine);//move up a certain number of lines for next element.
+						DisposeObjects(brush,stringFormatLeft);
+						return new PointF(pointDraw.X,pointDraw.Y-_heightLine);//move up a certain number of lines for next element.
 					}
 				}
 				else {//horizontal
-					float w=drawLoc.X-9;//drawLoc is upper right of each element.  The first element draws at (totalWidth-1,0).
+					float w=pointDraw.X-9;//drawLoc is upper right of each element.  The first element draws at (totalWidth-1,0).
 					if(isGraphic) {
 						Bitmap bitmap=new Bitmap(12,12);
-						noteSize=new SizeF(bitmap.Width,bitmap.Height);
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width+1,drawLoc.Y+1-_heightLine);//upper left corner of this element
-						rect=new RectangleF(drawLoc,noteSize);
+						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width+1,pointDraw.Y+1-_heightLine);//upper left corner of this element
+						rectangleLayout=new RectangleF(pointDraw,sizeNote);
 						using(Graphics gfx=Graphics.FromImage(bitmap)) {
 							gfx.SmoothingMode=SmoothingMode.HighQuality;
 							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
@@ -2981,38 +3490,38 @@ namespace OpenDental.UI{
 							confirmBrush.Dispose();
 						}
 						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,format,bitmap);
-						return new PointF(drawLoc.X-(int)noteSize.Width-1,drawLoc.Y);
+						DisposeObjects(brush,stringFormatLeft,bitmap);
+						return new PointF(pointDraw.X-(int)sizeNote.Width-1,pointDraw.Y);
 					}
 					else {
-						noteSize=g.MeasureString(text,_font,(int)w);
-						noteSize=new SizeF(noteSize.Width,_heightLine+1);//only allowed to be one line high.  Needs an extra pixel.
-						if(noteSize.Width<5) {
-							noteSize=new SizeF(5,noteSize.Height);
+						sizeNote=g.MeasureString(text,_font,(int)w);
+						sizeNote=new SizeF(sizeNote.Width,_heightLine+1);//only allowed to be one line high.  Needs an extra pixel.
+						if(sizeNote.Width<5) {
+							sizeNote=new SizeF(5,sizeNote.Height);
 						}
-						PointF drawLocThis=new PointF(drawLoc.X-(int)noteSize.Width,(int)(drawLoc.Y-_heightLine));//upper left corner of this element
-						rect=new RectangleF(drawLocThis,noteSize);
-						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,noteSize.Width,_heightLine);
-						if(apptRows[elementI].ElementDesc=="MedOrPremed[+]"
-							|| apptRows[elementI].ElementDesc=="HasIns[I]"
-							|| apptRows[elementI].ElementDesc=="InsToSend[!]") {
+						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,(int)(pointDraw.Y-_heightLine));//upper left corner of this element
+						rectangleLayout=new RectangleF(drawLocThis,sizeNote);
+						rectBack=new RectangleF(drawLocThis.X,drawLocThis.Y+1,sizeNote.Width,_heightLine);
+						if(listApptViewItems[idxItem].ElementDesc=="MedOrPremed[+]"
+							|| listApptViewItems[idxItem].ElementDesc=="HasIns[I]"
+							|| listApptViewItems[idxItem].ElementDesc=="InsToSend[!]") {
 							g.FillRectangle(brush,rectBack);
-							g.DrawString(text,_font,_brushBlack,rect,format);
+							g.DrawString(text,_font,_brushBlack,rectangleLayout,stringFormatLeft);
 						}
 						else {
 							g.FillRectangle(_brushWhite,rectBack);
-							g.DrawString(text,_font,brush,rect,format);
+							g.DrawString(text,_font,brush,rectangleLayout,stringFormatLeft);
 						}
 						g.DrawRectangle(_penBlack,rectBack.X,rectBack.Y,rectBack.Width,rectBack.Height);
-						DisposeObjects(brush,format);
-						return new PointF(drawLoc.X-(int)noteSize.Width-1,drawLoc.Y);//Move to left.  Subtract a little from x to space out elements.
+						DisposeObjects(brush,stringFormatLeft);
+						return new PointF(pointDraw.X-(int)sizeNote.Width-1,pointDraw.Y);//Move to left.  Subtract a little from x to space out elements.
 					}
 				}
 			}
 			#endregion
 		}
 
-		///<summary>Disposes objects with typeof Brush, Pen, StringFormat or Bitmap.</summary>
+		///<summary>Disposes objects with typeof Brush, Pen, StringFormat, or Bitmap.</summary>
 		private static void DisposeObjects(params object[] disposables) {
 			for(int i=0;i<disposables.Length;i++) {
 				if(disposables[i]==null) {
@@ -3044,18 +3553,19 @@ namespace OpenDental.UI{
 			if(SelectedAptNum<1){
 				return;//don't draw anything
 			}
-			foreach(DataRow dataRow in TableAppointments.Rows) {
+			for(int i=0;i<TableAppointments.Rows.Count;i++) {
+				DataRow dataRow=TableAppointments.Rows[i];
 				long aptNum=PIn.Long(dataRow["AptNum"].ToString());
 				if(aptNum!=SelectedAptNum){
 					continue;
 				}
 				//match
-				PointF location=SetLocation(dataRow,0,ListOpsVisible.Count,0);
+				//PointF location=SetLocation(dataRow);
 				string pattern=PIn.String(dataRow["Pattern"].ToString());
-				SizeF sizeAppt=SetSize(pattern);
-				if(sizeAppt.Width<1){
-					return;
-				}
+				//SizeF sizeAppt=SetSize(pattern);
+				//if(sizeAppt.Width<1){
+				//	return;
+				//}
 				//Rectangle rectangle=new Rectangle(location,sizeAppt);
 				Pen penProvOutline;
 				if(dataRow["ProvNum"].ToString()!="0" && dataRow["IsHygiene"].ToString()=="0") {//dentist
@@ -3067,8 +3577,8 @@ namespace OpenDental.UI{
 				else {//unknown
 					penProvOutline=new Pen(Color.Black,3f);//Do not use Pens.Black because we will be disposing this pen later on.
 				}
-				//if(isSelected	|| (!thisIsPinBoard && dataRoww["AptNum"].ToString()==selectedAptNum.ToString())) {
-				GraphicsPath graphicsPathOutline=GetRoundedPath(new RectangleF(location.X,location.Y,sizeAppt.Width-_widthNarrowedOnRight,sizeAppt.Height));
+				GraphicsPath graphicsPathOutline=GetRoundedPath(_listApptLayoutInfos[i].RectangleBounds);
+					//new RectangleF(location.X,location.Y,sizeAppt.Width-_widthNarrowedOnRight,sizeAppt.Height));
 				g.DrawPath(penProvOutline,graphicsPathOutline);
 				//g.DrawRectangle(penProvOutline,(int)location.X+1.5f,(int)location.Y+.5f,sizeAppt.Width-2,sizeAppt.Height-1);
 				DisposeObjects(penProvOutline);
@@ -3087,7 +3597,7 @@ namespace OpenDental.UI{
 		private void DrawRedTimeLineProvBars(Graphics g){
 			int curTimeY=(int)((float)DateTime.Now.Hour*_heightLine*(float)_rowsPerHr+(float)DateTime.Now.Minute/60f*_heightLine*(float)_rowsPerHr);
 			//line is 2px, so drop it down one px
-			g.DrawLine(_penTimeLine,0,curTimeY+1,(int)(_widthProv*(float)_countProv),curTimeY+1);
+			g.DrawLine(_penTimeLine,0,curTimeY+1,(int)(_widthProv*(float)_listProvsVisible.Count),curTimeY+1);
 		}
 
 		private void DrawRedTimeLineTimebar(Graphics g){
@@ -3129,10 +3639,10 @@ namespace OpenDental.UI{
 				retVal=(int)Math.Floor((xPos-_widthTime-day*_widthWeekDay)/_widthWeekAppt);
 			}
 			else {
-				retVal=(int)Math.Floor((xPos-_widthTime-_widthProv*_countProv)/_widthCol);
+				retVal=(int)Math.Floor((xPos-_widthTime-_widthProv*_listProvsVisible.Count)/_widthCol);
 			}
-			if(retVal>_countCol-1){
-				retVal=(int)_countCol-1;
+			if(retVal>_listOpsVisible.Count-1){
+				retVal=(int)_listOpsVisible.Count-1;
 			}
 			if(retVal<0){
 				retVal=0;
@@ -3152,47 +3662,29 @@ namespace OpenDental.UI{
 			if(xPos > _widthTime+_widthMain){
 				return 0;
 			}
-			int retVal=(int)Math.Floor((xPos-_widthTime)/_widthWeekDay);
-			//if(retVal>NumOfWeekDaysToDisplay-1)
-			//	retVal=NumOfWeekDaysToDisplay-1;
-			//if(retVal<0)
-			//	retVal=0;
+			int retVal=(int)Math.Floor(((float)xPos-_widthTime)/_widthWeekDay);
 			return retVal;
 		}
 
 		///<summary>Originally called from ContrAppt.comboView_SelectedIndexChanged and ContrAppt.RefreshVisops.</summary>
 		private void ComputeColWidth() {
-			if(_isPrinting){
-				//if(PrintingColCountOverride>0) {
-				_countCol=PrintingColsPerPage;
-			}
-			else {
-				_countCol=ListOpsVisible.Count;
-			}
-			if(IsWeeklyView) {
-				_countCol=ListOpsVisible.Count;
-				_countProv=0;
-			}
-			else {
-				_countProv=ListProvsVisible.Count;
-			}
-			if(_countCol==0) {
+			if(_listOpsVisible.Count==0) {
 				_widthCol=0;
 			}
 			else {
 				if(IsWeeklyView) {
-					_widthWeekDay=(float)(_widthMain-_widthTime*2)/(float)_numOfWeekDaysToDisplay;
-					_widthWeekAppt=(float)(_widthWeekDay-1)/(float)_countCol;
+					_widthWeekDay=(float)_widthMain/(float)_numOfWeekDaysToDisplay;
+					_widthWeekAppt=(float)(_widthWeekDay)/(float)_listOpsVisible.Count;
 				}
-				_widthCol=(float)(_widthMain)/(float)_countCol;
+				_widthCol=(float)(_widthMain)/(float)_listOpsVisible.Count;
 			}
 		}
 
 		///<summary>Computes _heightProvOpHeaders.  </summary>
 		private void ComputeHeightProvOpHeader(){
 			_heightProvOpHeaders=16;
-			for(int i=0;i<_countCol;i++){
-				if(TextRenderer.MeasureText(ListOpsVisible[i].OpName,_font).Width>_widthCol){
+			for(int i=0;i<_listOpsVisible.Count;i++){
+				if(TextRenderer.MeasureText(ListOpsVisible[i].OpName,_fontOpsHeaders).Width>_widthCol){
 					_heightProvOpHeaders=27;
 					break;
 				}
@@ -3207,24 +3699,31 @@ namespace OpenDental.UI{
 				//_heightMain= //already set, so nothing to do
 				return;
 			}
-			_heightMain=(int)(_heightLine*24*_rowsPerHr)+1;
+			_heightMain=(int)(_heightLine*24f*_rowsPerHr)+1;
 			vScrollBar1.LargeChange=(int)(_rowsPerHr*_heightLine);//one hour
 			vScrollBar1.SmallChange=(int)(_rowsPerHr*_heightLine);//also one hour because this controls the scrolling
 			vScrollBar1.Maximum=_heightMain-_heightMainVisible+vScrollBar1.LargeChange;
 		}
 
 		///<summary></summary>
-		private void ProvBarShading(DataRow row) {
-			string patternShowing=GetPatternShowing(row["Pattern"].ToString());
+		private void ProvBarShading(DataRow dataRow) {
+			string patternShowing=GetPatternShowing(dataRow["Pattern"].ToString());
 			int indexProv=-1;
-			if(row["IsHygiene"].ToString()=="1") {
-				indexProv=GetIndexProv(PIn.Long(row["ProvHyg"].ToString()));
+			if(dataRow["IsHygiene"].ToString()=="1") {
+				indexProv=GetIndexProv(PIn.Long(dataRow["ProvHyg"].ToString()));
 			}
 			else {
-				indexProv=GetIndexProv(PIn.Long(row["ProvNum"].ToString()));
+				indexProv=GetIndexProv(PIn.Long(dataRow["ProvNum"].ToString()));
 			}
-			if(indexProv!=-1 && row["AptStatus"].ToString()!=((int)ApptStatus.Broken).ToString()) {
-				int startIndex=(int)(ConvertToY(row,0)/_heightLine);//rounds down
+			if(indexProv!=-1 && dataRow["AptStatus"].ToString()!=((int)ApptStatus.Broken).ToString()) {
+				//was originally from ConvertToY:
+				DateTime aptDateTime=PIn.DateT(dataRow["AptDateTime"].ToString());
+				float yPos=(float)(((double)(aptDateTime.Hour)*(double)60
+					/(double)MinPerIncr
+					+(double)aptDateTime.Minute
+					/(double)MinPerIncr
+					)*(double)_heightLine*RowsPerIncr);
+				int startIndex=(int)(yPos/_heightLine);//rounds down
 				for(int k=0;k<patternShowing.Length;k++) {
 					if(patternShowing.Substring(k,1)=="X") {
 						try {
@@ -3240,111 +3739,72 @@ namespace OpenDental.UI{
 
 		#endregion Methods - Private Computations
 
-		#region Methods - Private Computations originally in ApptSingleDrawing
-		///<summary>Was ApptSingleDrawing.SetLocation.  This is only called when viewing appointments on the Appt module.  For Planned apt and pinboard, use SetSize instead so that the location won't change.  Pass 0 for startHour unless printing.  Pass visops or countcol for colsPerPage unless printing.  Pass 0 for pageColumn unless printing.  Sets location on the main bitmap, not on the control.</summary>
-		private PointF SetLocation(DataRow dataRoww,int beginHour,int colsPerPage,int pageColumn) {
-			PointF pointReturn;
-			if(IsWeeklyView) {
-				pointReturn=new PointF(ConvertToX(dataRoww,colsPerPage,pageColumn),ConvertToY(dataRoww,beginHour));
+		#region Methods - Private HitTest
+		///<summary>Returns the index of the appointment within TableAppointments at these coordinates, or -1 if none.  Pass in the point in coordinates of this control/mouse.</summary>
+		private int HitTestAppt(Point point) {
+			if(ListOpsVisible.Count==0) {//no ops visible.
+				return -1;
 			}
-			else {
-				pointReturn=new PointF(ConvertToX(dataRoww,colsPerPage,pageColumn)+1,ConvertToY(dataRoww,beginHour));
+			//location is in control coordinates, so convert to bitmap coords.
+			PointF pointF;
+			if(_showProvBars){
+				pointF=new PointF(point.X-_widthTime-_listProvsVisible.Count*_widthProv,
+					point.Y-_heightProvOpHeaders+vScrollBar1.Value);
 			}
-			return pointReturn;
-		}
-
-		///<summary>Was ApptSingleDrawing.ConvertToX. Called from SetLocation to establish X position of control.  X position within main bitmap, not entire control.</summary>
-		private float ConvertToX(DataRow dataRoww,int colsPerPage,int pageColumn) {
-			if(IsWeeklyView) {
-				//the next few lines are because we start on Monday instead of Sunday
-				int dayofweek=(int)PIn.DateT(dataRoww["AptDateTime"].ToString()).DayOfWeek-1;
-				if(dayofweek==-1) {
-					dayofweek=6;
-				}
-				return _widthTime
-					+_widthWeekDay*(dayofweek)+1
-					+(_widthWeekAppt*(GetIndexOp(PIn.Long(dataRoww["Op"].ToString()))-(colsPerPage*pageColumn)));
+			else{
+				pointF=new PointF(point.X-_widthTime,
+					point.Y-_heightProvOpHeaders+vScrollBar1.Value);
 			}
-			else {
-				string strOp=dataRoww["Op"].ToString();
-				int idxOp=GetIndexOp(PIn.Long(strOp));
-				//return _widthTime+_widthProv*_countProv+_widthCol*(idxOp-(colsPerPage*pageColumn))+1;
-				return _widthCol*(idxOp-(colsPerPage*pageColumn));
-			}
-		}
-
-		///<summary>Was ApptSingleDrawing.ConvertToY.  Called from SetLocation to establish Y position of appt.  Also called from ContrAppt.RefreshDay when determining ProvBar markings. Does not round to the nearest row.  Y position within main bitmap, not entire control.</summary>
-		private float ConvertToY(DataRow dataRoww,int beginHour) {
-			DateTime aptDateTime=PIn.DateT(dataRoww["AptDateTime"].ToString());
-			float retVal=(float)(((double)(aptDateTime.Hour-beginHour)*(double)60
-				/(double)MinPerIncr
-				+(double)aptDateTime.Minute
-				/(double)MinPerIncr
-				)*(double)_heightLine*RowsPerIncr);
-			return retVal;
-		}
-
-		/*
-		///<summary>Was ApptSingleDrawing.ApptWithinTimeFrame.  Tests if the appt is in the allotted time frame and is in a visible operatory.  Returns false in order to skip drawing for appointment printing.</summary>
-		private bool ApptWithinTimeFrame(long opNum,DateTime aptDateTime,string pattern,DateTime beginTime,DateTime endTime,int colsPerPage,int pageColumn) {
-			//Test if appts op is currently visible.
-			bool visible=false;
-			if(IsWeeklyView) {
-				if(GetIndexOp(opNum) > -1) {
-					visible=true;
+			for(int i=0;i<_listApptLayoutInfos.Count;i++){
+				if(_listApptLayoutInfos[i].RectangleBounds.Contains(pointF)){
+					return i;
 				}
 			}
-			else {//Daily view
-				for(int i=0;i<colsPerPage;i++) {
-					if(i==VisOps.Count) {
-						return false;
-					}
-					int k=colsPerPage*pageColumn+i;
-					if(k>=VisOps.Count) {
-						return false;
-					}
-					if(k==GetIndexOp(opNum)) {
-						visible=true;
-						break;
-					}
-				}
-			}
-			if(!visible) {//Op not visible so don't test time frame.
+			return -1;
+		}
+		
+		///<summary>If the given point is in the bottom 8 (or 6 or 4) pixels of an appointment, then this returns true.  Always pass in appointment idx from previous HitTestAppt.</summary>
+		private bool HitTestApptBottom(Point point,int idxAppt) {
+			if(ListOpsVisible.Count==0) {//no ops visible.
 				return false;
 			}
-			//Test if any portion of appt is within time frame.
-			TimeSpan aptTimeBegin=aptDateTime.TimeOfDay;
-			TimeSpan aptTimeEnd=aptTimeBegin.Add(new TimeSpan(0,pattern.Length*5,0));
-			int aptHourBegin=aptTimeBegin.Hours;
-			int aptHourEnd=aptTimeEnd.Hours;
-			if(aptHourEnd==0) {
-				aptHourEnd=24;
-			}
-			int beginHour=beginTime.Hour;
-			int endHour=endTime.Hour;
-			if(endHour==0) {
-				endHour=24;
-			}
-			//If the appointment begins on or after the stopping hour (because we don't support minutes currently) then this appointment is not visible.
-			//However, we need to check the time portion of the appointment ending time in correlation to the begin hour 
-			//because the appointment could end within the same hour that the printing begin hour is set to.
-			//E.g. an appointment from 8 AM to 8:40 AM needs to show as visible when printing a schedule from 8 AM to 5 PM.
-			TimeSpan timePrintBegin=new TimeSpan(beginHour,0,0);
-			if(aptHourBegin>=endHour || aptTimeEnd<=timePrintBegin) {
+			if(idxAppt==-1){//not inside any appt
 				return false;
 			}
-			return true;
-		}*/
-		#endregion Methods - Private Computations originally in ApptSingleDrawing
+			//location is in control coordinates, so convert to bitmap coords.
+			float yPos=point.Y-_heightProvOpHeaders+vScrollBar1.Value;
+			//if this is a very short appt, then the area we test for must be smaller.
+			//currently, each row is 12 high
+			if(_listApptLayoutInfos[idxAppt].RectangleBounds.Height<15){
+				if(yPos>_listApptLayoutInfos[idxAppt].RectangleBounds.Bottom-4){
+					return true;
+				}
+				return false;
+			}
+			if(_listApptLayoutInfos[idxAppt].RectangleBounds.Height<25){
+				if(yPos>_listApptLayoutInfos[idxAppt].RectangleBounds.Bottom-6){
+					return true;
+				}
+				return false;
+			}
+			//normal height appt
+			if(yPos>_listApptLayoutInfos[idxAppt].RectangleBounds.Bottom-8){
+				return true;
+			}
+			return false;
+		}
+		#endregion Methods - Private HitTest
 
 		#region Methods - Private Mouse Event Helpers
-			///<summary>Creates bitmap for contr.  Does not make the contr visible yet.  Also sets mouseIsDown=true.</summary>
-		private void ShowDraggableApptSingle(DataRow dataRow) {
+			///<summary>Creates bitmap for contr.  Does not make the contr visible yet.  Also sets mouseIsDown=true.  Pass in the index of the appointment within TableAppointments.</summary>
+		private void ShowDraggableApptSingle(int idxAppt) {
 			//We are now dragging, so set the mouse down flag.
 			_isMouseDown=true;
 			//Control was already created and added to Controls on load. Just reset the fields here and redraw accordingly.
+			DataRow dataRow=TableAppointments.Rows[idxAppt];
 			SizeF size=SetSize(dataRow["Pattern"].ToString());
-			contrTempAppt.Size=new Size(Round(size.Width),Round(size.Height));
+			contrTempAppt.Size=_listApptLayoutInfos[idxAppt].RectangleBounds.Size.ToSize();
+				//new Size(Round(size.Width),Round(size.Height));
 			if(_isResizingAppt){
 				//don't set a clip region. Clear any old clip region.
 				contrTempAppt.Region=null;
@@ -3352,10 +3812,15 @@ namespace OpenDental.UI{
 			else{
 				contrTempAppt.Region=new Region(GetRoundedPath(new RectangleF(0,0,contrTempAppt.Width,contrTempAppt.Height)));
 			}
-			PointF locationF=SetLocation(dataRow,0,(int)_countCol,0);//this is in bitmap coordinates
-			Point location=new Point(Round(locationF.X+_widthTime+_countProv*_widthProv),
-				Round(locationF.Y+_heightProvOpHeaders-vScrollBar1.Value));
-			contrTempAppt.Location=location;
+			//location is in bitmap coordinates, so convert to control coords.
+			if(_showProvBars){
+				contrTempAppt.Location=new Point(Round(_listApptLayoutInfos[idxAppt].RectangleBounds.X+_widthTime+_listProvsVisible.Count*_widthProv),
+					Round(_listApptLayoutInfos[idxAppt].RectangleBounds.Y+_heightProvOpHeaders-vScrollBar1.Value));
+			}
+			else{
+				contrTempAppt.Location=new Point(Round(_listApptLayoutInfos[idxAppt].RectangleBounds.X+_widthTime),
+					Round(_listApptLayoutInfos[idxAppt].RectangleBounds.Y+_heightProvOpHeaders-vScrollBar1.Value));
+			}
 			_dataRowTempAppt=dataRow;
 			SetBitmapTempAppt();
 			contrTempAppt.Invalidate();
@@ -3367,6 +3832,11 @@ namespace OpenDental.UI{
 
 		///<summary>Does a hit test to determine if over operatory or prov header.  If so, creates appropriate "tooltip" panel and positions it.</summary>
 		private void HeaderTipDraw(Point point) {
+			//Mimic old behavior: 
+			//Prov header, hover shows prov
+			//Op header, hover shows some info
+			//Op header, right or left click shows other info
+			//Week: no prov headers, op header right click does nothing, left click changes to day view
 			if(point.Y>_heightProvOpHeaders//down in main area
 				|| point.X<_widthTime//to the left of prov headers
 				|| point.X>this.Width-vScrollBar1.Width-_widthTime//to the right of op headers
@@ -3377,14 +3847,17 @@ namespace OpenDental.UI{
 				return;
 			}
 			string txt="";
-			if(point.X>_widthTime+_widthProv*_countProv){//to the right of prov header, so in ops area
+			if(IsWeeklyView){
+				//do nothing, which is better than old behavior of showing tip that's same as header.
+			}
+			else if(point.X>_widthTime+_widthProv*_listProvsVisible.Count){//to the right of prov header, so in ops area
 				if(ListOpsVisible.Count==0){
 					panelHeaderTip.Visible=false;
 					return;
 				}
 				for(int i=0;i<ListOpsVisible.Count;i++){
 					if(i==ListOpsVisible.Count-1
-						|| point.X<_widthTime+_widthProv*_countProv+_widthCol*(float)(i+1))//compare to the righthand side of op
+						|| point.X<_widthTime+_widthProv*_listProvsVisible.Count+_widthCol*(float)(i+1))//compare to the righthand side of op
 					{
 						//found op where we are hovering
 						if(_opNumHeaderTipLast==ListOpsVisible[i].OperatoryNum){
@@ -3433,8 +3906,8 @@ namespace OpenDental.UI{
 			_boolApptMoved=false;
 		}
 
-		///<summary>Does a hit test to determine if over an appointment.  Fills the bubble with data and then positions it.</summary>
-		private void InfoBubbleDraw(Point point) {
+		///<summary>Before calling this, do a hit test for appts.  Fills the bubble with data and then positions it.  In coordinates of this UserContrApptsPanel (mouse)</summary>
+		private void InfoBubbleDraw(Point point,int idxAppt) {
 			if((ApptViewCur==null && PrefC.GetBool(PrefName.AppointmentBubblesDisabled))
 					|| (ApptViewCur!=null && ApptViewCur.IsApptBubblesDisabled))
 			{
@@ -3443,10 +3916,13 @@ namespace OpenDental.UI{
 				timerInfoBubble.Enabled=false;
 				return;
 			}
-			_pointBubble=point;
-			DataRow dataRow=HitTestAppt(point);
-			if(dataRow==null || HitTestApptBottom(point)){
-				//not hovering over an appointment at all, so hide any existing bubble
+			_pointBubble=point;//for timer
+			DataRow dataRow=null;
+			if(idxAppt!=-1){
+				dataRow=TableAppointments.Rows[idxAppt];
+			}
+			if(dataRow==null || HitTestApptBottom(point,idxAppt)){
+				//not hovering over an appointment at all, or getting ready to resize, so hide any existing bubble
 				if(panelInfoBubble.Visible) {
 					panelInfoBubble.Visible=false;
 					timerInfoBubble.Enabled=false;
@@ -3471,6 +3947,7 @@ namespace OpenDental.UI{
 			//From here down, aptNum!=bubbleAptNum, and we need to create a new bubble----------------------------------------------------------------------------
 			//Hide while we draw everything to reduce jitter caused by resizing.  Will be set visible later if appropriate.  Otherwise, after 
 			//timerInfoBubble ticks and ApptBubbleDelay preference has been satisfied.
+			System.Diagnostics.Debug.WriteLine(DateTime.Now.ToLongTimeString());
 			panelInfoBubble.Visible=false;
 			//reset timer for popup delay
 			timerInfoBubble.Enabled=false;
@@ -3494,22 +3971,15 @@ namespace OpenDental.UI{
 				panelInfoBubble.BackgroundImage=new Bitmap(panelInfoBubble.Width,backImgHeight);
 			}
 			else {
-				//Resize infoBubble so its BackgroundImage is definitely large enough to display every DisplayField we could need.  We cannot simply resize
-				//the BackgroundImage itself, so we have to resize the entire infoBubble instead.  As such, when we are in this "if" block where we are 
-				//populating the infoBubble with new info, we set the infoBubble not visible always to avoid this resize causing any unsightly UI jitter.
-				//By resizing, we avoid disposing and recreating a Bitmap every time we need to start over drawing graphics for the infoBubble.  Previously
-				//we were not disposing the BackgroundImage which resulted in a memory leak, so a BackgroundImage.Dispose() wrapped in a 
-				//SwallowAllExceptions() was added.  For unclear reasons, this occasionally resulted in the previous BackgroundImage persisting on screen,
-				//covering the newly drawn BackgroundImage.  This was easiest to see if the previous BackgroundImage was shorter than the new height, and
-				//for even more unclear reasons was only observed via a remote hosted Middle Tier server.  See B14575.
+				//Resize infoBubble so its BackgroundImage is definitely large enough to display every DisplayField we could need.
+				//We will shorten it as needed after drawing the elements and before making visible.
 				panelInfoBubble.Size=new Size(panelInfoBubble.Width,backImgHeight);
 			}
-			Image imageBack=panelInfoBubble.BackgroundImage;//alias
-			Graphics g=Graphics.FromImage(imageBack);//infoBubble.BackgroundImage);
+			Graphics g=Graphics.FromImage(panelInfoBubble.BackgroundImage);//infoBubble.BackgroundImage);
 			g.TextRenderingHint=TextRenderingHint.ClearTypeGridFit;
 			g.SmoothingMode=SmoothingMode.HighQuality;
 			using(SolidBrush brushBackColor = new SolidBrush(panelInfoBubble.BackColor)) {
-				g.FillRectangle(brushBackColor,0,0,imageBack.Width,imageBack.Height);
+				g.FillRectangle(brushBackColor,0,0,panelInfoBubble.BackgroundImage.Width,panelInfoBubble.BackgroundImage.Height);
 			}
 			//Dispose of previous pat image to save memory
 			ODException.SwallowAnyException(() => {
@@ -3539,8 +4009,9 @@ namespace OpenDental.UI{
 								imageFolder,""),
 								out patPict);
 						pictureBoxPat.Image=patPict;
+						patPict?.Dispose();
 					}
-					catch(ApplicationException) { }  //A customer called in and an exception got through.  Added exception parameter as attempted fix.
+					catch(ApplicationException) { }  //Folder access might be denied
 				}
 			}
 			#region infoBubble Text
@@ -3833,7 +4304,7 @@ namespace OpenDental.UI{
 				}
 			}
 			font.Dispose();
-			#endregion
+			#endregion infoBubble Text
 			//other family members?
 			if(showingPatientPicture && y<pictureBoxPat.Height+pictureBoxPat.Location.Y) {
 				y=pictureBoxPat.Height+pictureBoxPat.Location.Y;
@@ -3861,7 +4332,8 @@ namespace OpenDental.UI{
 			//Calculate the real point in coordinates of this control
 			Point p=new Point(e.X+panelInfoBubble.Left,
 				e.Y+panelInfoBubble.Top);
-			InfoBubbleDraw(p);
+			int idxAppt=HitTestAppt(p);
+			InfoBubbleDraw(p,idxAppt);
 		}
 
 		private void panelOpHoverTip_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
@@ -3872,367 +4344,24 @@ namespace OpenDental.UI{
 		
 		///<summary></summary>
 		private void PictureBoxPat_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
-			//Calculate the real point in sheet coordinates
+			//Calculate the real point coordinates of this control
 			Point p=new Point(e.X+panelInfoBubble.Left+pictureBoxPat.Left,
 				e.Y+panelInfoBubble.Top+pictureBoxPat.Top);
-			InfoBubbleDraw(p);
+			int idxAppt=HitTestAppt(p);
+			InfoBubbleDraw(p,idxAppt);
 		}
 		
 		private void timerInfoBubble_Tick(object sender,EventArgs e) {
 			//not repeating.  Just a single timed event for delay purposes.
-			InfoBubbleDraw(_pointBubble);
+			int idxAppt=HitTestAppt(_pointBubble);
+			InfoBubbleDraw(_pointBubble,idxAppt);
 			timerInfoBubble.Enabled =false;
 		}
 		#endregion Methods - Private Mouse Event Helpers
 
-		#region Methods - Private HitTest
-		///<summary>Returns the dataRow of the appointment at these coordinates, or null if none.  Pass in the point in coordinates of this control.</summary>
-		private DataRow HitTestAppt(Point point) {
-			if(ListOpsVisible.Count==0) {//no ops visible.
-				return null;
-			}
-			int day=0;
-			if(IsWeeklyView) {
-				day=XPosToDay(point.X);
-				//this is because we start on Monday:
-				if(day==6) {
-					day=0;
-				}
-				else {
-					day=day+1;
-				}
-			}
-			int xOp=XPosToOpIdx(point.X);
-			if(xOp>ListOpsVisible.Count-1) {
-				return null;
-			}
-			long opNumTesting=ListOpsVisible[xOp].OperatoryNum;
-			TimeSpan? timeTesting=YPosToTime(point.Y);
-			if(timeTesting==null){
-				return null;
-			}
-			foreach(DataRow dataRow in TableAppointments.Rows) {
-				DateTime aptDateTime=PIn.Date(dataRow["AptDateTime"].ToString());
-				if(timeTesting.Value < aptDateTime.TimeOfDay){
-					continue;
-				}
-				TimeSpan timeSpanAppt=TimeSpan.FromMinutes(dataRow["Pattern"].ToString().Length*5);
-				if(timeTesting.Value > aptDateTime.TimeOfDay+timeSpanAppt){
-					continue;
-				}
-				long opNumAppt=PIn.Long(dataRow["Op"].ToString());
-				if(opNumAppt != opNumTesting){
-					continue;
-				}
-				//So we have a hit.
-				return dataRow;
-				//long aptNum=PIn.Long(dataRow["AptNum"].ToString());
-				//If this is part of an overlap order, pick the appointment with the highest priority that occurs during this time.
-				//If there is an appointment that is currently selected, it will pick that appointment instead.
-				//Ensures the function grabs the correct aptNum to say was selected.
-				//Also, this stores the clicked TimeSpan in _overlapOrders for future use.
-				//if(OverlapOrdering.IsOverlappingAppt(aptNum)) {
-				//	return OverlapOrdering.GetSelectedApptNum(aptNum,timeTesting.Value);
-				//}
-				//return aptNum;
-			}
-			return null;
-		}
+
+
 		
-		///<summary>If the given point is in the bottom few pixels of an appointment, then this returns true.  Use HitTestAppt to figure out which appointment.</summary>
-		private bool HitTestApptBottom(Point point) {
-			if(ListOpsVisible.Count==0) {//no ops visible.
-				return false;
-			}
-			int xOp=XPosToOpIdx(point.X);
-			if(xOp>ListOpsVisible.Count-1) {
-				return false;
-			}
-			long opNumTesting=ListOpsVisible[xOp].OperatoryNum;
-			TimeSpan? timeTesting=YPosToTime(point.Y);
-			if(timeTesting==null){
-				return false;
-			}
-			foreach(DataRow dataRow in TableAppointments.Rows) {
-				DateTime aptDateTime=PIn.Date(dataRow["AptDateTime"].ToString());
-				if(timeTesting.Value < aptDateTime.TimeOfDay){
-					continue;
-				}
-				TimeSpan timeSpanAppt=TimeSpan.FromMinutes(dataRow["Pattern"].ToString().Length*5);
-				if(timeTesting.Value > aptDateTime.TimeOfDay+timeSpanAppt){
-					continue;
-				}
-				long opNumAppt=PIn.Long(dataRow["Op"].ToString());
-				if(opNumAppt != opNumTesting){
-					continue;
-				}
-				//So we have a hit.
-				TimeSpan timeEnd=aptDateTime.TimeOfDay+timeSpanAppt;
-				float pixelEndMainCoord=(float)timeEnd.TotalMinutes/MinPerIncr*_heightLine*RowsPerIncr;
-				float pixelEndContrCoord=pixelEndMainCoord+_heightProvOpHeaders-vScrollBar1.Value;
-				if(point.Y>pixelEndContrCoord-8) {
-					return true;
-				}
-				return false;
-			}
-			return false;
-		}
-		
-		#endregion Methods - Private HitTest
-
-		#region Methods - Public
-		public void GetBitmapForPinboard(Graphics g,DataRow dataRow,string patternShowing,float width,float height){
-			g.SmoothingMode=SmoothingMode.HighQuality;
-			DrawOneAppt(g,dataRow,patternShowing,width-1,height-1,false,null);
-		}
-
-		///<summary>Was ApptSingleDrawing.GetPatternShowing.  This converts the dbPattern in 5 minute interval into the pattern that will be viewed based on RowsPerIncrement and AppointmentTimeIncrement.  So it will always depend on the current view.Therefore, it should only be used for visual display purposes rather than within the FormAptEdit. If height of appointment allows a half row, then this includes an increment for that half row.</summary>
-		public string GetPatternShowing(string dbPattern) {
-			StringBuilder strBTime=new StringBuilder();
-			for(int i=0;i<dbPattern.Length;i++) {
-				for(int j=0;j<RowsPerIncr;j++) {
-					strBTime.Append(dbPattern.Substring(i,1));
-				}
-				if(MinPerIncr==10) {
-					i++;//skip
-				}
-				if(MinPerIncr==15) {
-					i++;
-					i++;//skip two
-				}
-			}
-			return strBTime.ToString();
-		}
-
-		public DataRow GetDataRowForSelected(){
-			if(SelectedAptNum==-1){
-				return null;
-			}
-			for(int i=0;i<TableAppointments.Rows.Count;i++){
-				if(TableAppointments.Rows[i]["AptNum"].ToString()==SelectedAptNum.ToString()){
-					return TableAppointments.Rows[i];
-				}
-			}
-			return null;
-		}
-
-		///<summary>Returns the index of the opNum within VisOps.  Returns -1 if not in VisOps.</summary>
-		public int GetIndexOp(long opNum) {
-			//No need to check RemotingRole; no call to db.
-			int index;
-			return _dictOpNumToColumnNum.TryGetValue(opNum,out index) ? index : -1;
-		}
-
-		///<summary>Returns the index of the provNum within VisProvs, or -1.</summary>
-		public int GetIndexProv(long provNum) {
-			//No need to check RemotingRole; no call to db.
-			int index;
-			return _dictProvNumToColumnNum.TryGetValue(provNum,out index) ? index : -1;
-		}
-
-		///<summary>Call this whenever control should be redrawn, like after data is fetched, or when red timebar should move down.  Usually just grabs existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from as basis for new bitmap, as well as a variety of ancillary bitmaps for outside the main area. It all depends on what data is invalid.  So it usually doesn't need to redraw much.</summary>
-		public void RedrawAsNeeded(){
-			if(!_isValidAllMain){
-				ComputeColWidth();//super fast.
-			}
-			if(!_isValidOpsHeader){//need widths above in order to calc whether text will wrap
-				ComputeHeightProvOpHeader();
-			}
-			if(!_isValidAllMain || !_isValidOpsHeader){
-				ComputeHeight();
-			}
-			SetBitmapMain();
-			SetBitmapProvBars();
-			SetBitmapProvBarsHeader();
-			SetBitmapOpsHeader();
-			SetBitmapsTimebar();
-			Invalidate();
-		}
-
-		///<summary>Called on startup and if color prefs change.</summary>
-		public void SetColors(Color colorOpen,Color colorClosed,Color colorHoliday,Color colorBlockText,Color colorTimeLine){
-			//Example pseudocode hints used before calling this method:
-			//List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AppointmentColors);
-			//colorOpen=(listDefs[0].ItemColor);
-			//colorClosed=(listDefs[1].ItemColor);
-			//colorHoliday=(listDefs[3].ItemColor);
-			//colorBlockText=Defs.GetDefsForCategory(DefCat.AppointmentColors,true)[4].ItemColor;
-			//colorTimeLine=PrefC.GetColor(PrefName.AppointmentTimeLineColor)
-			_brushOpen=new SolidBrush(colorOpen);
-			_brushClosed=new SolidBrush(colorClosed);
-			_brushHoliday=new SolidBrush(colorHoliday);
-			_brushBlockText=new SolidBrush(colorBlockText);
-			_penTimeLine=new Pen(colorTimeLine,1.55f);//there's a big difference between 1.5 and 1.55.  ??
-			_isValidAllMain=false;//if we change colors, redraw everything in main
-			_isValidProvBars=false;
-		}
-
-		public void SetScrollByTime(TimeSpan timeOfDay){
-			int valueNew=(int)(timeOfDay.TotalHours*_heightLine*(double)_rowsPerHr);
-			if(valueNew<vScrollBar1.Minimum){
-				valueNew=vScrollBar1.Minimum;
-			}
-			if(valueNew>vScrollBar1.Maximum-vScrollBar1.LargeChange){
-				valueNew=vScrollBar1.Maximum-vScrollBar1.LargeChange;
-			}
-			vScrollBar1.Value=valueNew;
-			//no bitmaps need to be redrawn
-			Invalidate();//just a quick redraw
-		}
-
-		///<summary>Was ApptSingleDrawing.SetSize.  Used for Planned apt and pinboard instead of SetLocation so that the location won't be altered.  Send in the actual timepattern in 5 min increments, not the PatternShowing.  Sets size in pixels.  If sizing an actual control, follow this by rounding.</summary>
-		public SizeF SetSize(string pattern) {
-			float widthSingleAppt;
-			if(_widthCol<5){
-				widthSingleAppt=0;
-			}
-			else{
-				widthSingleAppt=_widthCol-3;
-			}
-			if(IsWeeklyView) {
-				widthSingleAppt=_widthWeekAppt;
-			}
-			//height is based on original 5 minute pattern. Might result in half-rows
-			float heightSingleAppt=pattern.Length*_heightLine*RowsPerIncr;
-			if(MinPerIncr==10) {
-				heightSingleAppt=heightSingleAppt/2f;
-			}
-			if(MinPerIncr==15) {
-				heightSingleAppt=heightSingleAppt/3f;
-			}
-			return new SizeF(widthSingleAppt,heightSingleAppt);
-		}
-
-		///<summary>Used by parent form when a dialog needs to be displayed, but mouse might be down.  This forces a mouse up, and cleans up any mess so that dlg can show.</summary>
-		public void MouseUpForced() {
-			HideDraggableTempApptSingle();	
-		}
-		#endregion Methods - Public
-
-		#region Methods - Public BeginEndUpdate
-		///<summary>Call this before making complex changes to properties.</summary>
-		public void BeginUpdate() {
-			_isUpdating=true;
-		}
-
-		///<summary>Call after BeginUpdate and when done making complex changes.</summary>
-		public void EndUpdate() {
-			_isUpdating=false;
-			RedrawAsNeeded();
-			Invalidate();
-		}
-		#endregion Methods - Public BeginEndUpdate
-
-		#region Methods - Public Dropping
-		///<summary>Pass in Y as coordinate of this entire control.</summary>
-		public TimeSpan? YPosToTime(int yPos){
-			if(yPos<_heightProvOpHeaders){
-				return null;
-			}
-			float yMain=yPos-_heightProvOpHeaders+vScrollBar1.Value;//now it's in bitmapMain coordinates
-			double hours=(double)yMain/(double)_rowsPerHr/(double)_heightLine;//this is hours and decimal minutes
-			TimeSpan timeSpan=TimeSpan.FromHours(hours);
-			return timeSpan;
-		}
-
-		///<summary>Used when dropping an appointment to a new location or resizing. Rounds time up or down to the nearest valid increment.  Static for unit test.</summary>
-		public static TimeSpan RoundTimeToNearestIncrement(TimeSpan timeSpanIn,double minPerIncr){
-			double base10Increment=minPerIncr/60d;//For example, 10 min becomes .167
-			double totalIncrements=timeSpanIn.TotalHours/base10Increment;//not rounded, this is how many increments since midnight.
-			double roundedIncrements=Math.Round(totalIncrements);
-			double totalHours=roundedIncrements*base10Increment;//for example, 8:10a would be 8.167
-			TimeSpan timeSpanRounded=TimeSpan.FromHours(totalHours);//but there might be a stray second
-			return new TimeSpan(timeSpanRounded.Hours,timeSpanRounded.Minutes,0);
-		}
-
-		///<summary>Used when clicking. Rounds time down to the nearest valid increment.  Static for unit test.</summary>
-		public static TimeSpan RoundTimeDown(TimeSpan timeSpanIn,double minPerIncr){
-			double base10Increment=minPerIncr/60d;//For example, 10 min becomes .167
-			double totalIncrements=timeSpanIn.TotalHours/base10Increment;//not rounded, this is how many increments since midnight.
-			double truncatedIncrements=Math.Truncate(totalIncrements);//rounded down
-			double totalHours=truncatedIncrements*base10Increment;//for example, 8:10a would be 8.167
-			TimeSpan timeSpanTruncated=TimeSpan.FromHours(totalHours);//but there might be a stray second
-			return new TimeSpan(timeSpanTruncated.Hours,timeSpanTruncated.Minutes,0);
-		}
-
-		public long GetOpNumClicked(){
-			return _opNumClicked;
-		}
-
-		public TimeSpan GetTimeClicked(){
-			return _timeClicked;
-		}
-
-		///<summary>Used when dropping an appointment to a new location.  Converts x-coordinate to operatory index of ApptCatItems.VisOps, rounding to the nearest.  In this respect it is very different from XPosToOpIdx, which doesn't round the same way.  Pass in X in coords of this entire control.</summary>
-		public int RoundToNearestOp(int newX) {
-			//int xPos=contrTempAppt.Location.X-this.Location.X-Round(_widthTime)-Round(_widthProv*_countProv);//now in bitmapMain coordinates
-			newX=newX-Round(_widthTime)-Round(_widthProv*_countProv);//now in bitmapMain coordinates
-			int retVal=0;
-			if(IsWeeklyView) {
-				int dayI=XPosToDay(newX);//does not round
-				int deltaDay=dayI*(int)_widthWeekDay;
-				int adjustedX=newX-(int)_widthTime-deltaDay;
-				retVal=(int)Math.Round((double)(adjustedX)/_widthWeekAppt);
-				//when there are multiple days, special situation where x is within the last op for the day, so it goes to next day.
-				if(retVal>ListOpsVisible.Count-1 && dayI<_numOfWeekDaysToDisplay-1) {
-					retVal=0;
-				}
-			}
-			else {
-				retVal=Round((float)newX/_widthCol);
-			}
-			//make sure it's not outside bounds of array:
-			if(retVal > ListOpsVisible.Count-1){
-				retVal=ListOpsVisible.Count-1;
-			}
-			if(retVal<0){
-				retVal=0;
-			}
-			return retVal;
-		}
-
-		///<summary>Used when dropping an appointment to a new location.  Converts x-coordinate to day index.  Only used in weekly view.  Pass in xPos in frame of this entire control.</summary>
-		public int RoundToNearestDay(int xPos) {
-			float xPosMain=xPos-_widthTime-_countProv*_widthProv;//xPos in frame of main bitmap
-			int retVal=(int)Math.Floor((double)(xPosMain)/(double)_widthWeekDay);
-			//the above works for every situation except when in the right half of the last op for a day. Test for that situation:
-			//js Huh?
-			//if(xPos-TimeWidth > (retVal+1)*WeekDayWidth-WeekApptWidth/2) {
-			//	retVal++;
-			//}
-			//make sure it's not outside bounds of array:
-			if(retVal>_numOfWeekDaysToDisplay-1){
-				retVal=_numOfWeekDaysToDisplay-1;
-			}
-			if(retVal<0){
-				retVal=0;
-			}
-			return retVal;
-		}
-		
-		public bool IsDoubleBooked(Appointment appt) {
-			if(AppointmentRules.GetCount() == 0) { //If no rules exist then don't bother checking.
-				return false;
-			}
-			List<long> listAptNums=new List<long>();
-			for(int i=0;i<TableAppointments.Rows.Count;i++){
-				listAptNums.Add(PIn.Long(TableAppointments.Rows[i]["AptNum"].ToString()));
-			}
-			List<Procedure> procsMultApts=Procedures.GetProcsMultApts(listAptNums);
-			Procedure[] procsForOne=Procedures.GetProcsOneApt(appt.AptNum,procsMultApts);
-			ArrayList doubleBookedCodes=Appointments.GetDoubleBookedCodes(appt,TableAppointments.Copy(),procsMultApts,procsForOne);
-			if(doubleBookedCodes.Count==0) {
-				return false;
-			}
-			//if some codes would be double booked
-			if(AppointmentRules.IsBlocked(doubleBookedCodes)) {
-				MessageBox.Show("Not allowed to double book: "
-					+AppointmentRules.GetBlockedDescription(doubleBookedCodes));
-				return true;
-			}
-			return false;
-		}
-		#endregion Methods - Public Dropping
 
 	}
 
@@ -4278,10 +4407,27 @@ namespace OpenDental.UI{
 	public delegate void ApptDataEventHandler(object sender,ApptDataEventArgs e);
 	#endregion Event Args and Delegates
 
-	public class DoubleBufferedControl : UserControl{
-		public DoubleBufferedControl(){
+	#region Other Classes
+	public class UserControlDoubleBuffered : UserControl{
+		public UserControlDoubleBuffered(){
 			this.DoubleBuffered=true;
 		}
 	}
 
+	///<summary>Some extra info about each appointment to help with layout, including idxInTableAppointments and RectangleBounds. The two overlap fields allow quick decisions and simple drawing calculations.</summary>
+	public class ApptLayoutInfo{
+		///<summary>This is the index of the appointment within TableAppointments. We won't duplicate any of that info here, but we can quickly cross reference it.</summary>
+		public int idxInTableAppointments;
+		///<summary>This allows more efficient hit testing, especially with appointments that are double booked.</summary>
+		public RectangleF RectangleBounds;
+		///<summary>For example, if it's taking up 1/3 of the width of an operatory, this would be 3.</summary>
+		public int OverlapSections=1;
+		///<summary>0-based. For example, if it's 1/3 wide, and in the middle, this would be 1 (the second spot).</summary>
+		public int OverlapPosition=0;
+
+		public override string ToString(){
+			return "idx "+idxInTableAppointments.ToString()+", "+OverlapPosition.ToString()+"/"+OverlapSections.ToString();
+		}
+	}
+	#endregion Other Classes
 }

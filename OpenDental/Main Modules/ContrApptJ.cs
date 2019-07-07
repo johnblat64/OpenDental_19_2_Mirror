@@ -16,2052 +16,46 @@ using OpenDentBusiness.HL7;
 namespace OpenDental {
 	///<summary>This is a replacement for ContrAppt module. This new version is turned off by default and can only be turned on by manually setting pref.ApptModuleUses2019Overhaul=1.  If, someday, it's shown to work flawlessly, then it will be turned on for everyone, with the option to switch to the old original version in an emergency.</summary>
 	public partial class ContrApptJ:UserControl {
+
+		///<summary>This allows appointment overlap.  There's another one of these in UserContrApptsPanelJ.  This will be removed when we finalize that we don't want this to be optional.</summary>
+		private bool _allowOverlap=true;
+
 		#region Fields - Private
-		///<summary>If the user has done a blockout/copy, then this will contain the blockout that is on the "clipboard".</summary>
-		private Schedule BlockoutClipboard;
-		///<summary>Used for blockouts.  Already handles week view.  Time is not rounded.</summary>
-		private DateTime _clickedOnDateT;
 		///<summary>Used for blockouts.  OpNum.</summary>
-		private long _clickedOnOp;
-		///<summary></summary>
-		private bool _doPrintCardFamily;
+		private long _blockoutClickedOnOp;
+		///<summary>Used for blockouts.  Already handles week view.  Time is not rounded.</summary>
+		private DateTime _dateTimeClickedBlockout;
 		///<summary>The last dateTime that the waiting room was refreshed.  Local computer time.</summary>
 		private DateTime _dateTimeWaitingRmRefreshed;
-		private List<Provider> _listProvidersSearch;
-		private List<ScheduleOpening> _listScheduleOpenings;
+		///<summary></summary>
+		private bool _doPrintCardFamily;
 		private FormASAP _formASAP;
-		private FormConfirmList FormConfirmL;
-		private FormRecallList FormRecallL;
-		private FormTrackNext FormTN;
-		private FormUnsched FormUnsched2;
+		private FormConfirmList _formConfirmList;
+		private FormRecallList _formRecallList;
+		private FormTrackNext _formTrackNext;
+		private FormUnsched _formUnsched;
 		///<summary>This prevents extra refreshes during the convoluted startup sequence.  Remains false until the end of InitializeOnStartup().</summary>
 		private bool _hasInitializedOnStartup;
 		///<summary></summary>
 		private bool _hasLaidOutScrollBar;
-		///<summary>This is a list of ApptViews that are available in comboView, which will be filtered for the currently selected clinic if clincs are
-		///enabled.  This list will contain the same number of items as comboView minus 1 for 'none' and is filled at the same time as comboView.
-		///Use this list when accessing the view by comboView.SelectedIndex.</summary>
+		///<summary>This is a list of ApptViews that are available in comboView, which will be filtered for the currently selected clinic if clincs are enabled.  This list will contain the same number of items as comboView minus 1 for 'none' and is filled at the same time as comboView.  Use this list when accessing the view by comboView.SelectedIndex.</summary>
 		private List<ApptView> _listApptViews=new List<ApptView>();
+		private List<Provider> _listProvidersSearch;
+		private List<ScheduleOpening> _listScheduleOpenings;
 		private MenuItem menuItemBreakAppt;
 		private Patient _patCur;
+		///<summary>If the user has done a blockout/copy, then this will contain the blockout that is on the "clipboard".</summary>
+		private Schedule _scheduleBlockoutClipboard;
 		#endregion Fields - Private
 
 		#region Constructor
 		public ContrApptJ() {
+			Logger.openlog.Log("Initializing appointment module...",Logger.Severity.INFO);
 			InitializeComponent();
+			gridReminders.ContextMenu=menuReminderEdit;
 		}
 		#endregion Constructor
 
-		#region Methods - Public Initialize
-		///<summary>Called from FormOpenDental upon startup.</summary>
-		public void InitializeOnStartup(){
-			if(_hasInitializedOnStartup) {
-				return;
-			}
-			LayoutPanels();
-			contrApptPanel.DateSelected=DateTime.Today;
-			contrApptPanel.MinPerIncr=PrefC.GetInt(PrefName.AppointmentTimeIncrement);
-			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AppointmentColors,true);
-			Color colorOpen=listDefs[0].ItemColor;
-			Color colorClosed=listDefs[1].ItemColor;
-			Color colorHoliday=listDefs[3].ItemColor;
-			Color colorBlockText=listDefs[4].ItemColor;
-			Color colorTimeLine=PrefC.GetColor(PrefName.AppointmentTimeLineColor);
-			contrApptPanel.SetColors(colorOpen,colorClosed,colorHoliday,colorBlockText,colorTimeLine);
-			contrApptPanel.DateSelected=DateTime.Today;
-			menuWeeklyApt.MenuItems.Clear();
-			MenuItem menuItem=menuWeeklyApt.MenuItems.Add("Copy to Pinboard",new EventHandler(menuWeekly_Click));
-			menuItem.Name=MenuItemNames.CopyToPinboard;
-			menuApt.MenuItems.Clear();
-			menuItem=menuApt.MenuItems.Add("Copy to Pinboard",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.CopyToPinboard;
-			if(PrefC.IsODHQ) {
-				menuItem=menuApt.MenuItems.Add("Copy Appointment Structure",new EventHandler(menuApt_Click));
-				menuItem.Name=MenuItemNames.CopyAppointmentStructure;
-			}
-			menuApt.MenuItems.Add("-");
-			menuItem=menuApt.MenuItems.Add("Send to Unscheduled List",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.SendToUnscheduledList;
-			menuItemBreakAppt=menuApt.MenuItems.Add("Break Appointment",new EventHandler(menuApt_Click));
-			menuItemBreakAppt.Name=MenuItemNames.BreakAppointment;
-			//menuItem=menuApt.MenuItems.Add("Mark as ASAP",new EventHandler(OnASAP_Click));
-			//menuItem.Name=MenuItemNames.MarkAsAsap;
-			menuItem=menuApt.MenuItems.Add("Set Complete",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.SetComplete;
-			menuItem=menuApt.MenuItems.Add("Delete",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.Delete;
-			menuItem=menuApt.MenuItems.Add("Other Appointments",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.OtherAppointments;
-			menuApt.MenuItems.Add("-");
-			menuItem=menuApt.MenuItems.Add("Print Label",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.PrintLabel;
-			menuItem=menuApt.MenuItems.Add("Print Card",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.PrintCard;
-			menuItem=menuApt.MenuItems.Add("Print Card for Entire Family",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.PrintCardEntireFamily;
-			menuItem=menuApt.MenuItems.Add("Routing Slip",new EventHandler(menuApt_Click));
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			menuBlockout.MenuItems.Clear();
-			menuItem=menuBlockout.MenuItems.Add("Edit Blockout",menuBlockEdit_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;//js RoutingSlip seems wrong for this and the items below.
-			menuItem=menuBlockout.MenuItems.Add("Cut Blockout",menuBlockCut_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			menuItem=menuBlockout.MenuItems.Add("Copy Blockout",menuBlockCopy_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			menuItem=menuBlockout.MenuItems.Add("Paste Blockout",menuBlockPaste_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			menuItem=menuBlockout.MenuItems.Add("Delete Blockout",menuBlockDelete_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			menuItem=menuBlockout.MenuItems.Add("Add Blockout",menuBlockAdd_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			menuItem=menuBlockout.MenuItems.Add("Blockout Cut-Copy-Paste",menuBlockCutCopyPaste_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
-			if(!PrefC.HasClinicsEnabled) {//Clear All Blockouts for Day is too aggressive when Clinics are enabled.
-				menuItem=menuBlockout.MenuItems.Add("Clear All Blockouts for Day",menuBlockClearDay_Click);
-				menuItem.Name=MenuItemNames.ClearAllBlockoutsForDay;
-			}
-			menuItem=menuBlockout.MenuItems.Add("Clear All Blockouts for Day, Op only",menuBlockClearOp_Click);
-			menuItem.Name=MenuItemNames.ClearAllBlockoutsForDayOpOnly;
-			if(PrefC.HasClinicsEnabled) {
-				menuItem=menuBlockout.MenuItems.Add("Clear All Blockouts for Day, Clinic only",menuBlockClearClinic_Click);
-				menuItem.Name=MenuItemNames.ClearAllBlockoutsForDayClinicOnly;
-			}
-			menuItem=menuBlockout.MenuItems.Add("Edit Blockout Types",menuBlockTypes_Click);
-			menuItem.Name=MenuItemNames.EditBlockoutTypes;
-			menuItem=menuBlockout.MenuItems.Add("-");//Designer code to insert a horizontal separator
-			menuItem.Name=MenuItemNames.BlockoutSpacer;
-			menuItem=menuBlockout.MenuItems.Add("Text ASAP List",menuTextASAPList_Click);
-			menuItem.Name=MenuItemNames.TextAsapList;
-			menuItem=menuBlockout.MenuItems.Add(MenuItemNames.TextApptsForDayOp,menuTextApptsForDayOp_Click);
-			menuItem.Name=MenuItemNames.TextApptsForDayOp;
-			menuItem=menuBlockout.MenuItems.Add(MenuItemNames.TextApptsForDayView,menuTextApptsForDayView_Click);
-			menuItem.Name=MenuItemNames.TextApptsForDayView;
-			menuItem=menuBlockout.MenuItems.Add(MenuItemNames.TextApptsForDay,menuTextApptsForDay_Click);
-			menuItem.Name=MenuItemNames.TextApptsForDay;
-			menuItem=menuBlockout.MenuItems.Add("Update Provs on Future Appts",menuUpdateProvs_Click);
-			menuItem.Name=MenuItemNames.UpdateProvsOnFutureAppts;
-			//skippped translation
-			LayoutToolBar();
-			//Appointment action buttons
-			toolTip1.SetToolTip(butUnsched,"Send to Unscheduled List");
-			toolTip1.SetToolTip(butBreak,"Break");
-			toolTip1.SetToolTip(butComplete,"Set Complete");
-			toolTip1.SetToolTip(butDelete,"Delete");
-			//toolTip1.SetToolTip(butOther,,"Other Appointments");
-			if(PrefC.IsODHQ) {
-				butGraph.Visible=true;
-			}
-			SetWeeklyView(PrefC.GetBool(PrefName.ApptModuleDefaultToWeek));
-			//later: SendToPinboardEvent.Fired+=HandlePinClicked;
-			_hasInitializedOnStartup=true;
-		}
-
-		///<summary>stub</summary>
-		public void LayoutToolBar(){
-			toolBarMain.Buttons.Clear();
-			toolBarMain.Buttons.Add(new ODToolBarButton("",2,"Appointment Lists","Lists"));
-			toolBarMain.Buttons.Add(new ODToolBarButton("",1,"Print Schedule","Print"));
-			if(!ProgramProperties.IsAdvertisingDisabled(ProgramName.RapidCall)) {
-				toolBarMain.Buttons.Add(new ODToolBarButton("",3,"Rapid Call","RapidCall"));
-			}
-			ProgramL.LoadToolbar(toolBarMain,ToolBarsAvail.ApptModule);
-			toolBarMain.Invalidate();
-			Plugins.HookAddCode(this,"ContrAppt.LayoutToolBar_end",_patCur);
-		}
-		#endregion Methods - Public Initialize
-
-		#region Methods - Public Module Select
-		///<summary>Refreshes the module for the passed in patient.  A patNum of 0 is acceptable.
-		///Any ApptNums within listPinApptNums will get forcefully added to the main DataSet for the appointment module.</summary>
-		public void ModuleSelected(long patNum,List<long> listPinApptNums=null,List<long> listOpNums=null,List<long> listProvNums=null){
-			if(IsHqNoneView()) {
-				return;
-			}
-			RefreshModuleDataPatient(patNum);
-			RefreshModuleDataPeriod(listPinApptNums,listOpNums,listProvNums,isRefreshSchedules:true);
-			RefreshModuleScreenButtonsRight();
-			RefreshModuleScreenPeriod();
-			LayoutScrollOpProv();//only runs once
-		}
-
-		///<summary>stub</summary>
-		public void ModuleUnselected(){
-			//todo:
-		}
-
-		///<summary></summary>
-		public void ModuleSelectedWithPinboard(long patNum,List<long> listPinApptNums){
-			ModuleSelected(patNum,listPinApptNums);
-			SendToPinBoardAptNums(listPinApptNums);
-		}
-
-		///<summary>>Refreshes everything except the patient info. If false, will not refresh the appointment bubble.  If another workstation made a change, then refreshes datatables.</summary>
-		public void RefreshPeriod(bool isRefreshBubble=true,List<long> listOpNums=null,List<long> listProvNums=null,bool isRefreshAppointments=true,
-			bool isRefreshSchedules=false)
-			{
-			if(IsHqNoneView()) {
-				return;
-			}
-			//todo:
-			//long oldBubbleNum=bubbleAptNum;
-			RefreshModuleDataPeriod(listOpNums:listOpNums,listProvNums:listProvNums,isRefreshAppointments:isRefreshAppointments,isRefreshSchedules:isRefreshSchedules);
-			//LayoutScrollOpProv();//no longer needed here
-			RefreshModuleScreenPeriod();
-			//if(!isRefreshBubble) {
-			//	bubbleAptNum=oldBubbleNum;
-			//}
-		}
-
-		/// <summary>Wrapper for RefreshPeriod, refreshes the schedules, but not the appointments</summary>
-		public void RefreshPeriodSchedules() {
-			RefreshPeriod(isRefreshAppointments:false,isRefreshSchedules:true);
-		}
-		#endregion Methods - Public Module Select
-
-		#region Methods - Public Other
-		///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user 
-		///doubleclicked on a blank time to get to this dialog.</summary>
-		public void DisplayOtherDlg(bool initialClick,DateTime dateTime,long opNum) {
-			if(_patCur==null) {
-				return;
-			}
-			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);
-			formApptsOther.IsInitialClick=initialClick;
-			formApptsOther.DateTNew=dateTime;
-			formApptsOther.OpNumNew=opNum;
-			formApptsOther.ShowDialog();
-			ProcessOtherDlg(formApptsOther.OResult,formApptsOther.SelectedPatNum,formApptsOther.DateJumpToString,formApptsOther.AptNumsSelected.ToArray());
-		}
-
-		///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user 
-		///doubleclicked on a blank time to get to this dialog.</summary>
-		public void DisplayOtherDlg(bool initialClick) {
-			if(_patCur==null) {
-				return;
-			}
-			FormApptsOther FormAO=new FormApptsOther(_patCur.PatNum);
-			FormAO.IsInitialClick=initialClick;
-			FormAO.ShowDialog();
-			ProcessOtherDlg(FormAO.OResult,FormAO.SelectedPatNum,FormAO.DateJumpToString,FormAO.AptNumsSelected.ToArray());
-		}
-
-		///<summary>The key press from the main form is passed down to this module.  This is guaranteed to be between the keys of F1 and F12.</summary>
-		public void FunctionKeyPress(Keys keys) {
-			string keyName=Enum.GetName(typeof(Keys),keys);//keyName will be F1, F2, ... F12
-			int fKeyVal=int.Parse(keyName.TrimStart('F'));//strip off the F and convert to an int
-			if(_listApptViews.Count<fKeyVal) {
-				return;
-			}
-			SetView(_listApptViews[fKeyVal-1].ApptViewNum,true);
-		}
-
-		///<summary>Used by parent form when a dialog needs to be displayed, but mouse might be down.  This forces a mouse up, and cleans up any mess so that dlg can show.</summary>
-		public void MouseUpForced() {
-			pinBoard.MouseUpForced();
-			contrApptPanel.MouseUpForced();
-		}
-		#endregion Methods - Public Other
-
-		#region Methods - Private Refresh Data
-		///<summary>Gets op nums and prov nums for current view if not passed in.  Will refresh the appointments and schedules if the respective doRefreshes are set.</summary>
-		private void RefreshModuleDataPeriod(List<long> listPinApptNums = null,List<long> listOpNums = null,List<long> listProvNums = null
-			,bool isRefreshAppointments=true,bool isRefreshSchedules=false)
-		{
-			long apptViewNum=-1;
-			if(listOpNums==null) {
-				apptViewNum=GetApptViewNumForUser();
-				listOpNums=ApptViewItems.GetOpsForView(apptViewNum);
-			}
-			if(listProvNums==null) {
-				if(apptViewNum<0) {
-					apptViewNum=GetApptViewNumForUser();//Only run this query if we have to (haven't run it yet from this method).
-				}
-				listProvNums=ApptViewItems.GetProvsForView(apptViewNum);
-			}
-			contrApptPanel.BeginUpdate();
-			RefreshAppointmentsIfNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listPinApptNums,listOpNums,listProvNums,isRefreshAppointments);
-			RefreshSchedulesIfNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listOpNums,isRefreshSchedules);
-			RefreshWaitingRoomTable();
-			_dateTimeWaitingRmRefreshed=DateTime.Now;
-			//SchedListPeriod=Schedules.ConvertTableToList(_dtSchedule);//happens internally in contrApptPanel when setting TableSchedul
-			ApptView viewCur=null;
-			if(comboView.SelectedIndex>0) {
-				viewCur=_listApptViews[comboView.SelectedIndex-1];
-			}
-			GetForCurView(viewCur,contrApptPanel.IsWeeklyView,contrApptPanel.ListSchedules);
-			contrApptPanel.EndUpdate();
-		}
-
-		///<summary>Fills PatCur from the database.</summary>
-		public void RefreshModuleDataPatient(long patNum){
-			if(patNum==0) {
-				_patCur=null;
-				return;
-			}
-			//We have to go to the db because we need to get the most recent patient info, mainly the AskedToArriveEarly time.
-			_patCur=Patients.GetPat(patNum);
-			Plugins.HookAddCode(this, "ContrAppt.RefreshModuleDataPatient_end");
-		}
-
-		/// <summary>This corresponds to the old ApptViewItemL.GetForCurView.  Its job is to set the ApptViewCur and then send VisOps and VisProvs data to the drawing.</summary>
-		private void GetForCurView(ApptView apptViewCur,bool isWeekly,List<Schedule> listSchedulesDaily){
-			contrApptPanel.BeginUpdate();
-			contrApptPanel.ApptViewCur=apptViewCur;
-			List<Provider> visProvs=null;
-			List<Operatory> visOps=null;
-			int rowsPerIncr=0;
-			List<ApptViewItem> listApptViewItemRowElements=null;
-			List<ApptViewItem> listApptViewItems=null;
-			ApptViewItemL.FillForApptView(isWeekly,apptViewCur,out visProvs,out visOps,out listApptViewItems,out listApptViewItemRowElements,out rowsPerIncr);
-			ApptViewItemL.AddOpsForScheduledProvs(isWeekly,listSchedulesDaily,apptViewCur,ref visOps);
-			visOps.Sort(ApptViewItemL.CompareOps);
-			visProvs.Sort(ApptViewItemL.CompareProvs);
-			contrApptPanel.ListProvsVisible=visProvs;
-			contrApptPanel.ListOpsVisible=visOps;
-			contrApptPanel.RowsPerIncr=rowsPerIncr;
-			contrApptPanel.ListApptViewItemRowElements=listApptViewItemRowElements;
-			contrApptPanel.ListApptViewItems=listApptViewItems;
-			contrApptPanel.EndUpdate();
-		}
-
-		///<summary>If needed, refreshes the _dtAppointments, _dtApptFields, and _dtPatFields tables.</summary>
-		private void RefreshAppointmentsIfNeeded(DateTime dateStart,DateTime dateEnd,List<long> listPinApptNums=null,
-			List<long> listOpNums=null,List<long> listProvNums=null,bool isRefreshNeeded=false)
-		{
-			if(contrApptPanel.TableAppointments!=null && contrApptPanel.TableApptFields!=null && contrApptPanel.TablePatFields!=null && !isRefreshNeeded) {
-				return;//If all data is already in memory and we are not forcing the refresh.
-			}
-			contrApptPanel.TableAppointments=Appointments.GetPeriodApptsTable(dateStart,dateEnd,0,false,listPinApptNums,listOpNums,listProvNums,false);
-			contrApptPanel.TableApptFields=Appointments.GetApptFields(contrApptPanel.TableAppointments);
-			contrApptPanel.TablePatFields=Appointments.GetPatFields(contrApptPanel.TableAppointments.Select().Select(x => PIn.Long(x["PatNum"].ToString())).ToList());
-			//contrApptPanel.OverlapOrdering.UpdateApptOrder(contrApptPanel.TableAppointments);
-		}
-
-		/// <summary>If needed, refreshes the _dtSchedule, _dtEmpSched, and _dtProvSched tables.</summary>
-		private void RefreshSchedulesIfNeeded(DateTime dateStart,DateTime dateEnd,List<long> listOpNums,bool isRefreshNeeded=false) {
-			if(contrApptPanel.TableSchedule!=null && contrApptPanel.TableEmpSched!=null && contrApptPanel.TableProvSched!=null && !isRefreshNeeded) {
-				return;//If all data is already in memory and we are not forcing the refresh.
-			}
-			contrApptPanel.TableEmpSched=Schedules.GetPeriodEmployeeSchedTable(dateStart,dateEnd,Clinics.ClinicNum);
-			contrApptPanel.TableProvSched=Schedules.GetPeriodProviderSchedTable(dateStart,dateEnd,Clinics.ClinicNum);
-			contrApptPanel.TableSchedule=Schedules.GetPeriodSchedule(dateStart,dateEnd,listOpNums,false);
-		}
-
-		///<summary>Always refreshes the _dtWaitingRoom table.</summary>
-		private void RefreshWaitingRoomTable() {
-			contrApptPanel.TableWaitingRoom=Appointments.GetPeriodWaitingRoomTable();
-		}
-		#endregion Methods - Private Refresh Data
-
-		#region Methods - Private Refresh Screen
-		///<summary>Happens once per minute.  It used to just move the red timebar down without querying the database.  
-		///But now it queries the database so that the waiting room list shows accurately.  Always updates the waiting room.</summary>
-		public void TickRefresh(){
-			try {
-				//dates already set
-				if(PrefC.GetBool(PrefName.ApptModuleRefreshesEveryMinute)) {
-					if(PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)==0) {//Signal processing is disabled.
-						RefreshPeriod(false);
-					}
-					else {
-						//Calling Signalods.RefreshTimed() was causing issues for large customers. This resulted in 100,000+ rows of signalod's returned.
-						//Now we only query for the specific signals we care about. Instead of using Signalods.SignalLastRefreshed we now use Signalods.ApptSignalLastRefreshed.
-						//Signalods.ApptSignalLastRefreshed mimics the behavior of Signalods.SignalLastRefreshed but is guaranteed to not be stale from inactive sessions.
-						List<Signalod> listSignals=Signalods.RefreshTimed(Signalods.ApptSignalLastRefreshed,new List<InvalidType>(){ InvalidType.Appointment,InvalidType.Schedules });
-						bool isApptRefresh=Signalods.IsApptRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);
-						bool isSchedRefresh=Signalods.IsSchedRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);
-						//either we have signals from other machines telling us to refresh, or we aren't using signals, in which case we still want to refresh
-						RefreshPeriod(false,isRefreshAppointments:isApptRefresh,isRefreshSchedules:isSchedRefresh);
-					}
-				}
-				else {
-					contrApptPanel.RedrawAsNeeded();//just for the red timebar
-				}
-				Signalods.ApptSignalLastRefreshed=MiscData.GetNowDateTime();
-			}
-			catch {
-				//prevents rare malfunctions. For instance, during editing of views, if tickrefresh happens.
-			}
-			//GC.Collect();	
-		}
-
-		///<summary>Redraws screen based on data already gathered.  RefreshModuleDataPeriod will have already retrieved the data from the db.</summary>
-		public void RefreshModuleScreenPeriod() {
-			Calendar2.SetSelectionRange(contrApptPanel.DateStart,contrApptPanel.DateEnd);
-			LayoutPanels();
-			labelDate.Text=contrApptPanel.DateStart.ToString("ddd");
-			labelDate2.Text=contrApptPanel.DateStart.ToString("-  MMM d");
-			List<long> opNums = null;
-			if(PrefC.HasClinicsEnabled && Clinics.ClinicNum>0) {
-				opNums = Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList();
-			}
-			List<LabCase> labCaseList=LabCases.GetForPeriod(contrApptPanel.DateStart,contrApptPanel.DateEnd,opNums);
-			FillLab(labCaseList);
-			FillProduction(contrApptPanel.DateStart,contrApptPanel.DateEnd);
-			FillProductionGoal(contrApptPanel.DateStart,contrApptPanel.DateEnd);
-			bool hasNotes=true;
-			if(PrefC.IsODHQ) {//HQ
-				hasNotes=Security.IsAuthorized(Permissions.Schedules,true);
-			}
-			FillProvSched(hasNotes);
-			FillEmpSched(hasNotes);
-			FillWaitingRoom();
-			contrApptPanel.RedrawAsNeeded();
-		}
-
-		///<summary>Sets buttons at right to enabled/disabled. Sets value of listConfirmed. Was previously called RefreshModuleScreenPatient.</summary>
-		public void RefreshModuleScreenButtonsRight(){
-			if(_patCur==null) {
-				panelMakeButtons.Enabled=false;
-			}
-			else {
-				panelMakeButtons.Enabled=true;
-			}
-			//considered only doing this once when starting program, but would then need to refresh it if we change definitions.  Might still try that.
-			listConfirmed.Items.Clear();
-			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.ApptConfirmed,true);
-			for(int i=0;i<listDefs.Count;i++) {
-				this.listConfirmed.Items.Add(listDefs[i].ItemValue);
-			}
-			DataRow dataRow=contrApptPanel.GetDataRowForSelected();
-			if(dataRow!=null) {
-				butUnsched.Enabled=true;
-				butBreak.Enabled=true;
-				butComplete.Enabled=true;
-				butDelete.Enabled=true;
-				string confirmed=dataRow["Confirmed"].ToString();
-				listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,PIn.Long(confirmed));//could be -1
-				if(!Security.IsAuthorized(Permissions.ApptConfirmStatusEdit,true)) {//Suppress message because it would be very annoying to users.
-					listConfirmed.Enabled=false;
-				}
-				else {
-					listConfirmed.Enabled=true;
-				}
-			}
-			else {//even if an appt on the pinboard is selected, these are all grayed out
-				butUnsched.Enabled=false;
-				butBreak.Enabled=false;
-				butComplete.Enabled=false;
-				butDelete.Enabled=false;
-				listConfirmed.Enabled=false;
-				if(pinBoard.SelectedIndex!=-1){
-					dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
-					listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));//could be -1
-				}
-			}
-		}
-
-		///<summary>Fills comboView and _listApptViews with the current list of views. Triggers ModuleSelected().  Also called from FormOpenDental.RefreshLocalData().</summary>
-		public void FillViews() {
-			comboView.Items.Clear();
-			_listApptViews.Clear();
-			comboView.Items.Add(Lan.g(this,"none"));
-			string f="";
-			foreach(ApptView apptView in ApptViews.GetDeepCopy()) {
-				if(PrefC.HasClinicsEnabled && Clinics.ClinicNum!=apptView.ClinicNum) {
-					//This is intentional, we do NOT want 'Headquarters' to have access to clinic specific apptviews.  
-					//Likewise, we do not want clinic specific views to be accessible from specific clinic filters.
-					continue;
-				}
-				_listApptViews.Add(apptView.Copy());
-				if(_listApptViews.Count<=12)
-					f="F"+_listApptViews.Count.ToString()+"-";
-				else
-					f="";
-				comboView.Items.Add(f+apptView.Description);
-			}
-			ApptView apptViewCur=GetApptViewForUser();
-			if(apptViewCur!=null) {
-				SetView(apptViewCur.ApptViewNum,false);//this also triggers ModuleSelected()
-			}
-			else {
-				SetView(0,false);//this also triggers ModuleSelected()
-			}
-		}
-
-		///<summary>Fills the lab summary for the day.</summary>
-		private void FillLab(List<LabCase> labCaseList) {
-			int notRec=0;
-			for(int i=0;i<labCaseList.Count;i++) {
-				if(labCaseList[i].DateTimeChecked.Year>1880) {
-					continue;
-				}
-				if(labCaseList[i].DateTimeRecd.Year>1880) {
-					continue;
-				}
-				notRec++;
-			}
-			if(notRec==0) {
-				textLab.Font=new Font(FontFamily.GenericSansSerif,8,FontStyle.Regular);
-				textLab.ForeColor=Color.Black;
-				textLab.Text=Lan.g(this,"All Received");
-			}
-			else {
-				textLab.Font=new Font(FontFamily.GenericSansSerif,8,FontStyle.Bold);
-				textLab.ForeColor=Color.DarkRed;
-				textLab.Text=notRec.ToString()+Lan.g(this," NOT RECEIVED");
-			}
-		}
-
-		///<summary>Fills the production summary for the day. ContrApptSheet2.Controls should be current with ContrApptSingle(s) for the select Op and date.</summary>
-		private void FillProduction(DateTime start,DateTime end) {
-			if(!contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc=="Production") 
-				&& !contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc=="NetProduction"))
-			{
-				textProduction.Text="";
-				return;
-			}
-			decimal grossproduction=0;
-			decimal netproduction=0;
-			int indexProv;
-			foreach(DataRow dataRow in contrApptPanel.TableAppointments.Rows){
-				indexProv=-1;
-				bool isHygiene=PIn.Bool(dataRow["IsHygiene"].ToString());
-				long provNum=PIn.Long(dataRow["ProvNum"].ToString());
-				long provHyg=PIn.Long(dataRow["ProvHyg"].ToString());
-				long opNum=PIn.Long(dataRow["Op"].ToString());
-				if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
-					if(isHygiene){
-						if(provHyg==0) {//if no hyg prov set.
-							indexProv=contrApptPanel.GetIndexOp(opNum);
-						}
-						else {
-							indexProv=contrApptPanel.GetIndexOp(opNum);
-						}
-					}
-					else {//not hyg
-						indexProv=contrApptPanel.GetIndexOp(opNum);
-					}
-				}
-				else {//use provider bars in appointment view
-					if(isHygiene) {
-						if(provHyg==0) {//if no hyg prov set.
-							indexProv=contrApptPanel.GetIndexProv(provNum);
-						}
-						else {
-							indexProv=contrApptPanel.GetIndexProv(provHyg);
-						}
-					}
-					else {//not hyg
-						indexProv=contrApptPanel.GetIndexProv(provNum);
-					}
-				}
-				if(indexProv==-1) {
-					continue;
-				}
-				ApptStatus aptStatus=(ApptStatus)(PIn.Int(dataRow["AptStatus"].ToString()));
-				long clinicNum=PIn.Long(dataRow["ClinicNum"].ToString());
-				decimal productionVal=PIn.Decimal(dataRow["productionVal"].ToString());
-				decimal writeoffPPO=PIn.Decimal(dataRow["writeoffPPO"].ToString());
-				if(aptStatus!=ApptStatus.Broken
-					&& aptStatus!=ApptStatus.UnschedList
-					&& aptStatus!=ApptStatus.PtNote
-					&& aptStatus!=ApptStatus.PtNoteCompleted) 
-				{
-					//When the program is restricted to a specific clinic, only count up production for the corresponding clinic.
-					if(PrefC.HasClinicsEnabled 
-						&& Clinics.ClinicNum!=0
-						&& Clinics.ClinicNum!=clinicNum) {
-						continue;//This appointment is for a different clinic.  Do not include this production in the daily prod.
-					}
-					//In order to get production numbers split by provider, it would require generating total production numbers
-					//in another table from the business layer.  But that will only work if hyg procedures are appropriately assigned
-					//when setting appointments.
-					grossproduction+=productionVal;
-					netproduction+=productionVal-writeoffPPO;
-				}
-			}
-			if(PrefC.GetBool(PrefName.ApptModuleAdjustmentsInProd) && contrApptPanel.TableAppointments.Rows.Count>0) {
-				List<long> listProvNumsForApptView=new List<long>();
-				//If the PrefName.ApptModuleProductionUsesOps is true, the list will be filled with OpNums for the appointment view. Otherwise, the list will be empty.
-				List<long> listOpsForApptView=new List<long>();
-				long apptViewNum=GetApptViewNumForUser();
-				if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
-					listOpsForApptView=ApptViewItems.GetOpsForView(apptViewNum);
-				}
-				else {
-					listProvNumsForApptView=ApptViewItems.GetProvsForView(apptViewNum);
-				}
-				netproduction+=Adjustments.GetAdjustAmtForAptView(start,end,Clinics.ClinicNum,listOpsForApptView,listProvNumsForApptView);
-			}
-			textProduction.Text=grossproduction.ToString("c0");
-			if(grossproduction!=netproduction) {
-				textProduction.Text+=", net:"+netproduction.ToString("c0");
-			}
-		}
-
-		private void FillProductionGoal(DateTime start,DateTime end) {
-			if(!contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc.In("Production","NetProduction"))) {
-				textProdGoal.Text="";
-				return;
-			}
-			decimal prodGoalAmt=0;
-			long apptViewNum=GetApptViewNumForUser();
-			//If the PrefName.ApptModuleProductionUsesOps is false, it will be filled with ProvNums for the appointment view. Otherwise, the list will be empty.
-			List<long> listProvNumsForApptView=new List<long>();
-			//If the PrefName.ApptModuleProductionUsesOps is true, the list will be filled with OpNums for the appointment view. Otherwise, the list will be empty.
-			List<long> listOpsForApptView=new List<long>();
-			if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
-				listOpsForApptView=ApptViewItems.GetOpsForView(apptViewNum);
-			}
-			else {
-				listProvNumsForApptView=ApptViewItems.GetProvsForView(apptViewNum);
-			}
-			//This will return a dict of production goals for either the providers for the provider bars for the appointment view or the providers 
-			//scheduled for the appointment view ops. 
-			Dictionary<long,decimal> dictProvProdGoal=Providers.GetProductionGoalForProviders(listProvNumsForApptView,listOpsForApptView,start,end);
-			foreach(KeyValuePair<long,decimal> prov in dictProvProdGoal) {
-				prodGoalAmt+=prov.Value;
-			}
-			textProdGoal.Text=prodGoalAmt.ToString("c0");
-		}
-
-		///<summary></summary>
-		private void FillProvSched(bool hasNotes) {
-			DataTable table=contrApptPanel.TableProvSched;
-			gridProv.BeginUpdate();
-			gridProv.Columns.Clear();
-			ODGridColumn col=new ODGridColumn("Provider",80);
-			gridProv.Columns.Add(col);
-			col=new ODGridColumn("Schedule",70);
-			gridProv.Columns.Add(col);
-			if(hasNotes) {
-				col=new ODGridColumn("Notes",100);
-				gridProv.Columns.Add(col);
-			}
-			gridProv.Rows.Clear();
-			ODGridRow row;
-			foreach(DataRow dRow in table.Rows) { 
-				row=new ODGridRow();
-				row.Cells.Add(dRow["ProvAbbr"].ToString());
-				row.Cells.Add(dRow["schedule"].ToString());
-				if(hasNotes) {
-					row.Cells.Add(dRow["Note"].ToString());
-				}
-				gridProv.Rows.Add(row);
-			}
-			gridProv.EndUpdate();
-		}
-
-		///<summary></summary>
-		private void FillEmpSched(bool hasNotes) {
-			DataTable table=contrApptPanel.TableEmpSched;
-			gridEmpSched.BeginUpdate();
-			gridEmpSched.Columns.Clear();
-			ODGridColumn col=new ODGridColumn(Lan.g("TableApptEmpSched","Employee"),80);
-			gridEmpSched.Columns.Add(col);
-			col=new ODGridColumn(Lan.g("TableApptEmpSched","Schedule"),70);
-			gridEmpSched.Columns.Add(col);
-			if(hasNotes) {
-				col=new ODGridColumn(Lan.g("TableApptEmpSched","Notes"),100);
-				gridEmpSched.Columns.Add(col);
-			}
-			gridEmpSched.Rows.Clear();
-			ODGridRow row;
-			for(int i=0;i<table.Rows.Count;i++) {
-				row=new ODGridRow();
-				row.Cells.Add(table.Rows[i]["empName"].ToString());
-				row.Cells.Add(table.Rows[i]["schedule"].ToString());
-				if(hasNotes) {
-					row.Cells.Add(table.Rows[i]["Note"].ToString());
-				}
-				gridEmpSched.Rows.Add(row);
-			}
-			gridEmpSched.EndUpdate();
-		}
-
-		///<summary>Set refreshOpsForDay true in order to forcefully go to the database to get the current ops for the day for waiting room filtering.</summary>
-		private void FillWaitingRoom() {
-			if(contrApptPanel.TableWaitingRoom==null) {
-				return;
-			}
-			TimeSpan timeSpanDeltaSinceRefresh=DateTime.Now-_dateTimeWaitingRmRefreshed;
-			DataTable table=contrApptPanel.TableWaitingRoom;
-			List<Operatory> listOpsForClinic=new List<Operatory>();
-			List<Operatory> listOpsForApptView=new List<Operatory>();
-			if(PrefC.GetBool(PrefName.WaitingRoomFilterByView)) {
-				//In order to filter the waiting room by appointment view, we need to always grab the operatories visible for TODAY.
-				//This way, regardless of what day the customer is looking at, the waiting room will only change when they change appointment views.
-				//Always use the schedules from SchedListPeriod which is refreshed any time RefreshModuleDataPeriod() is invoked.
-				ApptView viewCur=null;
-				if(comboView.SelectedIndex>0) {
-					viewCur=_listApptViews[comboView.SelectedIndex-1];
-				}
-				List<Schedule> listSchedulesForToday=contrApptPanel.ListSchedules.FindAll(x => x.SchedDate==DateTime.Today);
-				listOpsForApptView=ApptViewItemL.GetOpsForApptView(viewCur,contrApptPanel.IsWeeklyView,listSchedulesForToday);
-			}
-			if(PrefC.HasClinicsEnabled) {//Using clinics
-				listOpsForClinic=Operatories.GetOpsForClinic(Clinics.ClinicNum);
-			}
-			gridWaiting.BeginUpdate();
-			gridWaiting.Columns.Clear();
-			ODGridColumn col=new ODGridColumn(Lan.g("TableApptWaiting","Patient"),130);
-			gridWaiting.Columns.Add(col);
-			col=new ODGridColumn(Lan.g("TableApptWaiting","Waited"),100,HorizontalAlignment.Center);
-			gridWaiting.Columns.Add(col);
-			gridWaiting.Rows.Clear();
-			DateTime waitTime;
-			ODGridRow row;
-			int waitingRoomAlertTime=PrefC.GetInt(PrefName.WaitingRoomAlertTime);
-			Color waitingRoomAlertColor=PrefC.GetColor(PrefName.WaitingRoomAlertColor);
-			for(int i=0;i<table.Rows.Count;i++) {
-				//Always filter the waiting room by appointment view first, regardless of using clinics or not.
-				if(PrefC.GetBool(PrefName.WaitingRoomFilterByView)) {
-					bool isInView=false;
-					for(int j=0;j<listOpsForApptView.Count;j++) {
-						if(listOpsForApptView[j].OperatoryNum==PIn.Long(table.Rows[i]["OpNum"].ToString())) {
-							isInView=true;
-							break;
-						}
-					}
-					if(!isInView) {
-						continue;
-					}
-				}
-				//We only want to filter the waiting room by the clinic's operatories when clinics are enabled and they are not using 'Headquarters' mode.
-				if(PrefC.HasClinicsEnabled && Clinics.ClinicNum!=0) {
-					bool isInView=false;
-					for(int j=0;j<listOpsForClinic.Count;j++) {
-						if(listOpsForClinic[j].OperatoryNum==PIn.Long(table.Rows[i]["OpNum"].ToString())) {
-							isInView=true;
-							break;
-						}
-					}
-					if(!isInView) {
-						continue;
-					}
-				}
-				row=new ODGridRow();
-				row.Cells.Add(table.Rows[i]["patName"].ToString());
-				waitTime=DateTime.Parse(table.Rows[i]["waitTime"].ToString());//we ignore date
-				waitTime+=timeSpanDeltaSinceRefresh;
-				row.Cells.Add(waitTime.ToString("H:mm:ss"));
-				row.Bold=false;
-				if(waitingRoomAlertTime>0 && waitingRoomAlertTime<=waitTime.Minute+(waitTime.Hour*60)) {
-					row.ColorText=waitingRoomAlertColor;
-					row.Bold=true;
-				}
-				gridWaiting.Rows.Add(row);
-			}
-			gridWaiting.EndUpdate();
-		}
-		#endregion Methods - Private Refresh Screen
-
-		#region Methods - Private Search
-		///<summary>Positions the search box, fills it with initial data except date, and makes it visible.</summary>
-		private void ShowSearch() {
-			_listProvidersSearch=new List<Provider>();
-			List<Provider> listProvidersShort=Providers.GetDeepCopy(true);
-			groupSearch.Location=new Point(panelCalendar.Location.X,panelCalendar.Location.Y+pinBoard.Bottom+2);
-			textBefore.Text="";
-			textAfter.Text="";
-			_listBoxProviders.Items.Clear();
-			if(pinBoard.SelectedIndex==-1){
-				return;
-			}
-			DataRow dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
-			bool isHygiene=PIn.Bool(dataRow["IsHygiene"].ToString());
-			long provHyg=PIn.Long(dataRow["ProvHyg"].ToString());
-			long provNum=PIn.Long(dataRow["ProvNum"].ToString());
-			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
-			for(int i=0;i<listProvidersShort.Count;i++) {
-				if(isHygiene && listProvidersShort[i].ProvNum==provHyg) {
-					//If their appiontment is hygine, the list will start with just their hygine provider
-					_listBoxProviders.Items.Add(new ODBoxItem<Provider>(listProvidersShort[i].Abbr,listProvidersShort[i]));
-					_listProvidersSearch.Add(listProvidersShort[i]);
-				}
-				else if(!isHygiene && listProvidersShort[i].ProvNum==provNum) {
-					//If their appointment is not hygine, they will start with just their primary provider
-					_listBoxProviders.Items.Add(new ODBoxItem<Provider>(listProvidersShort[i].Abbr,listProvidersShort[i]));
-					_listProvidersSearch.Add(listProvidersShort[i]);
-				}
-			}
-			Plugins.HookAddCode(this,"ContrAppt.ShowSearch_end",_listBoxProviders,aptNum);
-			groupSearch.Visible=true;
-		}
-
-		private void DoSearch() {
-			Cursor=Cursors.WaitCursor;
-			DateTime afterDate;
-			try {
-				afterDate=PIn.Date(dateSearch.Text);
-				if(afterDate.Year<1880) {
-					throw new Exception();
-				}
-			}
-			catch {
-				Cursor=Cursors.Default;
-				MsgBox.Show(this,"Invalid date.");
-				return;
-			}
-			TimeSpan beforeTime=new TimeSpan(0);
-			if(textBefore.Text!="") {
-				try {
-					string[] hrmin=textBefore.Text.Split(new char[] { ':' },StringSplitOptions.RemoveEmptyEntries);//doesn't work with foreign times.
-					string hr="0";
-					if(hrmin.Length>0) {
-						hr=hrmin[0];
-					}
-					string min="0";
-					if(hrmin.Length>1) {
-						min=hrmin[1];
-					}
-					beforeTime=TimeSpan.FromHours(PIn.Double(hr))
-						+TimeSpan.FromMinutes(PIn.Double(min));
-					if(radioBeforePM.Checked && beforeTime.Hours<12) {
-						beforeTime=beforeTime+TimeSpan.FromHours(12);
-					}
-				}
-				catch {
-					Cursor=Cursors.Default;
-					MsgBox.Show(this,"Invalid time.");
-					return;
-				}
-			}
-			TimeSpan afterTime=new TimeSpan(0);
-			if(textAfter.Text!="") {
-				try {
-					string[] hrmin=textAfter.Text.Split(new char[] { ':' },StringSplitOptions.RemoveEmptyEntries);//doesn't work with foreign times.
-					string hr="0";
-					if(hrmin.Length>0) {
-						hr=hrmin[0];
-					}
-					string min="0";
-					if(hrmin.Length>1) {
-						min=hrmin[1];
-					}
-					afterTime=TimeSpan.FromHours(PIn.Double(hr))
-						+TimeSpan.FromMinutes(PIn.Double(min));
-					if(radioAfterPM.Checked && afterTime.Hours<12) {
-						afterTime=afterTime+TimeSpan.FromHours(12);
-					}
-				}
-				catch {
-					Cursor=Cursors.Default;
-					MsgBox.Show(this,"Invalid time.");
-					return;
-				}
-			}
-			if(_listBoxProviders.Items.Count==0) {
-				Cursor=Cursors.Default;
-				MsgBox.Show(this,"Please pick a provider.");
-				return;
-			}
-			long[] providers=new long[_listBoxProviders.Items.Count];
-			List<long> providerNums = new List<long>();
-			for(int i=0;i<providers.Length;i++) {
-				providers[i]=_listProvidersSearch[i].ProvNum;
-				providerNums.Add(_listProvidersSearch[i].ProvNum);
-				//providersList.Add(providers[i]);
-			}
-			List<long> listOpNums=new List<long>();
-			List<long> listClinicNums=new List<long>();
-			if(PrefC.HasClinicsEnabled) {
-				if(Clinics.ClinicNum!=0) {//not HQ
-					listClinicNums.Add(Clinics.ClinicNum);
-					listOpNums=Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList();//get ops for the currently selected clinic only
-				}
-				else {//HQ
-					if(comboView.SelectedIndex==0) {//none view
-						MsgBox.Show("Must have a view selected to search for appointment.");//this should never get hit. Just in case.
-						return;
-					}
-					long apptViewNum=_listApptViews[comboView.SelectedIndex-1].ApptViewNum;//get the currently selected HQ view for appt search.
-					//get the disctinct clinic nums for the operatories in the current appointment view
-					List<long> listOpsForView=ApptViewItems.GetOpsForView(apptViewNum);
-					List<Operatory> listOperatories=Operatories.GetOperatories(listOpsForView,true);
-					listClinicNums=listOperatories.Select(x => x.ClinicNum).Distinct().ToList();
-					listOpNums=listOperatories.Select(x => x.OperatoryNum).ToList();
-				}
-			}
-			else {//all non hidden ops
-				listOpNums=Operatories.GetDeepCopy(true).Select(x => x.OperatoryNum).ToList();
-			}
-			//the result might be empty
-			//todo: what if pinBoard.SelectedIndex==-1?
-			long aptNum=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].AptNum;
-			_listScheduleOpenings=ApptSearch.GetSearchResults(aptNum,afterDate,afterDate.AddDays(731)
-				,providerNums,listOpNums,listClinicNums,beforeTime,afterTime);
-			listSearchResults.Items.Clear();
-			for(int i=0;i<_listScheduleOpenings.Count;i++) {
-				listSearchResults.Items.Add(
-					_listScheduleOpenings[i].DateTimeAvail.ToString("ddd")+"\t"+_listScheduleOpenings[i].DateTimeAvail.ToShortDateString()+"     "
-					+_listScheduleOpenings[i].DateTimeAvail.ToShortTimeString());
-			}
-			if(listSearchResults.Items.Count>0) {
-				listSearchResults.SetSelected(0,true);
-				AppointmentL.DateSelected=_listScheduleOpenings[0].DateTimeAvail;
-			}
-			SetWeeklyView(false);//jump to that day.
-			Cursor=Cursors.Default;
-			//scroll to make visible?
-			//highlight schedule?
-		}
-		#endregion Methods - Private Search
-
-		#region Methods - Private Other
-		private void AutomaticCallDialingDisabledMessage() {
-			if(ProgramProperties.IsAdvertisingDisabled(ProgramName.DentalTekSmartOfficePhone)) {
-				return;
-			}
-			MessageBox.Show("Automatic dialing of patient phone numbers requires an additional service.\r\n"
-				+"Contact Open Dental for more information.");
-			try {
-				System.Diagnostics.Process.Start("http://www.opendental.com/resources/redirects/redirectdentaltekinfo.html");
-			}
-			catch(Exception) {
-				MessageBox.Show("Could not find http://www.opendental.com/contact.html \r\n"
-					+"Please set up a default web browser.");
-			}
-		}
-
-		///<summary>Handles the display and refresh when the appointment we are trying to operate on is null.</summary>
-		private bool ApptIsNull(Appointment appt) {
-			if(appt==null) {
-				MsgBox.Show("Selected appointment no longer exists.");
-				RefreshPeriod();
-				return true;
-			}
-			return false;
-		}
-
-		///<summary>Copied from FormApptsOther. Does not limit appointment creation, only warns user. This check should be run before creating a new appointment. </summary>
-		private void CheckStatus() {
-			if(_patCur.PatStatus == PatientStatus.Inactive
-				|| _patCur.PatStatus == PatientStatus.Archived
-				|| _patCur.PatStatus == PatientStatus.Prospective) {
-				MsgBox.Show(this,"Warning. Patient is not active.");
-			}
-			if(_patCur.PatStatus == PatientStatus.Deceased) {
-				MsgBox.Show(this,"Warning. Patient is deceased.");
-			}
-		}
-
-		///<summary>Copies several fields from the supplied Appointment to a new Appointment object, inserts it into the database, and sends the new 
-		///appointment to the Pinboard. Only used for HQ currently.</summary>
-		private void CopyApptStructure(Appointment appt) {
-			if(ApptIsNull(appt)) {
-				return;
-			}
-			Appointment apptNew=Appointments.CopyStructure(appt);
-			Appointments.Insert(apptNew);
-			DataTable dataTable=Appointments.GetPeriodApptsTable(contrApptPanel.DateStart,contrApptPanel.DateStart,apptNew.AptNum,false);
-			if(dataTable.Rows.Count==0){
-				return;//silently fail
-			}
-			DataRow dataRow=dataTable.Rows[0];
-			SendToPinboardDataRow(dataRow);
-		}
-
-		private void CopyToPin_Click() {
-			if(!Security.IsAuthorized(Permissions.AppointmentMove)) {
-				return;
-			}
-			//cannot allow moving completed procedure because it could cause completed procs to change date.  Security must block this.
-			//ContrApptSingle3[thisIndex].DataRoww;
-			Appointment appt=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
-			if(appt==null) {
-				MsgBox.Show("Appointment not found.");
-				return;
-			}
-			if(appt.AptStatus==ApptStatus.Complete) {
-				MsgBox.Show("Not allowed to move completed appointments.");
-				return;
-			}
-			if(PatRestrictionL.IsRestricted(appt.PatNum,PatRestrict.ApptSchedule)) {
-				return;
-			}
-			DataRow dataRow=contrApptPanel.GetDataRowForSelected();
-			if(dataRow==null){
-				return;//silently fail
-			}
-			SendToPinboardDataRow(dataRow);
-		}
-
-		///<summary>Brings up FormASAP ready to send for an open time slot.</summary>
-		private void DisplayFormAsapForWebSched(long opNum,DateTime dateTimeClicked,long aptNum=0) {
-			DateTime dateTimeSlotStart=contrApptPanel.DateSelected.Date;//Midnight
-			DateTime dateTimeSlotEnd=contrApptPanel.DateSelected.Date.AddDays(1);//Midnight tomorrow
-			//Loop through all other appts in the op to find a slot that will not overlap.
-			for(int i=0;i<contrApptPanel.TableAppointments.Rows.Count;i++){
-				if(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString())!=opNum){
-					continue;
-				}
-				if(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["AptNum"].ToString())==aptNum){
-					continue;
-				}
-				DateTime dateTimeAppt=PIn.DateT(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString());
-				if(contrApptPanel.IsWeeklyView){
-					if(dateTimeAppt.Date!=contrApptPanel.DateSelected.Date){
-						continue;
-					}
-				}
-				string pattern=contrApptPanel.TableAppointments.Rows[i]["Pattern"].ToString();
-				DateTime dateTimeEndApt=dateTimeAppt.AddMinutes(pattern.Length*5);
-				if(dateTimeEndApt.Between(dateTimeSlotStart,dateTimeClicked)) {
-					dateTimeSlotStart=dateTimeEndApt;
-				}
-				if(dateTimeAppt.Between(dateTimeClicked,dateTimeSlotEnd)) {
-					dateTimeSlotEnd=dateTimeAppt;
-				}
-			}
-			////Next, loop through blockouts that don't allow scheduling and adjust the slot size
-			List<Def> listDefsBlockoutTypes=Defs.GetDefsForCategory(DefCat.BlockoutTypes);
-			foreach(Schedule blockout in Schedules.GetForType(contrApptPanel.ListSchedules,ScheduleType.Blockout,0)
-				.Where(x => x.SchedDate==dateTimeClicked.Date && x.Ops.Contains(opNum))) 
-			{
-				if(Schedules.CanScheduleInBlockout(blockout.BlockoutType,listDefsBlockoutTypes)) {
-					continue;
-				}
-				DateTime dateTimeBlockoutStop=blockout.SchedDate.Add(blockout.StopTime);
-				if(dateTimeBlockoutStop.Between(dateTimeSlotStart,dateTimeClicked)) {
-					//Move start time to be later to account for this blockout.
-					dateTimeSlotStart=dateTimeBlockoutStop;
-				}
-				DateTime dateTimeBlockoutStart=blockout.SchedDate.Add(blockout.StartTime);
-				if(dateTimeBlockoutStart.Between(dateTimeClicked,dateTimeSlotEnd)) {
-					//Move stop time to be earlier to account for this blockout.
-					dateTimeSlotEnd=dateTimeBlockoutStart;
-				}
-				if(dateTimeClicked.Between(dateTimeBlockoutStart,dateTimeBlockoutStop,isUpperBoundInclusive: false)) {
-					MsgBox.Show("Unable to schedule appointments on blockouts marked 'Block appointments scheduling'.");
-					return;
-				}
-			}
-			dateTimeSlotStart=ODMathLib.Max(dateTimeSlotStart,dateTimeClicked.AddHours(-1));
-			dateTimeSlotEnd=ODMathLib.Min(dateTimeSlotEnd,dateTimeClicked.AddHours(3));
-			if(_formASAP==null || _formASAP.IsDisposed) {
-				_formASAP=new FormASAP();
-			}
-			_formASAP.ShowFormForWebSched(dateTimeClicked,dateTimeSlotStart,dateTimeSlotEnd,opNum);
-			_formASAP.FormClosed+=FormASAP_FormClosed;
-		}
-
-		///<summary>Returns an ApptView for the currently logged in user and clinic combination. Can return null.
-		///Will return the first available appointment view if this is the first time that this computer has connected to this database.</summary>
-		private ApptView GetApptViewForUser() {
-			//load the recently used apptview from the db, either the userodapptview table if an entry exists or the computerpref table if an entry for this computer exists
-			ApptView apptView=null;
-			UserodApptView userodApptViewCur=UserodApptViews.GetOneForUserAndClinic(Security.CurUser.UserNum,Clinics.ClinicNum);
-			if(userodApptViewCur!=null) { //if there is an entry in the userodapptview table for this user
-				if(_hasInitializedOnStartup //if either ContrAppt has already been initialized
-					|| (Security.CurUser.ClinicIsRestricted //or the current user is restricted
-					&& Clinics.ClinicNum!=ComputerPrefs.LocalComputer.ClinicNum)) //and FormOpenDental.ClinicNum (set to the current user's clinic) is not the computerpref clinic
-				{
-					apptView=ApptViews.GetApptView(userodApptViewCur.ApptViewNum); //then load the view for the user in the userodapptview table
-				}
-			}
-			if(apptView==null //if no entry in the userodapptview table
-				&& Clinics.ClinicNum==ComputerPrefs.LocalComputer.ClinicNum) //and if the program level ClinicNum is the stored recent ClinicNum for this computer 
-			{
-				apptView=ApptViews.GetApptView(ComputerPrefs.LocalComputer.ApptViewNum);//use the computerpref for this computer and user
-			}
-			//Larger offices do not want to take the time to load all the data required to display the "none" view.
-			//Therefore, for a NEW computer that is connecting to the database for the first time, load up the first available view that is not the none view.
-			if(apptView==null //if no entry in the ComputerPref table
-				&& _listApptViews.Count>0) //There is an appointment view other than "none" to select
-			{ 
-				apptView=_listApptViews[0];
-			}
-			return apptView;
-		}
-
-		/// <summary></summary>
-		private long GetApptViewNumForUser() {
-			if(contrApptPanel.ApptViewCur!=null) {
-				return contrApptPanel.ApptViewCur.ApptViewNum;
-			}
-			//GetApptViewForUser needs a CurUser to the specific appointment views for the clinic/user combination
-			if(Security.CurUser==null) {
-				//No valid user so the appointment view will be set to whatever the computerpref table has for the current computer
-				return ComputerPrefs.LocalComputer.ApptViewNum;
-			}
-			ApptView apptView=GetApptViewForUser();
-			if(apptView==null) {
-				return 0;
-			}
-			return apptView.ApptViewNum;
-		}
-
-		///<summary>Checks if the appointment's start time overlaps another appt in the Op which the apt resides.  Tests all appts for the day, even if not visible.
-		///Calling RefreshPeriod() is not necessary before calling this method. It goes to the db only as much as is necessary.
-		///Returns true if no overlap found. Returns false if given apt start time conflicts with another apt in the Op.</summary>
-		private static bool HasValidStartTime(Appointment apt) {
-			bool notUsed;
-			//Only valid if no adjust was needed.
-			return !Appointments.TryAdjustAppointment(apt,UI.UserControlApptsPanelJ.GetListOpsVisible(),false,false,false,false,out notUsed,out notUsed);
-		}
-
-		///<summary>Returns true if the none appointment view is selected, clinics is turned on, and the Headquarters clinic is selected.
-		///Also disables pretty much every control available in the appointment module if it is going to return true, otherwise re-enables them.</summary>
-		private bool IsHqNoneView() {
-			if(PrefC.HasClinicsEnabled && Clinics.ClinicNum==0 && comboView.SelectedIndex==0) {
-				contrApptPanel.Visible=false;
-				labelNoneView.Visible=true;
-				butBack.Enabled=false;
-				butBackMonth.Enabled=false;
-				butBackWeek.Enabled=false;
-				butToday.Enabled=false;
-				butFwd.Enabled=false;
-				butFwdMonth.Enabled=false;
-				butFwdWeek.Enabled=false;
-				Calendar2.Enabled=false;
-				panelMakeButtons.Enabled=false;
-				pinBoard.ClearSelected();
-				textLab.Text="";
-				textProduction.Text="";
-				//TODO Change this to only stop printing and lists
-				toolBarMain.Visible=false;
-				return true;
-			}
-			else {
-				contrApptPanel.Visible=true;
-				labelNoneView.Visible=false;
-				butBack.Enabled=true;
-				butBackMonth.Enabled=true;
-				butBackWeek.Enabled=true;
-				butToday.Enabled=true;
-				butFwd.Enabled=true;
-				butFwdMonth.Enabled=true;
-				butFwdWeek.Enabled=true;
-				Calendar2.Enabled=true;
-				toolBarMain.Visible=true;
-				return false;
-			}
-		}
-
-		private void LayoutPanels(){
-			//Not quite enough control with automatic layout
-			if(Calendar2.Width>panelCalendar.Width) {//for example, Chinese calendar
-				panelCalendar.Width=Calendar2.Width+1;
-			}
-			toolBarMain.Location=new Point(ClientSize.Width-panelCalendar.Width-2,0);
-			panelCalendar.Location=new Point(ClientSize.Width-panelCalendar.Width-2,toolBarMain.Height);
-			panelAptInfo.Location=new Point(ClientSize.Width-panelCalendar.Width-2,toolBarMain.Height+panelCalendar.Height);
-			panelMakeButtons.Location=new Point(panelAptInfo.Right+2,panelAptInfo.Top);
-			contrApptPanel.Width=ClientSize.Width-panelCalendar.Width-2;//height automatic
-			tabControl.Location=new Point(panelAptInfo.Left,panelAptInfo.Bottom+1);
-			if(tabControl.Top>contrApptPanel.Bottom) {
-				tabControl.Height=0;
-			}
-			else {
-				tabControl.Height=contrApptPanel.Height-tabControl.Top+21;
-			}
-		}
-
-		/// <summary>Called from ModuleSelected.  Just runs once for the purpose of setting start time.</summary>
-		public void LayoutScrollOpProv() {
-			if(_hasLaidOutScrollBar) {//Should only run on startup
-				return;
-			}
-			//int rowsPerHr=60/contrApptPanel.MinPerIncr*contrApptPanel.RowsPerIncr;
-			//use the row setting from the selected view.
-			if(_listApptViews.Count>0 && comboView.SelectedIndex>0) {					
-				TimeSpan apptTimeScrollStart=_listApptViews[comboView.SelectedIndex-1].ApptTimeScrollStart;
-				if(_listApptViews[comboView.SelectedIndex-1].IsScrollStartDynamic) {//Scroll start time at the earliest scheduled operatory or appointment
-					//jordan I would like to get rid of IsScrollStartDynamic
-					//Get the schedules that have any operatory visible
-					List<Schedule> listVisScheds=new List<Schedule>();
-					foreach(Schedule sched in contrApptPanel.ListSchedules) {
-						if(sched.Ops.Any(x => contrApptPanel.ListOpsVisible.Exists(y => x==y.OperatoryNum))//The schedule is linked to a visible operatory
-							|| contrApptPanel.ListOpsVisible.Exists(x => x.ProvDentist==sched.ProvNum && !x.IsHygiene)//The dentist is in a visible operatory
-							|| contrApptPanel.ListOpsVisible.Exists(x => x.ProvHygienist==sched.ProvNum && x.IsHygiene))//The hygienist is in a visible operatory
-						{
-							listVisScheds.Add(sched);
-						}
-					}
-					long schedProvUnassinged=PrefC.GetLong(PrefName.ScheduleProvUnassigned);
-					bool opShowsDefaultProv=false;
-					foreach(Operatory op in contrApptPanel.ListOpsVisible) {
-						if((op.ProvDentist!=0 && !op.IsHygiene)
-							||(op.ProvHygienist!=0 && op.IsHygiene))
-						{
-							continue;//The operatory has a provider assigned to it
-						}
-						if(contrApptPanel.ListSchedules.Any(x => x.Ops.Contains(op.OperatoryNum))) {
-							continue;//The operatory has a scheduled assigned to it
-						}
-						opShowsDefaultProv=true;//The operatory will have the provider for unassigned operatories
-						break;
-					}
-					if(opShowsDefaultProv && contrApptPanel.ListSchedules.Exists(x => x.ProvNum==schedProvUnassinged)) {//The provider for unassigned ops has a schedule
-						//Add that provider's earliest schedule
-						listVisScheds.Add(contrApptPanel.ListSchedules.FindAll(x => x.ProvNum==schedProvUnassinged).OrderBy(x => x.StartTime).FirstOrDefault());
-					}
-					//Get the appointment times that are in a visible operatory
-					List<TimeSpan> listVisAptTimes=new List<TimeSpan>();
-					foreach(DataRow row in contrApptPanel.TableAppointments.Rows) {
-						long opNum=PIn.Long(row["Op"].ToString());
-						if(!contrApptPanel.ListOpsVisible.Exists(x => x.OperatoryNum==opNum) //The appointment is in a visible operatory
-							|| !new[] { "1","2","4","5","7","8" }.Contains(row["AptStatus"].ToString())) //Scheduled,Complete,ASAP,Broken,PtNote,PtNoteComp
-						{
-							continue;
-						}
-						listVisAptTimes.Add(PIn.Date(row["AptDateTime"].ToString()).TimeOfDay);
-					}
-					TimeSpan earliestApt=new TimeSpan();
-					TimeSpan earliestOp=new TimeSpan();
-					if(listVisAptTimes.Count>0 && listVisScheds.Count>0) {//There is at least one schedule and at least one appointment visible
-						earliestApt=listVisScheds.Min(x => x.StartTime);
-						earliestOp=listVisAptTimes.Min();
-						if(TimeSpan.Compare(earliestOp,earliestApt)==1) {//earliestOp is later than earliestApt
-							apptTimeScrollStart=earliestApt;
-						}
-						else {//earliestApt is later than earliestOp or they are both equal
-							apptTimeScrollStart=earliestOp;
-						}
-					}
-					else if(listVisScheds.Count>0) {//There is at least one visible schedule and no visible appointments
-						apptTimeScrollStart=listVisScheds.Min(x => x.StartTime);
-					}
-					else if(listVisAptTimes.Count>0) {//There is at least one visible appointment and no visible schedules
-						apptTimeScrollStart=listVisAptTimes.Min();
-					}
-					//else apptTimeScrollStart will remain as the start time listed in the appt view		
-				}
-				//Even if we skip isScrollStartDynamic, above, the code below will still handle ApptTimeScrollStart
-				contrApptPanel.SetScrollByTime(apptTimeScrollStart);
-			}
-			else{//else no view selected
-				contrApptPanel.SetScrollByTime(TimeSpan.FromHours(8));
-			}
-			_hasLaidOutScrollBar=true;
-			contrApptPanel.RedrawAsNeeded();//Todo: probably not needed.
-		}
-
-		///<summary>Updates appointment and procedure information based on information passed in.
-		///Occurs when moving an appointment.  Also similar to the logic which runs in pinBoard_MouseUp(), but pinBoard_MouseUp() has additional things that are done.</summary>
-		private void MoveAppointments(List<Appointment> listAppts,List<Appointment> listApptsOld,Operatory operatory,bool timeWasMoved,bool isOpChanged,bool isOpUpdate=false) {
-			Appointment appt=null;
-			Appointment apptOld=null;
-			Patient patient=null;
-			List<Schedule> listSchedsForOp=Schedules.GetSchedsForOp(operatory,listAppts.Select(x => x.AptDateTime).ToList());
-			List<Operatory> listOpsForClinic=contrApptPanel.ListOpsVisible.Select(x => x.Copy()).ToList();
-			if(((ApptSchedEnforceSpecialty)PrefC.GetInt(PrefName.ApptSchedEnforceSpecialty)).In(ApptSchedEnforceSpecialty.Block,ApptSchedEnforceSpecialty.Warn)) {
-				//if specialties are enforced, don't auto-move appt into an op assigned to a different clinic than the curOp's clinic
-				listOpsForClinic.RemoveAll(x => x.ClinicNum!=operatory.ClinicNum);
-			}
-			for(int i=0;i<listAppts.Count;i++) {
-				appt=listAppts[i];
-				apptOld=listApptsOld[i];
-				appt.Op=operatory.OperatoryNum;
-				patient=Patients.GetPat(appt.PatNum);
-				bool provChanged=false;
-				bool hygChanged=false;
-				long assignedDent=0;
-				long assignedHyg=0;
-				if(isOpUpdate) {
-					assignedDent=Schedules.GetAssignedProvNumForSpot(listSchedsForOp,operatory,false,appt.AptDateTime);
-					assignedHyg=Schedules.GetAssignedProvNumForSpot(listSchedsForOp,operatory,true,appt.AptDateTime);
-				}
-				else { 
-					assignedDent=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,operatory,false,appt.AptDateTime);
-					assignedHyg=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,operatory,true,appt.AptDateTime);
-				}
-				List<Procedure> procsForSingleApt=null;
-				if(appt.AptStatus!=ApptStatus.PtNote && appt.AptStatus!=ApptStatus.PtNoteCompleted) {
-					if(timeWasMoved) {
-						#region Update Appt's DateTimeAskedToArrive
-						if(patient.AskToArriveEarly>0) {
-							appt.DateTimeAskedToArrive=appt.AptDateTime.AddMinutes(-patient.AskToArriveEarly);
-							MsgBox.Show("Ask patient to arrive "+patient.AskToArriveEarly
-								+" minutes early at "+appt.DateTimeAskedToArrive.ToShortTimeString()+".");
-						}
-						else {
-							if(appt.DateTimeAskedToArrive.Year>1880 && (apptOld.AptDateTime-apptOld.DateTimeAskedToArrive).TotalMinutes>0) {
-								appt.DateTimeAskedToArrive=appt.AptDateTime-(apptOld.AptDateTime-apptOld.DateTimeAskedToArrive);
-								if(MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+(apptOld.AptDateTime-apptOld.DateTimeAskedToArrive).TotalMinutes
-									+" "+Lan.g(this,"minutes early at")+" "+appt.DateTimeAskedToArrive.ToShortTimeString()+"?","",MessageBoxButtons.YesNo)==DialogResult.No) {
-									appt.DateTimeAskedToArrive=apptOld.DateTimeAskedToArrive;
-								}
-							}
-							else {
-								appt.DateTimeAskedToArrive=DateTime.MinValue;
-							}
-						}
-						#endregion Update Appt's DateTimeAskedToArrive
-					}
-					#region Update Appt's Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
-					//if no dentist/hygenist is assigned to spot, then keep the original dentist/hygenist without prompt.  All appts must have prov.
-					if((assignedDent!=0 && assignedDent!=appt.ProvNum) || (assignedHyg!=0 && assignedHyg!=appt.ProvHyg)) {
-						object[] parameters3={ appt,assignedDent,assignedHyg,procsForSingleApt,this };//Only used in following plugin hook.
-						if((Plugins.HookMethod(this,"ContrAppt.ContrApptSheet2_MouseUp_apptProvChangeQuestion",parameters3))) {
-							appt=(Appointment)parameters3[0];
-							assignedDent=(long)parameters3[1];
-							assignedDent=(long)parameters3[2];
-							goto PluginApptProvChangeQuestionEnd;
-						}
-						if(isOpUpdate || MsgBox.Show(MsgBoxButtons.YesNo,"Change provider?")) {//Short circuit logic.  If we're updating op through right click, never ask.
-							if(assignedDent!=0) {//the dentist will only be changed if the spot has a dentist.
-								appt.ProvNum=assignedDent;
-								provChanged=true;
-							}
-							if(assignedHyg!=0 || PrefC.GetBool(PrefName.ApptSecondaryProviderConsiderOpOnly)) {//the hygienist will only be changed if the spot has a hygienist.
-								appt.ProvHyg=assignedHyg;
-								hygChanged=true;
-							}
-							if(operatory.IsHygiene) {
-								appt.IsHygiene=true;
-							}
-							else {//op not marked as hygiene op
-								if(assignedDent==0) {//no dentist assigned
-									if(assignedHyg!=0) {//hyg is assigned (we don't really have to test for this)
-										appt.IsHygiene=true;
-									}
-								}
-								else {//dentist is assigned
-									if(assignedHyg==0) {//hyg is not assigned
-										appt.IsHygiene=false;
-									}
-									//if both dentist and hyg are assigned, it's tricky
-									//only explicitly set it if user has a dentist assigned to the op
-									if(operatory.ProvDentist!=0) {
-										appt.IsHygiene=false;
-									}
-								}
-							}
-							procsForSingleApt=Procedures.GetProcsForSingle(appt.AptNum,false);
-							List<long> codeNums=new List<long>();
-							for(int p = 0;p<procsForSingleApt.Count;p++) {
-								codeNums.Add(procsForSingleApt[p].CodeNum);
-							}
-							if(!isOpUpdate) { 
-								string patternCalc=Appointments.CalculatePattern(appt.ProvNum,appt.ProvHyg,codeNums,true);
-								if(appt.Pattern!=patternCalc && !PrefC.GetBool(PrefName.AppointmentTimeIsLocked)) {//Updating op provs will not change apt lengths.
-									if(appt.TimeLocked) {
-										if(MsgBox.Show(MsgBoxButtons.YesNo,"Appointment length is locked.  Change length for new provider anyway?")) {
-											appt.Pattern=patternCalc;
-										}
-									}
-									else {//appt time not locked
-										if(MsgBox.Show(MsgBoxButtons.YesNo,"Change length for new provider?")) {
-											appt.Pattern=patternCalc;
-										}
-									}
-								}
-							}
-						}
-						PluginApptProvChangeQuestionEnd: { }
-					}
-					#region Provider Term Date Check
-					//Prevents appointments with providers that are past their term end date from being scheduled
-					string message=Providers.CheckApptProvidersTermDates(appt);
-					if(message!="") {
-						MessageBox.Show(message);//translated in Providers S class method
-						continue;
-					}
-					#endregion Provider Term Date Check
-					#endregion Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
-				}
-				#region Prevent overlap
-				if(!isOpUpdate && !Appointments.TryAdjustAppointmentOp(appt,listOpsForClinic)) {
-					MessageBox.Show(Lan.g(this,"Appointment overlaps existing appointment or blockout."));
-					continue;
-				}
-				#endregion Prevent overlap
-				#region Detect Frequency Conflicts
-				//Detect frequency conflicts with procedures in the appointment
-				if(!isOpUpdate && PrefC.GetBool(PrefName.InsChecksFrequency)) {
-					procsForSingleApt=Procedures.GetProcsForSingle(appt.AptNum,false);
-					string frequencyConflicts="";
-					try {
-						frequencyConflicts=Procedures.CheckFrequency(procsForSingleApt,appt.PatNum,appt.AptDateTime);
-					}
-					catch(Exception e) {
-						MessageBox.Show("There was an error checking frequencies."
-							+"  Disable the Insurance Frequency Checking feature or try to fix the following error:"
-							+"\r\n"+e.Message);
-						continue;
-					}
-					if(frequencyConflicts!=""){
-						if(!MsgBox.Show(MsgBoxButtons.YesNo,"Scheduling this appointment for this date will cause frequency conflicts for the following procedures"
-							+":\r\n"+frequencyConflicts+"\r\n"+"Do you want to continue?")){
-							continue;
-						}
-					}
-				}
-				#endregion Detect Frequency Conflicts
-				#region Patient status
-				if(!isOpUpdate) {
-					Operatory opCur=Operatories.GetOperatory(appt.Op);
-					Operatory opOld=Operatories.GetOperatory(apptOld.Op);
-					if(opOld==null || opCur.SetProspective!=opOld.SetProspective) {
-						if(opCur.SetProspective&&patient.PatStatus!=PatientStatus.Prospective) { //Don't need to prompt if patient is already prospective.
-							if(MsgBox.Show(this,MsgBoxButtons.OKCancel,"Patient's status will be set to Prospective.")) {
-								Patient patOld=patient.Copy();
-								patient.PatStatus=PatientStatus.Prospective;
-								Patients.Update(patient,patOld);
-							}
-						}
-						else if(!opCur.SetProspective&&patient.PatStatus==PatientStatus.Prospective) {
-							//Do we need to warn about changing FROM prospective? Assume so for now.
-							if(MsgBox.Show(this,MsgBoxButtons.OKCancel,"Patient's status will change from Prospective to Patient.")) {
-								Patient patOld=patient.Copy();
-								patient.PatStatus=PatientStatus.Patient;
-								Patients.Update(patient,patOld);
-							}
-						}
-					}
-				}
-				#endregion Patient status
-				#region Update Appt's AptStatus, ClinicNum, Confirmed
-				object[] parameters2 = { appt.AptDateTime,apptOld.AptDateTime,appt.AptStatus };
-				if((Plugins.HookMethod(this,"ContrAppt.ContrApptSheet2_MouseUp_apptDoNotUnbreakApptSameDay",parameters2))) {
-					appt.AptStatus=(ApptStatus)parameters2[2];
-					goto PluginApptDoNotUnbreakApptSameDay;
-				}
-				if(appt.AptStatus==ApptStatus.Broken&&(timeWasMoved||isOpChanged)) {
-					appt.AptStatus=ApptStatus.Scheduled;
-				}
-				PluginApptDoNotUnbreakApptSameDay: { }
-				//original location of provider code
-				if(operatory.ClinicNum==0) {
-					appt.ClinicNum=patient.ClinicNum;
-				}
-				else {
-					appt.ClinicNum=operatory.ClinicNum;
-				}
-				if(appt.AptDateTime!=apptOld.AptDateTime
-					&& appt.Confirmed!=Defs.GetFirstForCategory(DefCat.ApptConfirmed,true).DefNum
-					&& appt.AptDateTime.Date!=DateTime.Today) 
-				{
-					string prompt=(PrefC.GetBool(PrefName.ApptConfirmAutoEnabled) ? "Do you want to resend the eConfirmation?" 
-						: "Reset Confirmation Status?");
-					bool doResetConf=MsgBox.Show(this,MsgBoxButtons.YesNo,prompt);
-					if(doResetConf) {
-						appt.Confirmed=Defs.GetFirstForCategory(DefCat.ApptConfirmed,true).DefNum;//Causes the confirmation status to be reset.
-					}
-					if(PrefC.GetBool(PrefName.ApptConfirmAutoEnabled)) {
-						List<ConfirmationRequest> listConfirmationRequests=ConfirmationRequests.GetAllForAppts(new List<long> { appt.AptNum});
-						foreach(ConfirmationRequest confirmationRequest in listConfirmationRequests) {
-							//If they selected No, this will force the econnector to not delete the row and therefore not send another eConfirmation.
-							//If they selected Yes, we will clear the DoNotResend flag so that it will get sent.
-							confirmationRequest.DoNotResend=!doResetConf;
-							ConfirmationRequests.Update(confirmationRequest);
-						}
-					}
-				}
-				#endregion Update Appt's AptStatus, ClinicNum, Confirmed
-				try {
-					//Should only need this check if changing/updating Op. Assumes we didn't previously schedule the apt somewhere it shouldn't have been.
-					if(!AppointmentL.IsSpecialtyMismatchAllowed(patient.PatNum,appt.ClinicNum)) {
-						return;
-					}
-					if(isOpUpdate) {
-						Appointments.MoveValidatedAppointment(appt,apptOld,patient,operatory,listSchedsForOp,listOpsForClinic,provChanged,hygChanged,timeWasMoved,isOpChanged,isOpUpdate);
-					}
-					else { 
-						Appointments.MoveValidatedAppointment(appt,apptOld,patient,operatory,contrApptPanel.ListSchedules,listOpsForClinic,provChanged,hygChanged,timeWasMoved,isOpChanged,isOpUpdate);
-					}
-				}
-				catch(Exception e) {
-					MsgBox.Show(e.Message);
-				}
-			}
-		}
-
-		///<summary></summary>
-		private void PrintApptCard() {
-			PrinterL.TryPrintOrDebugRpPreview(pd2_PrintApptCard,
-				"Appointment reminder postcard printed",
-				printSit:PrintSituation.Postcard,
-				auditPatNum:_patCur.PatNum,
-				margins:new Margins(0,0,0,0),
-				printoutOrigin:PrintoutOrigin.AtMargin
-			);
-		}
-
-		private void pd2_PrintApptCard(object sender,PrintPageEventArgs ev) {
-			Graphics g=ev.Graphics;
-			long apptClinicNum=0;
-			if(contrApptPanel.SelectedAptNum>0){
-				apptClinicNum=PIn.Long(contrApptPanel.GetDataRowForSelected()["ClinicNum"].ToString());
-			}		
-			Clinic clinic=Clinics.GetClinic(apptClinicNum);
-			//Return Address--------------------------------------------------------------------------
-			string str="";
-			string phone="";
-			if(PrefC.HasClinicsEnabled && clinic!=null) {//Use clinic on appointment if clinic exists and has clinics enabled
-				str=clinic.Description+"\r\n";
-				g.DrawString(str,new Font(FontFamily.GenericSansSerif,9,FontStyle.Bold),Brushes.Black,60,60);
-				str=clinic.Address+"\r\n";
-				if(clinic.Address2!="") {
-					str+=clinic.Address2+"\r\n";
-				}
-				str+=clinic.City+"  "+clinic.State+"  "+clinic.Zip+"\r\n";
-				phone=clinic.Phone;
-			}
-			else {//Otherwise use practice information
-				str=PrefC.GetString(PrefName.PracticeTitle)+"\r\n";
-				g.DrawString(str,new Font(FontFamily.GenericSansSerif,9,FontStyle.Bold),Brushes.Black,60,60);
-				str=PrefC.GetString(PrefName.PracticeAddress)+"\r\n";
-				if(PrefC.GetString(PrefName.PracticeAddress2)!="") {
-					str+=PrefC.GetString(PrefName.PracticeAddress2)+"\r\n";
-				}
-				str+=PrefC.GetString(PrefName.PracticeCity)+"  "
-					+PrefC.GetString(PrefName.PracticeST)+"  "
-					+PrefC.GetString(PrefName.PracticeZip)+"\r\n";
-				phone=PrefC.GetString(PrefName.PracticePhone);
-			}
-			if(CultureInfo.CurrentCulture.Name=="en-US" && phone.Length==10) {
-				str+="("+phone.Substring(0,3)+")"+phone.Substring(3,3)+"-"+phone.Substring(6);
-			}
-			else {//any other phone format
-				str+=phone;
-			}
-			g.DrawString(str,new Font(FontFamily.GenericSansSerif,8),Brushes.Black,60,75);
-			//Body text-------------------------------------------------------------------------------
-			string name;
-			str="Appointment Reminders:"+"\r\n\r\n";
-			Appointment[] aptsOnePat;
-			Family fam=Patients.GetFamily(_patCur.PatNum);
-			Patient pat=fam.GetPatient(_patCur.PatNum);
-			for(int i=0;i<fam.ListPats.Length;i++) {
-				if(!_doPrintCardFamily && fam.ListPats[i].PatNum!=pat.PatNum) {
-					continue;
-				}
-				name=fam.ListPats[i].FName;
-				if(name.Length>15) {//trim name so it won't be too long
-					name=name.Substring(0,15);
-				}
-				aptsOnePat=Appointments.GetForPat(fam.ListPats[i].PatNum);
-				for(int a=0;a<aptsOnePat.Length;a++) {
-					if(aptsOnePat[a].AptDateTime.Date<=DateTime.Today) {
-						continue;//ignore old appts
-					}
-					if(aptsOnePat[a].AptStatus!=ApptStatus.Scheduled){
-						continue;
-					}
-					str+=name+": "+aptsOnePat[a].AptDateTime.ToShortDateString()+" "+aptsOnePat[a].AptDateTime.ToShortTimeString()+"\r\n";
-				}
-			}
-			g.DrawString(str,new Font(FontFamily.GenericSansSerif,9),Brushes.Black,40,180);
-			//Patient's Address-----------------------------------------------------------------------
-			Patient guar;
-			if(_doPrintCardFamily) {
-				guar=fam.ListPats[0].Copy();
-			}
-			else {
-				guar=pat.Copy();
-			}
-			str=guar.FName+" "+guar.LName+"\r\n"
-				+guar.Address+"\r\n";
-			if(guar.Address2!="") {
-				str+=guar.Address2+"\r\n";
-			}
-			str+=guar.City+"  "+guar.State+"  "+guar.Zip;
-			g.DrawString(str,new Font(FontFamily.GenericSansSerif,11),Brushes.Black,300,240);
-			//CommLog entry---------------------------------------------------------------------------
-			Commlog CommlogCur=new Commlog();
-			CommlogCur.CommDateTime=DateTime.Now;
-			CommlogCur.CommType=Commlogs.GetTypeAuto(CommItemTypeAuto.MISC);
-			CommlogCur.Note="Appointment card sent";
-			CommlogCur.PatNum=pat.PatNum;
-			CommlogCur.UserNum=Security.CurUser.UserNum;
-			//there is no dialog here because it is just a simple entry
-			Commlogs.Insert(CommlogCur);
-			ev.HasMorePages = false;
-		}
-
-		private void PrintApptLabel() {
-			Appointment apt=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
-			if(ApptIsNull(apt)) { return; }
-			LabelSingle.PrintAppointment(contrApptPanel.SelectedAptNum);
-		}
-
-		///<summary>Processes the OtherResult from a call to FormApptsOther.</summary>
-		private void ProcessOtherDlg(OtherResult result,long patNum,string strDateJumpTo,params long[] arraySelectedAptNums) {
-			if(result==OtherResult.Cancel) {
-				return;
-			}
-			switch(result) {
-				case OtherResult.CopyToPinBoard:
-					SendToPinBoardAptNums(arraySelectedAptNums.ToList());
-					RefreshModuleDataPatient(patNum);
-					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
-					RefreshPeriod();
-					break;
-				case OtherResult.NewToPinBoard:
-					SendToPinBoardAptNums(arraySelectedAptNums.ToList());
-					RefreshModuleDataPatient(patNum);
-					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
-					RefreshPeriod();
-					break;
-				case OtherResult.PinboardAndSearch:
-					SendToPinBoardAptNums(arraySelectedAptNums.ToList());
-					if(contrApptPanel.IsWeeklyView) {
-						break;
-					}
-					dateSearch.Text=strDateJumpTo;
-					if(!groupSearch.Visible) {//if search not already visible
-						ShowSearch();
-					}
-					DoSearch();
-					break;
-				case OtherResult.CreateNew:
-					contrApptPanel.SelectedAptNum=arraySelectedAptNums[0];
-					RefreshModuleDataPatient(patNum);
-					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
-					Appointment apt=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
-					Appointment aptOld=apt.Copy();
-					if(!HasValidStartTime(apt)) {
-						MsgBox.Show("Appointment start time would overlap another appointment.  Moving appointment to pinboard.");
-						DataRow dataRow=contrApptPanel.GetDataRowForSelected();
-						if(dataRow==null){
-							return;//silently fail
-						}
-						SendToPinboardDataRow(dataRow);
-						apt.AptStatus=ApptStatus.UnschedList;
-						try {
-							Appointments.Update(apt,aptOld);
-						}
-						catch(ApplicationException ex) {
-							MessageBox.Show(ex.Message);
-						}
-						RefreshPeriod();
-						break;
-					}
-					if(TryAdjustAppointmentPattern(apt)) {
-						MsgBox.Show(this,"Appointment is too long and would overlap another appointment.  Automatically shortened to fit.");						
-						try {
-							Appointments.Update(apt,aptOld);//Appointments S-Class handles Signalods
-						}
-						catch(ApplicationException ex) {
-							MessageBox.Show(ex.Message);
-						}
-					}
-					RefreshPeriod();
-					break;
-				case OtherResult.GoTo:
-					contrApptPanel.SelectedAptNum=arraySelectedAptNums[0];
-					contrApptPanel.DateSelected=PIn.Date(strDateJumpTo);
-					if(_patCur.PatNum!=patNum) {
-						//ModuleSelected->RefreshModuleScreenPeriod, Appt won't be selected if PatCur.PatNum!=Appt.PatNum
-						_patCur=Patients.GetPat(patNum);
-					}
-					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false,true);
-					break;
-			}
-		}
-
-		///<summary>Brings up the window to send text messagse to the patients.</summary>
-		private void SendTextMessages(List<long> listPatNums) {
-			if(listPatNums.Count==0) {
-				MsgBox.Show("No appointments this day to send text messages to.");
-				return;
-			}
-			Clinic curClinic=Clinics.GetClinic(Clinics.ClinicNum)??Clinics.GetDefaultForTexting()??Clinics.GetPracticeAsClinicZero();
-			List<PatComm> listPatComms=Patients.GetPatComms(listPatNums,curClinic,false);
-			List<string> listPatsSkipped=new List<string>();
-			for(int i=listPatComms.Count-1;i>=0;i--) {
-				//Remove patients that can't receive texts.
-				PatComm patComm=listPatComms[i];
-				if(patComm.IsSmsAnOption) {
-					continue;
-				}
-				listPatsSkipped.Add(patComm.FName+" "+patComm.LName+": "+patComm.GetReasonCantText());
-				listPatComms.RemoveAt(i);
-			}
-			if(listPatsSkipped.Count > 0) {
-				string msg=listPatsSkipped.Count+" of the "+listPatNums.Distinct().Count()+" "
-					+"patients cannot receive text messages:"+"\r\n"+string.Join("\r\n",listPatsSkipped);
-				if(listPatsSkipped.Count < 8) {
-					MessageBox.Show(msg);
-				}
-				else {
-					new MsgBoxCopyPaste(msg).ShowDialog();
-				}
-			}
-			if(listPatComms.Count==0) {
-				return;
-			}
-			FormTxtMsgMany formTxtMsgMany=new FormTxtMsgMany(listPatComms,"",Clinics.ClinicNum,SmsMessageSource.DirectSms);
-			formTxtMsgMany.DoCombineNumbers=true;
-			formTxtMsgMany.Show();
-		}
-
-		/// <summary>Sets the index of comboView for the specified ApptViewNum.  Then, does a ModuleSelected().  If saveToDb, then it will remember the ApptViewNum and currently selected ClinicNum for this workstation.</summary>
-		private void SetView(long apptViewNum,bool saveToDb) {
-			comboView.SelectedIndex=0;//this would be circular if we used event indexchanged, but we use changeCommitted.
-			for(int i=0;i<_listApptViews.Count;i++) {
-				if(apptViewNum==_listApptViews[i].ApptViewNum) {
-					comboView.SelectedIndex=i+1;//+1 for 'none'
-					break;
-				}
-			}
-			if(!_hasInitializedOnStartup) {
-				return;//prevent ModuleSelected().
-			}
-			if(_hasInitializedOnStartup && !Visible) {
-				return;
-			}
-			if(saveToDb) {
-				ComputerPrefs.LocalComputer.ApptViewNum=apptViewNum;
-				ComputerPrefs.LocalComputer.ClinicNum=Clinics.ClinicNum;
-				ComputerPrefs.Update(ComputerPrefs.LocalComputer);
-				UserodApptViews.InsertOrUpdate(Security.CurUser.UserNum,Clinics.ClinicNum,apptViewNum);
-			}
-			if(_patCur==null) {
-				ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
-			}
-			else {
-				ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
-			}
-		}
-
-		///<summary>Switches between weekly view and daily view.  contrApptPanel.DateSelected needs to be set first.  Calls either RefreshPeriod or ModuleSelected.</summary>
-		private void SetWeeklyView(bool isWeeklyView) {
-			//if the weekly view doesn't change, then just RefreshPeriod
-			bool weeklyViewChanged=false;
-			if(isWeeklyView!=contrApptPanel.IsWeeklyView) {
-				weeklyViewChanged=true;
-			}
-			//for those few times when the radiobuttons aren't quite right:
-			if(isWeeklyView) {
-				radioWeek.Checked=true;
-				butFwd.Enabled=false;
-				butBack.Enabled=false;
-			}
-			else {
-				radioDay.Checked=true;
-				butFwd.Enabled=true;
-				butBack.Enabled=true;
-			}
-			//SetWeekDates();//handled in contrApptPanel
-			contrApptPanel.IsWeeklyView=isWeeklyView;
-			if(!_hasInitializedOnStartup) {
-				return;//prevent refreshing repeatedly on startup
-			}
-			long apptViewNum=0;
-			if(contrApptPanel.ApptViewCur!=null) {
-				apptViewNum=contrApptPanel.ApptViewCur.ApptViewNum;
-			}
-			if(weeklyViewChanged || isWeeklyView) {
-				if(_patCur==null) {
-					ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
-				}
-				else {
-					ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
-				}
-			}
-			else {
-				RefreshPeriod(listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum),isRefreshSchedules:true);
-			}
-		}
-
-		///<summary>Updates appointment and procedure information based on information passed in.
-		///Occurs when moving an appointment.  Also similar to the logic which runs in pinBoard_MouseUp(), but pinBoard_MouseUp() has additional things that are done.</summary>
-		private void MoveAppointment(Appointment appt,Appointment apptOld,bool isOpUpdate=false,List<Schedule> listSchedsForOp=null) {
-			bool timeWasMoved=appt.AptDateTime!=apptOld.AptDateTime;
-			bool isOpChanged=appt.Op!=apptOld.Op;
-			Operatory operatoryCur=Operatories.GetOperatory(appt.Op);
-			Patient patCur=null;
-			//List<Schedule> listSchedsForOp=Schedules.GetSchedsForOp(appt.Op,listAppts.Select(x => x.AptDateTime).ToList());
-			List<Operatory> listOpsForClinic=contrApptPanel.ListOpsVisible.Select(x => x.Copy()).ToList();
-			if(((ApptSchedEnforceSpecialty)PrefC.GetInt(PrefName.ApptSchedEnforceSpecialty)).In(ApptSchedEnforceSpecialty.Block,ApptSchedEnforceSpecialty.Warn)) {
-				//if specialties are enforced, don't auto-move appt into an op assigned to a different clinic than the curOp's clinic
-				listOpsForClinic.RemoveAll(x => x.ClinicNum!=operatoryCur.ClinicNum);
-			}
-			patCur=Patients.GetPat(appt.PatNum);
-			bool provChanged=false;
-			bool hygChanged=false;
-			long assignedDent=0;
-			long assignedHyg=0;
-			if(isOpUpdate) {
-				assignedDent=Schedules.GetAssignedProvNumForSpot(listSchedsForOp,operatoryCur,false,appt.AptDateTime);
-				assignedHyg=Schedules.GetAssignedProvNumForSpot(listSchedsForOp,operatoryCur,true,appt.AptDateTime);
-			}
-			else { 
-				assignedDent=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,operatoryCur,false,appt.AptDateTime);
-				assignedHyg=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,operatoryCur,true,appt.AptDateTime);
-			}
-			List<Procedure> procsForSingleApt=null;
-			if(appt.AptStatus!=ApptStatus.PtNote && appt.AptStatus!=ApptStatus.PtNoteCompleted) {
-				if(timeWasMoved) {
-					#region Update Appt's DateTimeAskedToArrive
-					if(patCur.AskToArriveEarly>0) {
-						appt.DateTimeAskedToArrive=appt.AptDateTime.AddMinutes(-patCur.AskToArriveEarly);
-						MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+patCur.AskToArriveEarly
-							+" "+Lan.g(this,"minutes early at")+" "+appt.DateTimeAskedToArrive.ToShortTimeString()+".");
-					}
-					else {
-						if(appt.DateTimeAskedToArrive.Year>1880 && (apptOld.AptDateTime-apptOld.DateTimeAskedToArrive).TotalMinutes>0) {
-							appt.DateTimeAskedToArrive=appt.AptDateTime-(apptOld.AptDateTime-apptOld.DateTimeAskedToArrive);
-							if(MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+(apptOld.AptDateTime-apptOld.DateTimeAskedToArrive).TotalMinutes
-								+" "+Lan.g(this,"minutes early at")+" "+appt.DateTimeAskedToArrive.ToShortTimeString()+"?","",MessageBoxButtons.YesNo)==DialogResult.No) {
-								appt.DateTimeAskedToArrive=apptOld.DateTimeAskedToArrive;
-							}
-						}
-						else {
-							appt.DateTimeAskedToArrive=DateTime.MinValue;
-						}
-					}
-					#endregion Update Appt's DateTimeAskedToArrive
-				}
-				#region Update Appt's Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
-				//if no dentist/hygenist is assigned to spot, then keep the original dentist/hygenist without prompt.  All appts must have prov.
-				if((assignedDent!=0 && assignedDent!=appt.ProvNum) || (assignedHyg!=0 && assignedHyg!=appt.ProvHyg)) {
-					object[] parameters3={ appt,assignedDent,assignedHyg,procsForSingleApt,this };//Only used in following plugin hook.
-					if((Plugins.HookMethod(this,"ContrAppt.ContrApptSheet2_MouseUp_apptProvChangeQuestion",parameters3))) {
-						appt=(Appointment)parameters3[0];
-						assignedDent=(long)parameters3[1];
-						assignedDent=(long)parameters3[2];
-						goto PluginApptProvChangeQuestionEnd;
-					}
-					if(isOpUpdate || MsgBox.Show(this,MsgBoxButtons.YesNo,"Change provider?")) {//Short circuit logic.  If we're updating op through right click, never ask.
-						if(assignedDent!=0) {//the dentist will only be changed if the spot has a dentist.
-							appt.ProvNum=assignedDent;
-							provChanged=true;
-						}
-						if(assignedHyg!=0 || PrefC.GetBool(PrefName.ApptSecondaryProviderConsiderOpOnly)) {//the hygienist will only be changed if the spot has a hygienist.
-							appt.ProvHyg=assignedHyg;
-							hygChanged=true;
-						}
-						if(operatoryCur.IsHygiene) {
-							appt.IsHygiene=true;
-						}
-						else {//op not marked as hygiene op
-							if(assignedDent==0) {//no dentist assigned
-								if(assignedHyg!=0) {//hyg is assigned (we don't really have to test for this)
-									appt.IsHygiene=true;
-								}
-							}
-							else {//dentist is assigned
-								if(assignedHyg==0) {//hyg is not assigned
-									appt.IsHygiene=false;
-								}
-								//if both dentist and hyg are assigned, it's tricky
-								//only explicitly set it if user has a dentist assigned to the op
-								if(operatoryCur.ProvDentist!=0) {
-									appt.IsHygiene=false;
-								}
-							}
-						}
-						procsForSingleApt=Procedures.GetProcsForSingle(appt.AptNum,false);
-						List<long> codeNums=new List<long>();
-						for(int p = 0;p<procsForSingleApt.Count;p++) {
-							codeNums.Add(procsForSingleApt[p].CodeNum);
-						}
-						if(!isOpUpdate) { 
-							string calcPattern=Appointments.CalculatePattern(appt.ProvNum,appt.ProvHyg,codeNums,true);
-							if(appt.Pattern!=calcPattern && !PrefC.GetBool(PrefName.AppointmentTimeIsLocked)) {//Updating op provs will not change apt lengths.
-								if(appt.TimeLocked) {
-									if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Appointment length is locked.  Change length for new provider anyway?")) {
-										appt.Pattern=calcPattern;
-									}
-								}
-								else {//appt time not locked
-									if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Change length for new provider?")) {
-										appt.Pattern=calcPattern;
-									}
-								}
-							}
-						}
-					}
-					PluginApptProvChangeQuestionEnd: { }
-				}
-				#region Provider Term Date Check
-				//Prevents appointments with providers that are past their term end date from being scheduled
-				string message=Providers.CheckApptProvidersTermDates(appt);
-				if(message!="") {
-					MessageBox.Show(this,message);//translated in Providers S class method
-					return;
-				}
-				#endregion Provider Term Date Check
-				#endregion Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
-			}
-			#region Prevent overlap
-			if(!isOpUpdate && !Appointments.TryAdjustAppointmentOp(appt,listOpsForClinic)) {
-				MessageBox.Show(Lan.g(this,"Appointment overlaps existing appointment or blockout."));
-				return;
-			}
-			#endregion Prevent overlap
-			#region Detect Frequency Conflicts
-			//Detect frequency conflicts with procedures in the appointment
-			if(!isOpUpdate && PrefC.GetBool(PrefName.InsChecksFrequency)) {
-				procsForSingleApt=Procedures.GetProcsForSingle(appt.AptNum,false);
-				string frequencyConflicts="";
-				try {
-					frequencyConflicts=Procedures.CheckFrequency(procsForSingleApt,appt.PatNum,appt.AptDateTime);
-				}
-				catch(Exception e) {
-					MessageBox.Show(Lan.g(this,"There was an error checking frequencies."
-						+"  Disable the Insurance Frequency Checking feature or try to fix the following error:")
-						+"\r\n"+e.Message);
-					return;
-				}
-				if(frequencyConflicts!="" && MessageBox.Show(Lan.g(this,"Scheduling this appointment for this date will cause frequency conflicts for the following procedures")
-					+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No)
-				{
-					return;
-				}
-			}
-			#endregion Detect Frequency Conflicts
-			#region Patient status
-			if(!isOpUpdate) {
-				Operatory opCur=Operatories.GetOperatory(appt.Op);
-				Operatory opOld=Operatories.GetOperatory(apptOld.Op);
-				if(opOld==null||opCur.SetProspective!=opOld.SetProspective) {
-					if(opCur.SetProspective&&patCur.PatStatus!=PatientStatus.Prospective) { //Don't need to prompt if patient is already prospective.
-						if(MsgBox.Show(this,MsgBoxButtons.OKCancel,"Patient's status will be set to Prospective.")) {
-							Patient patOld=patCur.Copy();
-							patCur.PatStatus=PatientStatus.Prospective;
-							Patients.Update(patCur,patOld);
-						}
-					}
-					else if(!opCur.SetProspective&&patCur.PatStatus==PatientStatus.Prospective) {
-						//Do we need to warn about changing FROM prospective? Assume so for now.
-						if(MsgBox.Show(this,MsgBoxButtons.OKCancel,"Patient's status will change from Prospective to Patient.")) {
-							Patient patOld=patCur.Copy();
-							patCur.PatStatus=PatientStatus.Patient;
-							Patients.Update(patCur,patOld);
-						}
-					}
-				}
-			}
-			#endregion Patient status
-			#region Update Appt's AptStatus, ClinicNum, Confirmed
-			object[] parameters2 = { appt.AptDateTime,apptOld.AptDateTime,appt.AptStatus };
-			if((Plugins.HookMethod(this,"ContrAppt.ContrApptSheet2_MouseUp_apptDoNotUnbreakApptSameDay",parameters2))) {
-				appt.AptStatus=(ApptStatus)parameters2[2];
-				goto PluginApptDoNotUnbreakApptSameDay;
-			}
-			if(appt.AptStatus==ApptStatus.Broken&&(timeWasMoved||isOpChanged)) {
-				appt.AptStatus=ApptStatus.Scheduled;
-			}
-			PluginApptDoNotUnbreakApptSameDay: { }
-			//original location of provider code
-			if(operatoryCur.ClinicNum==0) {
-				appt.ClinicNum=patCur.ClinicNum;
-			}
-			else {
-				appt.ClinicNum=operatoryCur.ClinicNum;
-			}
-			if(appt.AptDateTime!=apptOld.AptDateTime
-				&& appt.Confirmed!=Defs.GetFirstForCategory(DefCat.ApptConfirmed,true).DefNum
-				&& appt.AptDateTime.Date!=DateTime.Today) 
-			{
-				string prompt=(PrefC.GetBool(PrefName.ApptConfirmAutoEnabled) ? "Do you want to resend the eConfirmation?" 
-					: "Reset Confirmation Status?");
-				bool doResetConf=MsgBox.Show(this,MsgBoxButtons.YesNo,prompt);
-				if(doResetConf) {
-					appt.Confirmed=Defs.GetFirstForCategory(DefCat.ApptConfirmed,true).DefNum;//Causes the confirmation status to be reset.
-				}
-				if(PrefC.GetBool(PrefName.ApptConfirmAutoEnabled)) {
-					List<ConfirmationRequest> listConfirmations=ConfirmationRequests.GetAllForAppts(new List<long> { appt.AptNum});
-					foreach(ConfirmationRequest request in listConfirmations) {
-						//If they selected No, this will force the econnector to not delete the row and therefore not send another eConfirmation.
-						//If they selected Yes, we will clear the DoNotResend flag so that it will get sent.
-						request.DoNotResend=!doResetConf;
-						ConfirmationRequests.Update(request);
-					}
-				}
-			}
-			#endregion Update Appt's AptStatus, ClinicNum, Confirmed
-			try {
-				//Should only need this check if changing/updating Op. Assumes we didn't previously schedule the apt somewhere it shouldn't have been.
-				if(!AppointmentL.IsSpecialtyMismatchAllowed(patCur.PatNum,appt.ClinicNum)) {
-					return;
-				}
-				if(isOpUpdate) {
-					Appointments.MoveValidatedAppointment(appt,apptOld,patCur,operatoryCur,listSchedsForOp,listOpsForClinic,provChanged,hygChanged,timeWasMoved,isOpChanged,isOpUpdate);
-				}
-				else { 
-					Appointments.MoveValidatedAppointment(appt,apptOld,patCur,operatoryCur,contrApptPanel.ListSchedules,listOpsForClinic,provChanged,hygChanged,timeWasMoved,isOpChanged,isOpUpdate);
-				}
-			}
-			catch(Exception e) {
-				MsgBox.Show(this,e.Message);
-			}
-		}
-
-		///<summary>Used when passing a family to the pinboard.</summary>
-		private void SendToPinBoardAptNums(List<long> aptNums) {
-			if(IsHqNoneView()) {
-				MsgBox.Show("Appointments can't be sent to the pinboard when an appointment view or clinic hasn't been selected.");
-				return;
-			}
-			if(aptNums.Count==0) {
-				return;
-			}
-			long patNum=0;
-			for(int i=0;i<aptNums.Count;i++){
-				//sometimes, before this method was called, module was refreshed, and these appts were included.
-				DataRow dataRow=null;
-				for(int r=0;r<contrApptPanel.TableAppointments.Rows.Count;r++){
-					if(contrApptPanel.TableAppointments.Rows[r]["AptNum"].ToString()!=aptNums[i].ToString()){
-						continue;
-					}
-					dataRow=contrApptPanel.TableAppointments.Rows[r];
-				}
-				if(dataRow==null){
-					//but sometimes, we need to go get the row manually
-					DataTable dataTable=Appointments.GetPeriodApptsTable(contrApptPanel.DateStart,contrApptPanel.DateEnd,aptNums[i],false);
-					if(dataTable.Rows.Count==0){
-						continue;//fail silently?
-					}
-					dataRow=dataTable.Rows[0];
-				}
-				string pattern=PIn.String(dataRow["Pattern"].ToString());
-				string patternShowing=contrApptPanel.GetPatternShowing(pattern);
-				SizeF sizeAppt=contrApptPanel.SetSize(pattern);
-				Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
-				using(Graphics g = Graphics.FromImage(bitmap)){
-					contrApptPanel.GetBitmapForPinboard(g,dataRow,patternShowing,bitmap.Width,bitmap.Height);
-				}
-				//Bitmap bitmap=contrApptPanel.GetBitmapForPinboard(dataRow,pinBoard.Width);
-				long aptNum=PIn.Long(dataRow["AptNum"].ToString());
-				pinBoard.AddAppointment(bitmap,aptNum,dataRow);
-				bitmap.Dispose();//?
-				if(i==aptNums.Count-1) { //Set the pt to the last appt on the pinboard.
-					patNum=PIn.Long(dataRow["PatNum"].ToString());
-				}
-			}
-			if(patNum==0 && _patCur!=null) {
-				patNum=_patCur.PatNum;
-			}
-			RefreshModuleDataPatient(patNum); 
-			if(_patCur!=null) {
-				FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
-			}
-		}
-
-		///<summary>Used when dragging an appt to the pinboard.</summary>
-		private void SendToPinboardDataRow(DataRow dataRow) {
-			if(IsHqNoneView()) {
-				MsgBox.Show("Appointments can't be sent to the pinboard when an appointment view or clinic hasn't been selected.");
-				return;
-			}
-			string pattern=PIn.String(dataRow["Pattern"].ToString());
-			string patternShowing=contrApptPanel.GetPatternShowing(pattern);
-			SizeF sizeAppt=contrApptPanel.SetSize(pattern);
-			Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
-			using(Graphics g = Graphics.FromImage(bitmap)){
-				contrApptPanel.GetBitmapForPinboard(g,dataRow,patternShowing,bitmap.Width,bitmap.Height);
-			}
-			//Bitmap bitmap=contrApptPanel.GetBitmapForPinboard(dataRow,pinBoard.Width);
-			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
-			pinBoard.AddAppointment(bitmap,aptNum,dataRow);
-			bitmap.Dispose();//?
-			long patNum=PIn.Long(dataRow["PatNum"].ToString());
-			RefreshModuleDataPatient(patNum); 
-			//if(_patCur!=null) {
-				FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
-			//}
-		}
-
-		///<summary>Shortens appt.Pattern if overlap is found in neighboring op within appt.Op. Pattern will be adjusted to a minimum of 1 until no overlap occurs.
-		///Calling RefreshPeriod() is not necessary before calling this method. It goes to the db only as much as is necessary.
-		///Returns true if patter was adjusted. Returns false if pattern was not adjusted.</summary>
-		public static bool TryAdjustAppointmentPattern(Appointment appt) {
-			bool isPatternChanged;
-			bool notUsed;
-			Appointments.TryAdjustAppointment(appt,UI.UserControlApptsPanelJ.GetListOpsVisible(),false,true,true,true,out isPatternChanged,out notUsed);
-			return isPatternChanged;
-		}
-
-		#endregion Methods - Private Other
-			 	 	
 		#region Events - ContrAppt
 		private void ContrAppt_Load(object sender,EventArgs e) {
 
@@ -2265,6 +259,10 @@ namespace OpenDental {
 			AppointmentEvent.Fire(ODEventType.AppointmentEdited,e.Appt);
 		}
 
+		private void ContrApptPanel_DateChanged(object sender, EventArgs e){
+			SetWeeklyView(contrApptPanel.IsWeeklyView);//because weekly view changed internally as well.
+		}
+
 		private void contrApptPanel_SelectedApptChanged(object sender,UI.ApptDataEventArgs e) {
 			pinBoard.SelectedIndex=-1;
 			//In old ContrAppt, this section was at the end of mouse down:
@@ -2376,8 +374,8 @@ namespace OpenDental {
 				menuClearForDayOp.Enabled=false;
 				menuClearForDayClinics.Enabled=false;
 			}
-			_clickedOnOp=e.OpNum;
-			_clickedOnDateT=e.DateT;
+			_blockoutClickedOnOp=e.OpNum;
+			_dateTimeClickedBlockout=e.DateT;
 			int clickedOnBlockCount=0;
 			string blockoutFlags="";
 			List<Schedule> ListSchedulesBlockout=Schedules.GetListForType(contrApptPanel.ListSchedules,ScheduleType.Blockout,0);
@@ -2433,7 +431,7 @@ namespace OpenDental {
 				menuEdit.Enabled=false;
 				menuCut.Enabled=false;
 				menuCopy.Enabled=false;
-				if(BlockoutClipboard==null) {
+				if(_scheduleBlockoutClipboard==null) {
 					menuPaste.Enabled=false;
 				}
 				else {
@@ -2544,48 +542,48 @@ namespace OpenDental {
 		}
 
 		private void ListRecall_Click() {
-			if(FormRecallL==null || FormRecallL.IsDisposed) {
-				FormRecallL=new FormRecallList();
+			if(_formRecallList==null || _formRecallList.IsDisposed) {
+				_formRecallList=new FormRecallList();
 			}
-			FormRecallL.Show();
-			if(FormRecallL.WindowState==FormWindowState.Minimized) {
-				FormRecallL.WindowState=FormWindowState.Normal;
+			_formRecallList.Show();
+			if(_formRecallList.WindowState==FormWindowState.Minimized) {
+				_formRecallList.WindowState=FormWindowState.Normal;
 			}
-			FormRecallL.BringToFront();
+			_formRecallList.BringToFront();
 		}
 
 		private void ListConfirm_Click() {
-			if(FormConfirmL==null || FormConfirmL.IsDisposed) {
-				FormConfirmL=new FormConfirmList();
+			if(_formConfirmList==null || _formConfirmList.IsDisposed) {
+				_formConfirmList=new FormConfirmList();
 			}
-			FormConfirmL.Show();
-			if(FormConfirmL.WindowState==FormWindowState.Minimized) {
-				FormConfirmL.WindowState=FormWindowState.Normal;
+			_formConfirmList.Show();
+			if(_formConfirmList.WindowState==FormWindowState.Minimized) {
+				_formConfirmList.WindowState=FormWindowState.Normal;
 			}
-			FormConfirmL.BringToFront();
+			_formConfirmList.BringToFront();
 		}
 
 		private void ListPlanned_Click() {
-			if(FormTN==null || FormTN.IsDisposed) {
-				FormTN=new FormTrackNext();
+			if(_formTrackNext==null || _formTrackNext.IsDisposed) {
+				_formTrackNext=new FormTrackNext();
 			}
-			FormTN.Show();
-			if(FormTN.WindowState==FormWindowState.Minimized) {
-				FormTN.WindowState=FormWindowState.Normal;
+			_formTrackNext.Show();
+			if(_formTrackNext.WindowState==FormWindowState.Minimized) {
+				_formTrackNext.WindowState=FormWindowState.Normal;
 			}
-			FormTN.BringToFront();
+			_formTrackNext.BringToFront();
 		}
 
 		private void ListUnsched_Click() {
 			//Reselect existing window if available, if not create a new instance
-			if(FormUnsched2==null || FormUnsched2.IsDisposed) {
-				FormUnsched2=new FormUnsched();
+			if(_formUnsched==null || _formUnsched.IsDisposed) {
+				_formUnsched=new FormUnsched();
 			}
-			FormUnsched2.Show();
-			if(FormUnsched2.WindowState==FormWindowState.Minimized) {//only applicable if re-using an existing instance
-				FormUnsched2.WindowState=FormWindowState.Normal;
+			_formUnsched.Show();
+			if(_formUnsched.WindowState==FormWindowState.Minimized) {//only applicable if re-using an existing instance
+				_formUnsched.WindowState=FormWindowState.Normal;
 			}
-			FormUnsched2.BringToFront();
+			_formUnsched.BringToFront();
 		}
 
 		private void ListASAP_Click() {
@@ -2630,11 +628,11 @@ namespace OpenDental {
 
 		private void toolBarPrint_Click() {
 			if(contrApptPanel.ListOpsVisible.Count==0) {//no ops visible.
-				MsgBox.Show(this,"There must be at least one operatory showing in order to Print Schedule.");
+				MsgBox.Show("There must be at least one operatory showing in order to Print Appointments.");
 				return;
 			}
 			if(PrinterSettings.InstalledPrinters.Count==0) {
-				MessageBox.Show(Lan.g(this,"Printer not installed"));
+				MessageBox.Show("Printer not installed");
 				return;
 			}
 			List<long> listVisOpNums=contrApptPanel.ListOpsVisible.Select(x => x.OperatoryNum).ToList();
@@ -2746,41 +744,34 @@ namespace OpenDental {
 		#region Events - PanelCalendar Upper
 		///<summary>Clicked today.</summary>
 		private void butToday_Click(object sender,System.EventArgs e) {
-			contrApptPanel.DateSelected=DateTimeOD.Today;
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(DateTimeOD.Today);
 		}
 
 		///<summary>Clicked back one day.</summary>
 		private void butBack_Click(object sender,System.EventArgs e) {
-			contrApptPanel.DateSelected=contrApptPanel.DateSelected.AddDays(-1);
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(contrApptPanel.DateSelected.AddDays(-1));
 		}
 
 		///<summary>Clicked forward one day.</summary>
 		private void butFwd_Click(object sender,System.EventArgs e) {
-			contrApptPanel.DateSelected=contrApptPanel.DateSelected.AddDays(1);
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(contrApptPanel.DateSelected.AddDays(1));
 		}
 
 		
 		private void butBackMonth_Click(object sender,EventArgs e) {
-			contrApptPanel.DateSelected=contrApptPanel.DateSelected.AddMonths(-1);
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(contrApptPanel.DateSelected.AddMonths(-1));
 		}
 
 		private void butBackWeek_Click(object sender,EventArgs e) {
-			contrApptPanel.DateSelected=contrApptPanel.DateSelected.AddDays(-7);
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(contrApptPanel.DateSelected.AddDays(-7));
 		}
 
 		private void butFwdWeek_Click(object sender,EventArgs e) {
-			contrApptPanel.DateSelected=contrApptPanel.DateSelected.AddDays(7);
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(contrApptPanel.DateSelected.AddDays(7));
 		}
 
 		private void butFwdMonth_Click(object sender,EventArgs e) {
-			contrApptPanel.DateSelected=contrApptPanel.DateSelected.AddMonths(1);
-			SetWeeklyView(radioWeek.Checked);
+			SetDateSelected(contrApptPanel.DateSelected.AddMonths(1));
 		}
 
 		private void radioDay_Click(object sender,EventArgs e) {
@@ -2793,8 +784,8 @@ namespace OpenDental {
 
 		///<summary>Clicked a date on the calendar.</summary>
 		private void Calendar2_DateSelected(object sender,System.Windows.Forms.DateRangeEventArgs e) {
-			contrApptPanel.DateSelected=Calendar2.SelectionStart;
-			SetWeeklyView(radioWeek.Checked);
+			//Do not use the DateChanged event, because that reacts to programmatic changes to the calendar date, causing weird loops.
+			SetDateSelected(Calendar2.SelectionStart);
 		}
 
 		///<summary></summary>
@@ -3227,8 +1218,8 @@ namespace OpenDental {
 				Appointment apptOld=apptCur.Copy();
 				RefreshModuleDataPatient(apptCur.PatNum);//redundant?
 																	   //Patient pat=Patients.GetPat(pinBoard.SelectedAppt.PatNum);
-				if(apptCur.IsNewPatient && AppointmentL.DateSelected!=apptCur.AptDateTime) {
-					Procedures.SetDateFirstVisit(AppointmentL.DateSelected,4,_patCur);
+				if(apptCur.IsNewPatient && contrApptPanel.DateSelected!=apptCur.AptDateTime) {
+					Procedures.SetDateFirstVisit(contrApptPanel.DateSelected,4,_patCur);
 				}
 				//e.Location is in ContrAppt coords
 				TimeSpan? timeSpanNew=contrApptPanel.YPosToTime(e.Location.Y-contrApptPanel.Top);//in contrApptPanel coords
@@ -3236,9 +1227,12 @@ namespace OpenDental {
 					return;
 				}
 				TimeSpan timeSpanNewRounded=UI.UserControlApptsPanelJ.RoundTimeToNearestIncrement(timeSpanNew.Value,contrApptPanel.MinPerIncr);
-				DateTime dateNew=contrApptPanel.DateSelected;
-				if(contrApptPanel.IsWeeklyView) {
-					dateNew=contrApptPanel.DateStart.AddDays(contrApptPanel.RoundToNearestDay(e.Location.X-contrApptPanel.Location.X));
+				contrApptPanel.RoundToNearestDateAndOp(e.Location.X-contrApptPanel.Location.X,//passing in as coordinates of the control
+					out DateTime dateNew,
+					out int opIdx);
+				if(opIdx<0){
+					MsgBox.Show("Invalid operatory");
+					return;
 				}
 				apptCur.AptDateTime=dateNew+timeSpanNewRounded;
 				//Compare beginning of new appointment against end to see if the appointment spans two days
@@ -3250,9 +1244,9 @@ namespace OpenDental {
 				if(contrApptPanel.IsDoubleBooked(apptCur)) {
 					return;
 				}
-				int opIdx=contrApptPanel.RoundToNearestOp(e.Location.X-contrApptPanel.Location.X);
 				Operatory opCur=contrApptPanel.ListOpsVisible[opIdx];
 				apptCur.Op=opCur.OperatoryNum;
+					//opCur.OperatoryNum;
 				//Set providers----------------------Similar to UpdateAppointments()
 				long assignedDent=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,opCur,false,apptCur.AptDateTime);
 				long assignedHyg=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,opCur,true,apptCur.AptDateTime);
@@ -3520,9 +1514,10 @@ namespace OpenDental {
 				Procedures.SetProvidersInAppointment(apptCur,procsForSingleApt,isUpdatingFees,procFeeHelper);
 				pinBoard.ClearSelected();
 				contrApptPanel.SelectedAptNum=apptCur.AptNum;
-				RefreshModuleScreenButtonsRight();
-				RefreshPeriod(isRefreshSchedules:true);//date moving to for this computer; This line may not be needed
-				AppointmentL.DateSelected=apptCur.AptDateTime;			
+				//SetDateSelected(apptCur.AptDateTime);
+				//RefreshModuleScreenButtonsRight();
+				//RefreshPeriod(isRefreshSchedules:true);//date moving to for this computer; This line may not be needed
+				RefreshPeriod();
 				if(isCreate) {//new appointment is being added to the schedule from the pinboard, trigger ScheduleProcedure automation
 					List<string> procCodes=procsForSingleApt.Select(x => ProcedureCodes.GetProcCode(x.CodeNum).ProcCode).ToList();					
 					AutomationL.Trigger(AutomationTrigger.ScheduleProcedure,procCodes,apptCur.PatNum);
@@ -3601,11 +1596,11 @@ namespace OpenDental {
 			if(!Security.IsAuthorized(Permissions.Schedules)) {
 				return;
 			}
-			FormScheduleDayEdit formScheduleDayEdit=new FormScheduleDayEdit(AppointmentL.DateSelected,Clinics.ClinicNum);
+			FormScheduleDayEdit formScheduleDayEdit=new FormScheduleDayEdit(contrApptPanel.DateSelected,Clinics.ClinicNum);
 			formScheduleDayEdit.ShowOkSchedule=true;
 			formScheduleDayEdit.ShowDialog();
 			SecurityLogs.MakeLogEntry(Permissions.Schedules,0,"");
-			SetWeeklyView(false);//to refresh
+			RefreshPeriod();
 			if(formScheduleDayEdit.GotoScheduleOnClose) {
 				FormSchedule formSchedule = new FormSchedule();
 				formSchedule.ShowDialog();
@@ -3624,6 +1619,10 @@ namespace OpenDental {
 			Task task=Tasks.GetOne(reminderTask.TaskNum);
 			FormTaskEdit formTaskEdit=new FormTaskEdit(task);
 			formTaskEdit.Show();//non-modal
+		}
+
+		private void timerWaitingRoom_Tick(object sender,EventArgs e) {
+			FillWaitingRoom();
 		}
 		#endregion Events - LR Tabs
 
@@ -3807,7 +1806,7 @@ namespace OpenDental {
 				MessageBox.Show("Blockout not found.");
 				return;//should never happen
 			}
-			BlockoutClipboard=SchedCur.Copy();
+			_scheduleBlockoutClipboard=SchedCur.Copy();
 		}
 
 		private void menuBlockCut_Click(object sender,EventArgs e) {
@@ -3820,7 +1819,7 @@ namespace OpenDental {
 				MessageBox.Show("Blockout not found.");
 				return;//should never happen
 			}
-			BlockoutClipboard=SchedCur.Copy();
+			_scheduleBlockoutClipboard=SchedCur.Copy();
 			Schedules.Delete(SchedCur);
 			Schedules.BlockoutLogHelper(BlockoutAction.Cut,SchedCur);
 			RefreshPeriodSchedules();
@@ -3830,12 +1829,12 @@ namespace OpenDental {
 			if(!Security.IsAuthorized(Permissions.Blockouts)) {
 				return;
 			}
-			Schedule sched=BlockoutClipboard.Copy();
+			Schedule sched=_scheduleBlockoutClipboard.Copy();
 			sched.Ops=new List<long>();
-			sched.Ops.Add(_clickedOnOp);
-			sched.SchedDate=_clickedOnDateT.Date;
+			sched.Ops.Add(_blockoutClickedOnOp);
+			sched.SchedDate=_dateTimeClickedBlockout.Date;
 			TimeSpan timeSpanOriginalLength=sched.StopTime-sched.StartTime;
-			sched.StartTime=UserControlApptsPanelJ.RoundTimeDown(_clickedOnDateT.TimeOfDay,contrApptPanel.MinPerIncr);
+			sched.StartTime=UserControlApptsPanelJ.RoundTimeDown(_dateTimeClickedBlockout.TimeOfDay,contrApptPanel.MinPerIncr);
 			sched.StopTime=sched.StartTime+timeSpanOriginalLength;
 			if(sched.StopTime >= TimeSpan.FromDays(1)) {//long span that spills over to next day
 				MsgBox.Show("This Blockout would go past midnight.");
@@ -3899,14 +1898,14 @@ namespace OpenDental {
 					&& !x.ItemValue.Contains(BlockoutType.NoSchedule.GetDescription()));
 			}
 			Schedule schedule=new Schedule();
-			schedule.SchedDate=_clickedOnDateT.Date;
-			schedule.StartTime=UserControlApptsPanelJ.RoundTimeDown(_clickedOnDateT.TimeOfDay,contrApptPanel.MinPerIncr);
+			schedule.SchedDate=_dateTimeClickedBlockout.Date;
+			schedule.StartTime=UserControlApptsPanelJ.RoundTimeDown(_dateTimeClickedBlockout.TimeOfDay,contrApptPanel.MinPerIncr);
 			schedule.StopTime=schedule.StartTime+TimeSpan.FromHours(1);
 			if(schedule.StartTime>TimeSpan.FromHours(23)) {//if user clicked anywhere during the last hour of the day, set blockout to the last hour of the day.
 				schedule.StartTime=new TimeSpan(23,00,00);
 				schedule.StopTime=new TimeSpan(23,59,00);
 			}
-			schedule.Ops.Add(_clickedOnOp);//jordan 2019-05-20-This is new behavior to prefill op
+			schedule.Ops.Add(_blockoutClickedOnOp);//jordan 2019-05-20-This is new behavior to prefill op
 			schedule.SchedType=ScheduleType.Blockout;
 			FormScheduleBlockEdit formScheduleBlockEdit=new FormScheduleBlockEdit(schedule,Clinics.ClinicNum, listDefsBlockoutTypes);
 			formScheduleBlockEdit.IsNew=true;
@@ -3919,7 +1918,7 @@ namespace OpenDental {
 				return;
 			}
 			FormBlockoutCutCopyPaste FormB=new FormBlockoutCutCopyPaste();
-			FormB.DateSelected=_clickedOnDateT.Date;
+			FormB.DateSelected=_dateTimeClickedBlockout.Date;
 			if(contrApptPanel.ApptViewCur==null) {
 				FormB.ApptViewNumCur=0;
 			}
@@ -3937,8 +1936,8 @@ namespace OpenDental {
 			if(!MsgBox.Show(MsgBoxButtons.OKCancel,"Clear all blockouts for day? (This may include blockouts not shown in the current appointment view)")) {
 				return;
 			}
-			Schedules.ClearBlockoutsForDay(_clickedOnDateT.Date);
-			Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:_clickedOnDateT.Date);
+			Schedules.ClearBlockoutsForDay(_dateTimeClickedBlockout.Date);
+			Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:_dateTimeClickedBlockout.Date);
 			RefreshPeriodSchedules();
 		}
 
@@ -3949,8 +1948,8 @@ namespace OpenDental {
 			if(!MsgBox.Show(MsgBoxButtons.OKCancel,"Clear all blockouts for day in this operatory?")) {
 				return;
 			}
-			Schedules.ClearBlockoutsForOp(_clickedOnOp,_clickedOnDateT.Date);
-			Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:_clickedOnDateT.Date,opNum:_clickedOnOp);
+			Schedules.ClearBlockoutsForOp(_blockoutClickedOnOp,_dateTimeClickedBlockout.Date);
+			Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:_dateTimeClickedBlockout.Date,opNum:_blockoutClickedOnOp);
 			RefreshPeriodSchedules();
 		}
 
@@ -3961,9 +1960,9 @@ namespace OpenDental {
 			if(!MsgBox.Show(this,true,"Clear all blockouts for day for this clinic?")) {
 				return;
 			}
-			Operatory operatory=Operatories.GetOperatory(_clickedOnOp);
-			Schedules.ClearBlockoutsForClinic(operatory.ClinicNum,_clickedOnDateT.Date);
-			Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:_clickedOnDateT.Date,clinicNum:operatory.ClinicNum);
+			Operatory operatory=Operatories.GetOperatory(_blockoutClickedOnOp);
+			Schedules.ClearBlockoutsForClinic(operatory.ClinicNum,_dateTimeClickedBlockout.Date);
+			Schedules.BlockoutLogHelper(BlockoutAction.Clear,dateTime:_dateTimeClickedBlockout.Date,clinicNum:operatory.ClinicNum);
 			RefreshPeriodSchedules();
 		}
 
@@ -3984,14 +1983,14 @@ namespace OpenDental {
 			//TimeSpan timeSpanClicked=contrApptPanel.GetTimeClicked();
 			for(int i=0;i<listScheduleForType.Count;i++) {
 				//skip if op doesn't match
-				if(!listScheduleForType[i].Ops.Contains(_clickedOnOp)) {
+				if(!listScheduleForType[i].Ops.Contains(_blockoutClickedOnOp)) {
 					continue;
 				}
-				if(listScheduleForType[i].SchedDate.Date!=_clickedOnDateT.Date) {
+				if(listScheduleForType[i].SchedDate.Date!=_dateTimeClickedBlockout.Date) {
 					continue;
 				}
-				if(listScheduleForType[i].StartTime <= _clickedOnDateT.TimeOfDay
-					&& _clickedOnDateT.TimeOfDay < listScheduleForType[i].StopTime) 
+				if(listScheduleForType[i].StartTime <= _dateTimeClickedBlockout.TimeOfDay
+					&& _dateTimeClickedBlockout.TimeOfDay < listScheduleForType[i].StopTime) 
 				{
 					schedule=listScheduleForType[i];
 					break;
@@ -4082,12 +2081,12 @@ namespace OpenDental {
 				return;
 			}
 			SecurityLogs.MakeLogEntry(Permissions.Setup,0,"Update Provs on Future Appts tool run on operatory "+operatory.Abbrev+".");
-			List<Appointment> listAppts=Appointments.GetAppointmentsForOpsByPeriod(new List<long>() {operatory.OperatoryNum},DateTime.Now);
+			List<Appointment> listAppts=Appointments.GetAppointmentsForOpsByPeriod(new List<long>() {operatory.OperatoryNum},DateTime.Now);//no end date, so all future
 			List<Appointment> listApptsOld=new List<Appointment>();
 			foreach(Appointment appt in listAppts) {
 				listApptsOld.Add(appt.Copy());
 			}
-			MoveAppointments(listAppts,listApptsOld,operatory,false,false,true);
+			MoveAppointments(listAppts,listApptsOld,operatory);
 			MsgBox.Show("Done");
 		}
 
@@ -4206,7 +2205,6 @@ namespace OpenDental {
 				MsgBox.Show("There is no appointment on the pinboard.");
 				return;
 			}
-			
 			if(_listScheduleOpenings==null || _listScheduleOpenings.Count<1) {
 				return;
 			}
@@ -4219,8 +2217,7 @@ namespace OpenDental {
 			if(clickedI==-1) {
 				return;
 			}
-			AppointmentL.DateSelected=_listScheduleOpenings[clickedI].DateTimeAvail;
-			SetWeeklyView(false);
+			SetDateSelected(_listScheduleOpenings[clickedI].DateTimeAvail);
 		}
 
 		private void butRefresh_Click(object sender,EventArgs e) {
@@ -4245,21 +2242,1835 @@ namespace OpenDental {
 		}
 		#endregion Events - Search
 
+		#region Methods - Public Initialize
+		///<summary>Called from FormOpenDental upon startup.</summary>
+		public void InitializeOnStartup(){
+			//I hate this.  It's firing way too frequently
+			if(_hasInitializedOnStartup) {
+				return;
+			}
+			LayoutPanels();
+			contrApptPanel.DateSelected=DateTime.Today;
+			contrApptPanel.MinPerIncr=PrefC.GetInt(PrefName.AppointmentTimeIncrement);
+			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AppointmentColors,true);
+			Color colorOpen=listDefs[0].ItemColor;
+			Color colorClosed=listDefs[1].ItemColor;
+			Color colorHoliday=listDefs[3].ItemColor;
+			Color colorBlockText=listDefs[4].ItemColor;
+			Color colorTimeLine=PrefC.GetColor(PrefName.AppointmentTimeLineColor);
+			contrApptPanel.SetColors(colorOpen,colorClosed,colorHoliday,colorBlockText,colorTimeLine);
+			menuWeeklyApt.MenuItems.Clear();
+			MenuItem menuItem=menuWeeklyApt.MenuItems.Add("Copy to Pinboard",new EventHandler(menuWeekly_Click));
+			menuItem.Name=MenuItemNames.CopyToPinboard;
+			menuApt.MenuItems.Clear();
+			menuItem=menuApt.MenuItems.Add("Copy to Pinboard",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.CopyToPinboard;
+			if(PrefC.IsODHQ) {
+				menuItem=menuApt.MenuItems.Add("Copy Appointment Structure",new EventHandler(menuApt_Click));
+				menuItem.Name=MenuItemNames.CopyAppointmentStructure;
+			}
+			menuApt.MenuItems.Add("-");
+			menuItem=menuApt.MenuItems.Add("Send to Unscheduled List",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.SendToUnscheduledList;
+			menuItemBreakAppt=menuApt.MenuItems.Add("Break Appointment",new EventHandler(menuApt_Click));
+			menuItemBreakAppt.Name=MenuItemNames.BreakAppointment;
+			//menuItem=menuApt.MenuItems.Add("Mark as ASAP",new EventHandler(OnASAP_Click));
+			//menuItem.Name=MenuItemNames.MarkAsAsap;
+			menuItem=menuApt.MenuItems.Add("Set Complete",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.SetComplete;
+			menuItem=menuApt.MenuItems.Add("Delete",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.Delete;
+			menuItem=menuApt.MenuItems.Add("Other Appointments",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.OtherAppointments;
+			menuApt.MenuItems.Add("-");
+			menuItem=menuApt.MenuItems.Add("Print Label",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.PrintLabel;
+			menuItem=menuApt.MenuItems.Add("Print Card",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.PrintCard;
+			menuItem=menuApt.MenuItems.Add("Print Card for Entire Family",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.PrintCardEntireFamily;
+			menuItem=menuApt.MenuItems.Add("Routing Slip",new EventHandler(menuApt_Click));
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuBlockout.MenuItems.Clear();
+			menuItem=menuBlockout.MenuItems.Add("Edit Blockout",menuBlockEdit_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;//js RoutingSlip seems wrong for this and the items below.
+			menuItem=menuBlockout.MenuItems.Add("Cut Blockout",menuBlockCut_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem=menuBlockout.MenuItems.Add("Copy Blockout",menuBlockCopy_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem=menuBlockout.MenuItems.Add("Paste Blockout",menuBlockPaste_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem=menuBlockout.MenuItems.Add("Delete Blockout",menuBlockDelete_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem=menuBlockout.MenuItems.Add("Add Blockout",menuBlockAdd_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem=menuBlockout.MenuItems.Add("Blockout Cut-Copy-Paste",menuBlockCutCopyPaste_Click);
+			menuItem.Name=MenuItemNames.RoutingSlip;
+			if(!PrefC.HasClinicsEnabled) {//Clear All Blockouts for Day is too aggressive when Clinics are enabled.
+				menuItem=menuBlockout.MenuItems.Add("Clear All Blockouts for Day",menuBlockClearDay_Click);
+				menuItem.Name=MenuItemNames.ClearAllBlockoutsForDay;
+			}
+			menuItem=menuBlockout.MenuItems.Add("Clear All Blockouts for Day, Op only",menuBlockClearOp_Click);
+			menuItem.Name=MenuItemNames.ClearAllBlockoutsForDayOpOnly;
+			if(PrefC.HasClinicsEnabled) {
+				menuItem=menuBlockout.MenuItems.Add("Clear All Blockouts for Day, Clinic only",menuBlockClearClinic_Click);
+				menuItem.Name=MenuItemNames.ClearAllBlockoutsForDayClinicOnly;
+			}
+			menuItem=menuBlockout.MenuItems.Add("Edit Blockout Types",menuBlockTypes_Click);
+			menuItem.Name=MenuItemNames.EditBlockoutTypes;
+			menuItem=menuBlockout.MenuItems.Add("-");//Designer code to insert a horizontal separator
+			menuItem.Name=MenuItemNames.BlockoutSpacer;
+			menuItem=menuBlockout.MenuItems.Add("Text ASAP List",menuTextASAPList_Click);
+			menuItem.Name=MenuItemNames.TextAsapList;
+			menuItem=menuBlockout.MenuItems.Add(MenuItemNames.TextApptsForDayOp,menuTextApptsForDayOp_Click);
+			menuItem.Name=MenuItemNames.TextApptsForDayOp;
+			menuItem=menuBlockout.MenuItems.Add(MenuItemNames.TextApptsForDayView,menuTextApptsForDayView_Click);
+			menuItem.Name=MenuItemNames.TextApptsForDayView;
+			menuItem=menuBlockout.MenuItems.Add(MenuItemNames.TextApptsForDay,menuTextApptsForDay_Click);
+			menuItem.Name=MenuItemNames.TextApptsForDay;
+			menuItem=menuBlockout.MenuItems.Add("Update Provs on Future Appts",menuUpdateProvs_Click);
+			menuItem.Name=MenuItemNames.UpdateProvsOnFutureAppts;
+			//skippped translation
+			LayoutToolBar();
+			//Appointment action buttons
+			toolTip1.SetToolTip(butUnsched,"Send to Unscheduled List");
+			toolTip1.SetToolTip(butBreak,"Break");
+			toolTip1.SetToolTip(butComplete,"Set Complete");
+			toolTip1.SetToolTip(butDelete,"Delete");
+			//toolTip1.SetToolTip(butOther,,"Other Appointments");
+			if(PrefC.IsODHQ) {
+				butGraph.Visible=true;
+			}
+			SetWeeklyView(PrefC.GetBool(PrefName.ApptModuleDefaultToWeek));
+			//later: SendToPinboardEvent.Fired+=HandlePinClicked;
+			_hasInitializedOnStartup=true;
+		}
+
+		///<summary>stub</summary>
+		public void LayoutToolBar(){
+			toolBarMain.Buttons.Clear();
+			toolBarMain.Buttons.Add(new ODToolBarButton("",2,"Appointment Lists","Lists"));
+			toolBarMain.Buttons.Add(new ODToolBarButton("",1,"Print Schedule","Print"));
+			if(!ProgramProperties.IsAdvertisingDisabled(ProgramName.RapidCall)) {
+				toolBarMain.Buttons.Add(new ODToolBarButton("",3,"Rapid Call","RapidCall"));
+			}
+			ProgramL.LoadToolbar(toolBarMain,ToolBarsAvail.ApptModule);
+			toolBarMain.Invalidate();
+			Plugins.HookAddCode(this,"ContrAppt.LayoutToolBar_end",_patCur);
+		}
+		#endregion Methods - Public Initialize
+
+		#region Methods - Public Module Select
+		///<summary>Refreshes the module for the passed in patient.  A patNum of 0 is acceptable.  Any ApptNums within listPinApptNums will get forcefully added to the main DataSet for the appointment module.</summary>
+		public void ModuleSelected(long patNum,List<long> listPinApptNums=null,List<long> listOpNums=null,List<long> listProvNums=null){
+			if(IsHqNoneView()) {
+				return;
+			}
+			RefreshModuleDataPatient(patNum);
+			RefreshModuleDataPeriod(listPinApptNums,listOpNums,listProvNums,isRefreshSchedules:true);
+			RefreshModuleScreenButtonsRight();
+			RefreshModuleScreenPeriod();
+			LayoutScrollOpProv();//only runs once
+		}
+
+		///<summary>stub</summary>
+		public void ModuleUnselected(){
+			//todo:
+		}
+
+		///<summary></summary>
+		public void ModuleSelectedWithPinboard(long patNum,List<long> listPinApptNums){
+			ModuleSelected(patNum,listPinApptNums);
+			SendToPinBoardAptNums(listPinApptNums);
+		}
+
+		///<summary>>Refreshes everything except the patient info. isRefreshBubble will refresh the appointment bubble.  If another workstation made a change, then refreshes datatables.</summary>
+		public void RefreshPeriod(bool isRefreshBubble=true,List<long> listOpNums=null,List<long> listProvNums=null,bool isRefreshAppointments=true,
+			bool isRefreshSchedules=false)
+			{
+			if(IsHqNoneView()) {
+				return;
+			}
+			//todo:
+			//long oldBubbleNum=bubbleAptNum;
+			RefreshModuleDataPeriod(listOpNums:listOpNums,listProvNums:listProvNums,isRefreshAppointments:isRefreshAppointments,isRefreshSchedules:isRefreshSchedules);
+			RefreshModuleScreenPeriod();
+			//if(!isRefreshBubble) {
+			//	bubbleAptNum=oldBubbleNum;
+			//}
+		}
+
+		/// <summary>Wrapper for RefreshPeriod, refreshes the schedules, but not the appointments</summary>
+		public void RefreshPeriodSchedules() {
+			RefreshPeriod(isRefreshAppointments:false,isRefreshSchedules:true);
+		}
+		#endregion Methods - Public Module Select
+
+		#region Methods - Public Other
+		///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user 
+		///doubleclicked on a blank time to get to this dialog.</summary>
+		public void DisplayOtherDlg(bool initialClick,DateTime dateTime,long opNum) {
+			if(_patCur==null) {
+				return;
+			}
+			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);
+			formApptsOther.IsInitialClick=initialClick;
+			formApptsOther.DateTNew=dateTime;
+			formApptsOther.OpNumNew=opNum;
+			formApptsOther.ShowDialog();
+			ProcessOtherDlg(formApptsOther.OResult,formApptsOther.SelectedPatNum,formApptsOther.DateJumpToString,formApptsOther.AptNumsSelected.ToArray());
+		}
+
+		///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user 
+		///doubleclicked on a blank time to get to this dialog.</summary>
+		public void DisplayOtherDlg(bool initialClick) {
+			if(_patCur==null) {
+				return;
+			}
+			FormApptsOther FormAO=new FormApptsOther(_patCur.PatNum);
+			FormAO.IsInitialClick=initialClick;
+			FormAO.ShowDialog();
+			ProcessOtherDlg(FormAO.OResult,FormAO.SelectedPatNum,FormAO.DateJumpToString,FormAO.AptNumsSelected.ToArray());
+		}
+
+		///<summary>The key press from the main form is passed down to this module.  This is guaranteed to be between the keys of F1 and F12.</summary>
+		public void FunctionKeyPress(Keys keys) {
+			string keyName=Enum.GetName(typeof(Keys),keys);//keyName will be F1, F2, ... F12
+			int fKeyVal=int.Parse(keyName.TrimStart('F'));//strip off the F and convert to an int
+			if(_listApptViews.Count<fKeyVal) {
+				return;
+			}
+			SetView(_listApptViews[fKeyVal-1].ApptViewNum,true);
+		}
+
+		///<summary>Used by parent form when a dialog needs to be displayed, but mouse might be down.  This forces a mouse up, and cleans up any mess so that dlg can show.</summary>
+		public void MouseUpForced() {
+			pinBoard.MouseUpForced();
+			contrApptPanel.MouseUpForced();
+		}
+		#endregion Methods - Public Other
+
+		#region Methods - Private Refresh Data
+		///<summary>Gets op nums and prov nums for current view if not passed in.  Will refresh the appointments and schedules if the respective doRefreshes are set.</summary>
+		private void RefreshModuleDataPeriod(List<long> listPinApptNums = null,List<long> listOpNums = null,List<long> listProvNums = null
+			,bool isRefreshAppointments=true,bool isRefreshSchedules=false)
+		{
+			long apptViewNum=-1;
+			if(listOpNums==null) {
+				apptViewNum=GetApptViewNumForUser();
+				listOpNums=ApptViewItems.GetOpsForView(apptViewNum);
+			}
+			if(listProvNums==null) {
+				if(apptViewNum<0) {
+					apptViewNum=GetApptViewNumForUser();//Only run this query if we have to (haven't run it yet from this method).
+				}
+				listProvNums=ApptViewItems.GetProvsForView(apptViewNum);
+			}
+			contrApptPanel.BeginUpdate();
+			RefreshAppointmentsIfNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listPinApptNums,listOpNums,listProvNums,isRefreshAppointments);
+			RefreshSchedulesIfNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listOpNums,isRefreshSchedules);
+			RefreshWaitingRoomTable();
+			_dateTimeWaitingRmRefreshed=DateTime.Now;
+			//SchedListPeriod=Schedules.ConvertTableToList(_dtSchedule);//happens internally in contrApptPanel when setting TableSchedul
+			ApptView viewCur=null;
+			if(comboView.SelectedIndex>0) {
+				viewCur=_listApptViews[comboView.SelectedIndex-1];
+			}
+			GetForCurView(viewCur,contrApptPanel.IsWeeklyView,contrApptPanel.ListSchedules);
+			contrApptPanel.EndUpdate();
+		}
+
+		///<summary>Fills PatCur from the database.</summary>
+		public void RefreshModuleDataPatient(long patNum){
+			if(patNum==0) {
+				_patCur=null;
+				return;
+			}
+			//We have to go to the db because we need to get the most recent patient info, mainly the AskedToArriveEarly time.
+			_patCur=Patients.GetPat(patNum);
+			Plugins.HookAddCode(this, "ContrAppt.RefreshModuleDataPatient_end");
+		}
+
+		/// <summary>This corresponds to the old ApptViewItemL.GetForCurView.  Its job is to set the ApptViewCur and then send VisOps and VisProvs data to the drawing.</summary>
+		private void GetForCurView(ApptView apptViewCur,bool isWeekly,List<Schedule> listSchedulesDaily){
+			contrApptPanel.BeginUpdate();
+			contrApptPanel.ApptViewCur=apptViewCur;
+			List<Provider> visProvs=null;
+			List<Operatory> visOps=null;
+			int rowsPerIncr=0;
+			List<ApptViewItem> listApptViewItemRowElements=null;
+			List<ApptViewItem> listApptViewItems=null;
+			ApptViewItemL.FillForApptView(isWeekly,apptViewCur,out visProvs,out visOps,out listApptViewItems,out listApptViewItemRowElements,out rowsPerIncr);
+			ApptViewItemL.AddOpsForScheduledProvs(isWeekly,listSchedulesDaily,apptViewCur,ref visOps);
+			visOps.Sort(ApptViewItemL.CompareOps);
+			visProvs.Sort(ApptViewItemL.CompareProvs);
+			contrApptPanel.ListProvsVisible=visProvs;
+			contrApptPanel.ListOpsVisible=visOps;
+			contrApptPanel.RowsPerIncr=rowsPerIncr;
+			contrApptPanel.ListApptViewItemRowElements=listApptViewItemRowElements;
+			contrApptPanel.ListApptViewItems=listApptViewItems;
+			contrApptPanel.EndUpdate();
+		}
+
+		///<summary>If needed, refreshes the _dtAppointments, _dtApptFields, and _dtPatFields tables.</summary>
+		private void RefreshAppointmentsIfNeeded(DateTime dateStart,DateTime dateEnd,List<long> listPinApptNums=null,
+			List<long> listOpNums=null,List<long> listProvNums=null,bool isRefreshNeeded=false)
+		{
+			if(contrApptPanel.TableAppointments!=null && contrApptPanel.TableApptFields!=null && contrApptPanel.TablePatFields!=null && !isRefreshNeeded) {
+				return;//If all data is already in memory and we are not forcing the refresh.
+			}
+			contrApptPanel.TableAppointments=Appointments.GetPeriodApptsTable(dateStart,dateEnd,0,false,listPinApptNums,listOpNums,listProvNums,false);
+			contrApptPanel.TableApptFields=Appointments.GetApptFields(contrApptPanel.TableAppointments);
+			contrApptPanel.TablePatFields=Appointments.GetPatFields(contrApptPanel.TableAppointments.Select().Select(x => PIn.Long(x["PatNum"].ToString())).ToList());
+			//contrApptPanel.OverlapOrdering.UpdateApptOrder(contrApptPanel.TableAppointments);
+		}
+
+		/// <summary>If needed, refreshes the _dtSchedule, _dtEmpSched, and _dtProvSched tables.</summary>
+		private void RefreshSchedulesIfNeeded(DateTime dateStart,DateTime dateEnd,List<long> listOpNums,bool isRefreshNeeded=false) {
+			if(contrApptPanel.TableSchedule!=null && contrApptPanel.TableEmpSched!=null && contrApptPanel.TableProvSched!=null && !isRefreshNeeded) {
+				return;//If all data is already in memory and we are not forcing the refresh.
+			}
+			contrApptPanel.TableEmpSched=Schedules.GetPeriodEmployeeSchedTable(dateStart,dateEnd,Clinics.ClinicNum);
+			contrApptPanel.TableProvSched=Schedules.GetPeriodProviderSchedTable(dateStart,dateEnd,Clinics.ClinicNum);
+			contrApptPanel.TableSchedule=Schedules.GetPeriodSchedule(dateStart,dateEnd,listOpNums,false);
+		}
+
+		///<summary>Always refreshes the _dtWaitingRoom table.</summary>
+		private void RefreshWaitingRoomTable() {
+			contrApptPanel.TableWaitingRoom=Appointments.GetPeriodWaitingRoomTable();
+		}
+		#endregion Methods - Private Refresh Data
+
+		#region Methods - Private Refresh Screen
+		///<summary>Happens once per minute.  It used to just move the red timebar down without querying the database.  
+		///But now it queries the database so that the waiting room list shows accurately.  Always updates the waiting room.</summary>
+		public void TickRefresh(){
+			try {
+				//dates already set
+				if(PrefC.GetBool(PrefName.ApptModuleRefreshesEveryMinute)) {
+					if(PrefC.GetLong(PrefName.ProcessSigsIntervalInSecs)==0) {//Signal processing is disabled.
+						RefreshPeriod(false);
+					}
+					else {
+						//Calling Signalods.RefreshTimed() was causing issues for large customers. This resulted in 100,000+ rows of signalod's returned.
+						//Now we only query for the specific signals we care about. Instead of using Signalods.SignalLastRefreshed we now use Signalods.ApptSignalLastRefreshed.
+						//Signalods.ApptSignalLastRefreshed mimics the behavior of Signalods.SignalLastRefreshed but is guaranteed to not be stale from inactive sessions.
+						List<Signalod> listSignals=Signalods.RefreshTimed(Signalods.ApptSignalLastRefreshed,new List<InvalidType>(){ InvalidType.Appointment,InvalidType.Schedules });
+						bool isApptRefresh=Signalods.IsApptRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);
+						bool isSchedRefresh=Signalods.IsSchedRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);
+						//either we have signals from other machines telling us to refresh, or we aren't using signals, in which case we still want to refresh
+						RefreshPeriod(false,isRefreshAppointments:isApptRefresh,isRefreshSchedules:isSchedRefresh);
+					}
+				}
+				else {
+					contrApptPanel.RedrawAsNeeded();//just for the red timebar
+				}
+				Signalods.ApptSignalLastRefreshed=MiscData.GetNowDateTime();
+			}
+			catch {
+				//prevents rare malfunctions. For instance, during editing of views, if tickrefresh happens.
+			}
+			//GC.Collect();	
+		}
+
+		///<summary>Redraws screen based on data already gathered.  RefreshModuleDataPeriod will have already retrieved the data from the db.</summary>
+		public void RefreshModuleScreenPeriod() {
+			Calendar2.SetSelectionRange(contrApptPanel.DateStart,contrApptPanel.DateEnd);
+			LayoutPanels();
+			labelDate.Text=contrApptPanel.DateStart.ToString("ddd");
+			labelDate2.Text=contrApptPanel.DateStart.ToString("-  MMM d");
+			List<long> opNums = null;
+			if(PrefC.HasClinicsEnabled && Clinics.ClinicNum>0) {
+				opNums = Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList();
+			}
+			List<LabCase> labCaseList=LabCases.GetForPeriod(contrApptPanel.DateStart,contrApptPanel.DateEnd,opNums);
+			FillLab(labCaseList);
+			FillProduction(contrApptPanel.DateStart,contrApptPanel.DateEnd);
+			FillProductionGoal(contrApptPanel.DateStart,contrApptPanel.DateEnd);
+			bool hasNotes=true;
+			if(PrefC.IsODHQ){
+				hasNotes=Security.IsAuthorized(Permissions.Schedules,true);
+			}
+			FillProvSched(hasNotes);
+			FillEmpSched(hasNotes);
+			FillWaitingRoom();
+			contrApptPanel.RedrawAsNeeded();
+		}
+
+		///<summary>Sets buttons at right to enabled/disabled. Sets value of listConfirmed. Was previously called RefreshModuleScreenPatient.</summary>
+		public void RefreshModuleScreenButtonsRight(){
+			if(_patCur==null) {
+				panelMakeButtons.Enabled=false;
+			}
+			else {
+				panelMakeButtons.Enabled=true;
+			}
+			//considered only doing this once when starting program, but would then need to refresh it if we change definitions.  Might still try that.
+			listConfirmed.Items.Clear();
+			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.ApptConfirmed,true);
+			for(int i=0;i<listDefs.Count;i++) {
+				this.listConfirmed.Items.Add(listDefs[i].ItemValue);
+			}
+			DataRow dataRow=contrApptPanel.GetDataRowForSelected();
+			if(dataRow!=null) {
+				butUnsched.Enabled=true;
+				butBreak.Enabled=true;
+				butComplete.Enabled=true;
+				butDelete.Enabled=true;
+				string confirmed=dataRow["Confirmed"].ToString();
+				listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,PIn.Long(confirmed));//could be -1
+				if(!Security.IsAuthorized(Permissions.ApptConfirmStatusEdit,true)) {//Suppress message because it would be very annoying to users.
+					listConfirmed.Enabled=false;
+				}
+				else {
+					listConfirmed.Enabled=true;
+				}
+			}
+			else {//even if an appt on the pinboard is selected, these are all grayed out
+				butUnsched.Enabled=false;
+				butBreak.Enabled=false;
+				butComplete.Enabled=false;
+				butDelete.Enabled=false;
+				listConfirmed.Enabled=false;
+				if(pinBoard.SelectedIndex!=-1){
+					dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
+					listConfirmed.SelectedIndex=Defs.GetOrder(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));//could be -1
+				}
+			}
+		}
+
+		///<summary>Fills comboView and _listApptViews with the current list of views. Triggers ModuleSelected().  Also called from FormOpenDental.RefreshLocalData().</summary>
+		public void FillViews() {
+			comboView.Items.Clear();
+			_listApptViews.Clear();
+			comboView.Items.Add(Lan.g(this,"none"));
+			string f="";
+			foreach(ApptView apptView in ApptViews.GetDeepCopy()) {
+				if(PrefC.HasClinicsEnabled && Clinics.ClinicNum!=apptView.ClinicNum) {
+					//This is intentional, we do NOT want 'Headquarters' to have access to clinic specific apptviews.  
+					//Likewise, we do not want clinic specific views to be accessible from specific clinic filters.
+					continue;
+				}
+				_listApptViews.Add(apptView.Copy());
+				if(_listApptViews.Count<=12)
+					f="F"+_listApptViews.Count.ToString()+"-";
+				else
+					f="";
+				comboView.Items.Add(f+apptView.Description);
+			}
+			ApptView apptViewCur=GetApptViewForUser();
+			if(apptViewCur!=null) {
+				SetView(apptViewCur.ApptViewNum,false);//this also triggers ModuleSelected()
+			}
+			else {
+				SetView(0,false);//this also triggers ModuleSelected()
+			}
+		}
+
+		///<summary>Fills the lab summary for the day.</summary>
+		private void FillLab(List<LabCase> labCaseList) {
+			int notRec=0;
+			for(int i=0;i<labCaseList.Count;i++) {
+				if(labCaseList[i].DateTimeChecked.Year>1880) {
+					continue;
+				}
+				if(labCaseList[i].DateTimeRecd.Year>1880) {
+					continue;
+				}
+				notRec++;
+			}
+			if(notRec==0) {
+				textLab.Font=new Font(FontFamily.GenericSansSerif,8,FontStyle.Regular);
+				textLab.ForeColor=Color.Black;
+				textLab.Text=Lan.g(this,"All Received");
+			}
+			else {
+				textLab.Font=new Font(FontFamily.GenericSansSerif,8,FontStyle.Bold);
+				textLab.ForeColor=Color.DarkRed;
+				textLab.Text=notRec.ToString()+Lan.g(this," NOT RECEIVED");
+			}
+		}
+
+		///<summary>Fills the production summary for the day. ContrApptSheet2.Controls should be current with ContrApptSingle(s) for the select Op and date.</summary>
+		private void FillProduction(DateTime start,DateTime end) {
+			if(!contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc=="Production") 
+				&& !contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc=="NetProduction"))
+			{
+				textProduction.Text="";
+				return;
+			}
+			decimal grossproduction=0;
+			decimal netproduction=0;
+			int indexProv;
+			foreach(DataRow dataRow in contrApptPanel.TableAppointments.Rows){
+				indexProv=-1;
+				bool isHygiene=PIn.Bool(dataRow["IsHygiene"].ToString());
+				long provNum=PIn.Long(dataRow["ProvNum"].ToString());
+				long provHyg=PIn.Long(dataRow["ProvHyg"].ToString());
+				long opNum=PIn.Long(dataRow["Op"].ToString());
+				if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
+					if(isHygiene){
+						if(provHyg==0) {//if no hyg prov set.
+							indexProv=contrApptPanel.GetIndexOp(opNum);
+						}
+						else {
+							indexProv=contrApptPanel.GetIndexOp(opNum);
+						}
+					}
+					else {//not hyg
+						indexProv=contrApptPanel.GetIndexOp(opNum);
+					}
+				}
+				else {//use provider bars in appointment view
+					if(isHygiene) {
+						if(provHyg==0) {//if no hyg prov set.
+							indexProv=contrApptPanel.GetIndexProv(provNum);
+						}
+						else {
+							indexProv=contrApptPanel.GetIndexProv(provHyg);
+						}
+					}
+					else {//not hyg
+						indexProv=contrApptPanel.GetIndexProv(provNum);
+					}
+				}
+				if(indexProv==-1) {
+					continue;
+				}
+				ApptStatus aptStatus=(ApptStatus)(PIn.Int(dataRow["AptStatus"].ToString()));
+				long clinicNum=PIn.Long(dataRow["ClinicNum"].ToString());
+				decimal productionVal=PIn.Decimal(dataRow["productionVal"].ToString());
+				decimal writeoffPPO=PIn.Decimal(dataRow["writeoffPPO"].ToString());
+				if(aptStatus!=ApptStatus.Broken
+					&& aptStatus!=ApptStatus.UnschedList
+					&& aptStatus!=ApptStatus.PtNote
+					&& aptStatus!=ApptStatus.PtNoteCompleted) 
+				{
+					//When the program is restricted to a specific clinic, only count up production for the corresponding clinic.
+					if(PrefC.HasClinicsEnabled 
+						&& Clinics.ClinicNum!=0
+						&& Clinics.ClinicNum!=clinicNum) {
+						continue;//This appointment is for a different clinic.  Do not include this production in the daily prod.
+					}
+					//In order to get production numbers split by provider, it would require generating total production numbers
+					//in another table from the business layer.  But that will only work if hyg procedures are appropriately assigned
+					//when setting appointments.
+					grossproduction+=productionVal;
+					netproduction+=productionVal-writeoffPPO;
+				}
+			}
+			if(PrefC.GetBool(PrefName.ApptModuleAdjustmentsInProd) && contrApptPanel.TableAppointments.Rows.Count>0) {
+				List<long> listProvNumsForApptView=new List<long>();
+				//If the PrefName.ApptModuleProductionUsesOps is true, the list will be filled with OpNums for the appointment view. Otherwise, the list will be empty.
+				List<long> listOpsForApptView=new List<long>();
+				long apptViewNum=GetApptViewNumForUser();
+				if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
+					listOpsForApptView=ApptViewItems.GetOpsForView(apptViewNum);
+				}
+				else {
+					listProvNumsForApptView=ApptViewItems.GetProvsForView(apptViewNum);
+				}
+				netproduction+=Adjustments.GetAdjustAmtForAptView(start,end,Clinics.ClinicNum,listOpsForApptView,listProvNumsForApptView);
+			}
+			textProduction.Text=grossproduction.ToString("c0");
+			if(grossproduction!=netproduction) {
+				textProduction.Text+=", net:"+netproduction.ToString("c0");
+			}
+		}
+
+		private void FillProductionGoal(DateTime start,DateTime end) {
+			if(!contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc.In("Production","NetProduction"))) {
+				textProdGoal.Text="";
+				return;
+			}
+			decimal prodGoalAmt=0;
+			long apptViewNum=GetApptViewNumForUser();
+			//If the PrefName.ApptModuleProductionUsesOps is false, it will be filled with ProvNums for the appointment view. Otherwise, the list will be empty.
+			List<long> listProvNumsForApptView=new List<long>();
+			//If the PrefName.ApptModuleProductionUsesOps is true, the list will be filled with OpNums for the appointment view. Otherwise, the list will be empty.
+			List<long> listOpsForApptView=new List<long>();
+			if(PrefC.GetBool(PrefName.ApptModuleProductionUsesOps)) {
+				listOpsForApptView=ApptViewItems.GetOpsForView(apptViewNum);
+			}
+			else {
+				listProvNumsForApptView=ApptViewItems.GetProvsForView(apptViewNum);
+			}
+			//This will return a dict of production goals for either the providers for the provider bars for the appointment view or the providers 
+			//scheduled for the appointment view ops. 
+			Dictionary<long,decimal> dictProvProdGoal=Providers.GetProductionGoalForProviders(listProvNumsForApptView,listOpsForApptView,start,end);
+			foreach(KeyValuePair<long,decimal> prov in dictProvProdGoal) {
+				prodGoalAmt+=prov.Value;
+			}
+			textProdGoal.Text=prodGoalAmt.ToString("c0");
+		}
+
+		///<summary></summary>
+		private void FillProvSched(bool hasNotes) {
+			DataTable table=contrApptPanel.TableProvSched;
+			gridProv.BeginUpdate();
+			gridProv.Columns.Clear();
+			ODGridColumn col=new ODGridColumn("Provider",80);
+			gridProv.Columns.Add(col);
+			col=new ODGridColumn("Schedule",70);
+			gridProv.Columns.Add(col);
+			if(hasNotes) {
+				col=new ODGridColumn("Notes",100);
+				gridProv.Columns.Add(col);
+			}
+			gridProv.Rows.Clear();
+			ODGridRow row;
+			foreach(DataRow dRow in table.Rows) { 
+				row=new ODGridRow();
+				row.Cells.Add(dRow["ProvAbbr"].ToString());
+				row.Cells.Add(dRow["schedule"].ToString());
+				if(hasNotes) {
+					row.Cells.Add(dRow["Note"].ToString());
+				}
+				gridProv.Rows.Add(row);
+			}
+			gridProv.EndUpdate();
+		}
+
+		///<summary></summary>
+		private void FillEmpSched(bool hasNotes) {
+			DataTable table=contrApptPanel.TableEmpSched;
+			gridEmpSched.BeginUpdate();
+			gridEmpSched.Columns.Clear();
+			ODGridColumn col=new ODGridColumn(Lan.g("TableApptEmpSched","Employee"),80);
+			gridEmpSched.Columns.Add(col);
+			col=new ODGridColumn(Lan.g("TableApptEmpSched","Schedule"),70);
+			gridEmpSched.Columns.Add(col);
+			if(hasNotes) {
+				col=new ODGridColumn(Lan.g("TableApptEmpSched","Notes"),100);
+				gridEmpSched.Columns.Add(col);
+			}
+			gridEmpSched.Rows.Clear();
+			ODGridRow row;
+			for(int i=0;i<table.Rows.Count;i++) {
+				row=new ODGridRow();
+				row.Cells.Add(table.Rows[i]["empName"].ToString());
+				row.Cells.Add(table.Rows[i]["schedule"].ToString());
+				if(hasNotes) {
+					row.Cells.Add(table.Rows[i]["Note"].ToString());
+				}
+				gridEmpSched.Rows.Add(row);
+			}
+			gridEmpSched.EndUpdate();
+		}
+
+		///<summary>Once per second, this grid refills itself in order to show the time ticking by.  This does not require a trip to the database.  Set refreshOpsForDay true in order to forcefully go to the database to get the current ops for the day for waiting room filtering.</summary>
+		private void FillWaitingRoom() {
+			if(contrApptPanel.TableWaitingRoom==null || contrApptPanel.TableWaitingRoom.Rows.Count==0){
+				return;
+			}
+			TimeSpan timeSpanDeltaSinceRefresh=DateTime.Now-_dateTimeWaitingRmRefreshed;
+			DataTable table=contrApptPanel.TableWaitingRoom;
+			List<Operatory> listOpsForClinic=new List<Operatory>();
+			List<Operatory> listOpsForApptView=new List<Operatory>();
+			if(PrefC.GetBool(PrefName.WaitingRoomFilterByView)) {
+				//In order to filter the waiting room by appointment view, we need to always grab the operatories visible for TODAY.
+				//This way, regardless of what day the customer is looking at, the waiting room will only change when they change appointment views.
+				//Always use the schedules from SchedListPeriod which is refreshed any time RefreshModuleDataPeriod() is invoked.
+				ApptView viewCur=null;
+				if(comboView.SelectedIndex>0) {
+					viewCur=_listApptViews[comboView.SelectedIndex-1];
+				}
+				List<Schedule> listSchedulesForToday=contrApptPanel.ListSchedules.FindAll(x => x.SchedDate==DateTime.Today);
+				listOpsForApptView=ApptViewItemL.GetOpsForApptView(viewCur,contrApptPanel.IsWeeklyView,listSchedulesForToday);
+			}
+			if(PrefC.HasClinicsEnabled) {//Using clinics
+				listOpsForClinic=Operatories.GetOpsForClinic(Clinics.ClinicNum);
+			}
+			gridWaiting.BeginUpdate();
+			gridWaiting.Columns.Clear();
+			ODGridColumn col=new ODGridColumn(Lan.g("TableApptWaiting","Patient"),130);
+			gridWaiting.Columns.Add(col);
+			col=new ODGridColumn(Lan.g("TableApptWaiting","Waited"),100,HorizontalAlignment.Center);
+			gridWaiting.Columns.Add(col);
+			gridWaiting.Rows.Clear();
+			DateTime waitTime;
+			ODGridRow row;
+			int waitingRoomAlertTime=PrefC.GetInt(PrefName.WaitingRoomAlertTime);
+			Color waitingRoomAlertColor=PrefC.GetColor(PrefName.WaitingRoomAlertColor);
+			for(int i=0;i<table.Rows.Count;i++) {
+				//Always filter the waiting room by appointment view first, regardless of using clinics or not.
+				if(PrefC.GetBool(PrefName.WaitingRoomFilterByView)) {
+					bool isInView=false;
+					for(int j=0;j<listOpsForApptView.Count;j++) {
+						if(listOpsForApptView[j].OperatoryNum==PIn.Long(table.Rows[i]["OpNum"].ToString())) {
+							isInView=true;
+							break;
+						}
+					}
+					if(!isInView) {
+						continue;
+					}
+				}
+				//We only want to filter the waiting room by the clinic's operatories when clinics are enabled and they are not using 'Headquarters' mode.
+				if(PrefC.HasClinicsEnabled && Clinics.ClinicNum!=0) {
+					bool isInView=false;
+					for(int j=0;j<listOpsForClinic.Count;j++) {
+						if(listOpsForClinic[j].OperatoryNum==PIn.Long(table.Rows[i]["OpNum"].ToString())) {
+							isInView=true;
+							break;
+						}
+					}
+					if(!isInView) {
+						continue;
+					}
+				}
+				row=new ODGridRow();
+				row.Cells.Add(table.Rows[i]["patName"].ToString());
+				waitTime=DateTime.Parse(table.Rows[i]["waitTime"].ToString());//we ignore date
+				waitTime+=timeSpanDeltaSinceRefresh;
+				row.Cells.Add(waitTime.ToString("H:mm:ss"));
+				row.Bold=false;
+				if(waitingRoomAlertTime>0 && waitingRoomAlertTime<=waitTime.Minute+(waitTime.Hour*60)) {
+					row.ColorText=waitingRoomAlertColor;
+					row.Bold=true;
+				}
+				gridWaiting.Rows.Add(row);
+			}
+			gridWaiting.EndUpdate();
+		}
+		#endregion Methods - Private Refresh Screen
+
+		#region Methods - Private Search
+		///<summary>Positions the search box, fills it with initial data except date, and makes it visible.</summary>
+		private void ShowSearch() {
+			_listProvidersSearch=new List<Provider>();
+			List<Provider> listProvidersShort=Providers.GetDeepCopy(true);
+			groupSearch.Location=new Point(panelCalendar.Location.X,panelCalendar.Location.Y+pinBoard.Bottom+2);
+			textBefore.Text="";
+			textAfter.Text="";
+			_listBoxProviders.Items.Clear();
+			if(pinBoard.SelectedIndex==-1){
+				return;
+			}
+			DataRow dataRow=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].DataRowAppt;
+			bool isHygiene=PIn.Bool(dataRow["IsHygiene"].ToString());
+			long provHyg=PIn.Long(dataRow["ProvHyg"].ToString());
+			long provNum=PIn.Long(dataRow["ProvNum"].ToString());
+			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+			for(int i=0;i<listProvidersShort.Count;i++) {
+				if(isHygiene && listProvidersShort[i].ProvNum==provHyg) {
+					//If their appiontment is hygine, the list will start with just their hygine provider
+					_listBoxProviders.Items.Add(new ODBoxItem<Provider>(listProvidersShort[i].Abbr,listProvidersShort[i]));
+					_listProvidersSearch.Add(listProvidersShort[i]);
+				}
+				else if(!isHygiene && listProvidersShort[i].ProvNum==provNum) {
+					//If their appointment is not hygine, they will start with just their primary provider
+					_listBoxProviders.Items.Add(new ODBoxItem<Provider>(listProvidersShort[i].Abbr,listProvidersShort[i]));
+					_listProvidersSearch.Add(listProvidersShort[i]);
+				}
+			}
+			Plugins.HookAddCode(this,"ContrAppt.ShowSearch_end",_listBoxProviders,aptNum);
+			groupSearch.Visible=true;
+		}
+
+		private void DoSearch() {
+			Cursor=Cursors.WaitCursor;
+			DateTime afterDate;
+			try {
+				afterDate=PIn.Date(dateSearch.Text);
+				if(afterDate.Year<1880) {
+					throw new Exception();
+				}
+			}
+			catch {
+				Cursor=Cursors.Default;
+				MsgBox.Show(this,"Invalid date.");
+				return;
+			}
+			TimeSpan beforeTime=new TimeSpan(0);
+			if(textBefore.Text!="") {
+				try {
+					string[] hrmin=textBefore.Text.Split(new char[] { ':' },StringSplitOptions.RemoveEmptyEntries);//doesn't work with foreign times.
+					string hr="0";
+					if(hrmin.Length>0) {
+						hr=hrmin[0];
+					}
+					string min="0";
+					if(hrmin.Length>1) {
+						min=hrmin[1];
+					}
+					beforeTime=TimeSpan.FromHours(PIn.Double(hr))
+						+TimeSpan.FromMinutes(PIn.Double(min));
+					if(radioBeforePM.Checked && beforeTime.Hours<12) {
+						beforeTime=beforeTime+TimeSpan.FromHours(12);
+					}
+				}
+				catch {
+					Cursor=Cursors.Default;
+					MsgBox.Show(this,"Invalid time.");
+					return;
+				}
+			}
+			TimeSpan afterTime=new TimeSpan(0);
+			if(textAfter.Text!="") {
+				try {
+					string[] hrmin=textAfter.Text.Split(new char[] { ':' },StringSplitOptions.RemoveEmptyEntries);//doesn't work with foreign times.
+					string hr="0";
+					if(hrmin.Length>0) {
+						hr=hrmin[0];
+					}
+					string min="0";
+					if(hrmin.Length>1) {
+						min=hrmin[1];
+					}
+					afterTime=TimeSpan.FromHours(PIn.Double(hr))
+						+TimeSpan.FromMinutes(PIn.Double(min));
+					if(radioAfterPM.Checked && afterTime.Hours<12) {
+						afterTime=afterTime+TimeSpan.FromHours(12);
+					}
+				}
+				catch {
+					Cursor=Cursors.Default;
+					MsgBox.Show(this,"Invalid time.");
+					return;
+				}
+			}
+			if(_listBoxProviders.Items.Count==0) {
+				Cursor=Cursors.Default;
+				MsgBox.Show(this,"Please pick a provider.");
+				return;
+			}
+			long[] providers=new long[_listBoxProviders.Items.Count];
+			List<long> providerNums = new List<long>();
+			for(int i=0;i<providers.Length;i++) {
+				providers[i]=_listProvidersSearch[i].ProvNum;
+				providerNums.Add(_listProvidersSearch[i].ProvNum);
+				//providersList.Add(providers[i]);
+			}
+			List<long> listOpNums=new List<long>();
+			List<long> listClinicNums=new List<long>();
+			if(PrefC.HasClinicsEnabled) {
+				if(Clinics.ClinicNum!=0) {//not HQ
+					listClinicNums.Add(Clinics.ClinicNum);
+					listOpNums=Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList();//get ops for the currently selected clinic only
+				}
+				else {//HQ
+					if(comboView.SelectedIndex==0) {//none view
+						MsgBox.Show("Must have a view selected to search for appointment.");//this should never get hit. Just in case.
+						return;
+					}
+					long apptViewNum=_listApptViews[comboView.SelectedIndex-1].ApptViewNum;//get the currently selected HQ view for appt search.
+					//get the disctinct clinic nums for the operatories in the current appointment view
+					List<long> listOpsForView=ApptViewItems.GetOpsForView(apptViewNum);
+					List<Operatory> listOperatories=Operatories.GetOperatories(listOpsForView,true);
+					listClinicNums=listOperatories.Select(x => x.ClinicNum).Distinct().ToList();
+					listOpNums=listOperatories.Select(x => x.OperatoryNum).ToList();
+				}
+			}
+			else {//all non hidden ops
+				listOpNums=Operatories.GetDeepCopy(true).Select(x => x.OperatoryNum).ToList();
+			}
+			//the result might be empty
+			//todo: what if pinBoard.SelectedIndex==-1?
+			long aptNum=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].AptNum;
+			_listScheduleOpenings=ApptSearch.GetSearchResults(aptNum,afterDate,afterDate.AddDays(731)
+				,providerNums,listOpNums,listClinicNums,beforeTime,afterTime);
+			listSearchResults.Items.Clear();
+			for(int i=0;i<_listScheduleOpenings.Count;i++) {
+				listSearchResults.Items.Add(
+					_listScheduleOpenings[i].DateTimeAvail.ToString("ddd")+"\t"+_listScheduleOpenings[i].DateTimeAvail.ToShortDateString()+"     "
+					+_listScheduleOpenings[i].DateTimeAvail.ToShortTimeString());
+			}
+			if(listSearchResults.Items.Count>0) {
+				listSearchResults.SetSelected(0,true);
+				SetDateSelected(_listScheduleOpenings[0].DateTimeAvail);
+			}
+			Cursor=Cursors.Default;
+			//scroll to make visible?
+			//highlight schedule?
+		}
+		#endregion Methods - Private Search
+
+		#region Methods - Private Other
+		private void AutomaticCallDialingDisabledMessage() {
+			if(ProgramProperties.IsAdvertisingDisabled(ProgramName.DentalTekSmartOfficePhone)) {
+				return;
+			}
+			MessageBox.Show("Automatic dialing of patient phone numbers requires an additional service.\r\n"
+				+"Contact Open Dental for more information.");
+			try {
+				System.Diagnostics.Process.Start("http://www.opendental.com/resources/redirects/redirectdentaltekinfo.html");
+			}
+			catch(Exception) {
+				MessageBox.Show("Could not find http://www.opendental.com/contact.html \r\n"
+					+"Please set up a default web browser.");
+			}
+		}
+
+		///<summary>Handles the display and refresh when the appointment we are trying to operate on is null.</summary>
+		private bool ApptIsNull(Appointment appt) {
+			if(appt==null) {
+				MsgBox.Show("Selected appointment no longer exists.");
+				RefreshPeriod();
+				return true;
+			}
+			return false;
+		}
+
+		///<summary>Copied from FormApptsOther. Does not limit appointment creation, only warns user. This check should be run before creating a new appointment. </summary>
+		private void CheckStatus() {
+			if(_patCur.PatStatus == PatientStatus.Inactive
+				|| _patCur.PatStatus == PatientStatus.Archived
+				|| _patCur.PatStatus == PatientStatus.Prospective) {
+				MsgBox.Show(this,"Warning. Patient is not active.");
+			}
+			if(_patCur.PatStatus == PatientStatus.Deceased) {
+				MsgBox.Show(this,"Warning. Patient is deceased.");
+			}
+		}
+
+		///<summary>Copies several fields from the supplied Appointment to a new Appointment object, inserts it into the database, and sends the new 
+		///appointment to the Pinboard. Only used for HQ currently.</summary>
+		private void CopyApptStructure(Appointment appt) {
+			if(ApptIsNull(appt)) {
+				return;
+			}
+			Appointment apptNew=Appointments.CopyStructure(appt);
+			Appointments.Insert(apptNew);
+			DataTable dataTable=Appointments.GetPeriodApptsTable(contrApptPanel.DateStart,contrApptPanel.DateStart,apptNew.AptNum,false);
+			if(dataTable.Rows.Count==0){
+				return;//silently fail
+			}
+			DataRow dataRow=dataTable.Rows[0];
+			SendToPinboardDataRow(dataRow);
+		}
+
+		private void CopyToPin_Click() {
+			if(!Security.IsAuthorized(Permissions.AppointmentMove)) {
+				return;
+			}
+			//cannot allow moving completed procedure because it could cause completed procs to change date.  Security must block this.
+			//ContrApptSingle3[thisIndex].DataRoww;
+			Appointment appt=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
+			if(appt==null) {
+				MsgBox.Show("Appointment not found.");
+				return;
+			}
+			if(appt.AptStatus==ApptStatus.Complete) {
+				MsgBox.Show("Not allowed to move completed appointments.");
+				return;
+			}
+			if(PatRestrictionL.IsRestricted(appt.PatNum,PatRestrict.ApptSchedule)) {
+				return;
+			}
+			DataRow dataRow=contrApptPanel.GetDataRowForSelected();
+			if(dataRow==null){
+				return;//silently fail
+			}
+			SendToPinboardDataRow(dataRow);
+		}
+
+		///<summary>Brings up FormASAP ready to send for an open time slot.</summary>
+		private void DisplayFormAsapForWebSched(long opNum,DateTime dateTimeClicked,long aptNum=0) {
+			DateTime dateTimeSlotStart=contrApptPanel.DateSelected.Date;//Midnight
+			DateTime dateTimeSlotEnd=contrApptPanel.DateSelected.Date.AddDays(1);//Midnight tomorrow
+			//Loop through all other appts in the op to find a slot that will not overlap.
+			for(int i=0;i<contrApptPanel.TableAppointments.Rows.Count;i++){
+				if(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString())!=opNum){
+					continue;
+				}
+				if(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["AptNum"].ToString())==aptNum){
+					continue;
+				}
+				DateTime dateTimeAppt=PIn.DateT(contrApptPanel.TableAppointments.Rows[i]["AptDateTime"].ToString());
+				if(contrApptPanel.IsWeeklyView){
+					if(dateTimeAppt.Date!=contrApptPanel.DateSelected.Date){
+						continue;
+					}
+				}
+				string pattern=contrApptPanel.TableAppointments.Rows[i]["Pattern"].ToString();
+				DateTime dateTimeEndApt=dateTimeAppt.AddMinutes(pattern.Length*5);
+				if(dateTimeEndApt.Between(dateTimeSlotStart,dateTimeClicked)) {
+					dateTimeSlotStart=dateTimeEndApt;
+				}
+				if(dateTimeAppt.Between(dateTimeClicked,dateTimeSlotEnd)) {
+					dateTimeSlotEnd=dateTimeAppt;
+				}
+			}
+			////Next, loop through blockouts that don't allow scheduling and adjust the slot size
+			List<Def> listDefsBlockoutTypes=Defs.GetDefsForCategory(DefCat.BlockoutTypes);
+			foreach(Schedule blockout in Schedules.GetForType(contrApptPanel.ListSchedules,ScheduleType.Blockout,0)
+				.Where(x => x.SchedDate==dateTimeClicked.Date && x.Ops.Contains(opNum))) 
+			{
+				if(Schedules.CanScheduleInBlockout(blockout.BlockoutType,listDefsBlockoutTypes)) {
+					continue;
+				}
+				DateTime dateTimeBlockoutStop=blockout.SchedDate.Add(blockout.StopTime);
+				if(dateTimeBlockoutStop.Between(dateTimeSlotStart,dateTimeClicked)) {
+					//Move start time to be later to account for this blockout.
+					dateTimeSlotStart=dateTimeBlockoutStop;
+				}
+				DateTime dateTimeBlockoutStart=blockout.SchedDate.Add(blockout.StartTime);
+				if(dateTimeBlockoutStart.Between(dateTimeClicked,dateTimeSlotEnd)) {
+					//Move stop time to be earlier to account for this blockout.
+					dateTimeSlotEnd=dateTimeBlockoutStart;
+				}
+				if(dateTimeClicked.Between(dateTimeBlockoutStart,dateTimeBlockoutStop,isUpperBoundInclusive: false)) {
+					MsgBox.Show("Unable to schedule appointments on blockouts marked 'Block appointments scheduling'.");
+					return;
+				}
+			}
+			dateTimeSlotStart=ODMathLib.Max(dateTimeSlotStart,dateTimeClicked.AddHours(-1));
+			dateTimeSlotEnd=ODMathLib.Min(dateTimeSlotEnd,dateTimeClicked.AddHours(3));
+			if(_formASAP==null || _formASAP.IsDisposed) {
+				_formASAP=new FormASAP();
+			}
+			_formASAP.ShowFormForWebSched(dateTimeClicked,dateTimeSlotStart,dateTimeSlotEnd,opNum);
+			_formASAP.FormClosed+=FormASAP_FormClosed;
+		}
+
+		///<summary>Returns an ApptView for the currently logged in user and clinic combination. Can return null.
+		///Will return the first available appointment view if this is the first time that this computer has connected to this database.</summary>
+		private ApptView GetApptViewForUser() {
+			//load the recently used apptview from the db, either the userodapptview table if an entry exists or the computerpref table if an entry for this computer exists
+			ApptView apptView=null;
+			UserodApptView userodApptViewCur=UserodApptViews.GetOneForUserAndClinic(Security.CurUser.UserNum,Clinics.ClinicNum);
+			if(userodApptViewCur!=null) { //if there is an entry in the userodapptview table for this user
+				if(_hasInitializedOnStartup //if either ContrAppt has already been initialized
+					|| (Security.CurUser.ClinicIsRestricted //or the current user is restricted
+					&& Clinics.ClinicNum!=ComputerPrefs.LocalComputer.ClinicNum)) //and FormOpenDental.ClinicNum (set to the current user's clinic) is not the computerpref clinic
+				{
+					apptView=ApptViews.GetApptView(userodApptViewCur.ApptViewNum); //then load the view for the user in the userodapptview table
+				}
+			}
+			if(apptView==null //if no entry in the userodapptview table
+				&& Clinics.ClinicNum==ComputerPrefs.LocalComputer.ClinicNum) //and if the program level ClinicNum is the stored recent ClinicNum for this computer 
+			{
+				apptView=ApptViews.GetApptView(ComputerPrefs.LocalComputer.ApptViewNum);//use the computerpref for this computer and user
+			}
+			//Larger offices do not want to take the time to load all the data required to display the "none" view.
+			//Therefore, for a NEW computer that is connecting to the database for the first time, load up the first available view that is not the none view.
+			if(apptView==null //if no entry in the ComputerPref table
+				&& _listApptViews.Count>0) //There is an appointment view other than "none" to select
+			{ 
+				apptView=_listApptViews[0];
+			}
+			return apptView;
+		}
+
+		/// <summary></summary>
+		private long GetApptViewNumForUser() {
+			if(contrApptPanel.ApptViewCur!=null) {
+				return contrApptPanel.ApptViewCur.ApptViewNum;
+			}
+			//GetApptViewForUser needs a CurUser to the specific appointment views for the clinic/user combination
+			if(Security.CurUser==null) {
+				//No valid user so the appointment view will be set to whatever the computerpref table has for the current computer
+				return ComputerPrefs.LocalComputer.ApptViewNum;
+			}
+			ApptView apptView=GetApptViewForUser();
+			if(apptView==null) {
+				return 0;
+			}
+			return apptView.ApptViewNum;
+		}
+
+		///<summary>Checks if the appointment's start time overlaps another appt in the Op which the apt resides.  Tests all appts for the day, even if not visible.
+		///Calling RefreshPeriod() is not necessary before calling this method. It goes to the db only as much as is necessary.
+		///Returns true if no overlap found. Returns false if given apt start time conflicts with another apt in the Op.</summary>
+		private static bool HasValidStartTime(Appointment apt) {
+			bool notUsed;
+			//Only valid if no adjust was needed.
+			return !Appointments.TryAdjustAppointment(apt,UI.UserControlApptsPanelJ.GetListOpsVisible(),false,false,false,false,out notUsed,out notUsed);
+		}
+
+		///<summary>Returns true if the none appointment view is selected, clinics is turned on, and the Headquarters clinic is selected.
+		///Also disables pretty much every control available in the appointment module if it is going to return true, otherwise re-enables them.</summary>
+		private bool IsHqNoneView() {
+			if(PrefC.HasClinicsEnabled && Clinics.ClinicNum==0 && comboView.SelectedIndex==0) {
+				contrApptPanel.Visible=false;
+				labelNoneView.Visible=true;
+				butBack.Enabled=false;
+				butBackMonth.Enabled=false;
+				butBackWeek.Enabled=false;
+				butToday.Enabled=false;
+				butFwd.Enabled=false;
+				butFwdMonth.Enabled=false;
+				butFwdWeek.Enabled=false;
+				Calendar2.Enabled=false;
+				panelMakeButtons.Enabled=false;
+				pinBoard.ClearSelected();
+				textLab.Text="";
+				textProduction.Text="";
+				//TODO Change this to only stop printing and lists
+				toolBarMain.Visible=false;
+				return true;
+			}
+			else {
+				contrApptPanel.Visible=true;
+				labelNoneView.Visible=false;
+				butBack.Enabled=true;
+				butBackMonth.Enabled=true;
+				butBackWeek.Enabled=true;
+				butToday.Enabled=true;
+				butFwd.Enabled=true;
+				butFwdMonth.Enabled=true;
+				butFwdWeek.Enabled=true;
+				Calendar2.Enabled=true;
+				toolBarMain.Visible=true;
+				return false;
+			}
+		}
+
+		private void LayoutPanels(){
+			//Not quite enough control with automatic layout
+			if(Calendar2.Width>panelCalendar.Width) {//for example, Chinese calendar
+				panelCalendar.Width=Calendar2.Width+1;
+			}
+			toolBarMain.Location=new Point(ClientSize.Width-panelCalendar.Width-2,0);
+			panelCalendar.Location=new Point(ClientSize.Width-panelCalendar.Width-2,toolBarMain.Height);
+			panelAptInfo.Location=new Point(ClientSize.Width-panelCalendar.Width-2,toolBarMain.Height+panelCalendar.Height);
+			panelMakeButtons.Location=new Point(panelAptInfo.Right+2,panelAptInfo.Top);
+			contrApptPanel.Width=ClientSize.Width-panelCalendar.Width-2;//height automatic
+			tabControl.Location=new Point(panelAptInfo.Left,panelAptInfo.Bottom+1);
+			if(tabControl.Top>contrApptPanel.Bottom) {
+				tabControl.Height=0;
+			}
+			else {
+				tabControl.Height=contrApptPanel.Height-tabControl.Top+21;
+			}
+		}
+
+		/// <summary>Called from ModuleSelected.  Just runs once for the purpose of setting start time.</summary>
+		public void LayoutScrollOpProv() {
+			if(_hasLaidOutScrollBar) {//Should only run on startup
+				return;
+			}
+			//int rowsPerHr=60/contrApptPanel.MinPerIncr*contrApptPanel.RowsPerIncr;
+			//use the row setting from the selected view.
+			if(_listApptViews.Count>0 && comboView.SelectedIndex>0) {					
+				TimeSpan apptTimeScrollStart=_listApptViews[comboView.SelectedIndex-1].ApptTimeScrollStart;
+				if(_listApptViews[comboView.SelectedIndex-1].IsScrollStartDynamic) {//Scroll start time at the earliest scheduled operatory or appointment
+					//jordan I would like to get rid of IsScrollStartDynamic
+					//Get the schedules that have any operatory visible
+					List<Schedule> listVisScheds=new List<Schedule>();
+					foreach(Schedule sched in contrApptPanel.ListSchedules) {
+						if(sched.Ops.Any(x => contrApptPanel.ListOpsVisible.Exists(y => x==y.OperatoryNum))//The schedule is linked to a visible operatory
+							|| contrApptPanel.ListOpsVisible.Exists(x => x.ProvDentist==sched.ProvNum && !x.IsHygiene)//The dentist is in a visible operatory
+							|| contrApptPanel.ListOpsVisible.Exists(x => x.ProvHygienist==sched.ProvNum && x.IsHygiene))//The hygienist is in a visible operatory
+						{
+							listVisScheds.Add(sched);
+						}
+					}
+					long schedProvUnassinged=PrefC.GetLong(PrefName.ScheduleProvUnassigned);
+					bool opShowsDefaultProv=false;
+					foreach(Operatory op in contrApptPanel.ListOpsVisible) {
+						if((op.ProvDentist!=0 && !op.IsHygiene)
+							||(op.ProvHygienist!=0 && op.IsHygiene))
+						{
+							continue;//The operatory has a provider assigned to it
+						}
+						if(contrApptPanel.ListSchedules.Any(x => x.Ops.Contains(op.OperatoryNum))) {
+							continue;//The operatory has a scheduled assigned to it
+						}
+						opShowsDefaultProv=true;//The operatory will have the provider for unassigned operatories
+						break;
+					}
+					if(opShowsDefaultProv && contrApptPanel.ListSchedules.Exists(x => x.ProvNum==schedProvUnassinged)) {//The provider for unassigned ops has a schedule
+						//Add that provider's earliest schedule
+						listVisScheds.Add(contrApptPanel.ListSchedules.FindAll(x => x.ProvNum==schedProvUnassinged).OrderBy(x => x.StartTime).FirstOrDefault());
+					}
+					//Get the appointment times that are in a visible operatory
+					List<TimeSpan> listVisAptTimes=new List<TimeSpan>();
+					foreach(DataRow row in contrApptPanel.TableAppointments.Rows) {
+						long opNum=PIn.Long(row["Op"].ToString());
+						if(!contrApptPanel.ListOpsVisible.Exists(x => x.OperatoryNum==opNum) //The appointment is in a visible operatory
+							|| !new[] { "1","2","4","5","7","8" }.Contains(row["AptStatus"].ToString())) //Scheduled,Complete,ASAP,Broken,PtNote,PtNoteComp
+						{
+							continue;
+						}
+						listVisAptTimes.Add(PIn.Date(row["AptDateTime"].ToString()).TimeOfDay);
+					}
+					TimeSpan earliestApt=new TimeSpan();
+					TimeSpan earliestOp=new TimeSpan();
+					if(listVisAptTimes.Count>0 && listVisScheds.Count>0) {//There is at least one schedule and at least one appointment visible
+						earliestApt=listVisScheds.Min(x => x.StartTime);
+						earliestOp=listVisAptTimes.Min();
+						if(TimeSpan.Compare(earliestOp,earliestApt)==1) {//earliestOp is later than earliestApt
+							apptTimeScrollStart=earliestApt;
+						}
+						else {//earliestApt is later than earliestOp or they are both equal
+							apptTimeScrollStart=earliestOp;
+						}
+					}
+					else if(listVisScheds.Count>0) {//There is at least one visible schedule and no visible appointments
+						apptTimeScrollStart=listVisScheds.Min(x => x.StartTime);
+					}
+					else if(listVisAptTimes.Count>0) {//There is at least one visible appointment and no visible schedules
+						apptTimeScrollStart=listVisAptTimes.Min();
+					}
+					//else apptTimeScrollStart will remain as the start time listed in the appt view		
+				}
+				//Even if we skip isScrollStartDynamic, above, the code below will still handle ApptTimeScrollStart
+				contrApptPanel.SetScrollByTime(apptTimeScrollStart);
+			}
+			else{//else no view selected
+				contrApptPanel.SetScrollByTime(TimeSpan.FromHours(8));
+			}
+			_hasLaidOutScrollBar=true;
+			contrApptPanel.RedrawAsNeeded();//Todo: probably not needed.
+		}
+
+		///<summary>Used for the UpdateProvs tool to reassign all future appointments for one op to another prov.</summary>
+		private void MoveAppointments(List<Appointment> listAppts,List<Appointment> listApptsOld,Operatory operatoryCur)
+		{
+			Appointment appt=null;
+			Appointment apptOld=null;
+			List<Schedule> listSchedsForOp=Schedules.GetSchedsForOp(operatoryCur,listAppts.Select(x => x.AptDateTime).ToList());
+			List<Operatory> listOpsForClinic=contrApptPanel.ListOpsVisible.Select(x => x.Copy()).ToList();
+			if(((ApptSchedEnforceSpecialty)PrefC.GetInt(PrefName.ApptSchedEnforceSpecialty)).In(ApptSchedEnforceSpecialty.Block,ApptSchedEnforceSpecialty.Warn)) {
+				//if specialties are enforced, don't auto-move appt into an op assigned to a different clinic than the curOp's clinic
+				listOpsForClinic.RemoveAll(x => x.ClinicNum!=operatoryCur.ClinicNum);
+			}
+			for(int i=0;i<listAppts.Count;i++) {
+				MoveAppointment(appt,apptOld,listSchedsForOp,true);
+			}
+		}
+
+		///<summary>Mostly for moving a single appointment.  Similar to the logic which runs in pinBoard_MouseUp(), but pinBoard_MouseUp() has additional things that are done.  This is also used for the UpdateProvs tool to reassign all future appointments for one op to another prov.</summary>
+		private void MoveAppointment(Appointment appt,Appointment apptOld,List<Schedule> listSchedsForOp=null,bool isOpUpdate=false){
+			bool timeWasMoved=appt.AptDateTime!=apptOld.AptDateTime;
+			bool isOpChanged=appt.Op!=apptOld.Op;
+			Operatory operatoryCur=Operatories.GetOperatory(appt.Op);
+			Patient patCur=null;
+			//List<Schedule> listSchedsForOp=Schedules.GetSchedsForOp(appt.Op,listAppts.Select(x => x.AptDateTime).ToList());
+			List<Operatory> listOpsForClinic=contrApptPanel.ListOpsVisible.Select(x => x.Copy()).ToList();
+			if(((ApptSchedEnforceSpecialty)PrefC.GetInt(PrefName.ApptSchedEnforceSpecialty)).In(ApptSchedEnforceSpecialty.Block,ApptSchedEnforceSpecialty.Warn)) {
+				//if specialties are enforced, don't auto-move appt into an op assigned to a different clinic than the curOp's clinic
+				listOpsForClinic.RemoveAll(x => x.ClinicNum!=operatoryCur.ClinicNum);
+			}
+			patCur=Patients.GetPat(appt.PatNum);
+			bool provChanged=false;
+			bool hygChanged=false;
+			long assignedDent=0;
+			long assignedHyg=0;
+			if(isOpUpdate) {
+				assignedDent=Schedules.GetAssignedProvNumForSpot(listSchedsForOp,operatoryCur,false,appt.AptDateTime);
+				assignedHyg=Schedules.GetAssignedProvNumForSpot(listSchedsForOp,operatoryCur,true,appt.AptDateTime);
+			}
+			else { 
+				assignedDent=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,operatoryCur,false,appt.AptDateTime);
+				assignedHyg=Schedules.GetAssignedProvNumForSpot(contrApptPanel.ListSchedules,operatoryCur,true,appt.AptDateTime);
+			}
+			List<Procedure> procsForSingleApt=null;
+			if(appt.AptStatus!=ApptStatus.PtNote && appt.AptStatus!=ApptStatus.PtNoteCompleted) {
+				if(timeWasMoved) {
+					#region Update Appt's DateTimeAskedToArrive
+					if(patCur.AskToArriveEarly>0) {
+						appt.DateTimeAskedToArrive=appt.AptDateTime.AddMinutes(-patCur.AskToArriveEarly);
+						MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+patCur.AskToArriveEarly
+							+" "+Lan.g(this,"minutes early at")+" "+appt.DateTimeAskedToArrive.ToShortTimeString()+".");
+					}
+					else {
+						if(appt.DateTimeAskedToArrive.Year>1880 && (apptOld.AptDateTime-apptOld.DateTimeAskedToArrive).TotalMinutes>0) {
+							appt.DateTimeAskedToArrive=appt.AptDateTime-(apptOld.AptDateTime-apptOld.DateTimeAskedToArrive);
+							if(MessageBox.Show(Lan.g(this,"Ask patient to arrive")+" "+(apptOld.AptDateTime-apptOld.DateTimeAskedToArrive).TotalMinutes
+								+" "+Lan.g(this,"minutes early at")+" "+appt.DateTimeAskedToArrive.ToShortTimeString()+"?","",MessageBoxButtons.YesNo)==DialogResult.No) {
+								appt.DateTimeAskedToArrive=apptOld.DateTimeAskedToArrive;
+							}
+						}
+						else {
+							appt.DateTimeAskedToArrive=DateTime.MinValue;
+						}
+					}
+					#endregion Update Appt's DateTimeAskedToArrive
+				}
+				#region Update Appt's Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
+				//if no dentist/hygenist is assigned to spot, then keep the original dentist/hygenist without prompt.  All appts must have prov.
+				if((assignedDent!=0 && assignedDent!=appt.ProvNum) || (assignedHyg!=0 && assignedHyg!=appt.ProvHyg)) {
+					object[] parameters3={ appt,assignedDent,assignedHyg,procsForSingleApt,this };//Only used in following plugin hook.
+					if((Plugins.HookMethod(this,"ContrAppt.ContrApptSheet2_MouseUp_apptProvChangeQuestion",parameters3))) {
+						appt=(Appointment)parameters3[0];
+						assignedDent=(long)parameters3[1];
+						assignedDent=(long)parameters3[2];
+						goto PluginApptProvChangeQuestionEnd;
+					}
+					if(isOpUpdate || MsgBox.Show(this,MsgBoxButtons.YesNo,"Change provider?")) {//Short circuit logic.  If we're updating op through right click, never ask.
+						if(assignedDent!=0) {//the dentist will only be changed if the spot has a dentist.
+							appt.ProvNum=assignedDent;
+							provChanged=true;
+						}
+						if(assignedHyg!=0 || PrefC.GetBool(PrefName.ApptSecondaryProviderConsiderOpOnly)) {//the hygienist will only be changed if the spot has a hygienist.
+							appt.ProvHyg=assignedHyg;
+							hygChanged=true;
+						}
+						if(operatoryCur.IsHygiene) {
+							appt.IsHygiene=true;
+						}
+						else {//op not marked as hygiene op
+							if(assignedDent==0) {//no dentist assigned
+								if(assignedHyg!=0) {//hyg is assigned (we don't really have to test for this)
+									appt.IsHygiene=true;
+								}
+							}
+							else {//dentist is assigned
+								if(assignedHyg==0) {//hyg is not assigned
+									appt.IsHygiene=false;
+								}
+								//if both dentist and hyg are assigned, it's tricky
+								//only explicitly set it if user has a dentist assigned to the op
+								if(operatoryCur.ProvDentist!=0) {
+									appt.IsHygiene=false;
+								}
+							}
+						}
+						procsForSingleApt=Procedures.GetProcsForSingle(appt.AptNum,false);
+						List<long> codeNums=new List<long>();
+						for(int p = 0;p<procsForSingleApt.Count;p++) {
+							codeNums.Add(procsForSingleApt[p].CodeNum);
+						}
+						if(!isOpUpdate) { 
+							string calcPattern=Appointments.CalculatePattern(appt.ProvNum,appt.ProvHyg,codeNums,true);
+							if(appt.Pattern!=calcPattern && !PrefC.GetBool(PrefName.AppointmentTimeIsLocked)) {//Updating op provs will not change apt lengths.
+								if(appt.TimeLocked) {
+									if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Appointment length is locked.  Change length for new provider anyway?")) {
+										appt.Pattern=calcPattern;
+									}
+								}
+								else {//appt time not locked
+									if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Change length for new provider?")) {
+										appt.Pattern=calcPattern;
+									}
+								}
+							}
+						}
+					}
+					PluginApptProvChangeQuestionEnd: { }
+				}
+				#region Provider Term Date Check
+				//Prevents appointments with providers that are past their term end date from being scheduled
+				string message=Providers.CheckApptProvidersTermDates(appt);
+				if(message!="") {
+					MessageBox.Show(this,message);//translated in Providers S class method
+					return;
+				}
+				#endregion Provider Term Date Check
+				#endregion Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
+			}
+			#region Prevent overlap
+			if(!_allowOverlap){
+				if(!isOpUpdate && !Appointments.TryAdjustAppointmentOp(appt,listOpsForClinic)) {
+					MessageBox.Show(Lan.g(this,"Appointment overlaps existing appointment or blockout."));
+					return;
+				}
+			}
+			#endregion Prevent overlap
+			#region Detect Frequency Conflicts
+			//Detect frequency conflicts with procedures in the appointment
+			if(!isOpUpdate && PrefC.GetBool(PrefName.InsChecksFrequency)) {
+				procsForSingleApt=Procedures.GetProcsForSingle(appt.AptNum,false);
+				string frequencyConflicts="";
+				try {
+					frequencyConflicts=Procedures.CheckFrequency(procsForSingleApt,appt.PatNum,appt.AptDateTime);
+				}
+				catch(Exception e) {
+					MessageBox.Show(Lan.g(this,"There was an error checking frequencies."
+						+"  Disable the Insurance Frequency Checking feature or try to fix the following error:")
+						+"\r\n"+e.Message);
+					return;
+				}
+				if(frequencyConflicts!="" && MessageBox.Show(Lan.g(this,"Scheduling this appointment for this date will cause frequency conflicts for the following procedures")
+					+":\r\n"+frequencyConflicts+"\r\n"+Lan.g(this,"Do you want to continue?"),"",MessageBoxButtons.YesNo)==DialogResult.No)
+				{
+					return;
+				}
+			}
+			#endregion Detect Frequency Conflicts
+			#region Patient status
+			if(!isOpUpdate) {
+				Operatory opCur=Operatories.GetOperatory(appt.Op);
+				Operatory opOld=Operatories.GetOperatory(apptOld.Op);
+				if(opOld==null||opCur.SetProspective!=opOld.SetProspective) {
+					if(opCur.SetProspective&&patCur.PatStatus!=PatientStatus.Prospective) { //Don't need to prompt if patient is already prospective.
+						if(MsgBox.Show(this,MsgBoxButtons.OKCancel,"Patient's status will be set to Prospective.")) {
+							Patient patOld=patCur.Copy();
+							patCur.PatStatus=PatientStatus.Prospective;
+							Patients.Update(patCur,patOld);
+						}
+					}
+					else if(!opCur.SetProspective&&patCur.PatStatus==PatientStatus.Prospective) {
+						//Do we need to warn about changing FROM prospective? Assume so for now.
+						if(MsgBox.Show(this,MsgBoxButtons.OKCancel,"Patient's status will change from Prospective to Patient.")) {
+							Patient patOld=patCur.Copy();
+							patCur.PatStatus=PatientStatus.Patient;
+							Patients.Update(patCur,patOld);
+						}
+					}
+				}
+			}
+			#endregion Patient status
+			#region Update Appt's AptStatus, ClinicNum, Confirmed
+			object[] parameters2 = { appt.AptDateTime,apptOld.AptDateTime,appt.AptStatus };
+			if((Plugins.HookMethod(this,"ContrAppt.ContrApptSheet2_MouseUp_apptDoNotUnbreakApptSameDay",parameters2))) {
+				appt.AptStatus=(ApptStatus)parameters2[2];
+				goto PluginApptDoNotUnbreakApptSameDay;
+			}
+			if(appt.AptStatus==ApptStatus.Broken&&(timeWasMoved||isOpChanged)) {
+				appt.AptStatus=ApptStatus.Scheduled;
+			}
+			PluginApptDoNotUnbreakApptSameDay: { }
+			//original location of provider code
+			if(operatoryCur.ClinicNum==0) {
+				appt.ClinicNum=patCur.ClinicNum;
+			}
+			else {
+				appt.ClinicNum=operatoryCur.ClinicNum;
+			}
+			if(appt.AptDateTime!=apptOld.AptDateTime
+				&& appt.Confirmed!=Defs.GetFirstForCategory(DefCat.ApptConfirmed,true).DefNum
+				&& appt.AptDateTime.Date!=DateTime.Today) 
+			{
+				string prompt=(PrefC.GetBool(PrefName.ApptConfirmAutoEnabled) ? "Do you want to resend the eConfirmation?" 
+					: "Reset Confirmation Status?");
+				bool doResetConf=MsgBox.Show(this,MsgBoxButtons.YesNo,prompt);
+				if(doResetConf) {
+					appt.Confirmed=Defs.GetFirstForCategory(DefCat.ApptConfirmed,true).DefNum;//Causes the confirmation status to be reset.
+				}
+				if(PrefC.GetBool(PrefName.ApptConfirmAutoEnabled)) {
+					List<ConfirmationRequest> listConfirmations=ConfirmationRequests.GetAllForAppts(new List<long> { appt.AptNum});
+					foreach(ConfirmationRequest request in listConfirmations) {
+						//If they selected No, this will force the econnector to not delete the row and therefore not send another eConfirmation.
+						//If they selected Yes, we will clear the DoNotResend flag so that it will get sent.
+						request.DoNotResend=!doResetConf;
+						ConfirmationRequests.Update(request);
+					}
+				}
+			}
+			#endregion Update Appt's AptStatus, ClinicNum, Confirmed
+			try {
+				//Should only need this check if changing/updating Op. Assumes we didn't previously schedule the apt somewhere it shouldn't have been.
+				if(!AppointmentL.IsSpecialtyMismatchAllowed(patCur.PatNum,appt.ClinicNum)) {
+					return;
+				}
+				if(isOpUpdate) {
+					Appointments.MoveValidatedAppointment(appt,apptOld,patCur,operatoryCur,listSchedsForOp,listOpsForClinic,provChanged,hygChanged,timeWasMoved,isOpChanged,isOpUpdate);
+				}
+				else { 
+					Appointments.MoveValidatedAppointment(appt,apptOld,patCur,operatoryCur,contrApptPanel.ListSchedules,listOpsForClinic,provChanged,hygChanged,timeWasMoved,isOpChanged,isOpUpdate);
+				}
+			}
+			catch(Exception e) {
+				MsgBox.Show(this,e.Message);
+			}
+		}
+
+		///<summary></summary>
+		private void PrintApptCard() {
+			PrinterL.TryPrintOrDebugRpPreview(pd2_PrintApptCard,
+				"Appointment reminder postcard printed",
+				printSit:PrintSituation.Postcard,
+				auditPatNum:_patCur.PatNum,
+				margins:new Margins(0,0,0,0),
+				printoutOrigin:PrintoutOrigin.AtMargin
+			);
+		}
+
+		private void pd2_PrintApptCard(object sender,PrintPageEventArgs ev) {
+			Graphics g=ev.Graphics;
+			long apptClinicNum=0;
+			if(contrApptPanel.SelectedAptNum>0){
+				apptClinicNum=PIn.Long(contrApptPanel.GetDataRowForSelected()["ClinicNum"].ToString());
+			}		
+			Clinic clinic=Clinics.GetClinic(apptClinicNum);
+			//Return Address--------------------------------------------------------------------------
+			string str="";
+			string phone="";
+			if(PrefC.HasClinicsEnabled && clinic!=null) {//Use clinic on appointment if clinic exists and has clinics enabled
+				str=clinic.Description+"\r\n";
+				g.DrawString(str,new Font(FontFamily.GenericSansSerif,9,FontStyle.Bold),Brushes.Black,60,60);
+				str=clinic.Address+"\r\n";
+				if(clinic.Address2!="") {
+					str+=clinic.Address2+"\r\n";
+				}
+				str+=clinic.City+"  "+clinic.State+"  "+clinic.Zip+"\r\n";
+				phone=clinic.Phone;
+			}
+			else {//Otherwise use practice information
+				str=PrefC.GetString(PrefName.PracticeTitle)+"\r\n";
+				g.DrawString(str,new Font(FontFamily.GenericSansSerif,9,FontStyle.Bold),Brushes.Black,60,60);
+				str=PrefC.GetString(PrefName.PracticeAddress)+"\r\n";
+				if(PrefC.GetString(PrefName.PracticeAddress2)!="") {
+					str+=PrefC.GetString(PrefName.PracticeAddress2)+"\r\n";
+				}
+				str+=PrefC.GetString(PrefName.PracticeCity)+"  "
+					+PrefC.GetString(PrefName.PracticeST)+"  "
+					+PrefC.GetString(PrefName.PracticeZip)+"\r\n";
+				phone=PrefC.GetString(PrefName.PracticePhone);
+			}
+			if(CultureInfo.CurrentCulture.Name=="en-US" && phone.Length==10) {
+				str+="("+phone.Substring(0,3)+")"+phone.Substring(3,3)+"-"+phone.Substring(6);
+			}
+			else {//any other phone format
+				str+=phone;
+			}
+			g.DrawString(str,new Font(FontFamily.GenericSansSerif,8),Brushes.Black,60,75);
+			//Body text-------------------------------------------------------------------------------
+			string name;
+			str="Appointment Reminders:"+"\r\n\r\n";
+			Appointment[] aptsOnePat;
+			Family fam=Patients.GetFamily(_patCur.PatNum);
+			Patient pat=fam.GetPatient(_patCur.PatNum);
+			for(int i=0;i<fam.ListPats.Length;i++) {
+				if(!_doPrintCardFamily && fam.ListPats[i].PatNum!=pat.PatNum) {
+					continue;
+				}
+				name=fam.ListPats[i].FName;
+				if(name.Length>15) {//trim name so it won't be too long
+					name=name.Substring(0,15);
+				}
+				aptsOnePat=Appointments.GetForPat(fam.ListPats[i].PatNum);
+				for(int a=0;a<aptsOnePat.Length;a++) {
+					if(aptsOnePat[a].AptDateTime.Date<=DateTime.Today) {
+						continue;//ignore old appts
+					}
+					if(aptsOnePat[a].AptStatus!=ApptStatus.Scheduled){
+						continue;
+					}
+					str+=name+": "+aptsOnePat[a].AptDateTime.ToShortDateString()+" "+aptsOnePat[a].AptDateTime.ToShortTimeString()+"\r\n";
+				}
+			}
+			g.DrawString(str,new Font(FontFamily.GenericSansSerif,9),Brushes.Black,40,180);
+			//Patient's Address-----------------------------------------------------------------------
+			Patient guar;
+			if(_doPrintCardFamily) {
+				guar=fam.ListPats[0].Copy();
+			}
+			else {
+				guar=pat.Copy();
+			}
+			str=guar.FName+" "+guar.LName+"\r\n"
+				+guar.Address+"\r\n";
+			if(guar.Address2!="") {
+				str+=guar.Address2+"\r\n";
+			}
+			str+=guar.City+"  "+guar.State+"  "+guar.Zip;
+			g.DrawString(str,new Font(FontFamily.GenericSansSerif,11),Brushes.Black,300,240);
+			//CommLog entry---------------------------------------------------------------------------
+			Commlog CommlogCur=new Commlog();
+			CommlogCur.CommDateTime=DateTime.Now;
+			CommlogCur.CommType=Commlogs.GetTypeAuto(CommItemTypeAuto.MISC);
+			CommlogCur.Note="Appointment card sent";
+			CommlogCur.PatNum=pat.PatNum;
+			CommlogCur.UserNum=Security.CurUser.UserNum;
+			//there is no dialog here because it is just a simple entry
+			Commlogs.Insert(CommlogCur);
+			ev.HasMorePages = false;
+		}
+
+		private void PrintApptLabel() {
+			Appointment apt=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
+			if(ApptIsNull(apt)) { return; }
+			LabelSingle.PrintAppointment(contrApptPanel.SelectedAptNum);
+		}
+
+		///<summary>Processes the OtherResult from a call to FormApptsOther.</summary>
+		private void ProcessOtherDlg(OtherResult result,long patNum,string strDateJumpTo,params long[] arraySelectedAptNums) {
+			if(result==OtherResult.Cancel) {
+				return;
+			}
+			switch(result) {
+				case OtherResult.CopyToPinBoard:
+					SendToPinBoardAptNums(arraySelectedAptNums.ToList());
+					RefreshModuleDataPatient(patNum);
+					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
+					RefreshPeriod();
+					break;
+				case OtherResult.NewToPinBoard:
+					SendToPinBoardAptNums(arraySelectedAptNums.ToList());
+					RefreshModuleDataPatient(patNum);
+					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
+					RefreshPeriod();
+					break;
+				case OtherResult.PinboardAndSearch:
+					SendToPinBoardAptNums(arraySelectedAptNums.ToList());
+					if(contrApptPanel.IsWeeklyView) {
+						break;
+					}
+					dateSearch.Text=strDateJumpTo;
+					if(!groupSearch.Visible) {//if search not already visible
+						ShowSearch();
+					}
+					DoSearch();
+					break;
+				case OtherResult.CreateNew:
+					contrApptPanel.SelectedAptNum=arraySelectedAptNums[0];
+					RefreshModuleDataPatient(patNum);
+					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
+					Appointment apt=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
+					Appointment aptOld=apt.Copy();
+					if(!HasValidStartTime(apt)) {
+						MsgBox.Show("Appointment start time would overlap another appointment.  Moving appointment to pinboard.");
+						DataRow dataRow=contrApptPanel.GetDataRowForSelected();
+						if(dataRow==null){
+							return;//silently fail
+						}
+						SendToPinboardDataRow(dataRow);
+						apt.AptStatus=ApptStatus.UnschedList;
+						try {
+							Appointments.Update(apt,aptOld);
+						}
+						catch(ApplicationException ex) {
+							MessageBox.Show(ex.Message);
+						}
+						RefreshPeriod();
+						break;
+					}
+					if(TryAdjustAppointmentPattern(apt)) {
+						MsgBox.Show(this,"Appointment is too long and would overlap another appointment.  Automatically shortened to fit.");						
+						try {
+							Appointments.Update(apt,aptOld);//Appointments S-Class handles Signalods
+						}
+						catch(ApplicationException ex) {
+							MessageBox.Show(ex.Message);
+						}
+					}
+					RefreshPeriod();
+					break;
+				case OtherResult.GoTo:
+					contrApptPanel.SelectedAptNum=arraySelectedAptNums[0];
+					contrApptPanel.DateSelected=PIn.Date(strDateJumpTo);
+					if(_patCur.PatNum!=patNum) {
+						//ModuleSelected->RefreshModuleScreenPeriod, Appt won't be selected if PatCur.PatNum!=Appt.PatNum
+						_patCur=Patients.GetPat(patNum);
+					}
+					FormOpenDental.S_Contr_PatientSelected(_patCur,true,false,true);
+					break;
+			}
+		}
+
+		///<summary>Brings up the window to send text messagse to the patients.</summary>
+		private void SendTextMessages(List<long> listPatNums) {
+			if(listPatNums.Count==0) {
+				MsgBox.Show("No appointments this day to send text messages to.");
+				return;
+			}
+			Clinic curClinic=Clinics.GetClinic(Clinics.ClinicNum)??Clinics.GetDefaultForTexting()??Clinics.GetPracticeAsClinicZero();
+			List<PatComm> listPatComms=Patients.GetPatComms(listPatNums,curClinic,false);
+			List<string> listPatsSkipped=new List<string>();
+			for(int i=listPatComms.Count-1;i>=0;i--) {
+				//Remove patients that can't receive texts.
+				PatComm patComm=listPatComms[i];
+				if(patComm.IsSmsAnOption) {
+					continue;
+				}
+				listPatsSkipped.Add(patComm.FName+" "+patComm.LName+": "+patComm.GetReasonCantText());
+				listPatComms.RemoveAt(i);
+			}
+			if(listPatsSkipped.Count > 0) {
+				string msg=listPatsSkipped.Count+" of the "+listPatNums.Distinct().Count()+" "
+					+"patients cannot receive text messages:"+"\r\n"+string.Join("\r\n",listPatsSkipped);
+				if(listPatsSkipped.Count < 8) {
+					MessageBox.Show(msg);
+				}
+				else {
+					new MsgBoxCopyPaste(msg).ShowDialog();
+				}
+			}
+			if(listPatComms.Count==0) {
+				return;
+			}
+			FormTxtMsgMany formTxtMsgMany=new FormTxtMsgMany(listPatComms,"",Clinics.ClinicNum,SmsMessageSource.DirectSms);
+			formTxtMsgMany.DoCombineNumbers=true;
+			formTxtMsgMany.Show();
+		}
+
+		/// <summary>Sets the index of comboView for the specified ApptViewNum.  Then, does a ModuleSelected().  If saveToDb, then it will remember the ApptViewNum and currently selected ClinicNum for this workstation.</summary>
+		private void SetView(long apptViewNum,bool saveToDb) {
+			comboView.SelectedIndex=0;//this would be circular if we used event indexchanged, but we use changeCommitted.
+			for(int i=0;i<_listApptViews.Count;i++) {
+				if(apptViewNum==_listApptViews[i].ApptViewNum) {
+					comboView.SelectedIndex=i+1;//+1 for 'none'
+					break;
+				}
+			}
+			if(!_hasInitializedOnStartup) {
+				return;//prevent ModuleSelected().
+			}
+			if(_hasInitializedOnStartup && !Visible) {
+				return;
+			}
+			if(saveToDb) {
+				ComputerPrefs.LocalComputer.ApptViewNum=apptViewNum;
+				ComputerPrefs.LocalComputer.ClinicNum=Clinics.ClinicNum;
+				ComputerPrefs.Update(ComputerPrefs.LocalComputer);
+				UserodApptViews.InsertOrUpdate(Security.CurUser.UserNum,Clinics.ClinicNum,apptViewNum);
+			}
+			if(_patCur==null) {
+				ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+			}
+			else {
+				ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+			}
+		}
+
+		///<summary>Switches between weekly view and daily view.   Calls either RefreshPeriod or ModuleSelected.</summary>
+		private void SetWeeklyView(bool isWeeklyView) {
+			//Completely independent from and does not affect contrApptPanel.DateSelected.
+			//if the weekly view doesn't change, then use SetDateSelected or RefreshPeriod
+			if(isWeeklyView) {
+				radioWeek.Checked=true;
+				butFwd.Enabled=false;
+				butBack.Enabled=false;
+			}
+			else {
+				radioDay.Checked=true;
+				butFwd.Enabled=true;
+				butBack.Enabled=true;
+			}
+			contrApptPanel.IsWeeklyView=isWeeklyView;
+			if(!_hasInitializedOnStartup) {
+				return;//prevent refreshing repeatedly on startup
+			}
+			long apptViewNum=0;
+			if(contrApptPanel.ApptViewCur!=null) {
+				apptViewNum=contrApptPanel.ApptViewCur.ApptViewNum;
+			}
+			if(isWeeklyView) {
+				if(_patCur==null) {
+					ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+				}
+				else {
+					ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+				}
+			}
+			else {
+				RefreshPeriod(listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum),isRefreshSchedules:true);
+			}
+		}
+
+		///<summary>This is a good way to set contrApptPanel.DateSelected while also refreshing the module.  If you are not changing the date or patient, then instead, simply use RefreshPeriod().</summary>
+		private void SetDateSelected(DateTime date){
+			contrApptPanel.DateSelected=date;
+			long apptViewNum=0;
+			if(contrApptPanel.ApptViewCur!=null) {
+				apptViewNum=contrApptPanel.ApptViewCur.ApptViewNum;
+			}
+			if(contrApptPanel.IsWeeklyView) {
+				if(_patCur==null) {
+					ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+				}
+				else {
+					ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+				}
+			}
+			else {
+				RefreshPeriod(listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum),isRefreshSchedules:true);
+			}
+		}
+
+		///<summary>Used when passing a family to the pinboard.</summary>
+		private void SendToPinBoardAptNums(List<long> aptNums) {
+			if(IsHqNoneView()) {
+				MsgBox.Show("Appointments can't be sent to the pinboard when an appointment view or clinic hasn't been selected.");
+				return;
+			}
+			if(aptNums.Count==0) {
+				return;
+			}
+			long patNum=0;
+			for(int i=0;i<aptNums.Count;i++){
+				//sometimes, before this method was called, module was refreshed, and these appts were included.
+				DataRow dataRow=null;
+				for(int r=0;r<contrApptPanel.TableAppointments.Rows.Count;r++){
+					if(contrApptPanel.TableAppointments.Rows[r]["AptNum"].ToString()!=aptNums[i].ToString()){
+						continue;
+					}
+					dataRow=contrApptPanel.TableAppointments.Rows[r];
+				}
+				if(dataRow==null){
+					//but sometimes, we need to go get the row manually
+					DataTable dataTable=Appointments.GetPeriodApptsTable(contrApptPanel.DateStart,contrApptPanel.DateEnd,aptNums[i],false);
+					if(dataTable.Rows.Count==0){
+						continue;//fail silently?
+					}
+					dataRow=dataTable.Rows[0];
+				}
+				string pattern=PIn.String(dataRow["Pattern"].ToString());
+				string patternShowing=contrApptPanel.GetPatternShowing(pattern);
+				SizeF sizeAppt=contrApptPanel.SetSize(pattern);
+				Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
+				using(Graphics g = Graphics.FromImage(bitmap)){
+					contrApptPanel.GetBitmapForPinboard(g,dataRow,patternShowing,bitmap.Width,bitmap.Height);
+				}
+				//Bitmap bitmap=contrApptPanel.GetBitmapForPinboard(dataRow,pinBoard.Width);
+				long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+				pinBoard.AddAppointment(bitmap,aptNum,dataRow);
+				bitmap.Dispose();//?
+				if(i==aptNums.Count-1) { //Set the pt to the last appt on the pinboard.
+					patNum=PIn.Long(dataRow["PatNum"].ToString());
+				}
+			}
+			if(patNum==0 && _patCur!=null) {
+				patNum=_patCur.PatNum;
+			}
+			RefreshModuleDataPatient(patNum); 
+			if(_patCur!=null) {
+				FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
+			}
+		}
+
+		///<summary>Used when dragging an appt to the pinboard.</summary>
+		private void SendToPinboardDataRow(DataRow dataRow) {
+			if(IsHqNoneView()) {
+				MsgBox.Show("Appointments can't be sent to the pinboard when an appointment view or clinic hasn't been selected.");
+				return;
+			}
+			string pattern=PIn.String(dataRow["Pattern"].ToString());
+			string patternShowing=contrApptPanel.GetPatternShowing(pattern);
+			SizeF sizeAppt=contrApptPanel.SetSize(pattern);
+			Bitmap bitmap=new Bitmap(pinBoard.Width-2,(int)sizeAppt.Height);
+			using(Graphics g = Graphics.FromImage(bitmap)){
+				contrApptPanel.GetBitmapForPinboard(g,dataRow,patternShowing,bitmap.Width,bitmap.Height);
+			}
+			//Bitmap bitmap=contrApptPanel.GetBitmapForPinboard(dataRow,pinBoard.Width);
+			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+			pinBoard.AddAppointment(bitmap,aptNum,dataRow);
+			bitmap.Dispose();//?
+			long patNum=PIn.Long(dataRow["PatNum"].ToString());
+			RefreshModuleDataPatient(patNum); 
+			//if(_patCur!=null) {
+				FormOpenDental.S_Contr_PatientSelected(_patCur,true,false);
+			//}
+		}
+
+		///<summary>Shortens appt.Pattern if overlap is found in neighboring op within appt.Op. Pattern will be adjusted to a minimum of 1 until no overlap occurs. Calling RefreshPeriod() is not necessary before calling this method. It goes to the db only as much as is necessary. Returns true if patter was adjusted. Returns false if pattern was not adjusted.</summary>
+		public static bool TryAdjustAppointmentPattern(Appointment appt) {
+			bool isPatternChanged;
+			bool notUsed;
+			Appointments.TryAdjustAppointment(appt,UI.UserControlApptsPanelJ.GetListOpsVisible(),false,true,true,true,out isPatternChanged,out notUsed);
+			return isPatternChanged;
+		}
+
+		#endregion Methods - Private Other
+			 	 	
+	
+
+		
 	}
 }
 
 //todo: 
 //Major functionality missing:
-//Printing
-//Search
-//Grids at lower right
-//Overlap
-//Weekly view
-//When in weekly view, _backPanel_MouseDown on an op header to switch to day view
+//During printing, copy image to clipboard
+//Overlap is working, but drag is annoying 
+//hover bubble is leaving unacceptable dragging trails.
 
 //Minor details
+//If appt is very narrow, just draw a rect, without anything else.  Sharp corners.
 //Where are pinboard TableApptFields stored?  Need them when dragging off in order to make a copy.
 //Dispose of bitmaps on pinboard items when they are removed from list
 //FormApptsOther.MakeRecallAppointment, and similar methods.
 //FormOpenDental.GotoModule_ModuleSelected needs to be revisited for changing date
+//Check that appt colored procs are wrapping properly
+//Full line-by-line review and compare old vs new
+
+//Untested:
+//Grids at lower right
+//Search
+
 
