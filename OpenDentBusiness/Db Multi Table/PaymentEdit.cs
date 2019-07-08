@@ -713,9 +713,19 @@ namespace OpenDentBusiness {
 			//use negative paysplits to counteract inspaytotals/paysplits/adjustments for same prov/pat/clinic.  
 			//Accounts for income transfers and prevents using the transferred money.
 			List<PaySplit> listNegSplits=listSplitsCopied.FindAll(x => x.SplitAmt<0);
+			List<long> listHiddenUnearnedDefNums=Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType)
+				.FindAll(x => !string.IsNullOrEmpty(x.ItemValue))//If ItemValue is not blank, it means "do not show on account"
+				.Select(x => x.DefNum).ToList();
 			foreach(PaySplit negSplit in listNegSplits) {
+				if(negSplit.UnearnedType.In(listHiddenUnearnedDefNums)) {
+					continue;
+				}
 				List<PaySplit> posSplits=listSplitsCopied.FindAll(x => x.SplitAmt>0 && x.PatNum==negSplit.PatNum && x.ProvNum==negSplit.ProvNum &&x.ClinicNum==negSplit.ClinicNum);
 				foreach(PaySplit posSplit in posSplits) {
+					if(posSplit.UnearnedType.In(listHiddenUnearnedDefNums)) {
+						//splits with hidden unearned types are not allowed to be used for implicit linking or income transfers.
+						continue;
+					}
 					if(negSplit.SplitAmt==0) {
 						break;
 					}
@@ -829,6 +839,9 @@ namespace OpenDentBusiness {
 			,int phase,ref List<AccountEntry> listAccountCharges) 
 		{
 			//No remoting role check; no call to db
+			List<long> listHiddenUnearnedDefNums=Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType)
+				.FindAll(x => !string.IsNullOrEmpty(x.ItemValue))//If ItemValue is not blank, it means "do not show on account"
+				.Select(x => x.DefNum).ToList();
 			foreach(ClaimProc claimProc in listInsPayAsTotal) {//Use claim payments by total to pay off procedures for that specific patient.
 				claimProc.InsPayAmt=claimProc.InsPayAmt+claimProc.WriteOff;//just move both values to a single item for ease of use.  We don't care if it's a writeoff or not.
 				claimProc.WriteOff=0;//Fix just in case we come back to this claimproc again in the future, don't want to re-add the value to InsPayAmt.
@@ -880,6 +893,9 @@ namespace OpenDentBusiness {
 				}
 			}
 			foreach(PaySplit split in listPaySplits) {//Use unattached positive paysplits to pay off patient's procedures as accurately as possible.
+				if(split.UnearnedType.In(listHiddenUnearnedDefNums)) {
+					continue;//Splits that do not show on the account are not valid to use for implicit linking
+				}
 				if(split.ProcNum!=0) {
 					continue;//Don't use explicitly linked paysplits.
 				}

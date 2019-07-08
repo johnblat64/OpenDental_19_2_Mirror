@@ -1190,6 +1190,24 @@ namespace UnitTests.Payments_Tests {
 			Assert.AreEqual(50,listSplitsForBrokenProc.Sum(x => x.SplitAmt));
 			Assert.AreEqual(0,PaySplits.GetPaySplitsFromProc(treatPlanProc.ProcNum).Sum(x => x.SplitAmt));
 		}
+
+		[TestMethod]
+		public void PaymentEdit_AutoSplitForPayment_HiddenPaysplitsAreNotUsedInImplicitLinking() {
+			Def def=DefT.CreateDefinition(DefCat.PaySplitUnearnedType,"hiddenType","x");
+			PrefT.UpdateInt(PrefName.PrePayAllowedForTpProcs,(int)YN.Yes);
+			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
+			long provNum=ProviderT.CreateProvider("prov");
+			//Make an unattached hidden payment that will be reserved for some treatment planned procedure down the line.
+			Payment hiddenPayment=PaymentT.MakePayment(pat.PatNum,50,DateTime.Today.AddDays(-1),unearnedType:def.DefNum);
+			//Make a completed procedure that we do not want linked to the payment we just made. 
+			Procedure procedure=ProcedureT.CreateProcedure(pat,"D0220",ProcStat.C,"4",100);
+			Payment currentPayment=PaymentT.MakePaymentNoSplits(pat.PatNum,25,DateTime.Today);
+			PaymentEdit.ConstructResults constructData=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>{pat.PatNum},pat.PatNum
+				,new List<PaySplit>(),currentPayment,new List<AccountEntry>());
+			PaymentEdit.AutoSplit autoSplitData=PaymentEdit.AutoSplitForPayment(constructData);
+			Assert.AreEqual(1,autoSplitData.ListAccountCharges.FindAll(x => x.AmountStart==100 && x.AmountEnd==75).Count);
+			Assert.AreEqual(1,autoSplitData.ListAutoSplits.FindAll(x => x.SplitAmt==25).Count);//auto split should be for reg. unallocated, not the tp.
+		}
 		#endregion
 		#region PayPlan Tests - PayPlanEdit
 		[TestMethod]
