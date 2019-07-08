@@ -634,6 +634,9 @@ namespace OpenDentBusiness {
 		EHREmailToAddress,
 		///<summary>Date when user upgraded to 13.1.14 and started using NewCrop Guids on Rxs.</summary>
 		ElectronicRxDateStartedUsing131,
+		///<summary>No UI for this pref. Number of failed consecutive email send attempts from the eConnector before an alert is shown.</summary>
+		[PrefName(ValueType = PrefValueType.INT)]
+		EmailAlertMaxConsecutiveFails,
 		/// <summary>FK to EmailAddress.EmailAddressNum.  It is not required that a default be set.</summary>
 		EmailDefaultAddressNum,
 		///<summary>Bool which indicates, where applicable, all emails being sent should have the EmailDisclaimerTemplate appended to the end of the EmailBody.</summary>

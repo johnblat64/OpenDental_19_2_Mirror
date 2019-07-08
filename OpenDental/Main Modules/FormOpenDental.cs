@@ -5445,6 +5445,7 @@ namespace OpenDental{
 				case AlertType.WebMailRecieved:
 					value+=Lan.g(this,"Unread Web Mails")+": ";
 					break;
+				case AlertType.EconnectorEmailTooManySendFails:
 				case AlertType.NumberBarredFromTexting:
 				case AlertType.MultipleEConnectors:
 				case AlertType.EConnectorDown:

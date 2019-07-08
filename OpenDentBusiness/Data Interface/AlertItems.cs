@@ -232,7 +232,23 @@ namespace OpenDentBusiness{
 			}
 			Crud.AlertItemCrud.Update(alertItem);
 		}
-		
+
+		///<summary>Inserts if it doesn't exist, otherwise updates.</summary>
+		public static long Upsert(AlertItem alertItem) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				alertItem.AlertItemNum=Meth.GetLong(MethodBase.GetCurrentMethod(),alertItem);
+				return alertItem.AlertItemNum;
+			}
+			if(alertItem.AlertItemNum==0) {
+				Insert(alertItem);
+			}
+			else {
+				Update(alertItem);
+			}
+			return alertItem.AlertItemNum;
+		}
+
+
 		///<summary>If null listFKeys is provided then all rows of the given alertType will be deleted. Otherwise only rows which match listFKeys entries.</summary>
 		public static void DeleteFor(AlertType alertType,List<long> listFKeys=null) {
 			//No need to check RemotingRole; no call to db.

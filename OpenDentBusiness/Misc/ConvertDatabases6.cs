@@ -1544,6 +1544,22 @@ namespace OpenDentBusiness {
 			});
 		}
 
+		private static void To19_2_4() {
+			string command;
+			command="INSERT INTO preference(PrefName,ValueString) VALUES('EmailAlertMaxConsecutiveFails','3')";
+			Db.NonQ(command);
+			command="SELECT AlertCategoryNum FROM alertcategory WHERE InternalName='OdAllTypes' AND IsHQCategory=1";
+			long alertCategoryNum=Db.GetLong(command);
+			//22 for alerttype EconnectorEmailTooManySendFails
+			command="INSERT INTO alertcategorylink(AlertCategoryNum,AlertType) VALUES("+POut.Long(alertCategoryNum)+",'22')";
+			Db.NonQ(command);
+			command="SELECT AlertCategoryNum FROM alertcategory WHERE InternalName='eServices' AND IsHQCategory=1";
+			alertCategoryNum=Db.GetLong(command);
+			//22 for alerttype EconnectorEmailTooManySendFails
+			command="INSERT INTO alertcategorylink(AlertCategoryNum,AlertType) VALUES("+POut.Long(alertCategoryNum)+",'22')";
+			Db.NonQ(command);
+		}
+
 		private static void To19_3_0() {
 			string command;
 			DataTable table;

@@ -141,6 +141,10 @@ namespace OpenDentBusiness {
 		///<summary>21 - Triggered when a new WebMail is recieved from the patient portal.</summary>
 		[Description("New WebMail")]
 		WebMailRecieved,
+		///<summary>22 - Triggered when the consecutive count of failed emails for clinic reaches greater than the value set in 
+		///EmailAlertMaxConsecutiveFails preference.</summary>
+		[Description("eConnector Email Send Failures")]
+		EconnectorEmailTooManySendFails,
 	}
 
 	///<summary>Represents the urgency of the alert.  Also determines the color for the menu item in the main menu.</summary>
