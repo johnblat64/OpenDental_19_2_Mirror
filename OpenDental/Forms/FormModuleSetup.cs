@@ -1945,7 +1945,7 @@ namespace OpenDental{
 			this.label57.Name = "label57";
 			this.label57.Size = new System.Drawing.Size(266, 18);
 			this.label57.TabIndex = 253;
-			this.label57.Text = "Default Treatement Planned Procedure Unearned Type";
+			this.label57.Text = "Default Treatment Planned Procedure Unearned Type";
 			this.label57.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			// 
 			// comboTpUnearnedType
