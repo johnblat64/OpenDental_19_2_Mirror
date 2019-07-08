@@ -1560,9 +1560,5 @@ namespace OpenDentBusiness {
 			Db.NonQ(command);
 		}
 
-		private static void To19_3_0() {
-			string command;
-			DataTable table;
-		}//End of 19_3_0() method
 	}
 }

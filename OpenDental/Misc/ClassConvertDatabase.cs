@@ -41,6 +41,12 @@ namespace OpenDental{
 				}
 				return false;//shuts program down.
 			}
+			//There was a 19.3.0 convert method released in the 19.2.3 version.
+			//We have to treat 19.3.0 as 19.2.3 so newer convert methods will run.
+			if(!ODBuild.IsDebug() && FromVersion.ToString()=="19.3.0.0") {
+				FromVersion=new Version("19.2.3.0");
+				ODException.SwallowAnyException(() => Prefs.UpdateString(PrefName.DataBaseVersion,"19.2.3.0"));
+			}
 			if(FromVersion==ToVersion) {
 				return true;//no conversion necessary
 			}
