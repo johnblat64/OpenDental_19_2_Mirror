@@ -1558,6 +1558,12 @@ namespace OpenDentBusiness {
 			//22 for alerttype EconnectorEmailTooManySendFails
 			command="INSERT INTO alertcategorylink(AlertCategoryNum,AlertType) VALUES("+POut.Long(alertCategoryNum)+",'22')";
 			Db.NonQ(command);
+			command="ALTER TABLE insverify ADD INDEX (DateTimeEntry)";
+			Db.NonQ(command);
+			command="ALTER TABLE task ADD INDEX (DateTimeOriginal)";
+			Db.NonQ(command);
+			command="ALTER TABLE taskhist ADD INDEX (DateTStamp)";
+			Db.NonQ(command);
 		}
 
 	}
