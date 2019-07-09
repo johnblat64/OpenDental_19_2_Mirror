@@ -186,7 +186,7 @@ namespace OpenDental {
 			this.Controls.Add(this.butOK);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "FormRpHiddenPaySplits";
-			this.Text = "Payments not Shown on Account";
+			this.Text = "Hidden Payment Splits Report";
 			this.Load += new System.EventHandler(this.FormRpTpPreAllocation_Load);
 			this.ResumeLayout(false);
 
