@@ -95,8 +95,7 @@ namespace OpenDentBusiness{
 			//However, this is a lazy insert, so multiple locations might attempt it.
 			//Just in case, we will have it fail silently.
 			try {
-				string command = "INSERT INTO patientnote (patnum"
-					+") VALUES('"+patNum+"')";
+				string command="INSERT INTO patientnote (PatNum,SecDateTEntry) VALUES('"+patNum+"',"+DbHelper.Now()+")";
 				if(DataConnection.DBtype==DatabaseType.MySql) {
 					//We may need to do this in Oracle in the future as well.
 					//If using Replication, then we need to watch for duplicate errors, because the insert is lazy.
