@@ -4090,7 +4090,6 @@ namespace OpenDental {
 
 //todo:
 //speed test
-//Overlapping appointments in week view show side by side
 //During printing, copy image to clipboard
 //Where are pinboard TableApptFields stored?  Need them when dragging off in order to make a copy.
 //Dispose of bitmaps on pinboard items when they are removed from list
@@ -4109,6 +4108,6 @@ namespace OpenDental {
 //DrawBlockouts (and manipulate them)
 
 //For Documentation, new feature description:
-//Multiple appointments can be scheduled in the same operatory.  User has no control over the arrangement within the operatory column. 
+//Multiple appointments can be scheduled in the same operatory.  User has no control over the arrangement of overlapping appointments within one operatory column. 
 
 

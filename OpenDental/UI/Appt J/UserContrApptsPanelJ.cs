@@ -2583,6 +2583,8 @@ namespace OpenDental.UI{
 			float widthCol;
 			float widthWeekDay=0;
 			float widthWeekAppt=0;
+			//float dayofweek=0;//changes with each appt row
+			//float idxOp=0;//changes with each appt row
 			if(listOperatories.Count==0) {
 				widthCol=0;
 			}
@@ -2606,24 +2608,21 @@ namespace OpenDental.UI{
 					listApptLayoutInfos.Add(apptLayoutInfo);
 					continue;
 				}
+				apptLayoutInfo=new ApptLayoutInfo();
+				apptLayoutInfo.IdxOp=listOperatories.FindIndex(x=>x.OperatoryNum==PIn.Long(dataRow["Op"].ToString()));
+				apptLayoutInfo.DayOfWeek=(int)PIn.DateT(dataRow["AptDateTime"].ToString()).DayOfWeek-1;
+				if(apptLayoutInfo.DayOfWeek==-1) {
+					apptLayoutInfo.DayOfWeek=6;
+				}
 				PointF pointF=new PointF();
-				int idxOp=listOperatories.FindIndex(x=>x.OperatoryNum==PIn.Long(dataRow["Op"].ToString()));
 				if(isWeeklyView) {
-					//the next few lines are because we start on Monday instead of Sunday
-					int dayofweek=(int)PIn.DateT(dataRow["AptDateTime"].ToString()).DayOfWeek-1;
-					if(dayofweek==-1) {
-						dayofweek=6;
-					}
-					pointF.X=widthWeekDay*(dayofweek)+(widthWeekAppt*idxOp);
+					pointF.X=widthWeekDay*(float)apptLayoutInfo.DayOfWeek+widthWeekAppt*(float)apptLayoutInfo.IdxOp;
 				}
 				else {
-					pointF.X=widthCol*idxOp;
+					pointF.X=widthCol*(float)apptLayoutInfo.IdxOp;
 				}
-				pointF.Y=(float)(((double)(aptDateTime.Hour)*(double)60
-					/(double)minPerIncr
-					+(double)aptDateTime.Minute
-					/(double)minPerIncr
-					)*(double)heightLine*rowsPerIncr);
+				pointF.Y=((float)aptDateTime.Hour*60f/minPerIncr+(float)aptDateTime.Minute/minPerIncr)
+					*heightLine*rowsPerIncr;
 				//List<CodeBase.DateRange> listDateRangesOverlap=new List<DateRange>();
 				string pattern=PIn.String(dataRow["Pattern"].ToString());
 				//string patternShowing=GetPatternShowing(pattern);
@@ -2646,13 +2645,8 @@ namespace OpenDental.UI{
 				if(minPerIncr==15) {
 					sizeF.Height/=3f;
 				}
-				apptLayoutInfo=new ApptLayoutInfo();
 				apptLayoutInfo.idxInTableAppointments=i;
 				apptLayoutInfo.RectangleBounds=new RectangleF(pointF,sizeF);
-				if(isWeeklyView){
-					listApptLayoutInfos.Add(apptLayoutInfo);
-					continue;//don't do any overlap arranging.  Weekly view just stacks them in their ops.
-				}
 				//don't actually add it until it will fit
 				//The newest appointment that we are adding is still full size, and won't be narrowed unless it's literally sitting on top of other appts.
 				List<ApptLayoutInfo> listOverlaps=listApptLayoutInfos.FindAll(x => x.RectangleBounds.IntersectsWith(apptLayoutInfo.RectangleBounds));
@@ -2665,7 +2659,7 @@ namespace OpenDental.UI{
 				//If we use Rectangle, and they are touching, C# does not call this intersection. Example 0,0,100,100 does not intersect with 100,0,100,100.
 				//One approach would be to build a custom RectangleF.IntersectsWith method with a precision parameter.
 				//An easier approach is to trunc the rectangles down to nearest pixel before testing intersection to eliminate false positives.
-				//Truncating x,y shifts the rectangle closer to other rectangles, but I think that's ok.
+				//Truncating x,y shifts the rectangle closer to other rectangles, but that's ok.
 				//This will return true only if they overlap by at least one pixel. 
 				//This might return false negatives if the layout is very narrow, where appointments are approaching one pixel width.
 				//All the appointments in this list overlap the one we're trying to place, but not necessarily each other
@@ -2680,26 +2674,23 @@ namespace OpenDental.UI{
 						continue;
 					}
 					listOverlaps[k].OverlapSections=(int)narrowest;
-					listOverlaps[k].RectangleBounds=new RectangleF(widthCol*idxOp+listOverlaps[k].OverlapPosition*((widthCol-widthNarrowedOnRight)/narrowest),
-						listOverlaps[k].RectangleBounds.Y,
-						(widthCol-widthNarrowedOnRight)/narrowest,listOverlaps[k].RectangleBounds.Height);
+					CreateRectangle(listOverlaps[k]);
 				}
 				//Look for an open spot
 				bool foundSpot=false;
+				ApptLayoutInfo apptLayoutInfoNarrow;
 				for(int j=0;j<narrowest;j++){//example loop 0 to 4
-					Rectangle rectNarrow=new Rectangle((int)(widthCol*idxOp+(float)j*((widthCol-widthNarrowedOnRight)/narrowest)),
-						(int)apptLayoutInfo.RectangleBounds.Y,
-						(int)((widthCol-widthNarrowedOnRight)/narrowest),(int)apptLayoutInfo.RectangleBounds.Height);
-					if(listOverlaps.Exists(x=> Rectangle.Truncate(x.RectangleBounds).IntersectsWith(rectNarrow))){
+					apptLayoutInfoNarrow=apptLayoutInfo.Copy();
+					apptLayoutInfoNarrow.OverlapSections=(int)narrowest;//example 5
+					apptLayoutInfoNarrow.OverlapPosition=j;//example 1/5
+					CreateRectangle(apptLayoutInfoNarrow);
+					if(listOverlaps.Exists(x=> Rectangle.Truncate(x.RectangleBounds).IntersectsWith(Rectangle.Truncate(apptLayoutInfoNarrow.RectangleBounds)))){
 						continue;
 					}
 					//we found an open spot. 
-					apptLayoutInfo.OverlapSections=(int)narrowest;//example 5
-					apptLayoutInfo.OverlapPosition=j;//example 1/5
-					//Give it float values
-					apptLayoutInfo.RectangleBounds=new RectangleF(widthCol*idxOp+(float)j*((widthCol-widthNarrowedOnRight)/narrowest),
-						apptLayoutInfo.RectangleBounds.Y,
-						(widthCol-widthNarrowedOnRight)/narrowest,apptLayoutInfo.RectangleBounds.Height);
+					apptLayoutInfo.OverlapSections=(int)narrowest;
+					apptLayoutInfo.OverlapPosition=j;
+					CreateRectangle(apptLayoutInfo);
 					foundSpot=true;
 					break;
 				}
@@ -2712,30 +2703,49 @@ namespace OpenDental.UI{
 				//This turns out to be very safe and reliable, as the unit tests show
 				apptLayoutInfo.OverlapSections=(int)narrowest+1;//example 6
 				apptLayoutInfo.OverlapPosition=(int)narrowest;//example 5/6
-				apptLayoutInfo.RectangleBounds=new RectangleF(widthCol*idxOp+(widthCol-widthNarrowedOnRight)*narrowest/(narrowest+1),//5/6
-					apptLayoutInfo.RectangleBounds.Y,
-					(widthCol-widthNarrowedOnRight)/(narrowest+1),//  w/6
-					apptLayoutInfo.RectangleBounds.Height);
+				CreateRectangle(apptLayoutInfo);
 				listApptLayoutInfos.Add(apptLayoutInfo);
 				for(int k=0;k<listOverlaps.Count;k++){
 					listOverlaps[k].OverlapSections=(int)narrowest+1;//example 6
 					//OverlapPosition remains unchanged.  Haven't yet found a scenario where this fails.
-					listOverlaps[k].RectangleBounds=new RectangleF(
-						widthCol*(float)idxOp+(widthCol-widthNarrowedOnRight)*(float)listOverlaps[k].OverlapPosition/(float)listOverlaps[k].OverlapSections,//3/6
-						listOverlaps[k].RectangleBounds.Y,
-						(widthCol-widthNarrowedOnRight)/(float)listOverlaps[k].OverlapSections,// 1/6
-						listOverlaps[k].RectangleBounds.Height);
+					CreateRectangle(listOverlaps[k]);
 				}
 				//Some secondary and tertiary overlaps can be created in rare situations.  Fix those.
 				//This seems like a waste of resources, but it only gets triggered when we push our way in at the right.
 				//And it goes fast because we only pass in the short list of appointments that we moved
-				ProcessOverlaps(listApptLayoutInfos,listOverlaps,widthCol,idxOp,widthNarrowedOnRight);
+				ProcessOverlaps(listApptLayoutInfos,listOverlaps,widthCol,apptLayoutInfo.IdxOp,widthNarrowedOnRight);
 			}
 			return listApptLayoutInfos;
+
+			//Local function to avoid passing lots of parameters.
+			//X and width are calculated automatically, based on op, position, etc.  Y and height were set ahead of time and won't change here.
+			void CreateRectangle(ApptLayoutInfo apptLayoutInfoLocal){
+				//use floats for the math
+				float y=apptLayoutInfoLocal.RectangleBounds.Y;
+				float height=apptLayoutInfoLocal.RectangleBounds.Height;
+				float overlapPosition=apptLayoutInfoLocal.OverlapPosition;
+				float overlapSections=apptLayoutInfoLocal.OverlapSections;
+				float idxOp=apptLayoutInfoLocal.IdxOp;
+				float dayofweek=apptLayoutInfoLocal.DayOfWeek;
+				if(isWeeklyView){
+					apptLayoutInfoLocal.RectangleBounds=new RectangleF(
+						widthWeekDay*dayofweek+widthWeekAppt*idxOp+widthWeekAppt*overlapPosition/overlapSections,
+						y,
+						widthWeekAppt/overlapSections,
+						height);
+				}
+				else{
+					apptLayoutInfoLocal.RectangleBounds=new RectangleF(
+						widthCol*idxOp+(widthCol-widthNarrowedOnRight)*overlapPosition/overlapSections,//3/6
+						y,
+						(widthCol-widthNarrowedOnRight)/overlapSections,// 1/6
+						height);
+				}
+			}
 		}
 
 		///<summary>A recursive function for rare secondary and tertiary overlaps created by adding a single appointment that shifted other tall appts.</summary>
-		private static void ProcessOverlaps(List<ApptLayoutInfo> listApptLayoutInfos,List<ApptLayoutInfo> listOverlapsPrevious,float widthCol,int idxOp,float widthNarrowedOnRight)
+		private static void ProcessOverlaps(List<ApptLayoutInfo> listApptLayoutInfos,List<ApptLayoutInfo> listOverlapsPrevious,float widthCol,float idxOp,float widthNarrowedOnRight)
 		{
 			for(int k=0;k<listOverlapsPrevious.Count;k++){
 				for(int i=0;i<listApptLayoutInfos.Count;i++){
@@ -2751,7 +2761,7 @@ namespace OpenDental.UI{
 						listApptLayoutInfos[i].OverlapSections=listOverlapsPrevious[k].OverlapSections;  //size it to match overlapPrevious
 						//OverlapPosition remains unchanged.
 						listApptLayoutInfos[i].RectangleBounds=new RectangleF(
-							widthCol*(float)idxOp+(widthCol-widthNarrowedOnRight)*(float)listApptLayoutInfos[i].OverlapPosition/(float)listApptLayoutInfos[i].OverlapSections,//3/6
+							widthCol*idxOp+(widthCol-widthNarrowedOnRight)*(float)listApptLayoutInfos[i].OverlapPosition/(float)listApptLayoutInfos[i].OverlapSections,//3/6
 							listApptLayoutInfos[i].RectangleBounds.Y,
 							(widthCol-widthNarrowedOnRight)/(float)listApptLayoutInfos[i].OverlapSections,// 1/6
 							listApptLayoutInfos[i].RectangleBounds.Height);
@@ -4430,9 +4440,17 @@ namespace OpenDental.UI{
 		public int OverlapSections=1;
 		///<summary>0-based. For example, if it's 1/3 wide, and in the middle, this would be 1 (the second spot).</summary>
 		public int OverlapPosition=0;
+		///<summary>0 is Monday</summary>
+		public int DayOfWeek;
+		///<summary></summary>
+		public int IdxOp;
 
 		public override string ToString(){
 			return "idx "+idxInTableAppointments.ToString()+", "+OverlapPosition.ToString()+"/"+OverlapSections.ToString();
+		}
+
+		public ApptLayoutInfo Copy(){
+			return (ApptLayoutInfo)MemberwiseClone();
 		}
 	}
 	#endregion Other Classes
