@@ -1,75 +1,100 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
-<database version="19.2.3.0">
-    <table name="benefit">
+<database version="19.2.4.0">
+    <table name="appointmentdeleted">
         <summary></summary>
-        <column order="12" name="SecDateTEntry" type="datetime">
-            <summary>Timestamp automatically generated and user not allowed to change.  The actual date of entry.</summary>
+        <column order="0" name="AppointmentDeletedNum" type="bigint(20)">
+            <summary></summary>
         </column>
-        <column order="13" name="SecDateTEdit" type="timestamp">
-            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
+        <column order="1" name="AptNum" type="bigint(20)">
+            <summary></summary>
         </column>
-    </table>
-    <table name="carrier">
-        <summary></summary>
-        <column order="23" name="TrustedEtransFlags" type="tinyint(4)">
-            <summary>Bit flags.  None (0) by default.  Stores trusted user selected X12 transaction types related to this carrier.</summary>
+        <column order="2" name="PatNum" type="bigint(20)">
+            <summary></summary>
         </column>
-    </table>
-    <table name="claim">
-        <summary></summary>
-        <column order="78" name="DateIllnessInjuryPreg" type="date">
-            <summary>Date of Current Illness, Injury, or Pregnancy (LMP).  (LMP = Last Menstrual Period)  For use in 1500 Medical Claim Form box 14.
-            Identifies the first date of onset of illness, the actual date of injury, or the LMP for pregnancy.</summary>
+        <column order="3" name="AptStatus" type="tinyint(4)">
+            <summary></summary>
         </column>
-        <column order="79" name="DateIllnessInjuryPregQualifier" type="smallint(6)">
-            <summary>Enum:DateIllnessInjuryPregQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 14.  Valid values are 431 or 484.</summary>
-            <Enumeration name="DateIllnessInjuryPregQualifier">
-                <summary />
-                <EnumValue name="None">0 - None</EnumValue>
-                <EnumValue name="OnsetCurSymptoms">431 - Onset of Current Symptoms or Illness</EnumValue>
-                <EnumValue name="LastMenstrualPeriod">484 - Last Menstrual Period</EnumValue>
-            </Enumeration>
+        <column order="4" name="Pattern" type="varchar(255)">
+            <summary></summary>
         </column>
-        <column order="80" name="DateOther" type="date">
-            <summary>Another date related to the patient's condition or treatment.  For use in 1500 Medical Claim Form box 15.</summary>
+        <column order="5" name="Confirmed" type="bigint(20)">
+            <summary></summary>
         </column>
-        <column order="81" name="DateOtherQualifier" type="smallint(6)">
-            <summary>Enum:DateOtherQualifier 3 digit code used in 1500 Medical Claim Form, 'Qual' box of field 15.  Valid values are 090, 091, 304, 439, 444,
-            453,454, 455, and 471.</summary>
-            <Enumeration name="DateOtherQualifier">
-                <summary>Used for 1500 Medical Claim Form, 'Qual' box portion of fields 14 and 15.  Populate with 3 digit enum value.</summary>
-                <EnumValue name="None">0 - None</EnumValue>
-                <EnumValue name="ReportStart">090 - Report Start</EnumValue>
-                <EnumValue name="ReportEnd">091 - Report End</EnumValue>
-                <EnumValue name="LatestVisitConsult">304 - Latest Visit or Consultation</EnumValue>
-                <EnumValue name="Accident">439 - Accident</EnumValue>
-                <EnumValue name="FirstVisitConsult">444 - First Visit or Consultation</EnumValue>
-                <EnumValue name="ChronicCondManifest">453 - Acute Manifestation of a Chronic Condition</EnumValue>
-                <EnumValue name="InitialTreatment">454 - Initial Treatment</EnumValue>
-                <EnumValue name="LastXray">455 - Last X-ray</EnumValue>
-                <EnumValue name="Prescription">471 - Prescription</EnumValue>
-            </Enumeration>
+        <column order="6" name="TimeLocked" type="tinyint(4)">
+            <summary></summary>
         </column>
-        <column order="82" name="IsOutsideLab" type="tinyint(4)">
-            <summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
+        <column order="7" name="Op" type="bigint(20)">
+            <summary></summary>
         </column>
-        <column order="83" name="ResubmissionCode" type="tinyint(4)">
-            <summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
-            <Enumeration name="ResubmitCode">
-                <summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
-                <EnumValue name="None">0 - None</EnumValue>
-                <EnumValue name="Replacement">7 - Replacement of prior claim</EnumValue>
-                <EnumValue name="VoidOrCancel">8 - Void/cancel of prior claim</EnumValue>
-            </Enumeration>
+        <column order="8" name="Note" type="varchar(255)">
+            <summary></summary>
         </column>
-    </table>
-    <table name="creditcard">
-        <summary></summary>
-        <column order="21" name="CanChargeWhenNoBal" type="tinyint(4)">
-            <summary>Set true to indicate the Credit Card in question can be charged when the Patient account balance is $0, which corresponds directly
-            to a preference called "RecurringChargesAllowedWhenPatNoBal" (true by default) which must be turned on via Module&gt;Account&gt;Misc to be 
-            available.</summary>
+        <column order="9" name="ProvNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="10" name="ProvHyg" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="11" name="AptDateTime" type="datetime">
+            <summary></summary>
+        </column>
+        <column order="12" name="NextAptNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="13" name="UnschedStatus" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="14" name="IsNewPatient" type="tinyint(4)">
+            <summary></summary>
+        </column>
+        <column order="15" name="ProcDescript" type="varchar(255)">
+            <summary></summary>
+        </column>
+        <column order="16" name="Assistant" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="17" name="ClinicNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="18" name="IsHygiene" type="tinyint(4)">
+            <summary></summary>
+        </column>
+        <column order="19" name="DateTStamp" type="timestamp">
+            <summary></summary>
+        </column>
+        <column order="20" name="DateTimeArrived" type="datetime">
+            <summary></summary>
+        </column>
+        <column order="21" name="DateTimeSeated" type="datetime">
+            <summary></summary>
+        </column>
+        <column order="22" name="DateTimeDismissed" type="datetime">
+            <summary></summary>
+        </column>
+        <column order="23" name="InsPlan1" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="24" name="InsPlan2" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="25" name="DateTimeAskedToArrive" type="datetime">
+            <summary></summary>
+        </column>
+        <column order="26" name="ProcsColored" type="varchar(255)">
+            <summary></summary>
+        </column>
+        <column order="27" name="ColorOverride" type="int(11)">
+            <summary></summary>
+        </column>
+        <column order="28" name="AppointmentTypeNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="29" name="SecUserNumEntry" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="30" name="SecDateEntry" type="date">
+            <summary></summary>
         </column>
     </table>
     <table name="eclipboardsheetdef">
@@ -90,42 +115,6 @@
         </column>
         <column order="4" name="ItemOrder" type="int(11)">
             <summary>The order in which the patient will be asked to fill out this sheet.</summary>
-        </column>
-    </table>
-    <table name="emailmessage">
-        <summary></summary>
-        <column order="17" name="HtmlType" type="tinyint(4)">
-            <summary>Enum:EmailType </summary>
-            <Enumeration name="EmailType">
-                <summary />
-                <EnumValue name="Regular">0 - This is a regular email that may contain our special wiki markup.</EnumValue>
-                <EnumValue name="Html">1 - Html. Basic html email which uses the master template.</EnumValue>
-                <EnumValue name="RawHtml">2 - More advanced html that does not include the master template, user must provide everything.</EnumValue>
-            </Enumeration>
-        </column>
-    </table>
-    <table name="emailtemplate">
-        <summary></summary>
-        <column order="4" name="TemplateType" type="tinyint(4)">
-            <summary>Enum:EmailType </summary>
-            <Enumeration name="EmailType">
-                <summary />
-                <EnumValue name="Regular">0 - This is a regular email that may contain our special wiki markup.</EnumValue>
-                <EnumValue name="Html">1 - Html. Basic html email which uses the master template.</EnumValue>
-                <EnumValue name="RawHtml">2 - More advanced html that does not include the master template, user must provide everything.</EnumValue>
-            </Enumeration>
-        </column>
-    </table>
-    <table name="insverify">
-        <summary></summary>
-        <column order="10" name="SecDateTEdit" type="timestamp">
-            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
-        </column>
-    </table>
-    <table name="insverifyhist">
-        <summary></summary>
-        <column order="12" name="SecDateTEdit" type="timestamp">
-            <summary></summary>
         </column>
     </table>
     <table name="loginattempt">
@@ -149,6 +138,12 @@
             <summary>When the failed attempt was attempted.</summary>
         </column>
     </table>
+    <table name="medicationpat">
+        <summary></summary>
+        <column order="10" name="NewCropGuid" type="varchar(255)">
+            <summary></summary>
+        </column>
+    </table>
     <table name="mobileappdevice">
         <summary></summary>
         <column order="7" name="PatNum" type="bigint(20)" fk="patient">
@@ -159,53 +154,16 @@
             <summary>The date and time when we last updated the PatNum field for this device (indication the current use-state of the device).</summary>
         </column>
     </table>
-    <table name="patientnote">
+    <table name="paysplit">
         <summary></summary>
-        <column order="11" name="SecDateTEntry" type="datetime">
-            <summary>Timestamp automatically generated and user not allowed to change.  The actual date of entry.</summary>
-        </column>
-        <column order="12" name="SecDateTEdit" type="timestamp">
-            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
+        <column order="16" name="PrepaymentNum" type="bigint(20)">
+            <summary></summary>
         </column>
     </table>
-    <table name="payment">
+    <table name="rxpat">
         <summary></summary>
-        <column order="19" name="ExternalId" type="varchar(255)">
-            <summary>External Id</summary>
-        </column>
-        <column order="20" name="PaymentStatus" type="tinyint(4)">
-            <summary>Enum:PaymentStatus </summary>
-            <Enumeration name="PaymentStatus">
-                <summary />
-                <EnumValue name="None">0 - None</EnumValue>
-                <EnumValue name="PaySimpleAchPosted">1 - PaySimpleAchPosted</EnumValue>
-                <EnumValue name="PaySimpleAchSettled">2 - PaySimpleAchSettled</EnumValue>
-                <EnumValue name="PaySimpleAchFailed">3 - PaySimpleAchFailed</EnumValue>
-            </Enumeration>
-        </column>
-    </table>
-    <table name="procedurelog">
-        <summary></summary>
-        <column order="65" name="Urgency" type="tinyint(4)">
-            <summary>Enum:ProcUrgency Used in 1500 Medical Claim Form box 24c. Normal=blank 24c,Emergency='Y' in 24c.</summary>
-            <Enumeration name="ProcUrgency">
-                <summary>Used for marking procedures on medical claims as 'Emergency' on the 1500 claim form.</summary>
-                <EnumValue name="Normal">0 - Standard procedure urgency.  Most procedures will have this ProcUrgency.  This will result in the 1500 Medical Claim Form box 24c
-            being blank.  (Normal=blank,Emergency='Y')</EnumValue>
-                <EnumValue name="Emergency">1 - Emergency ProcUrgency is used to populate the 1500 Medical Claim Form box 24c with a 'Y'. (Emergency='Y',Normal=blank)</EnumValue>
-            </Enumeration>
-        </column>
-    </table>
-    <table name="proctp">
-        <summary></summary>
-        <column order="23" name="ProvNum" type="bigint(20)" fk="provider">
-            <summary>FK to provider.ProvNum.  Holds the ProvNum for this procedure's provider.</summary>
-        </column>
-        <column order="24" name="DateTP" type="date">
-            <summary>Holds the DateTP for this procedure.</summary>
-        </column>
-        <column order="25" name="ClinicNum" type="bigint(20)" fk="clinic">
-            <summary>FK to clinic.ClinicNum.  Holds the ClinicNum for this procedure's clinic.</summary>
+        <column order="15" name="NewCropGuid" type="varchar(40)">
+            <summary></summary>
         </column>
     </table>
     <table name="scheduledprocess">
@@ -237,29 +195,214 @@
             <summary>Date and time when process last ran.</summary>
         </column>
     </table>
-    <table name="task">
+    <table name="stmtadjattach">
         <summary></summary>
-        <column order="18" name="SecDateTEdit" type="timestamp">
-            <summary>Automatically updated by MySQL every time a row is added or changed.</summary>
+        <column order="0" name="StmtAdjAttachNum" type="bigint(20)">
+            <summary></summary>
         </column>
-    </table>
-    <table name="taskhist">
-        <summary></summary>
-        <column order="22" name="SecDateTEdit" type="timestamp">
+        <column order="1" name="StatementNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="2" name="AdjNum" type="bigint(20)">
             <summary></summary>
         </column>
     </table>
-    <table name="userod">
+    <table name="stmtpaysplitattach">
         <summary></summary>
-        <column order="19" name="MobileWebPin" type="varchar(255)">
-            <summary>A hashed pin that is used for mobile web validation on eClipboard. Not used in OD proper.</summary>
+        <column order="0" name="StmtPaySplitAttachNum" type="bigint(20)">
+            <summary></summary>
         </column>
-        <column order="20" name="MobileWebPinFailedAttempts" type="tinyint">
-            <summary>The number of attempts the mobile web pin has failed. Reset on successful attempt.</summary>
+        <column order="1" name="StatementNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="2" name="PaySplitNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+    </table>
+    <table name="stmtprocattach">
+        <summary></summary>
+        <column order="0" name="StmtProcAttachNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="1" name="StatementNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+        <column order="2" name="ProcNum" type="bigint(20)">
+            <summary></summary>
+        </column>
+    </table>
+    <table name="adjustment">
+        <summary></summary>
+        <column order="14" name="TaxTransID" type="bigint(20)" deleted="true">
+            <summary>(Deprecated) Holds the Avalara transaction ID associated with this adjustment so that we can track reported adjustments.
+            Not editable in the UI.</summary>
+        </column>
+    </table>
+    <table name="alertitem">
+        <summary></summary>
+        <column order="8" name="ItemValue" type="varchar(4000)" deleted="true">
+            <summary>Like description, but more specific. When set use ActionType.ShowItemValue to show this variable within a MsgBoxCopyPaste window.</summary>
+        </column>
+        <column order="9" name="UserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to Userod.UserNum.  Will only be shown to that specific user.  0 is all users.</summary>
+        </column>
+    </table>
+    <table name="alertsub">
+        <summary></summary>
+        <column order="4" name="AlertCategoryNum" type="bigint(20)" deleted="true" fk="alertcategory">
+            <summary>FK to alertcategory.AlertCategoryNum.</summary>
+        </column>
+    </table>
+    <table name="appointment">
+        <summary></summary>
+        <column order="30" name="Priority" type="tinyint(4)" deleted="true">
+            <summary>Indicates if the appointment has any special priority.</summary>
+        </column>
+    </table>
+    <table name="apptreminderrule">
+        <summary></summary>
+        <column order="14" name="DoNotSendWithin" type="bigint(20)" deleted="true">
+            <summary>The time before the appointment in which this reminder should NOT be sent. E.g., if this value is 2 days, and an appt is created one
+            day in the future, a reminder will not be sent.</summary>
+        </column>
+    </table>
+    <table name="automation">
+        <summary></summary>
+        <column order="10" name="PatStatus" type="tinyint(4)" deleted="true">
+            <summary>Enum:PatientStatus - used to determine which status to change to for ChangePatientStatus automation actions. Should never be 'Deleted'</summary>
+            <Enumeration name="PatientStatus">
+                <summary />
+                <EnumValue name="Patient">0</EnumValue>
+                <EnumValue name="NonPatient">1</EnumValue>
+                <EnumValue name="Inactive">2</EnumValue>
+                <EnumValue name="Archived">3</EnumValue>
+                <EnumValue name="Deleted">4</EnumValue>
+                <EnumValue name="Deceased">5</EnumValue>
+                <EnumValue name="Prospective">6- Not an actual patient yet.</EnumValue>
+            </Enumeration>
+        </column>
+    </table>
+    <table name="carrier">
+        <summary></summary>
+        <column order="20" name="CarrierGroupName" type="bigint(20)" deleted="true" fk="definition">
+            <summary>FK to definition.DefNum. Links carriers into groups for queries.</summary>
+        </column>
+        <column order="21" name="ApptTextBackColor" type="int(11)" deleted="true">
+            <summary>Color that the carrier is highlighted within the appointment module appointment and popup bubble.</summary>
+        </column>
+        <column order="22" name="IsCoinsuranceInverted" type="tinyint(4)" deleted="true">
+            <summary>False by default.  Determines if the carrier supplied EB08 field of 271 transactions should be inverted for coinsurance percentages.
+            When true carriers sent us insurance percentage so we do not need to invert it, it is already inverted for us.</summary>
+        </column>
+    </table>
+    <table name="claimform">
+        <summary></summary>
+        <column order="9" name="Width" type="int(11)" deleted="true">
+            <summary>The width of the claim form.</summary>
+        </column>
+        <column order="10" name="Height" type="int(11)" deleted="true">
+            <summary>The height of the claim form.</summary>
+        </column>
+    </table>
+    <table name="claimtracking">
+        <summary></summary>
+        <column order="7" name="TrackingErrorDefNum" type="bigint(20)" deleted="true" fk="definition">
+            <summary>FK to definition.DefNum for custom tracking errors when TrackingType=StatusHistory</summary>
+        </column>
+    </table>
+    <table name="clearinghouse">
+        <summary></summary>
+        <column order="28" name="IsClaimExportAllowed" type="tinyint(4)" deleted="true">
+            <summary>True by default.  This flag is implemented individually within each clearinghouse.  Can be overridden by clinic-level clearinghouses.</summary>
+        </column>
+        <column order="29" name="IsAttachmentSendAllowed" type="tinyint(4)" deleted="true">
+            <summary>Currently only used for DentalXChange's attachment service. This indicates that the user has set up the attachment service and would like to use it in Open Dental.</summary>
+        </column>
+    </table>
+    <table name="clinic">
+        <summary></summary>
+        <column order="38" name="SchedNote" type="varchar(255)" deleted="true">
+            <summary>Indicates if the clinic should only be scheduled in a certain way (e.g. ortho only, etc)</summary>
+        </column>
+        <column order="39" name="HasProcOnRx" type="tinyint(4)" deleted="true">
+            <summary>Defaults to false.  If true, will require procedure be attached to controlled prescriptions written from this clinic.</summary>
+        </column>
+    </table>
+    <table name="confirmationrequest">
+        <summary></summary>
+        <column order="25" name="AptDateTimeOrig" type="datetime" deleted="true">
+            <summary>The datetime of the appointment when this ConfirmationRequest was created.</summary>
+        </column>
+        <column order="26" name="TSPrior" type="bigint(20)" deleted="true">
+            <summary>The TSPrior of the rule that was used to create this ConfirmationRequest.</summary>
+        </column>
+        <column order="27" name="DoNotResend" type="tinyint(4)" deleted="true">
+            <summary>Indicates whether the user has chosen to not resend the confirmation request when the AptDateTime has changed.</summary>
+        </column>
+        <column order="28" name="SmsSentOk" type="tinyint(4)" deleted="true">
+            <summary>Generated by HQ. Indicates whether or not we were able to send the text message.</summary>
+        </column>
+        <column order="29" name="EmailSentOk" type="tinyint(4)" deleted="true">
+            <summary>Generated by HQ. Indicates whether or not we were able to send the e-mail.</summary>
+        </column>
+    </table>
+    <table name="creditcard">
+        <summary></summary>
+        <column order="18" name="ExcludeProcSync" type="tinyint(4)" deleted="true">
+            <summary>Only used at OD HQ.  Excludes credit card from syncing default procedures.  False by default.</summary>
+        </column>
+        <column order="19" name="PaySimpleToken" type="varchar(255)" deleted="true">
+            <summary>Token for PaySimple.  PaySimple returns a token, when requested by the merchant's system, to be used instead
+            of actual credit card number in subsequent transactions.</summary>
+        </column>
+        <column order="20" name="ChargeFrequency" type="varchar(150)" deleted="true">
+            <summary>Stores how often the credit card gets charged for a recurring charge. The card can either be charged fixed days of the month or
+            fixed week days of the month. Some examples of the former are "4th day of the month" or "1st and 16th day of the month". Some examples of
+            the latter are "Third Monday of the month" or "Every other Friday of the month". If the first character of this column is a 0, then
+            the frequency is fixed day of the month. If the first character is 1, the frequency is fixed week days of the month. The next character
+            is a pipe for separation. If fixed day of the month, the remaining characters will be a comma-separated list of days of the month. 
+            If fixed week days, the next character will represent type of frequency (Every, EveryOther, First, etc.). Then a pipe follows. The last
+            character will be the day of the week (0 for Sunday, 1 for Monday, etc.).</summary>
+        </column>
+    </table>
+    <table name="deposit">
+        <summary></summary>
+        <column order="5" name="Batch" type="varchar(25)" deleted="true">
+            <summary>Holds the batch number for the deposit. Does not have a default value. 25 character limit.</summary>
+        </column>
+        <column order="6" name="DepositAccountNum" type="bigint(20)" deleted="true" fk="def">
+            <summary>FK to Def.DefNum. Links this deposit to a definition of type AutoDeposit.  When set to a valid value, it indicates that this deposit is an "auto deposit".</summary>
+        </column>
+    </table>
+    <table name="discountplan">
+        <summary></summary>
+        <column order="4" name="IsHidden" type="tinyint(4)" deleted="true">
+            <summary>Set true to hide in Discount Plan list.</summary>
+        </column>
+    </table>
+    <table name="displayreport">
+        <summary></summary>
+        <column order="6" name="IsVisibleInSubMenu" type="tinyint(4)" deleted="true">
+            <summary>When true and IsHidden is false, will show this report in a pop out sub menu.</summary>
+        </column>
+    </table>
+    <table name="dunning">
+        <summary></summary>
+        <column order="9" name="ClinicNum" type="bigint(20)" deleted="true" fk="clinic">
+            <summary>FK to clinic.ClinicNum.</summary>
+        </column>
+        <column order="10" name="IsSuperFamily" type="tinyint(4)" deleted="true">
+            <summary>Boolean. Is true when the message is specifically created for super families.</summary>
         </column>
     </table>
     <table name="emailmessage">
         <summary></summary>
+        <column order="15" name="AptNum" type="bigint(20)" deleted="true" fk="appointment">
+            <summary>FK to appointment.AptNum. Used to a attach an email to an appointment for eReminders and eConfirmations.</summary>
+        </column>
+        <column order="16" name="UserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum.  Optional.  0 if unknown (ex recieved emails).</summary>
+        </column>
         <column order="17" name="IsHtml" type="tinyint(4)" deleted="true">
             <summary></summary>
         </column>
@@ -268,6 +411,589 @@
         <summary></summary>
         <column order="4" name="IsHtml" type="tinyint(4)" deleted="true">
             <summary></summary>
+        </column>
+    </table>
+    <table name="erxlog">
+        <summary></summary>
+        <column order="5" name="UserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to Userod.UserNum. The user that created the erx.</summary>
+        </column>
+    </table>
+    <table name="etrans">
+        <summary></summary>
+        <column order="22" name="UserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum</summary>
+        </column>
+    </table>
+    <table name="grouppermission">
+        <summary></summary>
+        <column order="5" name="FKey" type="bigint(20)" deleted="true">
+            <summary>Generic foreign key to any other table.  Typically used in combination with PermType to give permission to specific things.</summary>
+        </column>
+    </table>
+    <table name="insfilingcode">
+        <summary></summary>
+        <column order="4" name="GroupType" type="bigint(20)" deleted="true" fk="definition">
+            <summary>FK to definition.DefNum.  Reporting Group.</summary>
+        </column>
+    </table>
+    <table name="insplan">
+        <summary></summary>
+        <column order="38" name="BillingType" type="bigint(20)" deleted="true" fk="definition">
+            <summary>FK to definition.DefNum.</summary>
+        </column>
+        <column order="39" name="HasPpoSubstWriteoffs" type="tinyint(4)" deleted="true">
+            <summary>True by default.  When a plan allows downgrading procedures and this field is false, the writeoff will be $0 and the difference
+            between the proc fee and the insurance estimate will be the patient portion.</summary>
+        </column>
+        <column order="40" name="ExclusionFeeRule" type="tinyint(4)" deleted="true">
+            <summary>The exclusion rule for this insurance plan.  PracticeDefault by default.  It determines how insurance plans should behave with Exclusions.</summary>
+        </column>
+    </table>
+    <table name="insverify">
+        <summary></summary>
+        <column order="8" name="DateTimeEntry" type="datetime" deleted="true">
+            <summary>DateTime the row was added.</summary>
+        </column>
+        <column order="9" name="HoursAvailableForVerification" type="double" deleted="true">
+            <summary>Number of hours that were available from the time the insurance needed verified to the date of the appointment.
+            Includes minutes if applicable.</summary>
+        </column>
+    </table>
+    <table name="insverifyhist">
+        <summary></summary>
+        <column order="9" name="DateTimeEntry" type="datetime" deleted="true">
+            <summary></summary>
+        </column>
+        <column order="10" name="HoursAvailableForVerification" type="double" deleted="true">
+            <summary></summary>
+        </column>
+        <column order="11" name="VerifyUserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum.  User that was logged on when row was inserted.</summary>
+        </column>
+    </table>
+    <table name="journalentry">
+        <summary></summary>
+        <column order="10" name="SecUserNumEntry" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum. The user who created this journal entry.</summary>
+        </column>
+        <column order="11" name="SecDateTEntry" type="datetime" deleted="true">
+            <summary>The date and time that this journal entry was created.</summary>
+        </column>
+        <column order="12" name="SecUserNumEdit" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum. The user who last edited this journal entry.</summary>
+        </column>
+        <column order="13" name="SecDateTEdit" type="timestamp" deleted="true">
+            <summary>The last time this journal entry was edited.</summary>
+        </column>
+    </table>
+    <table name="labcase">
+        <summary></summary>
+        <column order="13" name="DateTStamp" type="timestamp" deleted="true">
+            <summary>Automatically updated whenever a row is added or changed.  Not user editable.</summary>
+        </column>
+    </table>
+    <table name="laboratory">
+        <summary></summary>
+        <column order="11" name="IsHidden" type="tinyint(4)" deleted="true">
+            <summary>.</summary>
+        </column>
+    </table>
+    <table name="lettermerge">
+        <summary></summary>
+        <column order="5" name="ImageFolder" type="bigint(20)" deleted="true" fk="definition">
+            <summary>FK to definition.DefNum. This determines the default Image Category that will be selected when printing or previewing the letter.
+            Can be 0 which means 'None' will be selected.</summary>
+        </column>
+    </table>
+    <table name="medicationpat">
+        <summary></summary>
+        <column order="10" name="ErxGuid" type="varchar(255)" deleted="true">
+            <summary>Uniquely identifies the prescription corresponding to the medical order.
+            Allows us to update existing eRx medical orders when refreshing prescriptions in the Chart (similar to how prescriptions are updated).
+            Also used in 2-way medication synching with eRx.</summary>
+        </column>
+    </table>
+    <table name="orthochart">
+        <summary></summary>
+        <column order="5" name="UserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum.  The user that created or last edited an ortho chart field.</summary>
+        </column>
+    </table>
+    <table name="payplan">
+        <summary></summary>
+        <column order="16" name="PlanCategory" type="bigint(20)" deleted="true" fk="definition">
+            <summary>FK to definition.DefNum</summary>
+        </column>
+    </table>
+    <table name="payplancharge">
+        <summary></summary>
+        <column order="12" name="SecDateTEntry" type="datetime" deleted="true">
+            <summary>DateTime payplancharge was added to the payplan. Not editable by user.</summary>
+        </column>
+        <column order="13" name="SecDateTEdit" type="timestamp" deleted="true">
+            <summary>DateTime payplancharge was edited. Not editable by user.</summary>
+        </column>
+        <column order="14" name="StatementNum" type="bigint(20)" deleted="true" fk="statement">
+            <summary>FK to statement.StatementNum.  Only used when the statement in an invoice.</summary>
+        </column>
+    </table>
+    <table name="paysplit">
+        <summary></summary>
+        <column order="16" name="FSplitNum" type="bigint(20)" deleted="true" fk="paysplit">
+            <summary>FK to paysplit.SplitNum.  Can be 0.  Indicates that this paysplit is meant to counteract another Paysplit.</summary>
+        </column>
+        <column order="17" name="AdjNum" type="bigint(20)" deleted="true" fk="adjustment">
+            <summary>FK to adjustment.AdjNum.  Can be 0.  Indicates that this paysplit is meant to counteract an Adjustment.</summary>
+        </column>
+    </table>
+    <table name="procbutton">
+        <summary></summary>
+        <column order="5" name="IsMultiVisit" type="tinyint(4)" deleted="true">
+            <summary>Only useful for procedure buttons which cause more than one procedure to be charted.  Example: Crown (D code) and Delivery (N code).
+            Causes the procedures generated by this procedure button to be grouped using links in the procmultivisit table.</summary>
+        </column>
+    </table>
+    <table name="proccodenote">
+        <summary></summary>
+        <column order="5" name="ProcStatus" type="tinyint(4)" deleted="true">
+            <summary>Enum:ProcStat Indicates which status the procedure has to be set to in order for this note to take affect.
+            Should only ever be 1 (TP) or 2 (C).  See procedurelog.ProcStatus for more info.</summary>
+            <Enumeration name="ProcStat">
+                <summary>Procedure Status.  These statuses are transalted via class type "enumProcStat" (ex Lan.g("enumProcStat","..."))</summary>
+                <EnumValue name="TP">1- Treatment Plan.</EnumValue>
+                <EnumValue name="C">2- Complete.</EnumValue>
+                <EnumValue name="EC">3- Existing Current Provider.</EnumValue>
+                <EnumValue name="EO">4- Existing Other Provider.</EnumValue>
+                <EnumValue name="R">5- Referred Out.</EnumValue>
+                <EnumValue name="D">6- Deleted.</EnumValue>
+                <EnumValue name="Cn">7- Condition.</EnumValue>
+                <EnumValue name="TPi">8- Treatment Plan inactive.</EnumValue>
+            </Enumeration>
+        </column>
+    </table>
+    <table name="procedurecode">
+        <summary></summary>
+        <column order="31" name="DefaultTPNote" type="text" deleted="true">
+            <summary>The default procedure note used when creating a new treatment planned procedure.</summary>
+        </column>
+        <column order="32" name="BypassGlobalLock" type="tinyint(4)" deleted="true">
+            <summary>Enum:BypassLockStatus Specifies whether a proceduce with this code can be created before the global lock date. The only values that
+            should be used for this field are NeverBypass and BypassIfZero.</summary>
+            <Enumeration name="BypassLockStatus">
+                <summary>The conditions when the global lock date can be bypassed.</summary>
+                <EnumValue name="NeverBypass">0 - Never bypass the lock date.</EnumValue>
+                <EnumValue name="BypassIfZero">1 - Bypass the lock date if the fee is zero.</EnumValue>
+                <EnumValue name="BypassAlways">2 - Always bypass the global lock date.</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="33" name="TaxCode" type="varchar(16)" deleted="true">
+            <summary>Used for Sales Tax, this is the corresponding tax code we will send to Avalara API so they can determine how much sales tax to charge
+            for this procedure.</summary>
+        </column>
+    </table>
+    <table name="procedurelog">
+        <summary></summary>
+        <column order="64" name="TaxAmt" type="double" deleted="true">
+            <summary>Holds the Sales Tax estimate for this procedure.  Becomes a finalized amount when the procedure is marked complete.</summary>
+        </column>
+    </table>
+    <table name="proctp">
+        <summary></summary>
+        <column order="21" name="FeeAllowed" type="double" deleted="true">
+            <summary>The amount primary insurance allows. Should be the exact amount in the FormClaimProc allowed amount field. May be either the PPO fee
+            or the out of network allowed fee.</summary>
+        </column>
+        <column order="22" name="TaxAmt" type="double" deleted="true">
+            <summary>Holds the Sales Tax estimate for this procedure.  Used to review history when being reviewed by accounting.
+            In the Treatment Plan, this represents an estimate and a record for pre-payments.</summary>
+        </column>
+    </table>
+    <table name="provider">
+        <summary></summary>
+        <column order="39" name="Birthdate" type="date" deleted="true">
+            <summary>The birthdate of the provider.</summary>
+        </column>
+        <column order="40" name="SchedNote" type="varchar(255)" deleted="true">
+            <summary>Indicates if the provider should only be scheduled in a certain way (e.g. Root canals only)</summary>
+        </column>
+        <column order="41" name="WebSchedDescript" type="text" deleted="true">
+            <summary>The description of the provider that is displayed to patients in Web Sched.</summary>
+        </column>
+        <column order="42" name="WebSchedImageLocation" type="varchar(255)" deleted="true">
+            <summary>The image of the provider that is displayed to patients in Web Sched. File name only (path not included).
+            This should be a file name in the A to Z folder.</summary>
+        </column>
+        <column order="43" name="HourlyProdGoalAmt" type="double" deleted="true">
+            <summary>The hourly production goal amount of the provider.</summary>
+        </column>
+        <column order="44" name="DateTerm" type="date" deleted="true">
+            <summary>The date that the provider's term ends. This can be used to prevent appointments from being scheduled, appointments from being 
+            marked complete, prescriptions from being prescribed, and claims from being sent.</summary>
+        </column>
+    </table>
+    <table name="providererx">
+        <summary></summary>
+        <column order="6" name="IsEpcs" type="tinyint(4)" deleted="true">
+            <summary>Set to true manually if the customer has completed their EPCS process.</summary>
+        </column>
+        <column order="7" name="ErxType" type="tinyint(4)" deleted="true">
+            <summary>Enum:ErxOption Identifies which eRx option is being used when asking HQ if they are enabled.</summary>
+            <Enumeration name="ErxOption">
+                <summary>This Enumeration should match the enumeration in WebServiceCustomerUpdates.ProviderErx.
+            Any changes made to this enum need to also be changed there.</summary>
+                <EnumValue name="Legacy">0.</EnumValue>
+                <EnumValue name="DoseSpot">1.</EnumValue>
+                <EnumValue name="DoseSpotWithLegacy">2.</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="8" name="UserId" type="varchar(255)" deleted="true">
+            <summary>User identifier used by the associated ErxType.  Only used by OD HQ.</summary>
+        </column>
+        <column order="9" name="AccountId" type="varchar(25)" deleted="true">
+            <summary>Only used by OD HQ.</summary>
+        </column>
+        <column order="10" name="RegistrationKeyNum" type="bigint(20)" deleted="true" fk="registrationkey">
+            <summary>FK to registrationkey.RegistrationKeyNum.  HQ only, links to the registration key used to make this providererx row.</summary>
+        </column>
+    </table>
+    <table name="recall">
+        <summary></summary>
+        <column order="14" name="Priority" type="tinyint(4)" deleted="true">
+            <summary>Indicates if the appointment has any special priority.</summary>
+        </column>
+    </table>
+    <table name="refattach">
+        <summary></summary>
+        <column order="12" name="DateTStamp" type="timestamp" deleted="true">
+            <summary>The datetime this referral attachment was last edited.</summary>
+        </column>
+    </table>
+    <table name="referral">
+        <summary></summary>
+        <column order="24" name="DateTStamp" type="timestamp" deleted="true">
+            <summary>The datetime this referral was last edited.</summary>
+        </column>
+        <column order="25" name="IsPreferred" type="tinyint(4)" deleted="true">
+            <summary>True if the referral is a preferred referral.</summary>
+        </column>
+    </table>
+    <table name="registrationkey">
+        <summary></summary>
+        <column order="13" name="HasEarlyAccess" type="tinyint(4)" deleted="true">
+            <summary>This is a customer that is allowed early access to certain features.  E.g. downloading the Alpha version of the software.</summary>
+        </column>
+    </table>
+    <table name="repeatcharge">
+        <summary></summary>
+        <column order="11" name="Npi" type="text" deleted="true">
+            <summary>Stores the NPI of the provider on this repeating charge for Erx.  This used to be stored in the Note field but got moved over to its own column in 17.2.</summary>
+        </column>
+        <column order="12" name="ErxAccountId" type="text" deleted="true">
+            <summary>Stores the Erx Account ID on this repeating charge for Erx.  This used to be stored in the Note field but got moved over to its own column in 17.2.</summary>
+        </column>
+        <column order="13" name="ProviderName" type="text" deleted="true">
+            <summary>Stores the name of the provider on this repeating charge for Erx.  Value is received directly from NewCrop.</summary>
+        </column>
+        <column order="14" name="ChargeAmtAlt" type="double" deleted="true">
+            <summary>HQ Only. An alternate amount to be charged for this RepeatCharge in some cases. 
+            Should always defaul to -1 as -1 will be used as a flag to indicate it has not been set.
+            A value of 0 means ChargeAmtAlt has been intentionally set to 0.</summary>
+        </column>
+        <column order="15" name="UnearnedTypes" type="varchar(4000)" deleted="true">
+            <summary>If UsePrepay is true, when the procedure is created from this repeat charge, it will allocate payments from these unearned types.
+            Stored as a comma separated list of DefNums of Category PaySplitUnearnedType. If empty, then all unearned types will be considered.</summary>
+        </column>
+    </table>
+    <table name="rxdef">
+        <summary></summary>
+        <column order="8" name="IsProcRequired" type="tinyint(4)" deleted="true">
+            <summary>If true will require procedure be attached to this prescription when printed.  Usually true if IsControlled is true.</summary>
+        </column>
+        <column order="9" name="PatientInstruction" type="text" deleted="true">
+            <summary>Directions intended for the patient.</summary>
+        </column>
+    </table>
+    <table name="rxpat">
+        <summary></summary>
+        <column order="15" name="ErxGuid" type="varchar(40)" deleted="true">
+            <summary>eRx returns this unique identifier to use for electronic Rx.  Also set for Open Dental created medications using a different format.</summary>
+        </column>
+        <column order="17" name="ErxPharmacyInfo" type="varchar(255)" deleted="true">
+            <summary>The pharmacyinfo field contains the pharmacy name as well as other information about the pharmacy, but the information is inconsistent.
+            The purpose of this field is to give the user means to visually verify they have the correct pharmacy selected.</summary>
+        </column>
+        <column order="18" name="IsProcRequired" type="tinyint(4)" deleted="true">
+            <summary>If true will require procedure be attached to this prescription when printed.  Usually true if IsControlled is true.</summary>
+        </column>
+        <column order="19" name="ProcNum" type="bigint(20)" deleted="true">
+            <summary>The procedure attached to this prescription when IsProcRequired is true.</summary>
+        </column>
+        <column order="20" name="DaysOfSupply" type="double" deleted="true">
+            <summary>The number of days this prescription is intended to last.  Only used when IsProcRequired is true.</summary>
+        </column>
+        <column order="21" name="PatientInstruction" type="text" deleted="true">
+            <summary>Directions intended for the patient.</summary>
+        </column>
+        <column order="22" name="ClinicNum" type="bigint(20)" deleted="true" fk="clinic">
+            <summary>FK to clinic.ClinicNum.</summary>
+        </column>
+    </table>
+    <table name="securitylog">
+        <summary></summary>
+        <column order="11" name="DateTPrevious" type="datetime" deleted="true">
+            <summary>Used to store the previous DateTStamp or SecDateTEdit of the object FKey refers to.</summary>
+        </column>
+    </table>
+    <table name="sheet">
+        <summary></summary>
+        <column order="15" name="SheetDefNum" type="bigint(20)" deleted="true" fk="sheetdef">
+            <summary>FK to sheetdef.SheetDefNum.  The SheetDef that was used to create this sheet.  Will be 0 if this sheet was created from a Web Form or 
+            an internal sheet or if the sheet was created before 17.2.  Currently only used to determine the sheet can bypass the global lock date.
+            </summary>
+        </column>
+        <column order="16" name="DocNum" type="bigint(20)" deleted="true" fk="document">
+            <summary>FK to document.DocNum.  Referrel letters are stored as PDF in the A to Z folder.</summary>
+        </column>
+        <column order="17" name="ClinicNum" type="bigint(20)" deleted="true" fk="clinic">
+            <summary>FK to clinic.ClinicNum. Used by webforms to limit the sheets displayed based on the currently selected clinic.</summary>
+        </column>
+        <column order="18" name="DateTSheetEdited" type="datetime" deleted="true">
+            <summary>The date and time the sheet was inserted or last time someone opened the sheet and clicked OK on FormSheetFillEdit.
+            Gets updated even if no changes were made to the sheet or sheetfields, because we don't want to do the lengthy work of comparing all fields.
+            Used when editing a sheet to warn user if the sheet has been edited by someone else.</summary>
+        </column>
+        <column order="19" name="HasMobileLayout" type="tinyint(4)" deleted="true">
+            <summary>If true then this Sheet has been designed for mobile and will be displayed as a mobile-friendly WebForm.</summary>
+        </column>
+    </table>
+    <table name="sheetdef">
+        <summary></summary>
+        <column order="10" name="BypassGlobalLock" type="tinyint(4)" deleted="true">
+            <summary>Enum:BypassLockStatus Specifies whether a sheet can be created before the global lock date.</summary>
+            <Enumeration name="BypassLockStatus">
+                <summary>The conditions when the global lock date can be bypassed.</summary>
+                <EnumValue name="NeverBypass">0 - Never bypass the lock date.</EnumValue>
+                <EnumValue name="BypassIfZero">1 - Bypass the lock date if the fee is zero.</EnumValue>
+                <EnumValue name="BypassAlways">2 - Always bypass the global lock date.</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="11" name="HasMobileLayout" type="tinyint(4)" deleted="true">
+            <summary>If true then this Sheet has been designed for mobile and will be displayed as a mobile-friendly WebForm.</summary>
+        </column>
+    </table>
+    <table name="sheetfield">
+        <summary></summary>
+        <column order="21" name="IsLocked" type="tinyint(4)" deleted="true">
+            <summary>If a sheet field is locked, it stops a user from editing the text when presented in a sheet.</summary>
+        </column>
+        <column order="22" name="TabOrderMobile" type="int(11)" deleted="true">
+            <summary>Tab stop order for all fields of a mobile sheet. One-based.  Only mobile fields can have values other than 0.
+            If all SheetFieldDefs for a given SheetField are 0 then assume that this sheet has no mobile-specific view.</summary>
+        </column>
+        <column order="23" name="UiLabelMobile" type="varchar(255)" deleted="true">
+            <summary>Each input field for a mobile will need a corresponding UI label. This is what the user sees as the label describing what this input is for. EG "First Name:, Last Name:, Address, etc."</summary>
+        </column>
+        <column order="24" name="UiLabelMobileRadioButton" type="varchar(255)" deleted="true">
+            <summary>Human readable label that will be displayed for radio button item in mobile mode. 
+            Cannot use UiLabelMobile for this purpose as it is already dedicated to the radio group header that groups radio button items together.</summary>
+        </column>
+    </table>
+    <table name="sheetfielddef">
+        <summary></summary>
+        <column order="21" name="IsLocked" type="tinyint(4)" deleted="true">
+            <summary>If a sheet field is locked, it stops a user from editing the text when presented in a sheet.</summary>
+        </column>
+        <column order="22" name="TabOrderMobile" type="int(11)" deleted="true">
+            <summary>Tab stop order for all fields of a mobile sheet. One-based.  Only mobile fields can have values other than 0.
+            If all SheetFieldDefs for a given SheetField are 0 then assume that this sheet has no mobile-specific view.</summary>
+        </column>
+        <column order="23" name="UiLabelMobile" type="varchar(255)" deleted="true">
+            <summary>Each input field for a mobile will need a corresponding UI label. This is what the user sees as the label describing what this input is for. EG "First Name:, Last Name:, Address, etc."</summary>
+        </column>
+        <column order="24" name="UiLabelMobileRadioButton" type="varchar(255)" deleted="true">
+            <summary>Human readable label that will be displayed for radio button or checkbox item in mobile mode. 
+            Cannot use UiLabelMobile for this purpose as it is already dedicated to the radio group header that groups radio button items together.</summary>
+        </column>
+        <column order="25" name="LayoutMode" type="tinyint(4)" deleted="true">
+            <summary>Used when there are multiple modes for associated sheetDef, like chart module modes (base,treatment plan,ecw,orion,...).
+            SheetFieldLayoutMode.Default for all sheetdefs that do not have multiple modes.</summary>
+        </column>
+    </table>
+    <table name="signalod">
+        <summary></summary>
+        <column order="6" name="RemoteRole" type="tinyint(4)" deleted="true">
+            <summary>Enum:RemotingRole The RemotingRole of the instance that created this signal.</summary>
+            <Enumeration name="RemotingRole">
+                <summary />
+                <EnumValue name="ClientDirect">This dll is on a local workstation, and this workstation has successfully connected directly to the database with no 'server' layer.</EnumValue>
+                <EnumValue name="ClientWeb">Workstation that is getting its data from a web service on the server.</EnumValue>
+                <EnumValue name="ServerWeb">This dll is part of a web server that is providing data via web services.</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="7" name="MsgValue" type="text" deleted="true">
+            <summary>Message value of the signal.</summary>
+        </column>
+    </table>
+    <table name="smstomobile">
+        <summary></summary>
+        <column order="17" name="MsgDiscountUSD" type="float" deleted="true">
+            <summary>Any discount applied to this message. 
+            If a particular messages has a MsgDiscountUSD &gt; 0  then the MsgChargeUSD will reflect the charge to the customer after the discount has already been applied. 
+            Multi-part messages will still be charged the wholesale rate for all parts after the first part.
+            To calculate the typical charge that this customer would pay without the discount use MsgChargeUSD + MsgDiscountUSD.
+            To calculate the percentage discounted off standard charges use (MsgDiscountUSD / (MsgChargeUSD + MsgDiscountUSD)).</summary>
+        </column>
+    </table>
+    <table name="statement">
+        <summary></summary>
+        <column order="24" name="ShortGUID" type="varchar(30)" deleted="true">
+            <summary>A short alphanumeric string used to uniquely identify this statement.</summary>
+        </column>
+        <column order="25" name="StatementShortURL" type="varchar(50)" deleted="true">
+            <summary>A short URL that can be visited to view this statement. Useful to include in text messages.</summary>
+        </column>
+        <column order="26" name="StatementURL" type="varchar(255)" deleted="true">
+            <summary>A URL that can be visited to view this statement.</summary>
+        </column>
+        <column order="27" name="SmsSendStatus" type="tinyint(4)" deleted="true">
+            <summary>Stores what should be done or was done in regards to SMS messaging for this statement.</summary>
+        </column>
+    </table>
+    <table name="supplyorder">
+        <summary></summary>
+        <column order="5" name="UserNum" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum. User that placed the order, is editable.</summary>
+        </column>
+        <column order="6" name="ShippingCharge" type="double" deleted="true">
+            <summary>The order's shipping charge.</summary>
+        </column>
+    </table>
+    <table name="task">
+        <summary></summary>
+        <column order="17" name="DateTimeOriginal" type="datetime" deleted="true">
+            <summary>The original datetime that the row was inserted.  Used to sort the list by the order entered.
+            Using taskhist.DateTimeOriginal will get the datetime that the task row was inserted, not the taskhist.</summary>
+        </column>
+    </table>
+    <table name="taskhist">
+        <summary></summary>
+        <column order="21" name="DateTimeOriginal" type="datetime" deleted="true">
+            <summary></summary>
+        </column>
+    </table>
+    <table name="tasklist">
+        <summary></summary>
+        <column order="9" name="GlobalTaskFilterType" type="tinyint(4)" deleted="true">
+            <summary>Enum:GlobalTaskFilterType 0=Disabled, 1=Default, 2=None, 3=Clinic, 4=Region.  If a type is selected, then tasks in this tasklist will be filtered by default 
+            such that only tasks that match the tasklist's GlobalFilterType will show in the view.</summary>
+            <Enumeration name="GlobalTaskFilterType">
+                <summary>Used to determine which tasks should be filtered to show in a tasklist.</summary>
+                <EnumValue name="Disabled">0 - Disabled.</EnumValue>
+                <EnumValue name="Default">1 - Default.</EnumValue>
+                <EnumValue name="None">2 - None.</EnumValue>
+                <EnumValue name="Clinic">3 - Clinic.</EnumValue>
+                <EnumValue name="Region">4 - Region.</EnumValue>
+            </Enumeration>
+        </column>
+    </table>
+    <table name="tasksubscription">
+        <summary></summary>
+        <column order="3" name="TaskNum" type="bigint(20)" deleted="true" fk="task">
+            <summary>FK to task.TaskNum.  When this is not 0 then TaskListNum will be 0.</summary>
+        </column>
+    </table>
+    <table name="timecardrule">
+        <summary></summary>
+        <column order="5" name="IsOvertimeExempt" type="tinyint(4)" deleted="true">
+            <summary>Indicates if the employee should have overtime calculated for their hours worked in a pay period.</summary>
+        </column>
+        <column order="6" name="MinClockInTime" type="time" deleted="true">
+            <summary>When set this is the earliest an employee can clock in. Otherwise minimum dateTime represents not set.</summary>
+        </column>
+    </table>
+    <table name="transaction">
+        <summary></summary>
+        <column order="5" name="SecUserNumEdit" type="bigint(20)" deleted="true" fk="userod">
+            <summary>FK to userod.UserNum. The user who last edited this transaction.</summary>
+        </column>
+        <column order="6" name="SecDateTEdit" type="timestamp" deleted="true">
+            <summary>The last time this transaction was edited.</summary>
+        </column>
+    </table>
+    <table name="treatplan">
+        <summary></summary>
+        <column order="14" name="TPType" type="tinyint(4)" deleted="true">
+            <summary>Enum:TreatPlanType Determines the type of insurance this treatment plan was saved with.  Used for displaying proper information when loading.</summary>
+            <Enumeration name="TreatPlanType">
+                <summary>0 - Insurance, 1 - Discount Plan</summary>
+                <EnumValue name="Insurance">0 - Treatment plan saved for regular insurance.</EnumValue>
+                <EnumValue name="Discount">1 - Treatment plan saved for discount plan.</EnumValue>
+            </Enumeration>
+        </column>
+        <column order="15" name="SignaturePractice" type="text" deleted="true">
+            <summary>The encrypted and bound signature in base64 format.  The signature is bound to the concatenation of the tp Note, DateTP, and to each proctp Descript and PatAmt.</summary>
+        </column>
+        <column order="16" name="DateTSigned" type="datetime" deleted="true">
+            <summary>The date of the treatment plan is signed.</summary>
+        </column>
+        <column order="17" name="DateTPracticeSigned" type="datetime" deleted="true">
+            <summary>The date of the treatment plan is signed by the office.</summary>
+        </column>
+        <column order="18" name="SignatureText" type="varchar(255)" deleted="true">
+            <summary>The typed name of the person who signed the treatplan.</summary>
+        </column>
+        <column order="19" name="SignaturePracticeText" type="varchar(255)" deleted="true">
+            <summary>The typed name of the person who signed the practice signature.</summary>
+        </column>
+    </table>
+    <table name="userod">
+        <summary></summary>
+        <column order="17" name="DomainUser" type="varchar(255)" deleted="true">
+            <summary>The username for the ActiveDirectory user to link the account to.</summary>
+        </column>
+        <column order="18" name="IsPasswordResetRequired" type="tinyint(4)" deleted="true">
+            <summary>Boolean.  If true, the user's password needs to be reset on next login.</summary>
+        </column>
+    </table>
+    <table name="userodpref">
+        <summary></summary>
+        <column order="5" name="ClinicNum" type="bigint(20)" deleted="true" fk="clinic">
+            <summary>FK to Clinic.ClinicNum.</summary>
+        </column>
+    </table>
+    <table name="userquery">
+        <summary></summary>
+        <column order="4" name="IsReleased" type="tinyint(4)" deleted="true">
+            <summary>Determines whether the query is safe for users with lower permissions.  
+            Also causes this user query to show as a sub menu to the User Query menu item within the Reports main menu.</summary>
+        </column>
+        <column order="5" name="IsPromptSetup" type="tinyint(4)" deleted="true">
+            <summary>Determines whether the Query Favorites window should prompt for query values via FormQueryParser/'SET Fields' popup when running query.</summary>
+        </column>
+    </table>
+    <table name="userweb">
+        <summary></summary>
+        <column order="8" name="RequirePasswordChange" type="tinyint(4)" deleted="true">
+            <summary>Set to true to require a user to change their Password.</summary>
+        </column>
+    </table>
+    <table name="wikilistheaderwidth">
+        <summary></summary>
+        <column order="4" name="PickList" type="text" deleted="true">
+            <summary>Newline delimited list of options for the user to select from when adding or editing a wiki list item.</summary>
+        </column>
+    </table>
+    <table name="wikipage">
+        <summary></summary>
+        <column order="7" name="IsLocked" type="tinyint(4)" deleted="true">
+            <summary>Records if a wiki page is locked.  If it is locked, only user swith the WikiAdmin permission are allowed to edit the page</summary>
+        </column>
+        <column order="8" name="IsDeleted" type="tinyint(4)" deleted="true">
+            <summary>This flag will be set when the user archives the WikiPage.</summary>
+        </column>
+        <column order="9" name="PageContentPlainText" type="mediumtext" deleted="true">
+            <summary>Content of page stored without any HTML markup or wiki page links.  This plain text allows for easier searching.</summary>
         </column>
     </table>
 </database>
