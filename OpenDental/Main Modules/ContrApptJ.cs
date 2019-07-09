@@ -17,8 +17,8 @@ namespace OpenDental {
 	///<summary>This is a replacement for ContrAppt module. This new version is turned off by default and can only be turned on by manually setting pref.ApptModuleUses2019Overhaul=1.  If, someday, it's shown to work flawlessly, then it will be turned on for everyone, with the option to switch to the old original version in an emergency.</summary>
 	public partial class ContrApptJ:UserControl {
 
-		///<summary>This allows appointment overlap.  There's another one of these in UserContrApptsPanelJ.  This will be removed when we finalize that we don't want this to be optional.</summary>
-		private bool _allowOverlap=true;
+		///<summary>This allows appointment overlap.  This will be reworked when we finalize that we want this to be permanent.</summary>
+		public static bool AllowOverlap=true;
 
 		#region Fields - Private
 		///<summary>Used for blockouts.  OpNum.</summary>
@@ -800,6 +800,7 @@ namespace OpenDental {
 		#endregion Events - PanelCalendar Upper
 
 		#region Events - PanelCalendar Buttons
+		//Left Buttons------------------------------------------------------------------------------------------------
 		///<summary>Sends current appointment to unscheduled list.</summary>
 		private void butUnsched_Click(object sender,System.EventArgs e) {
 			if(contrApptPanel.SelectedAptNum==-1) {
@@ -1068,6 +1069,36 @@ namespace OpenDental {
 			Plugins.HookAddCode(this,"ContrAppt.OnDelete_Click_end",appt,_patCur);
 		}
 
+		//Confirmation list------------------------------------------------------------------------------------------
+		private void ListConfirmed_MouseDown(object sender, MouseEventArgs e){
+			if(listConfirmed.IndexFromPoint(e.X,e.Y)==-1) {
+				return;
+			}
+			if(contrApptPanel.SelectedAptNum==-1) {
+				return;
+			}
+			Appointment aptOld=Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
+			if(aptOld==null) {
+				MsgBox.Show(this,"Patient appointment was removed.");
+				contrApptPanel.SelectedAptNum=-1;
+				ModuleSelected(_patCur.PatNum);//keep same pat
+				return;
+			}
+			DateTime datePrevious=aptOld.DateTStamp;
+			long newStatus=Defs.GetDefsForCategory(DefCat.ApptConfirmed,true)[listConfirmed.IndexFromPoint(e.X,e.Y)].DefNum;
+			long oldStatus=aptOld.Confirmed;
+			Appointments.SetConfirmed(aptOld,newStatus);//Appointments S-Class handles Signalods
+			if(newStatus!=oldStatus) {
+				//Log confirmation status changes.
+				SecurityLogs.MakeLogEntry(Permissions.ApptConfirmStatusEdit,_patCur.PatNum,Lans.g(this,"Appointment confirmation status changed from")+" "
+					+Defs.GetName(DefCat.ApptConfirmed,oldStatus)+" "+Lans.g(this,"to")+" "+Defs.GetName(DefCat.ApptConfirmed,newStatus)
+					+" "+Lans.g(this,"from the appointment module")+".",contrApptPanel.SelectedAptNum,datePrevious);
+			}
+			RefreshPeriod();
+			AppointmentL.ShowKioskManagerIfNeeded(aptOld,newStatus);
+		}
+
+		//Right Make Buttons----------------------------------------------------------------------------------------
 		private void butMakeAppt_Click(object sender,System.EventArgs e) {
 			if(_patCur==null) {
 				return;
@@ -1229,7 +1260,7 @@ namespace OpenDental {
 				TimeSpan timeSpanNewRounded=UI.UserControlApptsPanelJ.RoundTimeToNearestIncrement(timeSpanNew.Value,contrApptPanel.MinPerIncr);
 				contrApptPanel.RoundToNearestDateAndOp(e.Location.X-contrApptPanel.Location.X,//passing in as coordinates of the control
 					out DateTime dateNew,
-					out int opIdx);
+					out int opIdx,e.BitmapAppt.Width);
 				if(opIdx<0){
 					MsgBox.Show("Invalid operatory");
 					return;
@@ -1324,9 +1355,11 @@ namespace OpenDental {
 					#endregion Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
 				}
 				#region Prevent overlap
-				if(!Appointments.TryAdjustAppointmentOp(apptCur,contrApptPanel.ListOpsVisible)) {
-					MessageBox.Show("Appointment overlaps existing appointment or blockout.");
-					return;
+				if(!AllowOverlap){
+					if(!Appointments.TryAdjustAppointmentOp(apptCur,contrApptPanel.ListOpsVisible)) {
+						MessageBox.Show("Appointment overlaps existing appointment or blockout.");
+						return;
+					}
 				}
 				#endregion Prevent overlap
 				#region Detect Frequency Conflicts
@@ -3553,7 +3586,7 @@ namespace OpenDental {
 				#endregion Update Appt's ProvNum, ProvHyg, IsHygiene, Pattern
 			}
 			#region Prevent overlap
-			if(!_allowOverlap){
+			if(!AllowOverlap){
 				if(!isOpUpdate && !Appointments.TryAdjustAppointmentOp(appt,listOpsForClinic)) {
 					MessageBox.Show(Lan.g(this,"Appointment overlaps existing appointment or blockout."));
 					return;
@@ -4046,31 +4079,36 @@ namespace OpenDental {
 			return isPatternChanged;
 		}
 
+
+
+
 		#endregion Methods - Private Other
-			 	 	
-	
 
 		
 	}
 }
 
-//todo: 
-//Major functionality missing:
+//todo:
+//speed test
+//Overlapping appointments in week view show side by side
 //During printing, copy image to clipboard
-//Overlap is working, but drag is annoying 
-//hover bubble is leaving unacceptable dragging trails.
-
-//Minor details
-//If appt is very narrow, just draw a rect, without anything else.  Sharp corners.
 //Where are pinboard TableApptFields stored?  Need them when dragging off in order to make a copy.
 //Dispose of bitmaps on pinboard items when they are removed from list
 //FormApptsOther.MakeRecallAppointment, and similar methods.
 //FormOpenDental.GotoModule_ModuleSelected needs to be revisited for changing date
 //Check that appt colored procs are wrapping properly
 //Full line-by-line review and compare old vs new
+//MsgBox translations
+//Hooks
+//isInsuranceColor not used
 
 //Untested:
 //Grids at lower right
 //Search
+//DrawWebSchedASAPSlots
+//DrawBlockouts (and manipulate them)
+
+//For Documentation, new feature description:
+//Multiple appointments can be scheduled in the same operatory.  User has no control over the arrangement within the operatory column. 
 
 

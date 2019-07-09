@@ -740,6 +740,7 @@
 			this.listConfirmed.Name = "listConfirmed";
 			this.listConfirmed.Size = new System.Drawing.Size(73, 111);
 			this.listConfirmed.TabIndex = 75;
+			this.listConfirmed.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ListConfirmed_MouseDown);
 			// 
 			// butComplete
 			// 

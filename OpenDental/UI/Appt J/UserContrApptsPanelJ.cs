@@ -18,10 +18,6 @@ using CodeBase;
 namespace OpenDental.UI{
 	/// <summary>Under heavy development.  Soon to replace ApptDrawing, ContrApptSheet, ContrApptSingle, and ApptOverlapOrdering.  Encapsulates both Data and Drawing for the main area of Appt module and the operatories header.  The Appt module gathers the data and stores it here.  This class does its drawing based mostly on the information passed in, although it does use the standard cache sometimes. It has defaults so that we will always be able to draw something reasonable, even if we're missing data. This class contains extra data that it doesn't actually need.  Appt module uses this data for other things besides drawing appointments.  This class intentionally supports a single thread only.  The suffix J is for Jordan, which can later be changed after all similar old classes are removed.</summary>
 	public partial class UserControlApptsPanelJ:UserControl {
-
-		///<summary>This allows appointment overlap.  There's another one of these in ContrApptJ.  This will be removed when we finalize that we don't want this to be optional.</summary>
-		private bool _tempAllowOverlap=true;
-
 		#region Fields - Public Printing
 		///<summary>AKA colsPerpage. Used to overrride _countCol for printing as a parameter on ComputeColWidth.  Only affected daily view and was 0 by default.  Now, only used in one calc during printing.</summary>
 		public int PrintingColsPerPage=0;
@@ -117,8 +113,11 @@ namespace OpenDental.UI{
 		private Bitmap _bitmapBackAppts;
 		///<summary>Background plus Appts plus outlines.  No time line.</summary>
 		private Bitmap _bitmapBackApptsOutlineSelected;
-		///<summary>Easily assembled by combining one of the other bitmaps with a red time line.  This is the one that's painted with OnPaint.</summary>
+		///<summary>Easily assembled by combining one of the other bitmaps with a red time line and possibly the appointment bubble.  This is the one that's painted with OnPaint.</summary>
 		private Bitmap _bitmapMainWithRed;
+		//Appt Info bubble -----------------------------------------------------------------------------
+		///<summary>This bitmap for the info bubble includes text, patient pic, and outline.  There is only one.  It can be quickly placed on top of the background at various locations.  This is not combined with any background bitmap, but is instead painted separately in OnPaint.  It's not filled from RedrawAsNeeded() because its frequency is different, so it's not coupled.  It also has no _isValid flag.</summary>
+		private Bitmap _bitmapBubble;
 		//Prov bars at left------------------------------------------------------------------------------
 		///<summary>Just the background of the provbars at left.  Must place all the appt info on it.</summary>
 		private Bitmap _bitmapProvBarsBack;
@@ -222,20 +221,22 @@ namespace OpenDental.UI{
 
 		#endregion Fields - Private Mouse
 
-		#region Fields - Private InfoBubble and Tooltip
+		#region Fields - Private Bubble and Tooltip
 		///<summary>This has to be tracked globally because mouse might move directly from one appt to another without any break.  This is the only way to know if we are still over the same appt.</summary>
-		private long _bubbleAptNum;
+		private int _bubbleApptIdx=-1;
 		private DateTime _dateTimeBubble;
+		private bool _isBubbleVisible;
 		private Label labelHeaderTip;
 		///<summary>For the op header tip, this tracks whether we are on the same appt.</summary>
 		private long _opNumHeaderTipLast;
-		private Panel panelInfoBubble;
+		//private Panel panelBubble;
 		private Panel panelHeaderTip;
-		private OpenDental.UI.ODPictureBox pictureBoxPat;
 		///<summary>The position of the pointer the last time the bubble was drawn or the timer was started.  Used to show after timer is up.  In coordinates of this control.</summary>
-		private Point _pointBubble;
-		private Timer timerInfoBubble;
-		#endregion Fields - Private InfoBubble and Tooltip
+		private Point _pointBubbleTimer;
+		///<summary>This rectangle is in control coordinates and can paint over the top of any other bitmaps all the way up to the edge of this control.</summary>
+		private Rectangle _rectangleBubble;
+		private Timer timerBubble;
+		#endregion Fields - Private Bubble and Tooltip
 
 		#region Constructor
 		public UserControlApptsPanelJ() {
@@ -246,23 +247,9 @@ namespace OpenDental.UI{
 			ListOpsVisible.Add(new Operatory());
 			ListOpsVisible.Add(new Operatory());
 			ListProvsVisible.Add(new Provider());
-			panelInfoBubble=new Panel();
-			panelInfoBubble.Visible=false;
-			panelInfoBubble.Size=new Size(200,300);
-			panelInfoBubble.MouseMove+=new MouseEventHandler(InfoBubble_MouseMove);
-			panelInfoBubble.BackColor=Color.FromArgb(255,250,190);
-			pictureBoxPat=new OpenDental.UI.ODPictureBox();
-			pictureBoxPat.Location=new Point(6,17);
-			pictureBoxPat.Size=new Size(100,100);
-			pictureBoxPat.BackColor=Color.FromArgb(232,220,190);
-			pictureBoxPat.TextNullImage="Patient Picture Unavailable";
-			pictureBoxPat.MouseMove+=new MouseEventHandler(PictureBoxPat_MouseMove);
-			panelInfoBubble.Controls.Clear();
-			panelInfoBubble.Controls.Add(pictureBoxPat);
-			this.Controls.Add(panelInfoBubble);
-			timerInfoBubble=new Timer();
-			timerInfoBubble.Interval = 300;
-			timerInfoBubble.Tick += new System.EventHandler(this.timerInfoBubble_Tick);
+			timerBubble=new Timer();
+			timerBubble.Interval = 300;
+			timerBubble.Tick += new System.EventHandler(this.timerInfoBubble_Tick);
 			panelHeaderTip=new Panel();
 			panelHeaderTip.Visible=false;
 			panelHeaderTip.Size=new Size(200,17);
@@ -477,9 +464,9 @@ namespace OpenDental.UI{
 			else if(e.Y<_heightProvOpHeaders
 				&& e.X>_widthTime 
 				&& e.X<this.Width-vScrollBar1.Width-_widthTime)
-			{
-				//clicked in operatory or weekday header
-				if(IsWeeklyView){
+			{//clicked in operatory or weekday header
+				#region Click Op Header
+				if (IsWeeklyView){
 					int dayI=XPosToDay(e.X);
 					DateSelected=DateStart.AddDays(dayI);
 					IsWeeklyView=false;
@@ -548,6 +535,7 @@ namespace OpenDental.UI{
 				}
 				panelHeaderTip.Location=new Point(xval,yval);
 				panelHeaderTip.Visible=true;
+				#endregion Click Op Header
 			}
 			TimeSpan? timeClicked=YPosToTime(e.Y);
 			if(timeClicked==null){//clicked outside the main bitmap
@@ -577,8 +565,8 @@ namespace OpenDental.UI{
 				dateTimeClicked=dateTimeClicked.AddDays(_dayClicked);
 			}
 			//while mouse is down, there is no appt bubble.  Includes dragging, context menus, etc.
-			panelInfoBubble.Visible=false;
-			timerInfoBubble.Enabled=false;
+			_isBubbleVisible=false;
+			timerBubble.Enabled=false;
 			if(clickedAptNum!=0) {//if clicked on an appt
 				if(e.Button==MouseButtons.Right) {
 					OnApptRightClicked(dateTimeClicked,_opNumClicked,e.Location);
@@ -661,7 +649,7 @@ namespace OpenDental.UI{
 					//Now, check for overlap with other appts.
 					//Loop through all other appts in the op and make sure the new pattern will not overlap.
 					long aptNumTemp=PIn.Long(_dataRowTempAppt["AptNum"].ToString());
-					if(!_tempAllowOverlap){
+					if(!ContrApptJ.AllowOverlap){
 						long opNumTemp=PIn.Long(_dataRowTempAppt["Op"].ToString());
 						for(int i=0;i<TableAppointments.Rows.Count;i++){
 							if(PIn.Long(TableAppointments.Rows[i]["Op"].ToString())!=opNumTemp){
@@ -762,7 +750,7 @@ namespace OpenDental.UI{
 				TimeSpan timeSpanNewRounded=RoundTimeToNearestIncrement(timeSpanNew.Value,MinPerIncr);
 				RoundToNearestDateAndOp(contrTempAppt.Location.X-this.Location.X,//passing in as coordinates of this control
 					out DateTime dateNew,
-					out int opIdx);
+					out int opIdx,contrTempAppt.Width);
 				if(opIdx<0){
 					MsgBox.Show("Invalid operatory");
 					return;
@@ -816,7 +804,7 @@ namespace OpenDental.UI{
 			base.OnMouseMove(e);
 			if(!_isMouseDown) {
 				int idxAppt=HitTestAppt(e.Location);
-				InfoBubbleDraw(e.Location,idxAppt);//could be -1 to not show
+				BubbleDraw(e.Location,idxAppt);//could be -1 to not show
 				HeaderTipDraw(e.Location);
 				//decide what the pointer should look like.
 				if(HitTestApptBottom(e.Location,idxAppt)) {
@@ -892,19 +880,19 @@ namespace OpenDental.UI{
 				graphics.DrawImage(_bitmapMainWithRed,rectangleClip,rectangleSource,GraphicsUnit.Pixel);
 			}
 			//the other areas are small enough that we don't bother with calculating clip rectangles and smaller bitmaps.
-			//prov bars header
+			//prov bars header------------------------------------------------------------------------------------------------
 			if(_showProvBars){
 				rectangleOnControl=new Rectangle(Round(_widthTime),0,Round(widthProvs),Round(_heightProvOpHeaders));
 				if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
 					graphics.DrawImage(_bitmapProvBarsHeader,_widthTime,0);
 				}
 			}
-			//ops header
+			//ops header-------------------------------------------------------------------------------------------------------
 			rectangleOnControl=new Rectangle(Round(_widthTime+widthProvs),0,_widthMain,Round(_heightProvOpHeaders));
 			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
 				graphics.DrawImage(_bitmapOpsHeader,_widthTime+widthProvs,0);
 			}
-			//Prov bars
+			//Prov bars--------------------------------------------------------------------------------------------------------
 			if(_showProvBars){
 				rectangleOnControl=new Rectangle(Round(_widthTime),Round(_heightProvOpHeaders),Round(widthProvs),_heightMainVisible);
 				if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
@@ -912,7 +900,7 @@ namespace OpenDental.UI{
 					graphics.DrawImage(_bitmapProvBarsWithRed,_widthTime,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
 				}
 			}
-			//timebars
+			//timebars---------------------------------------------------------------------------------------------------------
 			rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(_widthTime),_heightMainVisible);
 			rectangleOnControl=new Rectangle(0,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
 			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
@@ -923,6 +911,13 @@ namespace OpenDental.UI{
 				graphics.DrawImage(_bitmapTimebarRightWithRed,this.Width-vScrollBar1.Width-_widthTime-1,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
 			}
 			graphics.DrawLine(_penVertPrimary,Width-1,_heightProvOpHeaders,Width-1,Height);
+			//Bubble----------------------------------------------------------------------------------------------------------
+			if(_isBubbleVisible && _bitmapBubble!=null){
+				rectangleOnControl=_rectangleBubble;
+				if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
+					graphics.DrawImage(_bitmapBubble,_rectangleBubble);
+				}
+			}
 		}
 
 		///<summary></summary>
@@ -1616,7 +1611,7 @@ namespace OpenDental.UI{
 			return _dictProvNumToColumnNum.TryGetValue(provNum,out index) ? index : -1;
 		}
 
-		///<summary>Call this whenever control should be redrawn, like after data is fetched, or when red timebar should move down.  Usually just grabs existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from as basis for new bitmap, as well as a variety of ancillary bitmaps for outside the main area. It all depends on what data is invalid.  So it usually doesn't need to redraw much.</summary>
+		///<summary>Call this whenever control should be redrawn, like after data is fetched, or when red timebar should move down.  Usually just grabs existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from as basis for new bitmap, as well as a variety of ancillary bitmaps for outside the main area. It all depends on what data is invalid.  So it usually doesn't need to redraw much.  The Bubble is handled completely separately from this.</summary>
 		public void RedrawAsNeeded(){
 			if(!_isValidAllMain){
 				ComputeColWidth();//super fast.
@@ -1750,7 +1745,7 @@ namespace OpenDental.UI{
 		}
 
 		///<summary>Used when dropping an appointment to a new location.  Converts x-coordinate to date and opIdx.  Used in both daily and weekly views.  It is very different from XPosToOpIdx, which doesn't round the same way. Pass in X in coords of this entire control.  Date will always be reasonable, but opIdx might be -1 if unable to resolve.</summary>
-		public void RoundToNearestDateAndOp(int xPos,out DateTime date,out int opIdx) {
+		public void RoundToNearestDateAndOp(int xPos,out DateTime date,out int opIdx,float widthAppt) {
 			//This cannot be two separate methods because the rounding increment is op, so date and op are interdependent.
 			date=DateStart;//for daily view, this is the same as DateSelected
 			opIdx=-1;
@@ -1772,8 +1767,12 @@ namespace OpenDental.UI{
 			}
 			int idxNearestOp;
 			if(!IsWeeklyView){
-				idxNearestOp=Round(xPosMain/_widthCol);
-				//just within a single day
+				//daily appointments are not necessarily as wide as operatories because we might grab a narrow one stacked next to others.
+				//The real condition to test is which op the majority of the appt is sitting in
+				//So, take the midpoint of the appointment, and find exactly where it falls.
+				float midpoint=xPos+(widthAppt/2f);//coordinates of control, not main bitmap
+				idxNearestOp=XPosToOpIdx((int)midpoint);
+				//idxNearestOp=Round(xPosMain/_widthCol);
 				if(idxNearestOp>ListOpsVisible.Count-1){
 					idxNearestOp=ListOpsVisible.Count-1;
 				}
@@ -1827,7 +1826,7 @@ namespace OpenDental.UI{
 		#region Methods - Private Set Bitmaps
 		///<summary>Usually just grabs an existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from, depending on what data is invalid.  So it usually doesn't need to redraw much.  Triggered much less frequently than OnPaint.</summary>
 		private void SetBitmapMain(){
-			//Disposing of each bitmap to free memory before reinitializing
+			//Dispose of each bitmap to free memory before reinitializing
 			if(!_isValidAllMain){
 				_bitmapBack?.Dispose();
 				_bitmapBack=new Bitmap(_widthMain,_heightMain);
@@ -2736,14 +2735,17 @@ namespace OpenDental.UI{
 		}
 
 		///<summary>A recursive function for rare secondary and tertiary overlaps created by adding a single appointment that shifted other tall appts.</summary>
-		private static void ProcessOverlaps(List<ApptLayoutInfo> listApptLayoutInfos,List<ApptLayoutInfo> listOverlapsPrevious,float widthCol,
-			int idxOp,float widthNarrowedOnRight){
+		private static void ProcessOverlaps(List<ApptLayoutInfo> listApptLayoutInfos,List<ApptLayoutInfo> listOverlapsPrevious,float widthCol,int idxOp,float widthNarrowedOnRight)
+		{
 			for(int k=0;k<listOverlapsPrevious.Count;k++){
 				for(int i=0;i<listApptLayoutInfos.Count;i++){
 					if(listApptLayoutInfos[i].idxInTableAppointments==listOverlapsPrevious[k].idxInTableAppointments){
 						continue;//self
 					}
-					if(listApptLayoutInfos[i].RectangleBounds.IntersectsWith(listOverlapsPrevious[k].RectangleBounds)){
+					//if(listApptLayoutInfos[i].idxInTableAppointments==idxApptOriginal){
+					//	continue;//We also don't want to compare it to the appointment that was originally placed, causing the moves.
+					//}//harmless and not faster
+					if(Rectangle.Truncate(listApptLayoutInfos[i].RectangleBounds).IntersectsWith(Rectangle.Truncate(listOverlapsPrevious[k].RectangleBounds))){
 						//there is overlap, so fix it
 						//we are leaving overlapPrevious alone, and changing the other one
 						listApptLayoutInfos[i].OverlapSections=listOverlapsPrevious[k].OverlapSections;  //size it to match overlapPrevious
@@ -2754,19 +2756,15 @@ namespace OpenDental.UI{
 							(widthCol-widthNarrowedOnRight)/(float)listApptLayoutInfos[i].OverlapSections,// 1/6
 							listApptLayoutInfos[i].RectangleBounds.Height);
 						//now, send this fixed appt in recursively to see if it affected anything else
-						ProcessOverlaps(listApptLayoutInfos,new List<ApptLayoutInfo>(){listOverlapsPrevious[k]},//just pass in this single
+						ProcessOverlaps(listApptLayoutInfos,new List<ApptLayoutInfo>(){listApptLayoutInfos[i]},//just pass in this single
 							widthCol,idxOp,widthNarrowedOnRight);
 					}
 				}
 			}
 		}
 
-		///<summary>Set default fontSize to 8 unless printing.  isIntFit means that the overall size is an int, used when drawing on a control.</summary>
-		private void DrawOneAppt(Graphics g,DataRow dataRoww,string patternShowing,float totalWidth,float totalHeight){
-			//These used to be passed in:
-			//isPrinting,List<DateRange> listOverlapTimes
-			//bool isSelected,bool thisIsPinBoard,long selectedAptNum,//these have more to do with outlines than drawing appt
-			//int fontSize
+		///<summary></summary>
+		private void DrawOneAppt(Graphics g,DataRow dataRoww,string patternShowing,float widthAppt,float heightAppt){
 			SolidBrush brushProvBackground;
 			Color backColor;
 			Color provColor;
@@ -2797,7 +2795,7 @@ namespace OpenDental.UI{
 			else if(PIn.Int(dataRoww["ColorOverride"].ToString()) != 0) {
 				backColor=Color.FromArgb(PIn.Int(dataRoww["ColorOverride"].ToString()));
 			}
-			//Check to see if the patient is late for their appointment.  This 
+			//Check to see if the patient is late for their appointment. 
 			DateTime aptDateTime=PIn.DateT(dataRoww["AptDateTime"].ToString());
 			DateTime aptDateTimeArrived=PIn.DateT(dataRoww["AptDateTimeArrived"].ToString());
 			//If the appointment is scheduled and the patient was late for the appointment.
@@ -2814,21 +2812,32 @@ namespace OpenDental.UI{
 				}
 			}
 			SolidBrush brushBack=new SolidBrush(backColor);
+			if(widthAppt<14){//Narrow appointments will look very simple, with no rounded corners or text
+				g.FillRectangle(brushBack,0,0,widthAppt,heightAppt);
+				if(widthAppt<6){//below 6, the black side lines are distracting
+					g.DrawLine(_penBlack,0,0,widthAppt,0);
+					g.DrawLine(_penBlack,0,heightAppt,widthAppt,heightAppt);
+				}
+				else{
+					g.DrawRectangle(_penBlack,0,0,widthAppt,heightAppt);
+				}
+				DisposeObjects(brushProvBackground,brushBack);
+				return;
+			}
 			GraphicsPath graphicsPathRightSide=new GraphicsPath();
-			graphicsPathRightSide.AddLine(_widthProv,0,totalWidth-_radiusCorn,0);//top
-			graphicsPathRightSide.AddArc(totalWidth-_radiusCorn*2f,0,_radiusCorn*2,_radiusCorn*2,270,90);//UR
-			graphicsPathRightSide.AddLine(totalWidth,_radiusCorn,totalWidth,totalHeight-_radiusCorn);//right
-			graphicsPathRightSide.AddArc(totalWidth-_radiusCorn*2f,totalHeight-_radiusCorn*2,_radiusCorn*2,_radiusCorn*2,0,90);//LR
-			graphicsPathRightSide.AddLine(totalWidth-_radiusCorn,totalHeight,8f,totalHeight);//bottom
+			graphicsPathRightSide.AddLine(_widthProv,0,widthAppt-_radiusCorn,0);//top
+			graphicsPathRightSide.AddArc(widthAppt-_radiusCorn*2f,0,_radiusCorn*2,_radiusCorn*2,270,90);//UR
+			graphicsPathRightSide.AddLine(widthAppt,_radiusCorn,widthAppt,heightAppt-_radiusCorn);//right
+			graphicsPathRightSide.AddArc(widthAppt-_radiusCorn*2f,heightAppt-_radiusCorn*2,_radiusCorn*2,_radiusCorn*2,0,90);//LR
+			graphicsPathRightSide.AddLine(widthAppt-_radiusCorn,heightAppt,8f,heightAppt);//bottom
 			//graphicsPathRightSide.AddLine(8f,totalHeight,8f,0);//path doesn't include left
-			g.FillPath(brushBack,graphicsPathRightSide);
-			//g.FillRectangle(brushBack,8f,0,totalWidth-8,totalHeight);
 			GraphicsPath graphicsPathLeftSide=new GraphicsPath();
-			graphicsPathLeftSide.AddLine(_widthProv,totalHeight,_radiusCorn,totalHeight);//bottom
-			graphicsPathLeftSide.AddArc(0,totalHeight-_radiusCorn*2,_radiusCorn*2,_radiusCorn*2,90,90);//LL
-			graphicsPathLeftSide.AddLine(0,totalHeight-_radiusCorn,0,_radiusCorn);//left
+			graphicsPathLeftSide.AddLine(_widthProv,heightAppt,_radiusCorn,heightAppt);//bottom
+			graphicsPathLeftSide.AddArc(0,heightAppt-_radiusCorn*2,_radiusCorn*2,_radiusCorn*2,90,90);//LL
+			graphicsPathLeftSide.AddLine(0,heightAppt-_radiusCorn,0,_radiusCorn);//left
 			graphicsPathLeftSide.AddArc(0,0,_radiusCorn*2,_radiusCorn*2,180,90);//UL
 			graphicsPathLeftSide.AddLine(_radiusCorn,0,8f,0);//top
+			g.FillPath(brushBack,graphicsPathRightSide);
 			g.FillPath(_brushWhite,graphicsPathLeftSide);
 			//g.FillRectangle(_brushWhite,0,0,8f,totalHeight);
 			for(int i=0;i<patternShowing.Length;i++) {//Info.MyApt.Pattern.Length;i++){
@@ -2842,7 +2851,7 @@ namespace OpenDental.UI{
 					g.DrawLine(_penTimeDiv,1,(float)i*_heightLine,8f,(float)i*_heightLine);
 				}
 			}
-			g.DrawLine(_penBlack,8f,0,8f,totalHeight);
+			g.DrawLine(_penBlack,8f,0,8f,heightAppt);
 			#region Overlap Lines
 			/*
 			foreach(DateRange overlapTimeRange in listOverlapTimes) {
@@ -2859,37 +2868,37 @@ namespace OpenDental.UI{
 			#region Main rows
 			PointF pointDraw=new PointF(_widthProv+1,0);
 			int elementI=0;
-			while(pointDraw.Y<totalHeight && elementI<ListApptViewItemRowElements.Count) {
+			while(pointDraw.Y<heightAppt && elementI<ListApptViewItemRowElements.Count) {
 				if(ListApptViewItemRowElements[elementI].ElementAlignment!=ApptViewAlignment.Main) {
 					elementI++;
 					continue;
 				}
-				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewStackBehavior.Vertical,ApptViewAlignment.Main,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight);//set the drawLoc to a new point, based on space used by element
+				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewStackBehavior.Vertical,ApptViewAlignment.Main,dataRoww,ListApptViewItemRowElements,widthAppt,heightAppt);//set the drawLoc to a new point, based on space used by element
 				elementI++;
 			}
 			#endregion
 			#region UR
-			pointDraw=new Point((int)totalWidth-1,0);//in the UR area, we refer to the upper right corner of each element.
+			pointDraw=new Point((int)widthAppt-1,0);//in the UR area, we refer to the upper right corner of each element.
 			elementI=0;
-			while(pointDraw.Y<totalHeight && pointDraw.X>0 && elementI<ListApptViewItemRowElements.Count) {
+			while(pointDraw.Y<heightAppt && pointDraw.X>0 && elementI<ListApptViewItemRowElements.Count) {
 				if(ListApptViewItemRowElements[elementI].ElementAlignment!=ApptViewAlignment.UR) {
 					elementI++;
 					continue;
 				}
-				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewCur.StackBehavUR,ApptViewAlignment.UR,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight);
+				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewCur.StackBehavUR,ApptViewAlignment.UR,dataRoww,ListApptViewItemRowElements,widthAppt,heightAppt);
 				elementI++;
 			}
 			Plugins.HookAddCode(null,"OpenDentBusiness.UI.ApptSingleDrawing.DrawEntireAppt_UR",dataRoww,g,pointDraw);
 			#endregion
 			#region LR
-			pointDraw=new Point((int)totalWidth-1,(int)totalHeight-1);//in the LR area, we refer to the lower right corner of each element.
+			pointDraw=new Point((int)widthAppt-1,(int)heightAppt-1);//in the LR area, we refer to the lower right corner of each element.
 			elementI=ListApptViewItemRowElements.Count-1;//For lower right, draw the list backwards.
 			while(pointDraw.Y>0 && elementI>=0) {
 				if(ListApptViewItemRowElements[elementI].ElementAlignment!=ApptViewAlignment.LR) {
 					elementI--;
 					continue;
 				}
-				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewCur.StackBehavLR,ApptViewAlignment.LR,dataRoww,ListApptViewItemRowElements,totalWidth,totalHeight);
+				pointDraw=DrawElement(g,elementI,pointDraw,ApptViewCur.StackBehavLR,ApptViewAlignment.LR,dataRoww,ListApptViewItemRowElements,widthAppt,heightAppt);
 				elementI--;
 			}
 			#endregion
@@ -2897,8 +2906,8 @@ namespace OpenDental.UI{
 			g.DrawPath(_penBlack,graphicsPathLeftSide);
 			//broken X
 			if(dataRoww["AptStatus"].ToString()==((int)ApptStatus.Broken).ToString()) {
-				g.DrawLine(_penBlack,8,1,totalWidth-1,totalHeight-1);
-				g.DrawLine(_penBlack,8,totalHeight-1,totalWidth-1,1);
+				g.DrawLine(_penBlack,8,1,widthAppt-1,heightAppt-1);
+				g.DrawLine(_penBlack,8,heightAppt-1,widthAppt-1,1);
 			}
 			DisposeObjects(brushProvBackground,brushBack);
 		}
@@ -3271,19 +3280,13 @@ namespace OpenDental.UI{
 			#region Main
 			if(align==ApptViewAlignment.Main) {//always stacks vertical
 				if(isGraphic) {
-					Bitmap bitmap=new Bitmap(12,12);
-					sizeNote=new SizeF(bitmap.Width,bitmap.Height);
-					rectangleLayout=new RectangleF(pointDraw,sizeNote);
-					using(Graphics gfx=Graphics.FromImage(bitmap)) {
-						gfx.SmoothingMode=SmoothingMode.HighQuality;
-						Color colorConfirm=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
-						SolidBrush brushConfirm=new SolidBrush(colorConfirm);
-						gfx.FillEllipse(brushConfirm,0,0,11,11);
-						gfx.DrawEllipse(_penBlack,0,0,11,11);
-						brushConfirm.Dispose();
-					}
-					g.DrawImage(bitmap,pointDraw.X,pointDraw.Y);
-					DisposeObjects(brush,stringFormatLeft,bitmap);
+					sizeNote=new SizeF(12,12);
+					Color colorConfirm=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
+					SolidBrush brushConfirm=new SolidBrush(colorConfirm);
+					g.FillEllipse(brushConfirm,pointDraw.X,pointDraw.Y,11,11);
+					g.DrawEllipse(_penBlack,pointDraw.X,pointDraw.Y,11,11);
+					brushConfirm.Dispose();
+					DisposeObjects(brush,stringFormatLeft);
 					return new PointF(pointDraw.X,pointDraw.Y+sizeNote.Height);
 				}
 				else {
@@ -3340,20 +3343,14 @@ namespace OpenDental.UI{
 				if(stackBehavior==ApptViewStackBehavior.Vertical) {
 					float w=widthAppt-9;
 					if(isGraphic) {
-						Bitmap bitmap=new Bitmap(12,12);
-						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						sizeNote=new SizeF(12,12);
 						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y+1);//upper left corner of this element
-						rectangleLayout=new RectangleF(pointDraw,sizeNote);
-						using(Graphics gfx=Graphics.FromImage(bitmap)) {
-							gfx.SmoothingMode=SmoothingMode.HighQuality;
-							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
-							SolidBrush confirmBrush=new SolidBrush(confirmColor);
-							gfx.FillEllipse(confirmBrush,0,0,11,11);
-							gfx.DrawEllipse(_penBlack,0,0,11,11);
-							confirmBrush.Dispose();
-						}
-						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,stringFormatLeft,bitmap);
+						Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
+						SolidBrush confirmBrush=new SolidBrush(confirmColor);
+						g.FillEllipse(confirmBrush,drawLocThis.X,drawLocThis.Y,11,11);
+						g.DrawEllipse(_penBlack,drawLocThis.X,drawLocThis.Y,11,11);
+						confirmBrush.Dispose();
+						DisposeObjects(brush,stringFormatLeft);
 						return new PointF(pointDraw.X,pointDraw.Y+(int)sizeNote.Height);
 					}
 					else {
@@ -3383,20 +3380,14 @@ namespace OpenDental.UI{
 				}
 				else {//horizontal
 					if(isGraphic) {
-						Bitmap bitmap=new Bitmap(12,12);
-						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						sizeNote=new SizeF(12,12);
 						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y+1);//upper left corner of this element
-						rectangleLayout=new RectangleF(pointDraw,sizeNote);
-						using(Graphics gfx=Graphics.FromImage(bitmap)) {
-							gfx.SmoothingMode=SmoothingMode.HighQuality;
-							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
-							SolidBrush confirmBrush=new SolidBrush(confirmColor);
-							gfx.FillEllipse(confirmBrush,0,0,11,11);
-							gfx.DrawEllipse(_penBlack,0,0,11,11);
-							confirmBrush.Dispose();
-						}
-						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,stringFormatLeft,bitmap);
+						Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
+						SolidBrush confirmBrush=new SolidBrush(confirmColor);
+						g.FillEllipse(confirmBrush,drawLocThis.X,drawLocThis.Y,11,11);
+						g.DrawEllipse(_penBlack,drawLocThis.X,drawLocThis.Y,11,11);
+						confirmBrush.Dispose();
+						DisposeObjects(brush,stringFormatLeft);
 						return new PointF(pointDraw.X-(int)sizeNote.Width-2,pointDraw.Y);
 					}
 					else {
@@ -3433,20 +3424,14 @@ namespace OpenDental.UI{
 				if(stackBehavior==ApptViewStackBehavior.Vertical) {
 					float w=widthAppt-9;
 					if(isGraphic) {
-						Bitmap bitmap=new Bitmap(12,12);
-						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						sizeNote=new SizeF(12,12);
 						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width,pointDraw.Y+1-_heightLine);//upper left corner of this element
-						rectangleLayout=new RectangleF(pointDraw,sizeNote);
-						using(Graphics gfx=Graphics.FromImage(bitmap)) {
-							gfx.SmoothingMode=SmoothingMode.HighQuality;
-							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
-							SolidBrush confirmBrush=new SolidBrush(confirmColor);
-							gfx.FillEllipse(confirmBrush,0,0,11,11);
-							gfx.DrawEllipse(_penBlack,0,0,11,11);
-							confirmBrush.Dispose();
-						}
-						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,stringFormatLeft,bitmap);
+						Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
+						SolidBrush confirmBrush=new SolidBrush(confirmColor);
+						g.FillEllipse(confirmBrush,drawLocThis.X,drawLocThis.Y,11,11);
+						g.DrawEllipse(_penBlack,drawLocThis.X,drawLocThis.Y,11,11);
+						confirmBrush.Dispose();
+						DisposeObjects(brush,stringFormatLeft);
 						return new PointF(pointDraw.X,pointDraw.Y-(int)sizeNote.Height);
 					}
 					else {
@@ -3477,20 +3462,14 @@ namespace OpenDental.UI{
 				else {//horizontal
 					float w=pointDraw.X-9;//drawLoc is upper right of each element.  The first element draws at (totalWidth-1,0).
 					if(isGraphic) {
-						Bitmap bitmap=new Bitmap(12,12);
-						sizeNote=new SizeF(bitmap.Width,bitmap.Height);
+						sizeNote=new SizeF(12,12);
 						PointF drawLocThis=new PointF(pointDraw.X-(int)sizeNote.Width+1,pointDraw.Y+1-_heightLine);//upper left corner of this element
-						rectangleLayout=new RectangleF(pointDraw,sizeNote);
-						using(Graphics gfx=Graphics.FromImage(bitmap)) {
-							gfx.SmoothingMode=SmoothingMode.HighQuality;
-							Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
-							SolidBrush confirmBrush=new SolidBrush(confirmColor);
-							gfx.FillEllipse(confirmBrush,0,0,11,11);
-							gfx.DrawEllipse(_penBlack,0,0,11,11);
-							confirmBrush.Dispose();
-						}
-						g.DrawImage(bitmap,drawLocThis.X,drawLocThis.Y);
-						DisposeObjects(brush,stringFormatLeft,bitmap);
+						Color confirmColor=Defs.GetColor(DefCat.ApptConfirmed,PIn.Long(dataRoww["Confirmed"].ToString()));
+						SolidBrush confirmBrush=new SolidBrush(confirmColor);
+						g.FillEllipse(confirmBrush,drawLocThis.X,drawLocThis.Y,11,11);
+						g.DrawEllipse(_penBlack,drawLocThis.X,drawLocThis.Y,11,11);
+						confirmBrush.Dispose();
+						DisposeObjects(brush,stringFormatLeft);
 						return new PointF(pointDraw.X-(int)sizeNote.Width-1,pointDraw.Y);
 					}
 					else {
@@ -3607,6 +3586,472 @@ namespace OpenDental.UI{
 		}
 
 		#endregion Methods - Private DrawTimeLine
+
+		#region Methods - Private DrawInfoBubble
+		///<summary>Before calling this, do a hit test for appts.  Fills the bubble with data and then positions it.  In coordinates of this UserContrApptsPanel (mouse).</summary>
+		private void BubbleDraw(Point point,int idxAppt) {
+			if((ApptViewCur==null && PrefC.GetBool(PrefName.AppointmentBubblesDisabled))
+					|| (ApptViewCur!=null && ApptViewCur.IsApptBubblesDisabled))
+			{
+				//don't show appt bubbles at all
+				_isBubbleVisible=false;
+				timerBubble.Enabled=false;
+				return;
+			}
+			_pointBubbleTimer=point;
+			DataRow dataRow=null;
+			if(idxAppt!=-1){
+				dataRow=TableAppointments.Rows[idxAppt];
+			}
+			if(dataRow==null || HitTestApptBottom(point,idxAppt)){
+				//not hovering over an appointment at all, or getting ready to resize, so hide any existing bubble
+				if(_isBubbleVisible) {
+					_isBubbleVisible=false;
+					timerBubble.Enabled=false;
+				}
+				this.Invalidate();
+				return;
+			}
+			int yval=point.Y+10;
+			int xval=point.X+10;
+			if(idxAppt==_bubbleApptIdx) {//if the pointer is still on the same appt as last time
+				if(DateTime.Now.AddMilliseconds(-280) > _dateTimeBubble //if it's been .28 seconds
+					| !PrefC.GetBool(PrefName.ApptBubbleDelay)) //or if there is not supposed to be a delay
+					{
+					if(yval > this.Bottom-_rectangleBubble.Height) {
+						yval=this.Bottom-_rectangleBubble.Height;
+					}
+					if(xval > this.Right-vScrollBar1.Width-1-_rectangleBubble.Width) {
+						xval=this.Right-vScrollBar1.Width-1-_rectangleBubble.Width;
+					}
+					_rectangleBubble.Location=new Point(xval,yval);
+					_isBubbleVisible=true;
+				}
+				this.Invalidate();
+				return;
+			}
+			//From here down, aptNum!=bubbleAptNum, and we need to create a new bubble----------------------------------------------------------------------------
+			//Hide while we draw everything to reduce jitter caused by resizing.  Will be set visible later if appropriate.  
+			//Otherwise, after timerBubble ticks and ApptBubbleDelay preference has been satisfied.
+			//long aptNum=PIn.Long(dataRow["AptNum"].ToString());
+			//_isBubbleVisible=false;
+			//reset timer for popup delay
+			timerBubble.Enabled=false;
+			timerBubble.Enabled=true;
+			//delay for hover effect 0.28 sec
+			_dateTimeBubble=DateTime.Now;
+//todo: set _bubbleApptIdx to 0 when we get a new tableAppointment
+			_bubbleApptIdx=idxAppt;
+			//most data is already present in TableAppointment, but we do need to get the patient picture
+			bool showingPatientPicture=false;
+			List<DisplayField> listDisplayFieldsBubble=DisplayFields.GetForCategory(DisplayFieldCategory.AppointmentBubble);
+			for(int i=0;i<listDisplayFieldsBubble.Count;i++) {
+				if(listDisplayFieldsBubble[i].InternalName=="Patient Picture") {
+					showingPatientPicture=true;
+					break;
+				}
+			}
+			//Height is taller than needed. Later, only the portin we need will be copied to a smaller bitmap.
+			if(_rectangleBubble.Width==0){
+				_rectangleBubble.Size=new Size(200,300);
+			}
+			Bitmap bitmap=new Bitmap(_rectangleBubble.Width,800);
+			//We will draw on this tall temp bitmap until we figure out where the bottom is.
+			//Then, we will copy the portion we want over to the class-wide bitmap.
+			Graphics g=Graphics.FromImage(bitmap);
+			g.SmoothingMode=SmoothingMode.HighQuality;
+			using(SolidBrush brushBackColor = new SolidBrush(Color.FromArgb(255,250,190))) {
+				g.FillRectangle(brushBackColor,0,0,bitmap.Width,bitmap.Height);
+			}
+			Bitmap bitmapPatPict=null;
+			if(showingPatientPicture) {
+				string imageFolder=dataRow["ImageFolder"].ToString();
+				if(imageFolder!=""
+					&& (PrefC.AtoZfolderUsed==DataStorageType.LocalAtoZ || CloudStorage.IsCloudStorage))//Do not use patient image when A to Z folders are disabled.
+				{
+					try {
+						long patNum=PIn.Long(dataRow["PatNum"].ToString());
+						Documents.GetPatPict(patNum,
+							ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),
+								imageFolder.Substring(0,1).ToUpper(),
+								imageFolder,""),
+								out bitmapPatPict);
+					}
+					catch(ApplicationException) { }  //Folder access might be denied
+				}
+			}
+			Rectangle rectanglePict=new Rectangle(6,17,100,100);
+			//bitmapPatPict might be null or not.  It will be drawn after looping through all the text, because that shifts its pos.
+			#region infoBubble Text
+			Font font=new Font(FontFamily.GenericSansSerif,9f);
+			Brush brush=Brushes.Black;//System brush, so we don't need to dispose.
+			float x=0;
+			float y=0;
+			float h=0;
+			//float rowH=g.MeasureString("X",font).Height;
+			string s;
+			for(int i=0;i<listDisplayFieldsBubble.Count;i++) {
+				if(i==0) {
+					font.Dispose();
+					font=new Font(FontFamily.GenericSansSerif,10f,FontStyle.Bold);
+					x=8;
+					y=0;
+				}
+				if(i==1) {
+					font.Dispose();
+					font=new Font(FontFamily.GenericSansSerif,9f);
+					y-=3;
+					if(showingPatientPicture) {
+						x=110;
+						rectanglePict.Location=new Point(rectanglePict.Location.X,(int)y+5);
+					}
+					else {
+						x=2;
+					}
+				}
+				if(showingPatientPicture && y>=(rectanglePict.Location.Y+rectanglePict.Height)) {
+					x=2;
+				}
+				int widthBubble=_rectangleBubble.Width;//more concise
+				switch(listDisplayFieldsBubble[i].InternalName) {
+					case "Patient Name":
+						s=dataRow["PatientName"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Patient Picture":
+						//We have already dealt with this above.
+						continue;
+					case "Appt Day":
+						s=dataRow["aptDay"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Appt Date":
+						s=dataRow["aptDate"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Appt Time":
+						s=dataRow["aptTime"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Appt Length":
+						s=dataRow["aptLength"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Provider":
+						s=dataRow["provider"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Production":
+						s=dataRow["production"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Confirmed":
+						s=Defs.GetName(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "ASAP":
+						ApptPriority priority=(ApptPriority)PIn.Int(dataRow["Priority"].ToString());
+						if(priority==ApptPriority.ASAP) {
+							h=g.MeasureString("ASAP",font,widthBubble-(int)x).Height;
+							g.DrawString("ASAP",font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Med Flag":
+						s=dataRow["preMedFlag"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Med Note":
+						s=dataRow["MedUrgNote"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Lab":
+						s=dataRow["lab"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Procedures":
+						s=dataRow["procs"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Note":
+						s=dataRow["Note"].ToString();
+						int maxNoteLength=PrefC.GetInt(PrefName.AppointmentBubblesNoteLength);
+						if(s.Trim()!="" && maxNoteLength>0 && s.Length>maxNoteLength) {//Trim text
+							s=s.Substring(0,maxNoteLength)+"...";
+						}
+						if(s.Trim()!="") { //draw text
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Blue,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "PatNum":
+						s=dataRow["PatNum"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "ChartNum":
+						s=dataRow["chartNumber"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Billing Type":
+						s=dataRow["billingType"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Horizontal Line":
+						y+=3;
+						Pen penGray=new Pen(Brushes.Gray,1.5f);
+						g.DrawLine(penGray,3,y,widthBubble-3,y);
+						penGray.Dispose();
+						y+=2;
+						continue;
+					case "Age":
+						s=dataRow["age"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Home Phone":
+						s=dataRow["hmPhone"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Work Phone":
+						s=dataRow["wkPhone"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Wireless Phone":
+						s=dataRow["wirelessPhone"].ToString();
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+					case "Contact Methods":
+						s=dataRow["contactMethods"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble,h));
+							y+=h;
+						}
+						continue;
+					case "Insurance":
+						s=dataRow["insurance"].ToString();
+						if(s!="") {//overkill since it's only one line
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Insurance Color":
+						s=dataRow["insurance"].ToString();
+						if(s!="") {
+							string[] insuranceArray=s.Split(new string[] { "\r\n" },StringSplitOptions.None);
+							foreach(string str in insuranceArray) {
+								h=g.MeasureString(str,font,widthBubble-(int)x).Height;
+								Carrier carrier=Carriers.GetCarrierByName(str.Replace("Ins1: ","").Replace("Ins2: ",""));
+								if(carrier!=null && carrier.ApptTextBackColor!=Color.Black) {
+									g.FillRectangle(new SolidBrush(carrier.ApptTextBackColor),x-2,y+1,widthBubble-(int)x+2,h); 
+								}
+								g.DrawString(str,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+								y+=h;
+							}
+						}
+						continue;
+					case "Address Note":
+						s=dataRow["addrNote"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Fam Note":
+						s=dataRow["famFinUrgNote"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Appt Mod Note":
+						s=dataRow["apptModNote"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "ReferralFrom":
+						s=dataRow["referralFrom"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "ReferralTo":
+						s=dataRow["referralTo"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Language":
+						s=dataRow["language"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Email":
+						s=dataRow["Email"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Discount Plan":
+						s=dataRow["discountPlan"].ToString();
+						if(s!="") {
+							h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+							g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+							y+=h;
+						}
+						continue;
+					case "Estimated Patient Portion":
+						decimal decimalPatPort=PIn.Decimal(dataRow["estPatientPortionRaw"].ToString());
+						s="Est Patient Portion: "+decimalPatPort.ToString("c");
+						h=g.MeasureString(s,font,widthBubble-(int)x).Height;
+						g.DrawString(s,font,brush,new RectangleF(x,y,widthBubble-(int)x,h));
+						y+=h;
+						continue;
+				}
+			}
+			font.Dispose();
+			#endregion infoBubble Text
+			if(bitmapPatPict==null){
+				using(SolidBrush brushBackColor = new SolidBrush(Color.FromArgb(232,220,190))){
+					g.FillRectangle(brushBackColor,rectanglePict);
+				}
+				StringFormat stringFormat=new StringFormat();
+				stringFormat.Alignment=StringAlignment.Center;
+				RectangleF rectangleFUnavail=new RectangleF(rectanglePict.X,rectanglePict.Y+40F,rectanglePict.Width,30);
+				g.DrawString("Patient Picture Unavailable",_font,Brushes.Gray,rectangleFUnavail,stringFormat);//this wraps to 2 lines
+			}
+			else{
+				g.DrawImage(bitmapPatPict,6,17);
+				bitmapPatPict.Dispose();
+			}
+			//in any case, draw the rectangle outline
+			g.DrawRectangle(Pens.Gray,rectanglePict);
+			//other family members?
+			if(showingPatientPicture && y<rectanglePict.Height+rectanglePict.Location.Y) {
+				y=rectanglePict.Height+rectanglePict.Location.Y;
+			}
+			g.DrawRectangle(Pens.Gray,0,0,_rectangleBubble.Width-1,(int)y+2);
+			g.Dispose();
+			_rectangleBubble.Size=new Size(_rectangleBubble.Width,(int)y+3);
+			/*
+			if(yval > this.Bottom-_rectangleBubble.Height) {
+				yval=this.Bottom-_rectangleBubble.Height;
+			}
+			if(xval > this.Right-_rectangleBubble.Width) {
+				yval=this.Right-_rectangleBubble.Width;
+			}*/
+			_rectangleBubble.Location=new Point(xval,yval);
+			//only show right away if option set for no delay, otherwise, it will not show until mouse had hovered for at least 0.28 seconds(arbitrary #)
+			//the timer fires at 0.30 seconds, so the difference was introduced because of what seemed to be inconsistencies in the timer function 
+			if(!PrefC.GetBool(PrefName.ApptBubbleDelay)) {
+				_isBubbleVisible=true;
+			}
+			else {
+				_isBubbleVisible=false;
+			}
+			//Draw the local bitmap onto the class _bitmapBubble---------------------------------------------------------------------------------------
+			_bitmapBubble?.Dispose();
+			_bitmapBubble=new Bitmap(_rectangleBubble.Width,_rectangleBubble.Height);
+			using(Graphics gfx=Graphics.FromImage(_bitmapBubble)){
+				gfx.SmoothingMode=SmoothingMode.HighQuality;
+				gfx.DrawImage(bitmap,0,0);
+			}
+			bitmap.Dispose();
+			this.Invalidate();//later, invalidate smaller area
+		}
+
+		/*
+		private void SetBitmapBubble(){
+			_bitmapBubble?.Dispose();
+			_bitmapBubble=new Bitmap(200,800);//although it will be shortened
+			using(Graphics g=Graphics.FromImage(_bitmapBubble)){
+				g.SmoothingMode=SmoothingMode.HighQuality;
+				DrawBubble(g);
+			}
+		}*/
+
+		/*
+		///<summary></summary>
+		private void InfoBubble_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
+			//Calculate the real point in coordinates of this control
+			Point p=new Point(e.X+panelBubble.Left,
+				e.Y+panelBubble.Top);
+			int idxAppt=HitTestAppt(p);
+			InfoBubbleDraw(p,idxAppt);
+		}
+
+		///<summary></summary>
+		private void PictureBoxPat_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
+			//Calculate the real point coordinates of this control
+			Point p=new Point(e.X+panelBubble.Left+pictureBoxPat.Left,
+				e.Y+panelBubble.Top+pictureBoxPat.Top);
+			int idxAppt=HitTestAppt(p);
+			InfoBubbleDraw(p,idxAppt);
+		}*/
+		#endregion Methods - Private DrawInfoBubble
 
 		#region Methods - Private Computations
 		///<summary>We do our computations in float, for accuracy.  But then, we sometimes need to convert to the nearest int. This mostly comes up when sizing and placing controls.  Drawing can continue to use floats.  This method makes the code look a little cleaner.</summary>
@@ -3906,456 +4351,17 @@ namespace OpenDental.UI{
 			_boolApptMoved=false;
 		}
 
-		///<summary>Before calling this, do a hit test for appts.  Fills the bubble with data and then positions it.  In coordinates of this UserContrApptsPanel (mouse)</summary>
-		private void InfoBubbleDraw(Point point,int idxAppt) {
-			if((ApptViewCur==null && PrefC.GetBool(PrefName.AppointmentBubblesDisabled))
-					|| (ApptViewCur!=null && ApptViewCur.IsApptBubblesDisabled))
-			{
-				//don't show appt bubbles at all
-				panelInfoBubble.Visible=false;
-				timerInfoBubble.Enabled=false;
-				return;
-			}
-			_pointBubble=point;//for timer
-			DataRow dataRow=null;
-			if(idxAppt!=-1){
-				dataRow=TableAppointments.Rows[idxAppt];
-			}
-			if(dataRow==null || HitTestApptBottom(point,idxAppt)){
-				//not hovering over an appointment at all, or getting ready to resize, so hide any existing bubble
-				if(panelInfoBubble.Visible) {
-					panelInfoBubble.Visible=false;
-					timerInfoBubble.Enabled=false;
-				}
-				return;
-			}
-			long aptNum=PIn.Long(dataRow["AptNum"].ToString());
-			int yval=point.Y+10;
-			int xval=point.X+10;
-			if(aptNum==_bubbleAptNum) {//if the pointer is still on the same appt as last time
-				if(DateTime.Now.AddMilliseconds(-280) > _dateTimeBubble //if it's been .28 seconds
-					| !PrefC.GetBool(PrefName.ApptBubbleDelay)) //or if there is not supposed to be a delay
-					{
-					if(yval > this.Bottom-panelInfoBubble.Height) {
-						yval=this.Bottom-panelInfoBubble.Height;
-					}
-					panelInfoBubble.Location=new Point(xval,yval);
-					panelInfoBubble.Visible=true;
-				}
-				return;
-			}
-			//From here down, aptNum!=bubbleAptNum, and we need to create a new bubble----------------------------------------------------------------------------
-			//Hide while we draw everything to reduce jitter caused by resizing.  Will be set visible later if appropriate.  Otherwise, after 
-			//timerInfoBubble ticks and ApptBubbleDelay preference has been satisfied.
-			System.Diagnostics.Debug.WriteLine(DateTime.Now.ToLongTimeString());
-			panelInfoBubble.Visible=false;
-			//reset timer for popup delay
-			timerInfoBubble.Enabled=false;
-			timerInfoBubble.Enabled=true;
-			//delay for hover effect 0.28 sec
-			_dateTimeBubble=DateTime.Now;
-			_bubbleAptNum=aptNum;
-			//most data is already present in DS.Appointment, but we do need to get the patient picture
-			bool showingPatientPicture=false;
-			List<DisplayField> listDisplayFieldsBubble=DisplayFields.GetForCategory(DisplayFieldCategory.AppointmentBubble);
-			for(int i=0;i<listDisplayFieldsBubble.Count;i++) {
-				if(listDisplayFieldsBubble[i].InternalName=="Patient Picture") {
-					showingPatientPicture=true;
-					break;
-				}
-			}
-			//Default height for the background image to which we will draw DisplayField values.  infoBubble will be resized as needed later.
-			int backImgHeight=800;
-			if(panelInfoBubble.BackgroundImage==null) {
-				//First time, so initialize.
-				panelInfoBubble.BackgroundImage=new Bitmap(panelInfoBubble.Width,backImgHeight);
-			}
-			else {
-				//Resize infoBubble so its BackgroundImage is definitely large enough to display every DisplayField we could need.
-				//We will shorten it as needed after drawing the elements and before making visible.
-				panelInfoBubble.Size=new Size(panelInfoBubble.Width,backImgHeight);
-			}
-			Graphics g=Graphics.FromImage(panelInfoBubble.BackgroundImage);//infoBubble.BackgroundImage);
-			g.TextRenderingHint=TextRenderingHint.ClearTypeGridFit;
-			g.SmoothingMode=SmoothingMode.HighQuality;
-			using(SolidBrush brushBackColor = new SolidBrush(panelInfoBubble.BackColor)) {
-				g.FillRectangle(brushBackColor,0,0,panelInfoBubble.BackgroundImage.Width,panelInfoBubble.BackgroundImage.Height);
-			}
-			//Dispose of previous pat image to save memory
-			ODException.SwallowAnyException(() => {
-				if(pictureBoxPat.Image!=null) {
-					pictureBoxPat.Image.Dispose();
-					pictureBoxPat.Image=null;
-				}
-			});
-			if(!showingPatientPicture) {
-				panelInfoBubble.Controls.Remove(pictureBoxPat);
-			}
-			else {
-				pictureBoxPat.Location=new Point(6,17);
-				if(!panelInfoBubble.Controls.Contains(pictureBoxPat)) {
-					panelInfoBubble.Controls.Add(pictureBoxPat);
-				}
-				string imageFolder=dataRow["ImageFolder"].ToString();
-				if(imageFolder!=""
-					&& (PrefC.AtoZfolderUsed==DataStorageType.LocalAtoZ || CloudStorage.IsCloudStorage))//Do not use patient image when A to Z folders are disabled.
-				{
-					try {
-						Bitmap patPict;
-						long patNum=PIn.Long(dataRow["PatNum"].ToString());
-						Documents.GetPatPict(patNum,
-							ODFileUtils.CombinePaths(ImageStore.GetPreferredAtoZpath(),
-								imageFolder.Substring(0,1).ToUpper(),
-								imageFolder,""),
-								out patPict);
-						pictureBoxPat.Image=patPict;
-						patPict?.Dispose();
-					}
-					catch(ApplicationException) { }  //Folder access might be denied
-				}
-			}
-			#region infoBubble Text
-			Font font=new Font(FontFamily.GenericSansSerif,9f);
-			Brush brush=Brushes.Black;//System brush, so we don't need to dispose.
-			float x=0;
-			float y=0;
-			float h=0;
-			float rowH=g.MeasureString("X",font).Height;
-			string s;
-			for(int i=0;i<listDisplayFieldsBubble.Count;i++) {
-				if(i==0) {
-					font.Dispose();
-					font=new Font(FontFamily.GenericSansSerif,10f,FontStyle.Bold);
-					x=8;
-					y=0;
-				}
-				if(i==1) {
-					font.Dispose();
-					font=new Font(FontFamily.GenericSansSerif,9f);
-					y-=3;
-					if(showingPatientPicture) {
-						x=110;
-						pictureBoxPat.Location=new Point(pictureBoxPat.Location.X,(int)y+5);
-					}
-					else {
-						x=2;
-					}
-				}
-				if(showingPatientPicture && y>=(pictureBoxPat.Height+pictureBoxPat.Location.Y)) {
-					x=2;
-				}
-				switch(listDisplayFieldsBubble[i].InternalName) {
-					case "Patient Name":
-						s=dataRow["PatientName"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Patient Picture":
-						//We have already dealt with this above.
-						continue;
-					case "Appt Day":
-						s=dataRow["aptDay"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Appt Date":
-						s=dataRow["aptDate"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Appt Time":
-						s=dataRow["aptTime"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Appt Length":
-						s=dataRow["aptLength"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Provider":
-						s=dataRow["provider"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Production":
-						s=dataRow["production"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Confirmed":
-						s=Defs.GetName(DefCat.ApptConfirmed,PIn.Long(dataRow["Confirmed"].ToString()));
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "ASAP":
-						ApptPriority priority=(ApptPriority)PIn.Int(dataRow["Priority"].ToString());
-						if(priority==ApptPriority.ASAP) {
-							h=g.MeasureString("ASAP",font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString("ASAP",font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Med Flag":
-						s=dataRow["preMedFlag"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Med Note":
-						s=dataRow["MedUrgNote"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Lab":
-						s=dataRow["lab"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Procedures":
-						s=dataRow["procs"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Note":
-						s=dataRow["Note"].ToString();
-						int maxNoteLength=PrefC.GetInt(PrefName.AppointmentBubblesNoteLength);
-						if(s.Trim()!="" && maxNoteLength>0 && s.Length>maxNoteLength) {//Trim text
-							s=s.Substring(0,maxNoteLength)+"...";
-						}
-						if(s.Trim()!="") { //draw text
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Blue,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "PatNum":
-						s=dataRow["PatNum"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "ChartNum":
-						s=dataRow["chartNumber"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Billing Type":
-						s=dataRow["billingType"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Horizontal Line":
-						y+=3;
-						Pen penGray=new Pen(Brushes.Gray,1.5f);
-						g.DrawLine(penGray,3,y,panelInfoBubble.Width-3,y);
-						penGray.Dispose();
-						y+=2;
-						continue;
-					case "Age":
-						s=dataRow["age"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Home Phone":
-						s=dataRow["hmPhone"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Work Phone":
-						s=dataRow["wkPhone"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Wireless Phone":
-						s=dataRow["wirelessPhone"].ToString();
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-					case "Contact Methods":
-						s=dataRow["contactMethods"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width,h));
-							y+=h;
-						}
-						continue;
-					case "Insurance":
-						s=dataRow["insurance"].ToString();
-						if(s!="") {//overkill since it's only one line
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Insurance Color":
-						s=dataRow["insurance"].ToString();
-						if(s!="") {
-							string[] insuranceArray=s.Split(new string[] { "\r\n" },StringSplitOptions.None);
-							foreach(string str in insuranceArray) {
-								h=g.MeasureString(str,font,panelInfoBubble.Width-(int)x).Height;
-								Carrier carrier=Carriers.GetCarrierByName(str.Replace("Ins1: ","").Replace("Ins2: ",""));
-								if(carrier!=null && carrier.ApptTextBackColor!=Color.Black) {
-									g.FillRectangle(new SolidBrush(carrier.ApptTextBackColor),x-2,y+1,panelInfoBubble.Width-(int)x+2,h); 
-								}
-								g.DrawString(str,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-								y+=h;
-							}
-						}
-						continue;
-					case "Address Note":
-						s=dataRow["addrNote"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Fam Note":
-						s=dataRow["famFinUrgNote"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Appt Mod Note":
-						s=dataRow["apptModNote"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,Brushes.Red,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "ReferralFrom":
-						s=dataRow["referralFrom"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "ReferralTo":
-						s=dataRow["referralTo"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Language":
-						s=dataRow["language"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Email":
-						s=dataRow["Email"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Discount Plan":
-						s=dataRow["discountPlan"].ToString();
-						if(s!="") {
-							h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-							g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-							y+=h;
-						}
-						continue;
-					case "Estimated Patient Portion":
-						decimal decimalPatPort=PIn.Decimal(dataRow["estPatientPortionRaw"].ToString());
-						s="Est Patient Portion: "+decimalPatPort.ToString("c");
-						h=g.MeasureString(s,font,panelInfoBubble.Width-(int)x).Height;
-						g.DrawString(s,font,brush,new RectangleF(x,y,panelInfoBubble.Width-(int)x,h));
-						y+=h;
-						continue;
-				}
-			}
-			font.Dispose();
-			#endregion infoBubble Text
-			//other family members?
-			if(showingPatientPicture && y<pictureBoxPat.Height+pictureBoxPat.Location.Y) {
-				y=pictureBoxPat.Height+pictureBoxPat.Location.Y;
-			}
-			g.DrawRectangle(Pens.Gray,0,0,panelInfoBubble.Width-1,(int)y+2);
-			g.Dispose();
-			panelInfoBubble.Size=new Size(panelInfoBubble.Width,(int)y+3);
-			panelInfoBubble.BringToFront();
-			if(yval > this.Bottom-panelInfoBubble.Height) {
-				yval=this.Bottom-panelInfoBubble.Height;
-			}
-			panelInfoBubble.Location=new Point(xval,yval);
-			//only show right away if option set for no delay, otherwise, it will not show until mouse had hovered for at least 0.28 seconds(arbitrary #)
-			//the timer fires at 0.30 seconds, so the difference was introduced because of what seemed to be inconsistencies in the timer function 
-			if(!PrefC.GetBool(PrefName.ApptBubbleDelay)) {
-				panelInfoBubble.Visible=true;
-			}
-			else {
-				panelInfoBubble.Visible=false;
-			}
-		}
-
-		///<summary></summary>
-		private void InfoBubble_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
-			//Calculate the real point in coordinates of this control
-			Point p=new Point(e.X+panelInfoBubble.Left,
-				e.Y+panelInfoBubble.Top);
-			int idxAppt=HitTestAppt(p);
-			InfoBubbleDraw(p,idxAppt);
-		}
-
 		private void panelOpHoverTip_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
 			//Calculate the real point in coordinates of this control
 			Point point=new Point(e.X+panelHeaderTip.Left,e.Y+panelHeaderTip.Top);
 			HeaderTipDraw(point);
 		}
-		
-		///<summary></summary>
-		private void PictureBoxPat_MouseMove(object sender,System.Windows.Forms.MouseEventArgs e) {
-			//Calculate the real point coordinates of this control
-			Point p=new Point(e.X+panelInfoBubble.Left+pictureBoxPat.Left,
-				e.Y+panelInfoBubble.Top+pictureBoxPat.Top);
-			int idxAppt=HitTestAppt(p);
-			InfoBubbleDraw(p,idxAppt);
-		}
-		
+				
 		private void timerInfoBubble_Tick(object sender,EventArgs e) {
 			//not repeating.  Just a single timed event for delay purposes.
-			int idxAppt=HitTestAppt(_pointBubble);
-			InfoBubbleDraw(_pointBubble,idxAppt);
-			timerInfoBubble.Enabled =false;
+			int idxAppt=HitTestAppt(_pointBubbleTimer);
+			BubbleDraw(_pointBubbleTimer,idxAppt);
+			timerBubble.Enabled =false;
 		}
 		#endregion Methods - Private Mouse Event Helpers
 
