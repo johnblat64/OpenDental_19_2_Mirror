@@ -1390,11 +1390,8 @@ namespace OpenDental {
 				if(patCommForAppt==null) {//Shouldn't happen
 					listPatsSkipped.Add(Lan.g(this,"Unknown patient")+": "+Lan.g(this,"Cannot find contact info"));
 				}
-				else if(string.IsNullOrEmpty(patCommForAppt.SmsPhone)) {
-					listPatsSkipped.Add(patCommForAppt.FName+" "+patCommForAppt.LName+": "+Lan.g(this,"No wireless phone number"));
-				}
 				else {
-					listPatsSkipped.Add(patCommForAppt.FName+" "+patCommForAppt.LName+": "+Lan.g(this,"Marked to not receive text messages"));
+					listPatsSkipped.Add(patCommForAppt.FName+" "+patCommForAppt.LName+": "+Lan.g(this,patCommForAppt.GetReasonCantText()));
 				}
 				grid.SetSelected(grid.SelectedIndices[i],false);
 			}
