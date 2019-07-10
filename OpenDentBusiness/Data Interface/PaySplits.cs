@@ -418,6 +418,11 @@ namespace OpenDentBusiness{
 		}
 
 		public static void UpdateFSplitNum(long paySplitNumOrig,long paySplitNumLinked) {
+			if(paySplitNumLinked==0) {
+				//There is no such thing as a paysplit with a PK of 0.
+				//There are reports of this query running a lot at HQ which is making replication fall behind (probably due to MyISAM table level locking).
+				return;
+			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),paySplitNumOrig,paySplitNumLinked);
 				return;
@@ -434,11 +439,7 @@ namespace OpenDentBusiness{
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),proc);
 				return;
 			}
-			List<PaySplit> listPaySplit=GetPaySplitsFromProc(proc.ProcNum);
-			foreach(PaySplit paysplitcur in listPaySplit) {
-				paysplitcur.ProvNum=proc.ProvNum;
-				Update(paysplitcur); 
-			}
+			Db.NonQ($@"UPDATE paysplit SET ProvNum = {POut.Long(proc.ProvNum)} WHERE ProcNum = {POut.Long(proc.ProcNum)}");
 		}
 
 		///<summary>Unlinks all paysplits that are currently linked to the passed-in adjustment. (Sets paysplit.AdjNum to 0)</summary>
@@ -447,25 +448,24 @@ namespace OpenDentBusiness{
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),adj);
 				return;
 			}
-			List<PaySplit>listPaySplit=GetForAdjustments(new List<long>() {adj.AdjNum});
-			foreach(PaySplit paySplitCur in listPaySplit) {
-				paySplitCur.AdjNum=0;
-				Update(paySplitCur);
-			}
+			Db.NonQ($@"UPDATE paysplit SET AdjNum = 0 WHERE AdjNum = {POut.Long(adj.AdjNum)}");
 		}
 
 		///<summary>Updates the provnum of all paysplits for a supplied adjustment.  Supply a list of splits to use that instead of querying the database.</summary>
 		public static void UpdateProvForAdjust(Adjustment adj,List<PaySplit> listSplits=null) {
+			if(listSplits!=null && listSplits.Count==0) {
+				return;
+			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),adj,listSplits);
 				return;
 			}
 			if(listSplits==null) {
-				listSplits=PaySplits.GetForAdjustments(new List<long>() { adj.AdjNum });
+				Db.NonQ($@"UPDATE paysplit SET ProvNum = {POut.Long(adj.ProvNum)} WHERE AdjNum = {POut.Long(adj.AdjNum)}");
 			}
-			foreach(PaySplit split in listSplits) {
-				split.ProvNum=adj.ProvNum;
-				Update(split);
+			else {
+				Db.NonQ($@"UPDATE paysplit SET ProvNum = {POut.Long(adj.ProvNum)}
+					WHERE SplitNum IN({string.Join(",",listSplits.Select(x => POut.Long(x.SplitNum)))})");
 			}
 		}
 
