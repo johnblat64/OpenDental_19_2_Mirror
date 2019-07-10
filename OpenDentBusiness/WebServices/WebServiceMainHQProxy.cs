@@ -543,8 +543,8 @@ namespace OpenDentBusiness {
 				return;
 			}
 			else if(listUpdates.Count==2) {
-				versionFrom=listUpdates[0].ProgramVersion;
-				versionTo=listUpdates[1].ProgramVersion;
+				versionFrom=listUpdates[1].ProgramVersion;
+				versionTo=listUpdates[0].ProgramVersion;
 			}
 			else {//Most likely a new customer with 1 or 0 updates.
 				versionFrom=(listUpdates.Count==1?listUpdates[0].ProgramVersion:"0.0.0.0");
@@ -552,8 +552,7 @@ namespace OpenDentBusiness {
 			}
 			List<PayloadItem> listPayloadItems=new List<PayloadItem>(){
 				new PayloadItem(versionFrom,"VersionFrom"),
-				new PayloadItem(versionTo,"VersionTo"),
-				new PayloadItem(ODEnvironment.GetLocalIPAddress(),"IPAddress")
+				new PayloadItem(versionTo,"VersionTo")
 			};
 			GetWebServiceMainHQInstance().CustomerUpdateCommitted(PayloadHelper.CreatePayload(listPayloadItems,eServiceCode.CustomerVersion));
 		}
