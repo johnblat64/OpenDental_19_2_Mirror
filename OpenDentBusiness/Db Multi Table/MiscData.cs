@@ -124,7 +124,7 @@ namespace OpenDentBusiness {
 			}
 			string currentServerName=DataConnection.GetServerName().ToLower();
 			bool useSameServer=string.IsNullOrWhiteSpace(serverName) || currentServerName.Equals(serverName,StringComparison.CurrentCultureIgnoreCase);
-			if(currentServerName=="localhost" && serverName.ToLower()!="localhost") { //there could be a mismatch but technically the same server
+			if(!string.IsNullOrWhiteSpace(serverName) && currentServerName=="localhost" && serverName.ToLower()!="localhost") { //there could be a mismatch but technically the same server
 				useSameServer=serverName.Equals(Environment.MachineName,StringComparison.CurrentCultureIgnoreCase);
 			}
 			if(serverName.ToLower()=="localhost" && currentServerName!="localhost") { //there could be a mismatch but technically the same server
