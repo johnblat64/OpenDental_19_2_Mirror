@@ -247,12 +247,26 @@ namespace OpenDentBusiness {
 			if(!PrefC.GetBoolSilent(PrefName.SendUnhandledExceptionsToHQ,true)) {
 				return BugSubmissionResult.None;
 			}
+			BugSubmission bugSubmission=new BugSubmission(ex,threadName,patNumCur,moduleName);
+			string registrationKey=null;
+			string practiceTitle=null;
+			string practicePhone=null;
+			string programVersion=null;
+			if(bugSubmission.RegKey=="7E57-1NPR-0DUC-710N") {
+				registrationKey=bugSubmission.RegKey;
+				practiceTitle="Unknown";
+				practicePhone="Unknown";
+				programVersion=bugSubmission.Info.OpenDentBusinessVersion;
+			}
 			return BugSubmissions.ParseBugSubmissionResult(
 				WebServiceMainHQProxy.GetWebServiceMainHQInstance().SubmitUnhandledException(
 					PayloadHelper.CreatePayload(
-						PayloadHelper.CreatePayloadContent(
-							new BugSubmission(ex,threadName,patNumCur,moduleName),"bugSubmission")
-						,eServiceCode.BugSubmission)));
+						PayloadHelper.CreatePayloadContent(bugSubmission,"bugSubmission"),
+							eServiceCode.BugSubmission,
+							registrationKey,
+							practiceTitle,
+							practicePhone,
+							programVersion)));
 		}
 
 		///<summary>After calling WebServiceMainHQ.SubmitUnhandledException(...) this will digest the result and provide the result.</summary>
