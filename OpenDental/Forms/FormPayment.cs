@@ -4794,6 +4794,13 @@ namespace OpenDental {
 			ToggleShowHideSplits();
 		}
 
+		private string SecurityLogEntryHelper(string oldVal,string newVal,string textInLog) {
+			if(oldVal!=newVal) {
+				return "\r\n"+textInLog+" changed back to '"+oldVal+"' from '"+newVal+"'";
+			}
+			return "";
+		}
+
 		private void butOK_Click(object sender,System.EventArgs e) {
 			if(!SavePaymentToDb()) {
 				return;
@@ -4809,6 +4816,20 @@ namespace OpenDental {
 		private void FormPayment_FormClosing(object sender,FormClosingEventArgs e) {
 			if(DialogResult==DialogResult.OK) {
 				return;
+			}
+			//make additional logging so user knows changes they had just made to any paysplits were rolled back.
+			//individual audit trails for splits
+			foreach(PaySplit split in _listSplitsCur) {
+				PaySplit oldSplit=_listPaySplitsOld.FirstOrDefault(x => x.SplitNum==split.SplitNum);
+				string secLogText="Payment changes canceled:";
+				string changesMade="";
+				changesMade+=SecurityLogEntryHelper(Providers.GetAbbr(oldSplit.ProvNum),Providers.GetAbbr(split.ProvNum),"Provider");
+				changesMade+=SecurityLogEntryHelper(Clinics.GetAbbr(oldSplit.ClinicNum),Clinics.GetAbbr(split.ClinicNum),"Clinic");
+				changesMade+=SecurityLogEntryHelper(oldSplit.SplitAmt.ToString("F"),split.SplitAmt.ToString("F"),"Amount");
+				changesMade+=SecurityLogEntryHelper(oldSplit.PatNum.ToString(),split.PatNum.ToString(),"Patient number");
+				if(changesMade!="") {
+					SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,split.PatNum,secLogText+changesMade,0,oldSplit.SecDateTEdit);
+				}
 			}
 			if(!IsNew && !_wasCreditCardSuccessful) {
 				DialogResult=DialogResult.Cancel;
