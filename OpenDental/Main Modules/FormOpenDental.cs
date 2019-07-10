@@ -3008,7 +3008,7 @@ namespace OpenDental{
 			}
 			if(CurPatNum!=0 && _StrCmdLineShow=="apptsforpatient" && isApptModuleSelected) {
 				if(PrefC.GetBool(PrefName.ApptModuleUses2019Overhaul)){
-
+					ContrApptJ2.DisplayOtherDlg(false);
 				}
 				else{
 					ContrAppt2.DisplayOtherDlg(false);
@@ -3859,6 +3859,9 @@ namespace OpenDental{
 				if(AutomationL.Trigger(AutomationTrigger.OpenPatient,null,pat.PatNum)) {//if a trigger happened
 					if(ContrAppt2.Visible) {
 						ContrAppt2.MouseUpForced();
+					}
+					if(ContrApptJ2.Visible) {
+						ContrApptJ2.MouseUpForced();
 					}
 				}
 			}
@@ -5206,7 +5209,7 @@ namespace OpenDental{
 				//Refresh the appt module to show the current list of reminders, even if the appt module not visible.  This refresh is fast.
 				//The user will load the appt module eventually and these refreshes are the only updates the appointment module receives for reminders.
 				if(PrefC.GetBool(PrefName.ApptModuleUses2019Overhaul)){
-
+					ContrApptJ2.RefreshReminders(_listReminderTasks);
 				}
 				else{
 					ContrAppt2.RefreshReminders(_listReminderTasks);
@@ -5247,7 +5250,7 @@ namespace OpenDental{
 				//Refresh the appt module to show the current list of reminders, even if the appt module not visible.  This refresh is fast.
 				//The user will load the appt module eventually and these refreshes are the only updates the appointment module receives for reminders.
 				if(PrefC.GetBool(PrefName.ApptModuleUses2019Overhaul)){
-
+					ContrApptJ2.RefreshReminders(_listReminderTasks);
 				}
 				else{
 					ContrAppt2.RefreshReminders(_listReminderTasks);
@@ -5672,7 +5675,7 @@ namespace OpenDental{
 			//The user will load the appt module eventually and these refreshes are the only updates the appointment module receives for reminders.
 			if(hasChangedReminders) { 
 				if(PrefC.GetBool(PrefName.ApptModuleUses2019Overhaul)){
-
+					ContrApptJ2.RefreshReminders(_listReminderTasks);
 				}
 				else{
 					ContrAppt2.RefreshReminders(_listReminderTasks);
@@ -9374,7 +9377,7 @@ namespace OpenDental{
 			_listReminderTasks=null;
 			_listNormalTaskNums=null;
 			if(PrefC.GetBool(PrefName.ApptModuleUses2019Overhaul)){
-
+				ContrApptJ2.RefreshReminders(new List<Task>());
 			}
 			else{
 				ContrAppt2.RefreshReminders(new List<Task>());

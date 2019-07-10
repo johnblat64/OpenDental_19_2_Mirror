@@ -67,7 +67,7 @@ namespace OpenDental.UI{
 		private bool _isControlLoaded;
 		///<summary>This was being passed in.  Now, it's set during each PrintPage event.</summary>
 		private bool _isPrinting=false;
-		///<summary></summary>
+		///<summary>True between BeginUpdate and EndUpdate.  Prevents paint as well as Redraw as needed from running.</summary>
 		private bool _isUpdating;
 		///<summary>Keeps track of where are the appointments are located.</summary>
 		private List<ApptLayoutInfo> _listApptLayoutInfos;
@@ -76,7 +76,7 @@ namespace OpenDental.UI{
 		///<summary>Typically 5 or 7. Only used with weekview. Although I don't see any way to change it to be anything other than 7.</summary>
 		private int _numOfWeekDaysToDisplay=7;
 		///<summary>Stores the shading info for the provider bars on the left of the appointments module.  First dim is number of visible providers.  Second dim is cells.</summary>
-		private int[][] _provBar=new int[0][];
+		private int[,] _provBar;//=new int[0][];
 		///<summary></summary>
 		private static float _radiusCorn=2f;
 		///<summary>Rows per hour.  Derived from 60/MinPerIncr*RowsPerIncr</summary>
@@ -555,10 +555,11 @@ namespace OpenDental.UI{
 			if(dataRow!=null){
 				clickedAptNum=PIn.Long(dataRow["AptNum"].ToString());
 			}
-			if(SelectedAptNum!=clickedAptNum){//if selected appt changed
-				SelectedAptNum=clickedAptNum;
-				OnSelectedApptChanged(dataRow);
-			}
+			//moved these lines down a little to try to solve the bug with MouseUpForced 
+			//if(SelectedAptNum!=clickedAptNum){//if selected appt changed
+			//	SelectedAptNum=clickedAptNum;
+			//	OnSelectedApptChanged(dataRow);
+			//}
 			//TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,_minPerIncr);//not going to round down for now
 			DateTime dateTimeClicked=DateSelected+_timeClicked;
 			if(IsWeeklyView) {
@@ -589,6 +590,10 @@ namespace OpenDental.UI{
 				if(e.Button==MouseButtons.Right){
 					OnApptMainAreaRightClicked(dateTimeClicked,_opNumClicked,e.Location);
 				}
+			}
+			if(SelectedAptNum!=clickedAptNum){//if selected appt changed
+				SelectedAptNum=clickedAptNum;
+				OnSelectedApptChanged(dataRow);
 			}
 			//Todo: In old ContrAppt, this section was here:
 			//Need to revisit and test, because this now happens in OnSelectedApptChanged up above
@@ -1001,6 +1006,32 @@ namespace OpenDental.UI{
 			Graphics g=e.Graphics;
 			g.InterpolationMode=InterpolationMode.High;//reduces blur in print preview.  We're scaling an image smaller, so this is the best we can do.
 			//Looks good in actual printing, regardless of this setting.
+			#region CopyImageToClipboard
+			//Some users 'paste' to their own editor for more control.
+			if(PagesPrinted==0){//only on first page
+				//this bitmap will not include headers
+				float yTop=(float)Math.Ceiling((double)(_heightLine*_rowsPerHr*(float)startHour));
+				float height=(float)Math.Ceiling((double)(_heightLine*_rowsPerHr*(float)(stopHour-startHour)));
+				Bitmap bitmapClipboard=new Bitmap((int)_widthTime*2+_widthMain+(int)widthProvs,(int)height);
+				Graphics graphicsClipboard=Graphics.FromImage(bitmapClipboard);
+				graphicsClipboard.InterpolationMode=InterpolationMode.High;
+				RectangleF rectangleSource=new RectangleF(0,yTop,_widthTime,height);
+				RectangleF rectangleDest=new RectangleF(0,0,_widthTime,height);	
+				graphicsClipboard.DrawImage(_bitmapTimebarLeft,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
+				rectangleSource=new RectangleF(0,yTop,widthProvs,height);
+				rectangleDest=new RectangleF(_widthTime,0,widthProvs,height);	
+				graphicsClipboard.DrawImage(_bitmapProvBars,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
+				rectangleSource=new RectangleF(0,yTop,_widthMain,height);
+				rectangleDest=new RectangleF(_widthTime+widthProvs,0,_widthMain,height);	
+				graphicsClipboard.DrawImage(_bitmapBackAppts,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
+				rectangleSource=new RectangleF(0,yTop,_widthTime,height);
+				rectangleDest=new RectangleF(_widthTime+widthProvs+_widthMain,0,_widthTime,height);	
+				graphicsClipboard.DrawImage(_bitmapTimebarRight,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
+				Clipboard.SetImage(bitmapClipboard);
+				graphicsClipboard.Dispose();
+				//bitmapClipboard.Dispose();//this doesn't work.  I'll assume the clipboard will dispose of it
+			}
+			#endregion CopyImageToClipboard
 			//Main-----------------------------------------------------------------------------------------------------------
 			RectangleF rectangleSourceMain;//source within _bitmapBackAppts that we are pulling from
 			if(IsWeeklyView){
@@ -1212,10 +1243,10 @@ namespace OpenDental.UI{
 			set{
 				_listProvsVisible=value;
 				_dictProvNumToColumnNum=_listProvsVisible.ToDictionary(x => x.ProvNum,x => _listProvsVisible.FindIndex(y => y.ProvNum==x.ProvNum));
-				_provBar=new int[ListProvsVisible.Count][];
-				for(int i=0;i<ListProvsVisible.Count;i++) {
-					_provBar[i]=new int[24*(int)_rowsPerHr];//RowsPerHr=60/MinPerIncr*RowsPerIncr.
-				}
+				//_provBar=new int[ListProvsVisible.Count,24*(int)_rowsPerHr];
+				//for(int i=0;i<ListProvsVisible.Count;i++) {
+				//	_provBar[i]=new int[24*(int)_rowsPerHr];//RowsPerHr=60/MinPerIncr*RowsPerIncr.
+				//}
 				if(_showProvBars){//this is also present in IsWeeklyView.set and LayoutRecalcAfterResize()
 					_widthMain=this.Width-(int)_widthTime*2-(int)(_widthProv*_listProvsVisible.Count)-vScrollBar1.Width-1;
 				}
@@ -1613,6 +1644,9 @@ namespace OpenDental.UI{
 
 		///<summary>Call this whenever control should be redrawn, like after data is fetched, or when red timebar should move down.  Usually just grabs existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from as basis for new bitmap, as well as a variety of ancillary bitmaps for outside the main area. It all depends on what data is invalid.  So it usually doesn't need to redraw much.  The Bubble is handled completely separately from this.</summary>
 		public void RedrawAsNeeded(){
+			if(_isUpdating){//a little redundant
+				return;
+			}
 			if(!_isValidAllMain){
 				ComputeColWidth();//super fast.
 			}
@@ -2368,6 +2402,7 @@ namespace OpenDental.UI{
 			if(!IsWeeklyView 
 				&& !_isPrinting) //printing does a loop for each page, which is too much shading
 			{
+				_provBar=new int[ListProvsVisible.Count,24*(int)_rowsPerHr];
 				foreach(DataRow dataRow in TableAppointments.Rows) {
 					ProvBarShading(dataRow);
 				}
@@ -2378,9 +2413,9 @@ namespace OpenDental.UI{
 				stopHour=24;
 			}
 			float endingPoint=stopHour*_rowsPerHr;
-			for(int j=0;j<_provBar.Length;j++) {
+			for(int j=0;j<ListProvsVisible.Count;j++){//_provBar.Length;j++) {
 				//loop through increments.  If two rowsPerIncr, then the loop will handle both at the same time
-				for(int i=0;i<24*_rowsPerHr/RowsPerIncr;i++) {
+				for(int i=0;i<24*(int)_rowsPerHr;i++){//_rowsPerHr/RowsPerIncr;i++) {
 					if(i<startingPoint) {
 						continue;
 					}
@@ -2388,7 +2423,7 @@ namespace OpenDental.UI{
 						break;
 					}
 					RectangleF rectFill=new RectangleF(_widthProv*j+1,((i-(float)startingPoint)*_heightLine*(float)RowsPerIncr)+1,_widthProv-1,_heightLine*(float)RowsPerIncr-1);
-					switch(_provBar[j][i]) {
+					switch(_provBar[j,i]) {
 						case 0:
 							break;
 						case 1:
@@ -2600,16 +2635,21 @@ namespace OpenDental.UI{
 				DataRow dataRow=tableAppointments.Rows[i];
 				string strAptDateTime=dataRow["AptDateTime"].ToString();
 				DateTime aptDateTime=PIn.Date(strAptDateTime);
+				apptLayoutInfo=new ApptLayoutInfo();
 				if(aptDateTime.Date < dateStart || aptDateTime.Date > dateEnd){
 					//Appointment is outside of our date range
-					apptLayoutInfo=new ApptLayoutInfo();
 					apptLayoutInfo.idxInTableAppointments=i;
 					apptLayoutInfo.RectangleBounds=new RectangleF(0,0,0,0);
 					listApptLayoutInfos.Add(apptLayoutInfo);
 					continue;
 				}
-				apptLayoutInfo=new ApptLayoutInfo();
 				apptLayoutInfo.IdxOp=listOperatories.FindIndex(x=>x.OperatoryNum==PIn.Long(dataRow["Op"].ToString()));
+				if(apptLayoutInfo.IdxOp==-1){//op not visible
+					apptLayoutInfo.idxInTableAppointments=i;
+					apptLayoutInfo.RectangleBounds=new RectangleF(0,0,0,0);
+					listApptLayoutInfos.Add(apptLayoutInfo);
+					continue;
+				}
 				apptLayoutInfo.DayOfWeek=(int)PIn.DateT(dataRow["AptDateTime"].ToString()).DayOfWeek-1;
 				if(apptLayoutInfo.DayOfWeek==-1) {
 					apptLayoutInfo.DayOfWeek=6;
@@ -4182,7 +4222,7 @@ namespace OpenDental.UI{
 				for(int k=0;k<patternShowing.Length;k++) {
 					if(patternShowing.Substring(k,1)=="X") {
 						try {
-							_provBar[indexProv][startIndex+k]++;
+							_provBar[indexProv,startIndex+k]++;
 						}
 						catch {
 							//appointment must extend past midnight.  Very rare

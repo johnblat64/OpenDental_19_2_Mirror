@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -663,80 +664,11 @@ namespace OpenDental {
 				printSit:PrintSituation.Appointments,
 				isForcedPreview:contrApptPanel.IsPrintPreview
 			);
-			//CopyImageToClipboard: Some users 'paste' to their own editor for more control.
-			#region CopyImageToClipboard
-			//todo:
-			/*
-			ArrayList aListStart =new ArrayList();
-			ArrayList aListStop=new ArrayList();
-			DateTime startTime;
-			DateTime stopTime;
-			for(int i=0;i<SchedListPeriod.Count;i++) {
-				if(SchedListPeriod[i].SchedType!=ScheduleType.Provider) {
-					continue;
-				}
-				if(SchedListPeriod[i].StartTime==TimeSpan.FromHours(0)) {//ignore notes at midnight
-					continue;
-				}
-				aListStart.Add(SchedListPeriod[i].SchedDate+SchedListPeriod[i].StartTime);
-				aListStop.Add(SchedListPeriod[i].SchedDate+SchedListPeriod[i].StopTime);
-			}
-			if(aListStart.Count > 0) {//makes sure there is at least one timeblock
-				startTime=(DateTime)aListStart[0];
-				for(int i=0;i<aListStart.Count;i++) {
-					//if (A) OR (B AND C)
-					if((((DateTime)(aListStart[i])).Hour < startTime.Hour) 
-						|| (((DateTime)(aListStart[i])).Hour==startTime.Hour 
-						&& ((DateTime)(aListStart[i])).Minute < startTime.Minute)) {
-						startTime=(DateTime)aListStart[i];
-					}
-				}
-				stopTime=(DateTime)aListStop[0];
-				for(int i=0;i<aListStop.Count;i++) {
-					//if (A) OR (B AND C)
-					if((((DateTime)(aListStop[i])).Hour > stopTime.Hour) 
-						|| (((DateTime)(aListStop[i])).Hour==stopTime.Hour 
-						&& ((DateTime)(aListStop[i])).Minute > stopTime.Minute)) {
-						stopTime=(DateTime)aListStop[i];
-					}
-				}
-			}
-			else {//office is closed
-				startTime=new DateTime(AppointmentL.DateSelected.Year,AppointmentL.DateSelected.Month
-					,AppointmentL.DateSelected.Day
-					,ApptDrawing.ConvertToHour(-ContrApptSheet2.Location.Y)
-					,ApptDrawing.ConvertToMin(-ContrApptSheet2.Location.Y)
-					,0);
-				if(ApptDrawing.ConvertToHour(-ContrApptSheet2.Location.Y)+12<23) {
-					//we will be adding an extra hour later
-					stopTime=new DateTime(AppointmentL.DateSelected.Year,AppointmentL.DateSelected.Month
-						,AppointmentL.DateSelected.Day
-						,ApptDrawing.ConvertToHour(-ContrApptSheet2.Location.Y)+12//add 12 hours
-						,ApptDrawing.ConvertToMin(-ContrApptSheet2.Location.Y)
-						,0);
-				}
-				else {
-					stopTime=new DateTime(AppointmentL.DateSelected.Year,AppointmentL.DateSelected.Month
-						,AppointmentL.DateSelected.Day
-						,22
-						,ApptDrawing.ConvertToMin(-ContrApptSheet2.Location.Y)
-						,0);
-				}
-			}
-			try {
-				Bitmap imageTemp=ContrApptSheet2.GetShadowClone(startTime,stopTime);
-				if(imageTemp!=null) {
-					Clipboard.SetDataObject(imageTemp);
-				}
-			}
-			catch { //Nothing to do here.								
-			}*/
-			#endregion CopyImageToClipboard
 			if(_patCur==null) {
-				ModuleSelected(0);//Refresh the public variables in ApptDrawing.cs
+				ModuleSelected(0);
 			}
 			else {
-				ModuleSelected(_patCur.PatNum);//Refresh the public variables in ApptDrawing.cs
+				ModuleSelected(_patCur.PatNum);
 			}
 		}
 		#endregion Events - toolBarMain
@@ -756,8 +688,7 @@ namespace OpenDental {
 		private void butFwd_Click(object sender,System.EventArgs e) {
 			SetDateSelected(contrApptPanel.DateSelected.AddDays(1));
 		}
-
-		
+				
 		private void butBackMonth_Click(object sender,EventArgs e) {
 			SetDateSelected(contrApptPanel.DateSelected.AddMonths(-1));
 		}
@@ -2399,11 +2330,13 @@ namespace OpenDental {
 			if(IsHqNoneView()) {
 				return;
 			}
+			contrApptPanel.BeginUpdate();
 			RefreshModuleDataPatient(patNum);
 			RefreshModuleDataPeriod(listPinApptNums,listOpNums,listProvNums,isRefreshSchedules:true);
 			RefreshModuleScreenButtonsRight();
 			RefreshModuleScreenPeriod();
 			LayoutScrollOpProv();//only runs once
+			contrApptPanel.EndUpdate();
 		}
 
 		///<summary>stub</summary>
@@ -2424,6 +2357,7 @@ namespace OpenDental {
 			if(IsHqNoneView()) {
 				return;
 			}
+			contrApptPanel.BeginUpdate();
 			//todo:
 			//long oldBubbleNum=bubbleAptNum;
 			RefreshModuleDataPeriod(listOpNums:listOpNums,listProvNums:listProvNums,isRefreshAppointments:isRefreshAppointments,isRefreshSchedules:isRefreshSchedules);
@@ -2431,6 +2365,7 @@ namespace OpenDental {
 			//if(!isRefreshBubble) {
 			//	bubbleAptNum=oldBubbleNum;
 			//}
+			contrApptPanel.EndUpdate();
 		}
 
 		/// <summary>Wrapper for RefreshPeriod, refreshes the schedules, but not the appointments</summary>
@@ -2481,6 +2416,37 @@ namespace OpenDental {
 			pinBoard.MouseUpForced();
 			contrApptPanel.MouseUpForced();
 		}
+
+		///<summary>This is public so that FormOpenDental can pass refreshed tasks here in order to avoid an extra query.</summary>
+		public void RefreshReminders(List <Task> listReminderTasks) {
+			/*
+			Logger.LogToPath("",LogPath.Signals,LogPhase.Start);
+			List<Task> listSortedReminderTasks=listReminderTasks
+				.Where(x => x.DateTimeEntry.Date <= DateTimeOD.Today)
+				.OrderBy(x => x.DateTimeEntry)
+				.ToList();
+			tabReminders.Text=Lan.g(this,"Reminders");
+			if(listSortedReminderTasks.Count > 0) {
+				tabReminders.Text+="*";
+			}
+			gridReminders.BeginUpdate();
+			if(gridReminders.Columns.Count==0) {
+				gridReminders.Columns.Clear();
+				ODGridColumn col=new ODGridColumn("",17);//The status column showing new/viewed in a checkbox.
+				col.ImageList=imageListTasks;
+				gridReminders.Columns.Add(col);
+				col=new ODGridColumn(Lan.g("TableTasks","Description"),200);//any width
+				gridReminders.Columns.Add(col);
+			}
+			gridReminders.Rows.Clear();
+			for(int i=0;i<listSortedReminderTasks.Count;i++) {
+				ODGridRow row=new ODGridRow();
+				SetReminderGridRow(row,listSortedReminderTasks[i]);
+				gridReminders.Rows.Add(row);
+			}
+			gridReminders.EndUpdate();
+			Logger.LogToPath("",LogPath.Signals,LogPhase.End);*/
+		}
 		#endregion Methods - Public Other
 
 		#region Methods - Private Refresh Data
@@ -2499,7 +2465,6 @@ namespace OpenDental {
 				}
 				listProvNums=ApptViewItems.GetProvsForView(apptViewNum);
 			}
-			contrApptPanel.BeginUpdate();
 			RefreshAppointmentsIfNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listPinApptNums,listOpNums,listProvNums,isRefreshAppointments);
 			RefreshSchedulesIfNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listOpNums,isRefreshSchedules);
 			RefreshWaitingRoomTable();
@@ -2510,7 +2475,6 @@ namespace OpenDental {
 				viewCur=_listApptViews[comboView.SelectedIndex-1];
 			}
 			GetForCurView(viewCur,contrApptPanel.IsWeeklyView,contrApptPanel.ListSchedules);
-			contrApptPanel.EndUpdate();
 		}
 
 		///<summary>Fills PatCur from the database.</summary>
@@ -2526,7 +2490,7 @@ namespace OpenDental {
 
 		/// <summary>This corresponds to the old ApptViewItemL.GetForCurView.  Its job is to set the ApptViewCur and then send VisOps and VisProvs data to the drawing.</summary>
 		private void GetForCurView(ApptView apptViewCur,bool isWeekly,List<Schedule> listSchedulesDaily){
-			contrApptPanel.BeginUpdate();
+			//contrApptPanel.BeginUpdate();//already handled in RefreshModuleDataPeriod
 			contrApptPanel.ApptViewCur=apptViewCur;
 			List<Provider> visProvs=null;
 			List<Operatory> visOps=null;
@@ -2542,7 +2506,7 @@ namespace OpenDental {
 			contrApptPanel.RowsPerIncr=rowsPerIncr;
 			contrApptPanel.ListApptViewItemRowElements=listApptViewItemRowElements;
 			contrApptPanel.ListApptViewItems=listApptViewItems;
-			contrApptPanel.EndUpdate();
+			//contrApptPanel.EndUpdate();
 		}
 
 		///<summary>If needed, refreshes the _dtAppointments, _dtApptFields, and _dtPatFields tables.</summary>
@@ -2609,7 +2573,7 @@ namespace OpenDental {
 		///<summary>Redraws screen based on data already gathered.  RefreshModuleDataPeriod will have already retrieved the data from the db.</summary>
 		public void RefreshModuleScreenPeriod() {
 			Calendar2.SetSelectionRange(contrApptPanel.DateStart,contrApptPanel.DateEnd);
-			LayoutPanels();
+			//LayoutPanels();
 			labelDate.Text=contrApptPanel.DateStart.ToString("ddd");
 			labelDate2.Text=contrApptPanel.DateStart.ToString("-  MMM d");
 			List<long> opNums = null;
@@ -3978,6 +3942,7 @@ namespace OpenDental {
 
 		///<summary>This is a good way to set contrApptPanel.DateSelected while also refreshing the module.  If you are not changing the date or patient, then instead, simply use RefreshPeriod().</summary>
 		private void SetDateSelected(DateTime date){
+			contrApptPanel.BeginUpdate();//otherwise, the appointments will disappear
 			contrApptPanel.DateSelected=date;
 			long apptViewNum=0;
 			if(contrApptPanel.ApptViewCur!=null) {
@@ -3994,6 +3959,7 @@ namespace OpenDental {
 			else {
 				RefreshPeriod(listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum),isRefreshSchedules:true);
 			}
+			contrApptPanel.EndUpdate();
 		}
 
 		///<summary>Used when passing a family to the pinboard.</summary>
@@ -4089,8 +4055,7 @@ namespace OpenDental {
 }
 
 //todo:
-//speed test
-//During printing, copy image to clipboard
+//RefreshReminders
 //Where are pinboard TableApptFields stored?  Need them when dragging off in order to make a copy.
 //Dispose of bitmaps on pinboard items when they are removed from list
 //FormApptsOther.MakeRecallAppointment, and similar methods.
@@ -4100,14 +4065,16 @@ namespace OpenDental {
 //MsgBox translations
 //Hooks
 //isInsuranceColor not used
+//Chased down all "todo"s in the two new files.
+//Make a checkbox to turn this feature on and off
 
-//Untested:
+//Needs more testing:
 //Grids at lower right
 //Search
-//DrawWebSchedASAPSlots
-//DrawBlockouts (and manipulate them)
+//DrawWebSchedASAPSlots (I don't know how to test this)
+//Blockouts
 
 //For Documentation, new feature description:
-//Multiple appointments can be scheduled in the same operatory.  User has no control over the arrangement of overlapping appointments within one operatory column. 
+//Multiple appointments can be scheduled in the same operatory.  (But this is not really worth putting in the manual because it's obvious)
 
 
