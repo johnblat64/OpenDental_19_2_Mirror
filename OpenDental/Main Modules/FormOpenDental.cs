@@ -8876,6 +8876,9 @@ namespace OpenDental{
 			if(clickedPhone==null) {
 				return;
 			}
+			if(!clickedPhone.IsFlashing && clickedPhone.Status!="OnWay") { //If OnWay we're setting them to available, dont return.
+				return;
+			}
 			//all we need to do is the Database and let ProcessHQMetrics handle the rest.
 			Phones.SetPhoneStatus(ClockStatusEnum.HelpOnTheWay,PIn.Int(clickedPhone.Extension));
 			ODThread.WakeUpThreadsByGroupName(FormODThreadNames.HqMetrics.GetDescription());

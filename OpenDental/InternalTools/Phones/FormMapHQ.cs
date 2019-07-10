@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using CodeBase;
 using System.ComponentModel;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace OpenDental {
 	public partial class FormMapHQ:ODForm {
@@ -61,6 +63,11 @@ namespace OpenDental {
 		}
 
 		public void MapAreaPanelHQ_RoomControlClicked(object sender,EventArgs e) {
+			MapAreaRoomControl clickedPhone=(MapAreaRoomControl)sender;
+			if(clickedPhone==null) {
+				return;
+			}
+			FillDetails(clickedPhone);
 			RoomControlClicked?.Invoke(sender,e);
 		}
 
@@ -253,28 +260,28 @@ namespace OpenDental {
 						if(phone.DateTimeNeedsHelpStart.Date==DateTime.Today) { //if they need help, use that time.
 							TimeSpan span=DateTime.Now-phone.DateTimeNeedsHelpStart+_timeDelta;
 							DateTime timeOfDay=DateTime.Today+span;
-							room.Elapsed=timeOfDay.ToString("H:mm:ss");
+							room.Elapsed=span;
 						}
 						else if(phone.DateTimeStart.Date==DateTime.Today && phone.Description != "") { //else if in a call, use call time.
 							TimeSpan span=DateTime.Now-phone.DateTimeStart+_timeDelta;
 							DateTime timeOfDay=DateTime.Today+span;
-							room.Elapsed=timeOfDay.ToString("H:mm:ss");
+							room.Elapsed=span;
 						}
 						else if(phone.Description=="" && webChatSession!=null ) {//else if in a web chat session, use web chat session time
 							TimeSpan span=DateTime.Now-webChatSession.DateTcreated+_timeDelta;
-							room.Elapsed=span.ToStringHmmss();	
+							room.Elapsed=span;	
 						}
 						else if(phone.Description=="" && chatuser!=null && chatuser.CurrentSessions>0) { //else if in a chat, use chat time.
 						  TimeSpan span=TimeSpan.FromMilliseconds(chatuser.SessionTime)+_timeDelta;
-						  room.Elapsed=span.ToStringHmmss();
+						  room.Elapsed=span;
 						}
 						else if(phone.DateTimeStart.Date==DateTime.Today) { //else available, use that time.
 						  TimeSpan span = DateTime.Now-phone.DateTimeStart+_timeDelta;
 						  DateTime timeOfDay = DateTime.Today+span;
-						  room.Elapsed=timeOfDay.ToString("H:mm:ss");
+						  room.Elapsed=span;
 						}
 						else { //else, whatever.
-							room.Elapsed="";
+							room.Elapsed=TimeSpan.Zero;
 						}
 						if(phone.IsProxVisible) {
 							room.ProxImage=Properties.Resources.Figure;
@@ -299,9 +306,10 @@ namespace OpenDental {
 								room.WebChatImage=Properties.Resources.WebChatIcon;
 								room.ChatImage=null;
 							}
+							//Only using one chat icon for both GTA and webchats now
 							else if(chatuser!=null && chatuser.CurrentSessions!=0) {//check for GTA sessions if no web chats
 								room.WebChatImage=null;
-								room.ChatImage=Properties.Resources.gtaicon3;
+								room.ChatImage=Properties.Resources.WebChatIcon;
 							}
 							else {
 								room.WebChatImage=null;
@@ -328,6 +336,9 @@ namespace OpenDental {
 						else { //turn off flashing
 							room.StopFlashing();
 						}
+						if(phone.EmployeeNum>0 && phone.EmployeeNum==userControlMapDetails1.EmployeeNumCur) {
+							userControlMapDetails1.UpdateControl(room);
+						}
 						room.Invalidate(true);
 					}
 					catch(Exception e) {
@@ -339,6 +350,45 @@ namespace OpenDental {
 			catch {
 				//something failed unexpectedly
 			}
+		}
+
+		///<summary>Will flip between showing details control and office down list based on isCubicle.  phoneClicked should only be null if we are showing the office down list.</summary>
+		private void FillDetails(MapAreaRoomControl cubeClicked=null) {
+			if(cubeClicked==null) {
+				userControlMapDetails1.Visible=false;
+				officesDownView.Visible=true;
+			}
+			else if(cubeClicked.PhoneCur!=null){
+				Image empImage=GetEmployeePicture(cubeClicked.PhoneCur);
+				userControlMapDetails1.SetEmployee(cubeClicked,empImage);
+				userControlMapDetails1.Visible=true;
+				officesDownView.Visible=false;
+			}
+		}
+
+		///<summary>Attempts to get Employee photos from the server with a hardcoded filepath. Returns null if the desired picture could not be found or accessed.</summary>
+		private Image GetEmployeePicture(Phone phoneEmployee) {
+			Employee emp=Employees.GetEmp(phoneEmployee.EmployeeNum);
+			if(emp==null) {
+				return null;
+			}
+			try {
+				//Only grab the first part of the FName if there are multiple uppercased parts (ie. StevenS should be Steven).
+				string fname=Regex.Split(emp.FName,@"(?<!^)(?=[A-Z])")[0];
+				string employeeName=fname+" "+emp.LName;
+				List<string> files=Directory.GetFiles(@"\\serverfiles\Storage\OPEN DENTAL\Staff\Staff Photos").ToList().FindAll(x => x.ToLower().EndsWith(employeeName.ToLower()+".jpg"));
+				foreach(string fileSource in files) {
+					using(Bitmap original=(Bitmap)System.Drawing.Image.FromFile(fileSource)) {
+						Bitmap resized=new Bitmap(original,new System.Drawing.Size(original.Width/8,original.Height/8));
+							return resized;
+					}
+				}
+			}
+			catch(Exception ex) {
+				//Don't really care if it fails so swallow everything.
+				ex.DoNothing();
+			}
+			return null;
 		}
 
 		private void tabMain_SelectedIndexChanged(object sender,EventArgs e) {
@@ -477,6 +527,15 @@ namespace OpenDental {
 					TimeSpan timeActive=DateTime.Now.Subtract(task.DateTimeEntry);
 					//We got this far so the office is down.
 					officesDownView.Items.Add(timeActive.ToStringHmmss()+" - "+task.KeyNum.ToString());
+				}
+				labelCustDownCount.Text=listOfficesDown.Count.ToString();
+				if(listOfficesDown.Count>0) {
+					//Get the time of the oldest task
+					TimeSpan timeActive=DateTime.Now.Subtract(listOfficesDown[0].DateTimeEntry);
+					labelCustDownTime.Text=((int)timeActive.TotalMinutes).ToString();
+				}
+				else {
+					labelCustDownTime.Text="0";
 				}
 			}
 			catch {
@@ -683,6 +742,10 @@ namespace OpenDental {
 
 		private void toggleTriageToolStripMenuItem_Click(object sender,EventArgs e) {
 			splitContainer2.Panel1Collapsed=!splitContainer2.Panel1Collapsed;
+		}
+
+		private void OfficeDownControls_Click(object sender,EventArgs e) {
+			FillDetails();
 		}
 
 		private void openNewMapToolStripMenuItem_Click(object sender,EventArgs e) {

@@ -282,7 +282,7 @@ namespace OpenDental {
 			this.labelOpsCountPreview.Anchor = System.Windows.Forms.AnchorStyles.None;
 			this.labelOpsCountPreview.BorderThickness = 1;
 			this.labelOpsCountPreview.ChatImage = null;
-			this.labelOpsCountPreview.Elapsed = null;
+			this.labelOpsCountPreview.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelOpsCountPreview.EmployeeName = null;
 			this.labelOpsCountPreview.EmployeeNum = ((long)(0));
 			this.labelOpsCountPreview.Empty = false;

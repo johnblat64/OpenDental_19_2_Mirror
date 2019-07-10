@@ -3,9 +3,11 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental {
+	///<summary>Used as cubicles in the HQ map.</summary>
 	public partial class MapAreaRoomControl:DraggableControl {
 
 		#region Member not available in designer.
@@ -40,7 +42,7 @@ namespace OpenDental {
 
 		[Category("Employee Info")]
 		[Description("Elapsed Time Since Last Status Change")]
-		public string Elapsed { get; set; }
+		public TimeSpan Elapsed { get; set; }
 
 		[Category("Employee Info")]
 		[Description("Current Employee Status")]
@@ -193,7 +195,7 @@ namespace OpenDental {
 		}
 
 		///<summary>Takes all required fields as input. Suggest using this version when adding a cubicle to a ClinicMapPanel.</summary>
-		public MapAreaRoomControl(MapArea cubicle,string elapsed,string employeeName,long employeeNum,string extension,string status,Font font,
+		public MapAreaRoomControl(MapArea cubicle,TimeSpan elapsed,string employeeName,long employeeNum,string extension,string status,Font font,
 			Font fontHeader,Color innerColor,Color outerColor,Color backColor,Point location,Size size,Image phoneImage,Image chatImage,Image webChatImage,
 			bool allowDragging,bool allowEdit,bool allowClickOptions)
 			: this() {
@@ -281,11 +283,23 @@ namespace OpenDental {
 		}
 
 		private void MapAreaRoomControl_Paint(object sender,PaintEventArgs e) {
+			//use the height and width of the cubicle to determine which paint method we should use.
+			if(this.Size.Height<102 && this.Size.Width<102) {
+				PaintSmall(e);
+			}
+			else {
+				PaintLarge(e);
+			}
+		}
+
+		///<summary>The original way to paint all cubicles.</summary>
+		private void PaintLarge(PaintEventArgs e) {
 			Brush brushInner=new SolidBrush(Empty?Color.FromArgb(20,Color.Gray):InnerColor);
 			Brush brushText=new SolidBrush(Empty?Color.FromArgb(128,Color.Gray):ForeColor);
 			Pen penOuter=new Pen(Empty?Color.FromArgb(128,Color.Gray):OuterColor,BorderThickness);
 			_rectPhone=RectangleF.Empty;
 			_rectName=RectangleF.Empty;
+			string timeElapsed=TimeSpanToStringHelper(Elapsed);
 			try {
 				RectangleF rcOuter=this.ClientRectangle;
 				//clear control canvas
@@ -321,7 +335,7 @@ namespace OpenDental {
 				//e.Graphics.DrawRectangle(Pens.LimeGreen,rcOuter.X,rcOuter.Y,rcOuter.Width,rowHeight);
 				//==================== row 2 - ELAPSED TIME ====================
 				rowHeight=typicalRowHeight*2; //row 2 is 2/6 tall
-				FitText(Elapsed,Font,brushText,new RectangleF(rcOuter.X,rcOuter.Y+yPosBottom-14,rcOuter.Width,rowHeight),stringFormat,e.Graphics);
+				FitText(timeElapsed,Font,brushText,new RectangleF(rcOuter.X,rcOuter.Y+yPosBottom-14,rcOuter.Width,rowHeight),stringFormat,e.Graphics);
 				//e.Graphics.DrawRectangle(Pens.Red,rcOuter.X,rcOuter.Y+yPosBottom,rcOuter.Width,rowHeight);
 				yPosBottom+=rowHeight;
 				//==================== row 3 (Middle) - EMPLOYEE EXTENSION ====================
@@ -361,6 +375,8 @@ namespace OpenDental {
 					//	//FitText("👤",fnt,Brushes.Gray,new RectangleF(rcOuter.X-2,rcOuter.Y+yPosBottom+1,((rcOuter.Width/6))+1,rowHeight),stringFormat,e.Graphics,true);
 					//}
 				}
+				//ChatImage is actually the same resource as WebChatImage.
+				//This is to preserve logic incase we want to bring back ChatImage.  See FormMapHQ for setting ChatImage.
 				//==================== row 5 (middle) - CHAT ICON - ONLY SHOWS IF PHONE & WEB CHAT ARE NOT SHOWING ====================
 				if(PhoneImage==null && WebChatImage==null && ChatImage != null) {
 					DisplayChatImage(ChatImage,e,rcOuter,yPosBottom,rowHeight);
@@ -394,7 +410,7 @@ namespace OpenDental {
 				//e.Graphics.DrawRectangle(Pens.Blue,rcOuter.X,rcOuter.Y+yPosBottom,rcOuter.Width,rowHeight);
 				yPosBottom+=rowHeight;
 			}
-			catch (Exception){ }
+			catch(Exception) { }
 			finally {
 				brushInner.Dispose();
 				brushText.Dispose();
@@ -402,15 +418,161 @@ namespace OpenDental {
 			}
 		}
 
+		///<summary>Draws a modified cube to account for less workable area.</summary>
+		private void PaintSmall(PaintEventArgs e) {
+			Brush brushInner=new SolidBrush(Empty?Color.FromArgb(20,Color.Gray):InnerColor);
+			Brush brushText=new SolidBrush(Empty?Color.FromArgb(128,Color.Gray):ForeColor);
+			float halfPenThickness=BorderThickness/(float)2;
+			Pen penOuter=new Pen(Empty?Color.FromArgb(128,Color.Gray):OuterColor,halfPenThickness);
+			_rectPhone=RectangleF.Empty;
+			_rectName=RectangleF.Empty;
+			string timeElapsed=TimeSpanToStringHelper(Elapsed,true);
+			EmployeeName=ShortenEmployeeNameHelper(EmployeeName);
+			try {
+				RectangleF rcOuter=this.ClientRectangle;
+				//clear control canvas
+				e.Graphics.Clear(this.BackColor);
+				//deflate for border
+				rcOuter.Inflate(-halfPenThickness,-halfPenThickness);
+				//draw border
+				e.Graphics.DrawRectangle(penOuter,rcOuter.X,rcOuter.Y,rcOuter.Width,rcOuter.Height);
+				//deflate to drawable region
+				rcOuter.Inflate(-halfPenThickness,-halfPenThickness);
+				//fill interior
+				e.Graphics.FillRectangle(brushInner,rcOuter);
+				StringFormat stringFormat=new StringFormat(StringFormatFlags.NoWrap);
+				stringFormat.Alignment=StringAlignment.Center;
+				stringFormat.LineAlignment=StringAlignment.Center;
+				if(this.Empty) { //empty room so gray out and return
+					e.Graphics.DrawString("EMPTY",Font,brushText,rcOuter,stringFormat);
+					return;
+				}
+				else if(this.Text!="") { //using as a label so just draw the string					
+					FitText(this.Text,Font,brushText,new RectangleF(rcOuter.Left,rcOuter.Top+2,rcOuter.Width,rcOuter.Height),stringFormat,e.Graphics);
+					return;
+				}
+				//3 rows of data
+				int rowsLowestCommonDenominator=6;
+				float typicalRowHeight=rcOuter.Height/(float)rowsLowestCommonDenominator;
+				//==================== row 1 - EMPLOYEE NAME ====================
+				float rowHeight=typicalRowHeight*2; //row 1 is 2/6 tall
+				_rectName=new RectangleF(rcOuter.X,rcOuter.Y,rcOuter.Width,rowHeight);
+				FitText(EmployeeName,FontHeader,brushText,_rectName,stringFormat,e.Graphics);
+				float yPosBottom=rowHeight;
+				//e.Graphics.DrawRectangle(Pens.LimeGreen,rcOuter.X,rcOuter.Y,rcOuter.Width,rowHeight);
+				//==================== row 2 - ELAPSED TIME ====================
+				rowHeight=typicalRowHeight*2;//row 2 is 2/6 tall
+				FitText(timeElapsed,Font,brushText,new RectangleF(rcOuter.X,rcOuter.Y+rowHeight,rcOuter.Width,rowHeight),stringFormat,e.Graphics);
+				//e.Graphics.DrawRectangle(Pens.Red,rcOuter.X,rcOuter.Y+yPosBottom,rcOuter.Width,rowHeight);
+				yPosBottom+=rowHeight;
+				int smallMargin=1;
+				rowHeight=typicalRowHeight*2;//row 3 is 2/6 tall
+				if(ProxImage!=null) {
+					using(Bitmap bitmap = new Bitmap(ProxImage)) {//right-most 1/4 of row 3 is the phone icon
+						RectangleF rectImage=new RectangleF(rcOuter.X,rcOuter.Y+rowHeight*2-smallMargin,ProxImage.Width,rowHeight);
+						//Scale the image.
+						if(bitmap.Height<rectImage.Height || bitmap.Width<rectImage.Width) {
+							rectImage.Y+=(rectImage.Height-bitmap.Height)/2;
+							rectImage.X+=(rectImage.Width-bitmap.Width)/2;
+							rectImage.Height=bitmap.Height;
+							rectImage.Width=bitmap.Width;
+						}
+						e.Graphics.DrawImage(
+							ProxImage,
+							rectImage,
+							new RectangleF(0,0,bitmap.Width,bitmap.Height),
+							GraphicsUnit.Pixel);
+						//e.Graphics.DrawRectangle(Pens.Orange,rectImage.X,rectImage.Y,rectImage.Width,rectImage.Height);
+					}
+				}
+				//Webchat and Chat now use the same icon, didn't want to rewrite the icon showing logic and leaving it this way lets us quickly change back
+				//to using two different icons.
+				//==================== row 3 (middle) - CHAT ICON - ONLY SHOWS IF PHONE & WEB CHAT ARE NOT SHOWING ====================
+				if(WebChatImage==null && ChatImage != null) {
+					DisplayChatImage(ChatImage,e,rcOuter,yPosBottom-BorderThickness,rowHeight);
+				}
+				//==================== row 3 (middle) - WEB CHAT ICON - ONLY SHOWS IF PHONE IS NOT SHOWING ====================
+				if(PhoneImage==null && WebChatImage!=null) {
+					DisplayChatImage(WebChatImage,e,rcOuter,yPosBottom-BorderThickness,rowHeight);
+				}
+				//==================== row 3 (right) - PHONE ICON ====================
+				if(PhoneImage!=null) {
+					using(Bitmap bitmap = new Bitmap(PhoneImage,new Size((int)(PhoneImage.Width/1.2),(int)(PhoneImage.Height/1.2)))) {//right-most 1/4 of row 3 is the phone icon
+																																	  //RectangleF rectImage=new RectangleF(rcOuter.X-BorderThickness+(float)(rcOuter.Width*.75),yPosBottom,PhoneImage.Width,rowHeight);
+						RectangleF rectImage=new RectangleF(((rcOuter.Width+BorderThickness)-bitmap.Width-smallMargin),rcOuter.Y+yPosBottom-smallMargin,bitmap.Width,rowHeight);
+						//Scale the image.
+						if(bitmap.Height<rectImage.Height || bitmap.Width<=rectImage.Width) {
+							rectImage.Y+=(rectImage.Height-bitmap.Height)/2;
+							rectImage.X+=(rectImage.Width-bitmap.Width)/2;
+							rectImage.Height=bitmap.Height;
+							rectImage.Width=bitmap.Width;
+						}
+						_rectPhone=rectImage;
+						e.Graphics.DrawImage(
+							PhoneImage,
+							_rectPhone,
+							new RectangleF(0,0,bitmap.Width,bitmap.Height),
+							GraphicsUnit.Pixel);
+						if(ODBuild.IsDebug()) {
+							//Uncomment if you need to see the boundaries of the rectangles being drawn.
+							//e.Graphics.DrawRectangle(Pens.Orange,rectImage.X,rectImage.Y,rectImage.Width,rectImage.Height);
+						}
+					}
+				}
+				if(ODBuild.IsDebug()) {
+					//Uncomment if you need to see the boundaries of the rectangles being drawn.
+					//e.Graphics.DrawRectangle(Pens.Blue,rcOuter.X,rcOuter.Y+yPosBottom,rcOuter.Width,rowHeight);
+				}
+				yPosBottom+=rowHeight;
+			}
+			catch(Exception) { }
+			finally {
+				brushInner.Dispose();
+				brushText.Dispose();
+				penOuter.Dispose();
+			}
+		}
+
+		///<summary>Converts a TimeSpan to a string depending on the size of the room and how much time has elapsed.</summary>
+		private static string TimeSpanToStringHelper(TimeSpan span,bool isSmallCube = false) {
+			string retVal="";
+			//Build the smaller time string
+			if(isSmallCube) {
+				//Over an hour, just display minutes.
+				if(span.Hours>0) {
+					retVal=(span.Hours+"hr "+span.Minutes).ToString();
+				}
+				else {
+					retVal=span.ToStringmmss();
+				}
+			}
+			else {
+				retVal=span.ToStringHmmss();
+			}
+			return retVal;
+		}
+
+		///<summary>Wrapper for String.Substring that just returns the string if it is too short for the Substring operation.</summary>
+		private static string ShortenEmployeeNameHelper(string name) {
+			string retVal=name;
+			try {
+				//5 character limit decided by Nathan.  
+				//This will throw an exception if the name is less than 5 characters, in which case we will use the entire name.
+				retVal=name.Substring(0,5);
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
+			}
+			return retVal;
+		}
+
 		private static void DisplayChatImage(Image img,PaintEventArgs e,RectangleF rcOuter,float yPosBottom,float rowHeight) {
 			using(Bitmap bitmap=new Bitmap(img)) {//right-most 1/4 of row 3 is the phone icon
-				RectangleF rectImage=new RectangleF((rcOuter.X+(rcOuter.Width/2))-9,rcOuter.Y+yPosBottom+4,img.Width,rowHeight);
+				RectangleF rectImage=new RectangleF((rcOuter.X+(rcOuter.Width/2))-8,rcOuter.Y+yPosBottom+4,img.Width,rowHeight);
 				//Scale the image.
-				if(bitmap.Height<rectImage.Height) {
+				if(bitmap.Height<rectImage.Height || bitmap.Width<rectImage.Width) {
 					rectImage.Y+=(rectImage.Height-bitmap.Height)/2;
 					rectImage.Height=bitmap.Height;
-				}
-				if(bitmap.Width<rectImage.Width) {
 					rectImage.X-=(rectImage.Width-bitmap.Width)/2;
 					rectImage.Width=bitmap.Width;
 				}
@@ -461,9 +623,6 @@ namespace OpenDental {
 		private void MapAreaRoomControl_Click(object sender,EventArgs e) {
 			if(AllowEdit) {
 				return; //they're editing the room, don't change anyone's statuses.
-			}
-			if(!IsFlashing && Status != "OnWay") { //If OnWay we're setting them to available, dont return.
-				return; //why did they click me? I don't know, just return.
 			}
 			//they want to change the room's status to 'HelpOnTheWay' if they're needing help.			
 			RoomControlClicked?.Invoke(this, e);

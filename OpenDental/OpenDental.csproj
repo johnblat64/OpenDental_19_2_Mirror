@@ -628,6 +628,12 @@
     <Compile Include="InternalTools\Job Manager\UserControlSprintManager.Designer.cs">
       <DependentUpon>UserControlSprintManager.cs</DependentUpon>
     </Compile>
+    <Compile Include="InternalTools\Phones\UserControlMapDetails.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="InternalTools\Phones\UserControlMapDetails.designer.cs">
+      <DependentUpon>UserControlMapDetails.cs</DependentUpon>
+    </Compile>
     <Compile Include="Logic\aaLogicUI.cs" />
     <Compile Include="Logic\ActionNeededL.cs" />
     <Compile Include="Logic\AppointmentL.cs" />
@@ -5435,6 +5441,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="InternalTools\Job Manager\UserControlSprintManager.resx">
       <DependentUpon>UserControlSprintManager.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="InternalTools\Phones\UserControlMapDetails.resx">
+      <DependentUpon>UserControlMapDetails.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Main Modules\ContrApptJ.resx">
       <DependentUpon>ContrApptJ.cs</DependentUpon>

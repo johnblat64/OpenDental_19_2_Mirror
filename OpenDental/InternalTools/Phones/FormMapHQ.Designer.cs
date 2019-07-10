@@ -1,4 +1,5 @@
 ﻿namespace OpenDental {
+	using System;
 	partial class FormMapHQ {
 		/// <summary>
 		/// Required designer variable.
@@ -40,12 +41,12 @@
 			this.labelCurrentTime = new OpenDental.MapAreaRoomControl();
 			this.labelTriageCoordinator = new System.Windows.Forms.Label();
 			this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-			this.labelTirageOpTotal = new System.Windows.Forms.Label();
-			this.labelTirageOpLocal = new System.Windows.Forms.Label();
+			this.userControlMapDetails1 = new OpenDental.InternalTools.Phones.UserControlMapDetails();
+			this.labelCustDownTime = new OpenDental.MapAreaRoomControl();
+			this.labelCustDownCount = new OpenDental.MapAreaRoomControl();
 			this.labelTriageOpsCountTotal = new OpenDental.MapAreaRoomControl();
 			this.escalationView = new OpenDental.EscalationViewControl();
 			this.eServiceMetricsControl = new OpenDental.EServiceMetricsControl();
-			this.officesDownView = new OpenDental.EscalationViewControl();
 			this.label3 = new System.Windows.Forms.Label();
 			this.labelTriageOpsCountLocal = new OpenDental.MapAreaRoomControl();
 			this.groupPhoneMetrics = new System.Windows.Forms.GroupBox();
@@ -69,6 +70,11 @@
 			this.tabPage2 = new System.Windows.Forms.TabPage();
 			this.tabPage3 = new System.Windows.Forms.TabPage();
 			this.tabPage4 = new System.Windows.Forms.TabPage();
+			this.label7 = new System.Windows.Forms.Label();
+			this.officesDownView = new OpenDental.EscalationViewControl();
+			this.labelTirageOpTotal = new System.Windows.Forms.Label();
+			this.labelTirageOpLocal = new System.Windows.Forms.Label();
+			this.label5 = new System.Windows.Forms.Label();
 			this.mapAreaPanelHQ = new OpenDental.MapAreaPanel();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
@@ -205,7 +211,7 @@
 			this.labelCurrentTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.labelCurrentTime.BorderThickness = 2;
 			this.labelCurrentTime.ChatImage = null;
-			this.labelCurrentTime.Elapsed = null;
+			this.labelCurrentTime.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelCurrentTime.EmployeeName = null;
 			this.labelCurrentTime.EmployeeNum = ((long)(0));
 			this.labelCurrentTime.Empty = false;
@@ -235,7 +241,7 @@
 			this.labelTriageCoordinator.Name = "labelTriageCoordinator";
 			this.labelTriageCoordinator.Size = new System.Drawing.Size(1194, 72);
 			this.labelTriageCoordinator.TabIndex = 65;
-			this.labelTriageCoordinator.Text = "Call Center Map - Triage Coord. - Jim Smith";
+			this.labelTriageCoordinator.Text = "Call Center Map - Triage Coord - Jim Smith";
 			this.labelTriageCoordinator.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// splitContainer2
@@ -247,17 +253,22 @@
 			// 
 			// splitContainer2.Panel1
 			// 
-			this.splitContainer2.Panel1.Controls.Add(this.labelTirageOpTotal);
-			this.splitContainer2.Panel1.Controls.Add(this.labelTirageOpLocal);
+			this.splitContainer2.Panel1.Controls.Add(this.userControlMapDetails1);
+			this.splitContainer2.Panel1.Controls.Add(this.labelCustDownTime);
+			this.splitContainer2.Panel1.Controls.Add(this.labelCustDownCount);
 			this.splitContainer2.Panel1.Controls.Add(this.labelTriageOpsCountTotal);
 			this.splitContainer2.Panel1.Controls.Add(this.escalationView);
 			this.splitContainer2.Panel1.Controls.Add(this.eServiceMetricsControl);
-			this.splitContainer2.Panel1.Controls.Add(this.officesDownView);
 			this.splitContainer2.Panel1.Controls.Add(this.label3);
 			this.splitContainer2.Panel1.Controls.Add(this.labelTriageOpsCountLocal);
 			this.splitContainer2.Panel1.Controls.Add(this.groupPhoneMetrics);
 			this.splitContainer2.Panel1.Controls.Add(this.label14);
 			this.splitContainer2.Panel1.Controls.Add(this.tabMain);
+			this.splitContainer2.Panel1.Controls.Add(this.label7);
+			this.splitContainer2.Panel1.Controls.Add(this.officesDownView);
+			this.splitContainer2.Panel1.Controls.Add(this.labelTirageOpTotal);
+			this.splitContainer2.Panel1.Controls.Add(this.labelTirageOpLocal);
+			this.splitContainer2.Panel1.Controls.Add(this.label5);
 			// 
 			// splitContainer2.Panel2
 			// 
@@ -266,25 +277,68 @@
 			this.splitContainer2.SplitterDistance = 363;
 			this.splitContainer2.TabIndex = 34;
 			// 
-			// labelTirageOpTotal
+			// userControlMapDetails1
 			// 
-			this.labelTirageOpTotal.AutoSize = true;
-			this.labelTirageOpTotal.Font = new System.Drawing.Font("Calibri", 28F);
-			this.labelTirageOpTotal.Location = new System.Drawing.Point(207, 311);
-			this.labelTirageOpTotal.Name = "labelTirageOpTotal";
-			this.labelTirageOpTotal.Size = new System.Drawing.Size(96, 46);
-			this.labelTirageOpTotal.TabIndex = 92;
-			this.labelTirageOpTotal.Text = "Total";
+			this.userControlMapDetails1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.userControlMapDetails1.Location = new System.Drawing.Point(4, 621);
+			this.userControlMapDetails1.Name = "userControlMapDetails1";
+			this.userControlMapDetails1.Size = new System.Drawing.Size(358, 161);
+			this.userControlMapDetails1.TabIndex = 1;
+			this.userControlMapDetails1.Visible = false;
 			// 
-			// labelTirageOpLocal
+			// labelCustDownTime
 			// 
-			this.labelTirageOpLocal.AutoSize = true;
-			this.labelTirageOpLocal.Font = new System.Drawing.Font("Calibri", 28F);
-			this.labelTirageOpLocal.Location = new System.Drawing.Point(104, 311);
-			this.labelTirageOpLocal.Name = "labelTirageOpLocal";
-			this.labelTirageOpLocal.Size = new System.Drawing.Size(99, 46);
-			this.labelTirageOpLocal.TabIndex = 91;
-			this.labelTirageOpLocal.Text = "Local";
+			this.labelCustDownTime.AllowDragging = false;
+			this.labelCustDownTime.AllowEdit = false;
+			this.labelCustDownTime.BorderThickness = 1;
+			this.labelCustDownTime.ChatImage = null;
+			this.labelCustDownTime.Elapsed = System.TimeSpan.Parse("00:00:00");
+			this.labelCustDownTime.EmployeeName = null;
+			this.labelCustDownTime.EmployeeNum = ((long)(0));
+			this.labelCustDownTime.Empty = false;
+			this.labelCustDownTime.Extension = null;
+			this.labelCustDownTime.Font = new System.Drawing.Font("Calibri", 40F);
+			this.labelCustDownTime.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelCustDownTime.InnerColor = System.Drawing.Color.LightCyan;
+			this.labelCustDownTime.Location = new System.Drawing.Point(305, 578);
+			this.labelCustDownTime.Name = "labelCustDownTime";
+			this.labelCustDownTime.OuterColor = System.Drawing.Color.Blue;
+			this.labelCustDownTime.PhoneCur = null;
+			this.labelCustDownTime.PhoneImage = null;
+			this.labelCustDownTime.ProxImage = null;
+			this.labelCustDownTime.Size = new System.Drawing.Size(57, 39);
+			this.labelCustDownTime.Status = null;
+			this.labelCustDownTime.TabIndex = 94;
+			this.labelCustDownTime.Text = "0";
+			this.labelCustDownTime.WebChatImage = null;
+			this.labelCustDownTime.Click += new System.EventHandler(this.OfficeDownControls_Click);
+			// 
+			// labelCustDownCount
+			// 
+			this.labelCustDownCount.AllowDragging = false;
+			this.labelCustDownCount.AllowEdit = false;
+			this.labelCustDownCount.BorderThickness = 1;
+			this.labelCustDownCount.ChatImage = null;
+			this.labelCustDownCount.Elapsed = System.TimeSpan.Parse("00:00:00");
+			this.labelCustDownCount.EmployeeName = null;
+			this.labelCustDownCount.EmployeeNum = ((long)(0));
+			this.labelCustDownCount.Empty = false;
+			this.labelCustDownCount.Extension = null;
+			this.labelCustDownCount.Font = new System.Drawing.Font("Calibri", 40F);
+			this.labelCustDownCount.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelCustDownCount.InnerColor = System.Drawing.Color.LightCyan;
+			this.labelCustDownCount.Location = new System.Drawing.Point(184, 578);
+			this.labelCustDownCount.Name = "labelCustDownCount";
+			this.labelCustDownCount.OuterColor = System.Drawing.Color.Blue;
+			this.labelCustDownCount.PhoneCur = null;
+			this.labelCustDownCount.PhoneImage = null;
+			this.labelCustDownCount.ProxImage = null;
+			this.labelCustDownCount.Size = new System.Drawing.Size(57, 39);
+			this.labelCustDownCount.Status = null;
+			this.labelCustDownCount.TabIndex = 93;
+			this.labelCustDownCount.Text = "0";
+			this.labelCustDownCount.WebChatImage = null;
+			this.labelCustDownCount.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// labelTriageOpsCountTotal
 			// 
@@ -292,7 +346,7 @@
 			this.labelTriageOpsCountTotal.AllowEdit = false;
 			this.labelTriageOpsCountTotal.BorderThickness = 1;
 			this.labelTriageOpsCountTotal.ChatImage = null;
-			this.labelTriageOpsCountTotal.Elapsed = null;
+			this.labelTriageOpsCountTotal.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelTriageOpsCountTotal.EmployeeName = null;
 			this.labelTriageOpsCountTotal.EmployeeNum = ((long)(0));
 			this.labelTriageOpsCountTotal.Empty = false;
@@ -300,13 +354,13 @@
 			this.labelTriageOpsCountTotal.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageOpsCountTotal.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageOpsCountTotal.InnerColor = System.Drawing.Color.LightCyan;
-			this.labelTriageOpsCountTotal.Location = new System.Drawing.Point(211, 359);
+			this.labelTriageOpsCountTotal.Location = new System.Drawing.Point(305, 536);
 			this.labelTriageOpsCountTotal.Name = "labelTriageOpsCountTotal";
 			this.labelTriageOpsCountTotal.OuterColor = System.Drawing.Color.Blue;
 			this.labelTriageOpsCountTotal.PhoneCur = null;
 			this.labelTriageOpsCountTotal.PhoneImage = null;
 			this.labelTriageOpsCountTotal.ProxImage = null;
-			this.labelTriageOpsCountTotal.Size = new System.Drawing.Size(88, 58);
+			this.labelTriageOpsCountTotal.Size = new System.Drawing.Size(57, 39);
 			this.labelTriageOpsCountTotal.Status = null;
 			this.labelTriageOpsCountTotal.TabIndex = 90;
 			this.labelTriageOpsCountTotal.Text = "0";
@@ -320,11 +374,11 @@
 			this.escalationView.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.escalationView.Items = ((System.ComponentModel.BindingList<string>)(resources.GetObject("escalationView.Items")));
 			this.escalationView.LinePadding = -6;
-			this.escalationView.Location = new System.Drawing.Point(58, 425);
+			this.escalationView.Location = new System.Drawing.Point(58, 252);
 			this.escalationView.MinAlpha = 60;
 			this.escalationView.Name = "escalationView";
 			this.escalationView.OuterColor = System.Drawing.Color.Black;
-			this.escalationView.Size = new System.Drawing.Size(304, 311);
+			this.escalationView.Size = new System.Drawing.Size(304, 282);
 			this.escalationView.StartFadeIndex = 0;
 			this.escalationView.TabIndex = 85;
 			// 
@@ -338,31 +392,15 @@
 			this.eServiceMetricsControl.Size = new System.Drawing.Size(286, 62);
 			this.eServiceMetricsControl.TabIndex = 88;
 			// 
-			// officesDownView
-			// 
-			this.officesDownView.BackColor = System.Drawing.Color.White;
-			this.officesDownView.BorderThickness = 1;
-			this.officesDownView.FadeAlphaIncrement = 0;
-			this.officesDownView.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.officesDownView.Items = ((System.ComponentModel.BindingList<string>)(resources.GetObject("officesDownView.Items")));
-			this.officesDownView.LinePadding = -6;
-			this.officesDownView.Location = new System.Drawing.Point(76, 738);
-			this.officesDownView.MinAlpha = 60;
-			this.officesDownView.Name = "officesDownView";
-			this.officesDownView.OuterColor = System.Drawing.Color.Black;
-			this.officesDownView.Size = new System.Drawing.Size(286, 140);
-			this.officesDownView.StartFadeIndex = 0;
-			this.officesDownView.TabIndex = 87;
-			// 
 			// label3
 			// 
-			this.label3.Font = new System.Drawing.Font("Calibri", 18F);
-			this.label3.Location = new System.Drawing.Point(2, 778);
+			this.label3.Font = new System.Drawing.Font("Calibri", 16F);
+			this.label3.Location = new System.Drawing.Point(1, 583);
 			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(81, 80);
+			this.label3.Size = new System.Drawing.Size(116, 30);
 			this.label3.TabIndex = 86;
-			this.label3.Text = "Offices\r\nDown";
-			this.label3.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+			this.label3.Text = "Cust down";
+			this.label3.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// labelTriageOpsCountLocal
 			// 
@@ -370,7 +408,7 @@
 			this.labelTriageOpsCountLocal.AllowEdit = false;
 			this.labelTriageOpsCountLocal.BorderThickness = 1;
 			this.labelTriageOpsCountLocal.ChatImage = null;
-			this.labelTriageOpsCountLocal.Elapsed = null;
+			this.labelTriageOpsCountLocal.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelTriageOpsCountLocal.EmployeeName = null;
 			this.labelTriageOpsCountLocal.EmployeeNum = ((long)(0));
 			this.labelTriageOpsCountLocal.Empty = false;
@@ -378,13 +416,13 @@
 			this.labelTriageOpsCountLocal.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageOpsCountLocal.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageOpsCountLocal.InnerColor = System.Drawing.Color.LightCyan;
-			this.labelTriageOpsCountLocal.Location = new System.Drawing.Point(109, 359);
+			this.labelTriageOpsCountLocal.Location = new System.Drawing.Point(184, 537);
 			this.labelTriageOpsCountLocal.Name = "labelTriageOpsCountLocal";
 			this.labelTriageOpsCountLocal.OuterColor = System.Drawing.Color.Blue;
 			this.labelTriageOpsCountLocal.PhoneCur = null;
 			this.labelTriageOpsCountLocal.PhoneImage = null;
 			this.labelTriageOpsCountLocal.ProxImage = null;
-			this.labelTriageOpsCountLocal.Size = new System.Drawing.Size(88, 58);
+			this.labelTriageOpsCountLocal.Size = new System.Drawing.Size(57, 39);
 			this.labelTriageOpsCountLocal.Status = null;
 			this.labelTriageOpsCountLocal.TabIndex = 83;
 			this.labelTriageOpsCountLocal.Text = "0";
@@ -408,7 +446,7 @@
 			this.groupPhoneMetrics.Controls.Add(this.label6);
 			this.groupPhoneMetrics.Location = new System.Drawing.Point(4, 0);
 			this.groupPhoneMetrics.Name = "groupPhoneMetrics";
-			this.groupPhoneMetrics.Size = new System.Drawing.Size(357, 308);
+			this.groupPhoneMetrics.Size = new System.Drawing.Size(357, 251);
 			this.groupPhoneMetrics.TabIndex = 82;
 			this.groupPhoneMetrics.TabStop = false;
 			// 
@@ -418,7 +456,7 @@
 			this.labelChatTimeSpan.AllowEdit = false;
 			this.labelChatTimeSpan.BorderThickness = 1;
 			this.labelChatTimeSpan.ChatImage = null;
-			this.labelChatTimeSpan.Elapsed = null;
+			this.labelChatTimeSpan.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelChatTimeSpan.EmployeeName = null;
 			this.labelChatTimeSpan.EmployeeNum = ((long)(0));
 			this.labelChatTimeSpan.Empty = false;
@@ -426,13 +464,13 @@
 			this.labelChatTimeSpan.Font = new System.Drawing.Font("Calibri", 40F);
 			this.labelChatTimeSpan.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelChatTimeSpan.InnerColor = System.Drawing.Color.White;
-			this.labelChatTimeSpan.Location = new System.Drawing.Point(207, 237);
+			this.labelChatTimeSpan.Location = new System.Drawing.Point(206, 140);
 			this.labelChatTimeSpan.Name = "labelChatTimeSpan";
 			this.labelChatTimeSpan.OuterColor = System.Drawing.Color.Black;
 			this.labelChatTimeSpan.PhoneCur = null;
 			this.labelChatTimeSpan.PhoneImage = null;
 			this.labelChatTimeSpan.ProxImage = null;
-			this.labelChatTimeSpan.Size = new System.Drawing.Size(146, 58);
+			this.labelChatTimeSpan.Size = new System.Drawing.Size(120, 44);
 			this.labelChatTimeSpan.Status = null;
 			this.labelChatTimeSpan.TabIndex = 36;
 			this.labelChatTimeSpan.Text = "00:00";
@@ -445,7 +483,7 @@
 			this.labelChatCount.BackColor = System.Drawing.Color.White;
 			this.labelChatCount.BorderThickness = 1;
 			this.labelChatCount.ChatImage = null;
-			this.labelChatCount.Elapsed = null;
+			this.labelChatCount.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelChatCount.EmployeeName = null;
 			this.labelChatCount.EmployeeNum = ((long)(0));
 			this.labelChatCount.Empty = false;
@@ -453,13 +491,13 @@
 			this.labelChatCount.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelChatCount.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelChatCount.InnerColor = System.Drawing.Color.White;
-			this.labelChatCount.Location = new System.Drawing.Point(105, 237);
+			this.labelChatCount.Location = new System.Drawing.Point(105, 140);
 			this.labelChatCount.Name = "labelChatCount";
 			this.labelChatCount.OuterColor = System.Drawing.Color.Black;
 			this.labelChatCount.PhoneCur = null;
 			this.labelChatCount.PhoneImage = null;
 			this.labelChatCount.ProxImage = null;
-			this.labelChatCount.Size = new System.Drawing.Size(100, 58);
+			this.labelChatCount.Size = new System.Drawing.Size(81, 44);
 			this.labelChatCount.Status = null;
 			this.labelChatCount.TabIndex = 35;
 			this.labelChatCount.Text = "0";
@@ -468,10 +506,10 @@
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label2.Location = new System.Drawing.Point(0, 244);
+			this.label2.Font = new System.Drawing.Font("Calibri", 22F);
+			this.label2.Location = new System.Drawing.Point(6, 141);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(91, 46);
+			this.label2.Size = new System.Drawing.Size(73, 37);
 			this.label2.TabIndex = 34;
 			this.label2.Text = "Chat";
 			// 
@@ -481,7 +519,7 @@
 			this.labelTriageTimeSpan.AllowEdit = false;
 			this.labelTriageTimeSpan.BorderThickness = 1;
 			this.labelTriageTimeSpan.ChatImage = null;
-			this.labelTriageTimeSpan.Elapsed = null;
+			this.labelTriageTimeSpan.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelTriageTimeSpan.EmployeeName = null;
 			this.labelTriageTimeSpan.EmployeeNum = ((long)(0));
 			this.labelTriageTimeSpan.Empty = false;
@@ -489,13 +527,13 @@
 			this.labelTriageTimeSpan.Font = new System.Drawing.Font("Calibri", 56F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageTimeSpan.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageTimeSpan.InnerColor = System.Drawing.Color.White;
-			this.labelTriageTimeSpan.Location = new System.Drawing.Point(207, 177);
+			this.labelTriageTimeSpan.Location = new System.Drawing.Point(206, 187);
 			this.labelTriageTimeSpan.Name = "labelTriageTimeSpan";
 			this.labelTriageTimeSpan.OuterColor = System.Drawing.Color.Black;
 			this.labelTriageTimeSpan.PhoneCur = null;
 			this.labelTriageTimeSpan.PhoneImage = null;
 			this.labelTriageTimeSpan.ProxImage = null;
-			this.labelTriageTimeSpan.Size = new System.Drawing.Size(146, 58);
+			this.labelTriageTimeSpan.Size = new System.Drawing.Size(120, 58);
 			this.labelTriageTimeSpan.Status = null;
 			this.labelTriageTimeSpan.TabIndex = 33;
 			this.labelTriageTimeSpan.Text = "0000";
@@ -508,7 +546,7 @@
 			this.labelTriageRedCalls.BackColor = System.Drawing.Color.White;
 			this.labelTriageRedCalls.BorderThickness = 1;
 			this.labelTriageRedCalls.ChatImage = null;
-			this.labelTriageRedCalls.Elapsed = null;
+			this.labelTriageRedCalls.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelTriageRedCalls.EmployeeName = null;
 			this.labelTriageRedCalls.EmployeeNum = ((long)(0));
 			this.labelTriageRedCalls.Empty = false;
@@ -516,13 +554,13 @@
 			this.labelTriageRedCalls.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageRedCalls.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageRedCalls.InnerColor = System.Drawing.Color.White;
-			this.labelTriageRedCalls.Location = new System.Drawing.Point(105, 57);
+			this.labelTriageRedCalls.Location = new System.Drawing.Point(105, 48);
 			this.labelTriageRedCalls.Name = "labelTriageRedCalls";
 			this.labelTriageRedCalls.OuterColor = System.Drawing.Color.Black;
 			this.labelTriageRedCalls.PhoneCur = null;
 			this.labelTriageRedCalls.PhoneImage = null;
 			this.labelTriageRedCalls.ProxImage = null;
-			this.labelTriageRedCalls.Size = new System.Drawing.Size(100, 58);
+			this.labelTriageRedCalls.Size = new System.Drawing.Size(81, 44);
 			this.labelTriageRedCalls.Status = null;
 			this.labelTriageRedCalls.TabIndex = 12;
 			this.labelTriageRedCalls.Text = "0";
@@ -531,10 +569,10 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label1.Location = new System.Drawing.Point(0, 64);
+			this.label1.Font = new System.Drawing.Font("Calibri", 22F);
+			this.label1.Location = new System.Drawing.Point(6, 48);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(79, 46);
+			this.label1.Size = new System.Drawing.Size(63, 37);
 			this.label1.TabIndex = 6;
 			this.label1.Text = "Red";
 			// 
@@ -545,7 +583,7 @@
 			this.labelTriageRedTimeSpan.BackColor = System.Drawing.Color.White;
 			this.labelTriageRedTimeSpan.BorderThickness = 1;
 			this.labelTriageRedTimeSpan.ChatImage = null;
-			this.labelTriageRedTimeSpan.Elapsed = null;
+			this.labelTriageRedTimeSpan.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelTriageRedTimeSpan.EmployeeName = null;
 			this.labelTriageRedTimeSpan.EmployeeNum = ((long)(0));
 			this.labelTriageRedTimeSpan.Empty = false;
@@ -553,13 +591,13 @@
 			this.labelTriageRedTimeSpan.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageRedTimeSpan.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageRedTimeSpan.InnerColor = System.Drawing.Color.White;
-			this.labelTriageRedTimeSpan.Location = new System.Drawing.Point(207, 57);
+			this.labelTriageRedTimeSpan.Location = new System.Drawing.Point(206, 48);
 			this.labelTriageRedTimeSpan.Name = "labelTriageRedTimeSpan";
 			this.labelTriageRedTimeSpan.OuterColor = System.Drawing.Color.Black;
 			this.labelTriageRedTimeSpan.PhoneCur = null;
 			this.labelTriageRedTimeSpan.PhoneImage = null;
 			this.labelTriageRedTimeSpan.ProxImage = null;
-			this.labelTriageRedTimeSpan.Size = new System.Drawing.Size(146, 58);
+			this.labelTriageRedTimeSpan.Size = new System.Drawing.Size(120, 44);
 			this.labelTriageRedTimeSpan.Status = null;
 			this.labelTriageRedTimeSpan.TabIndex = 7;
 			this.labelTriageRedTimeSpan.Text = "00:00";
@@ -568,10 +606,10 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label4.Location = new System.Drawing.Point(0, 125);
+			this.label4.Font = new System.Drawing.Font("Calibri", 22F);
+			this.label4.Location = new System.Drawing.Point(6, 94);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(74, 46);
+			this.label4.Size = new System.Drawing.Size(60, 37);
 			this.label4.TabIndex = 8;
 			this.label4.Text = "VM";
 			// 
@@ -582,7 +620,7 @@
 			this.labelVoicemailTimeSpan.BackColor = System.Drawing.Color.White;
 			this.labelVoicemailTimeSpan.BorderThickness = 1;
 			this.labelVoicemailTimeSpan.ChatImage = null;
-			this.labelVoicemailTimeSpan.Elapsed = null;
+			this.labelVoicemailTimeSpan.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelVoicemailTimeSpan.EmployeeName = null;
 			this.labelVoicemailTimeSpan.EmployeeNum = ((long)(0));
 			this.labelVoicemailTimeSpan.Empty = false;
@@ -590,13 +628,13 @@
 			this.labelVoicemailTimeSpan.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelVoicemailTimeSpan.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelVoicemailTimeSpan.InnerColor = System.Drawing.Color.White;
-			this.labelVoicemailTimeSpan.Location = new System.Drawing.Point(207, 117);
+			this.labelVoicemailTimeSpan.Location = new System.Drawing.Point(206, 94);
 			this.labelVoicemailTimeSpan.Name = "labelVoicemailTimeSpan";
 			this.labelVoicemailTimeSpan.OuterColor = System.Drawing.Color.Black;
 			this.labelVoicemailTimeSpan.PhoneCur = null;
 			this.labelVoicemailTimeSpan.PhoneImage = null;
 			this.labelVoicemailTimeSpan.ProxImage = null;
-			this.labelVoicemailTimeSpan.Size = new System.Drawing.Size(146, 58);
+			this.labelVoicemailTimeSpan.Size = new System.Drawing.Size(120, 44);
 			this.labelVoicemailTimeSpan.Status = null;
 			this.labelVoicemailTimeSpan.TabIndex = 9;
 			this.labelVoicemailTimeSpan.Text = "00:00";
@@ -604,21 +642,19 @@
 			// 
 			// label11
 			// 
-			this.label11.AutoSize = true;
-			this.label11.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label11.Location = new System.Drawing.Point(232, 9);
+			this.label11.Font = new System.Drawing.Font("Calibri", 24F);
+			this.label11.Location = new System.Drawing.Point(224, 9);
 			this.label11.Name = "label11";
-			this.label11.Size = new System.Drawing.Size(97, 46);
+			this.label11.Size = new System.Drawing.Size(97, 36);
 			this.label11.TabIndex = 16;
 			this.label11.Text = "Time";
 			// 
 			// label10
 			// 
-			this.label10.AutoSize = true;
-			this.label10.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label10.Font = new System.Drawing.Font("Calibri", 24F);
 			this.label10.Location = new System.Drawing.Point(99, 9);
 			this.label10.Name = "label10";
-			this.label10.Size = new System.Drawing.Size(119, 46);
+			this.label10.Size = new System.Drawing.Size(105, 36);
 			this.label10.TabIndex = 15;
 			this.label10.Text = "# Calls";
 			// 
@@ -629,21 +665,21 @@
 			this.labelTriageCalls.BackColor = System.Drawing.Color.White;
 			this.labelTriageCalls.BorderThickness = 1;
 			this.labelTriageCalls.ChatImage = null;
-			this.labelTriageCalls.Elapsed = null;
+			this.labelTriageCalls.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelTriageCalls.EmployeeName = null;
 			this.labelTriageCalls.EmployeeNum = ((long)(0));
 			this.labelTriageCalls.Empty = false;
 			this.labelTriageCalls.Extension = null;
-			this.labelTriageCalls.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelTriageCalls.Font = new System.Drawing.Font("Calibri", 56F);
 			this.labelTriageCalls.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageCalls.InnerColor = System.Drawing.Color.White;
-			this.labelTriageCalls.Location = new System.Drawing.Point(105, 177);
+			this.labelTriageCalls.Location = new System.Drawing.Point(104, 187);
 			this.labelTriageCalls.Name = "labelTriageCalls";
 			this.labelTriageCalls.OuterColor = System.Drawing.Color.Black;
 			this.labelTriageCalls.PhoneCur = null;
 			this.labelTriageCalls.PhoneImage = null;
 			this.labelTriageCalls.ProxImage = null;
-			this.labelTriageCalls.Size = new System.Drawing.Size(100, 58);
+			this.labelTriageCalls.Size = new System.Drawing.Size(82, 58);
 			this.labelTriageCalls.Status = null;
 			this.labelTriageCalls.TabIndex = 14;
 			this.labelTriageCalls.Text = "0";
@@ -656,7 +692,7 @@
 			this.labelVoicemailCalls.BackColor = System.Drawing.Color.White;
 			this.labelVoicemailCalls.BorderThickness = 1;
 			this.labelVoicemailCalls.ChatImage = null;
-			this.labelVoicemailCalls.Elapsed = null;
+			this.labelVoicemailCalls.Elapsed = System.TimeSpan.Parse("00:00:00");
 			this.labelVoicemailCalls.EmployeeName = null;
 			this.labelVoicemailCalls.EmployeeNum = ((long)(0));
 			this.labelVoicemailCalls.Empty = false;
@@ -664,13 +700,13 @@
 			this.labelVoicemailCalls.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelVoicemailCalls.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelVoicemailCalls.InnerColor = System.Drawing.Color.White;
-			this.labelVoicemailCalls.Location = new System.Drawing.Point(105, 117);
+			this.labelVoicemailCalls.Location = new System.Drawing.Point(105, 94);
 			this.labelVoicemailCalls.Name = "labelVoicemailCalls";
 			this.labelVoicemailCalls.OuterColor = System.Drawing.Color.Black;
 			this.labelVoicemailCalls.PhoneCur = null;
 			this.labelVoicemailCalls.PhoneImage = null;
 			this.labelVoicemailCalls.ProxImage = null;
-			this.labelVoicemailCalls.Size = new System.Drawing.Size(100, 58);
+			this.labelVoicemailCalls.Size = new System.Drawing.Size(81, 44);
 			this.labelVoicemailCalls.Status = null;
 			this.labelVoicemailCalls.TabIndex = 13;
 			this.labelVoicemailCalls.Text = "0";
@@ -679,22 +715,21 @@
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label6.Location = new System.Drawing.Point(0, 183);
+			this.label6.Font = new System.Drawing.Font("Calibri", 22F);
+			this.label6.Location = new System.Drawing.Point(-1, 187);
 			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(114, 46);
+			this.label6.Size = new System.Drawing.Size(90, 37);
 			this.label6.TabIndex = 10;
 			this.label6.Text = "Triage";
 			// 
 			// label14
 			// 
-			this.label14.AutoSize = true;
-			this.label14.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label14.Location = new System.Drawing.Point(0, 358);
+			this.label14.Font = new System.Drawing.Font("Calibri", 16F);
+			this.label14.Location = new System.Drawing.Point(1, 543);
 			this.label14.Name = "label14";
-			this.label14.Size = new System.Drawing.Size(107, 46);
+			this.label14.Size = new System.Drawing.Size(101, 32);
 			this.label14.TabIndex = 81;
-			this.label14.Text = "T.O. #";
+			this.label14.Text = "TrOp#";
 			// 
 			// tabMain
 			// 
@@ -706,11 +741,11 @@
 			this.tabMain.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
 			this.tabMain.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.tabMain.ItemSize = new System.Drawing.Size(28, 150);
-			this.tabMain.Location = new System.Drawing.Point(0, 425);
+			this.tabMain.Location = new System.Drawing.Point(0, 252);
 			this.tabMain.Multiline = true;
 			this.tabMain.Name = "tabMain";
 			this.tabMain.SelectedIndex = 0;
-			this.tabMain.Size = new System.Drawing.Size(59, 311);
+			this.tabMain.Size = new System.Drawing.Size(59, 282);
 			this.tabMain.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
 			this.tabMain.TabIndex = 89;
 			this.tabMain.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tabMain_DrawItem);
@@ -721,7 +756,7 @@
 			this.tabPage1.Location = new System.Drawing.Point(154, 4);
 			this.tabPage1.Name = "tabPage1";
 			this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPage1.Size = new System.Drawing.Size(0, 303);
+			this.tabPage1.Size = new System.Drawing.Size(0, 274);
 			this.tabPage1.TabIndex = 0;
 			this.tabPage1.Text = "tabPage1";
 			this.tabPage1.UseVisualStyleBackColor = true;
@@ -731,7 +766,7 @@
 			this.tabPage2.Location = new System.Drawing.Point(154, 4);
 			this.tabPage2.Name = "tabPage2";
 			this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-			this.tabPage2.Size = new System.Drawing.Size(0, 303);
+			this.tabPage2.Size = new System.Drawing.Size(0, 274);
 			this.tabPage2.TabIndex = 1;
 			this.tabPage2.Text = "tabPage2";
 			this.tabPage2.UseVisualStyleBackColor = true;
@@ -740,7 +775,7 @@
 			// 
 			this.tabPage3.Location = new System.Drawing.Point(154, 4);
 			this.tabPage3.Name = "tabPage3";
-			this.tabPage3.Size = new System.Drawing.Size(0, 303);
+			this.tabPage3.Size = new System.Drawing.Size(0, 274);
 			this.tabPage3.TabIndex = 2;
 			this.tabPage3.Text = "tabPage3";
 			this.tabPage3.UseVisualStyleBackColor = true;
@@ -749,10 +784,68 @@
 			// 
 			this.tabPage4.Location = new System.Drawing.Point(154, 4);
 			this.tabPage4.Name = "tabPage4";
-			this.tabPage4.Size = new System.Drawing.Size(0, 303);
+			this.tabPage4.Size = new System.Drawing.Size(0, 274);
 			this.tabPage4.TabIndex = 3;
 			this.tabPage4.Text = "tabPage4";
 			this.tabPage4.UseVisualStyleBackColor = true;
+			// 
+			// label7
+			// 
+			this.label7.Font = new System.Drawing.Font("Calibri", 16F);
+			this.label7.Location = new System.Drawing.Point(247, 584);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(62, 30);
+			this.label7.TabIndex = 96;
+			this.label7.Text = "Time";
+			this.label7.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.label7.Click += new System.EventHandler(this.OfficeDownControls_Click);
+			// 
+			// officesDownView
+			// 
+			this.officesDownView.BackColor = System.Drawing.Color.White;
+			this.officesDownView.BorderThickness = 1;
+			this.officesDownView.FadeAlphaIncrement = 0;
+			this.officesDownView.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.officesDownView.Items = ((System.ComponentModel.BindingList<string>)(resources.GetObject("officesDownView.Items")));
+			this.officesDownView.LinePadding = -6;
+			this.officesDownView.Location = new System.Drawing.Point(4, 619);
+			this.officesDownView.MinAlpha = 60;
+			this.officesDownView.Name = "officesDownView";
+			this.officesDownView.OuterColor = System.Drawing.Color.Black;
+			this.officesDownView.Size = new System.Drawing.Size(358, 255);
+			this.officesDownView.StartFadeIndex = 0;
+			this.officesDownView.TabIndex = 88;
+			// 
+			// labelTirageOpTotal
+			// 
+			this.labelTirageOpTotal.Font = new System.Drawing.Font("Calibri", 16F);
+			this.labelTirageOpTotal.Location = new System.Drawing.Point(253, 543);
+			this.labelTirageOpTotal.Name = "labelTirageOpTotal";
+			this.labelTirageOpTotal.Size = new System.Drawing.Size(56, 28);
+			this.labelTirageOpTotal.TabIndex = 92;
+			this.labelTirageOpTotal.Text = "All";
+			this.labelTirageOpTotal.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			// 
+			// labelTirageOpLocal
+			// 
+			this.labelTirageOpLocal.Font = new System.Drawing.Font("Calibri", 16F);
+			this.labelTirageOpLocal.Location = new System.Drawing.Point(108, 543);
+			this.labelTirageOpLocal.Name = "labelTirageOpLocal";
+			this.labelTirageOpLocal.Size = new System.Drawing.Size(81, 32);
+			this.labelTirageOpLocal.TabIndex = 91;
+			this.labelTirageOpLocal.Text = "Local";
+			this.labelTirageOpLocal.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			// 
+			// label5
+			// 
+			this.label5.Font = new System.Drawing.Font("Calibri", 16F);
+			this.label5.Location = new System.Drawing.Point(112, 584);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(77, 30);
+			this.label5.TabIndex = 95;
+			this.label5.Text = "Count";
+			this.label5.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.label5.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// mapAreaPanelHQ
 			// 
@@ -774,7 +867,6 @@
 			this.mapAreaPanelHQ.ShowOutline = true;
 			this.mapAreaPanelHQ.Size = new System.Drawing.Size(1517, 954);
 			this.mapAreaPanelHQ.TabIndex = 71;
-			this.mapAreaPanelHQ.Scroll += new System.Windows.Forms.ScrollEventHandler(this.mapAreaPanelHQ_Scroll);
 			// 
 			// FormMapHQ
 			// 
@@ -794,7 +886,6 @@
 			this.menuStrip.ResumeLayout(false);
 			this.menuStrip.PerformLayout();
 			this.splitContainer2.Panel1.ResumeLayout(false);
-			this.splitContainer2.Panel1.PerformLayout();
 			this.splitContainer2.Panel2.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
 			this.splitContainer2.ResumeLayout(false);
@@ -819,7 +910,6 @@
 		private System.Windows.Forms.Timer timer1;
 		private System.Windows.Forms.SplitContainer splitContainer2;
 		private EServiceMetricsControl eServiceMetricsControl;
-		private EscalationViewControl officesDownView;
 		private System.Windows.Forms.Label label3;
 		private EscalationViewControl escalationView;
 		private MapAreaRoomControl labelTriageOpsCountLocal;
@@ -852,5 +942,11 @@
 		private MapAreaRoomControl labelChatTimeSpan;
 		private MapAreaRoomControl labelChatCount;
 		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.Label label5;
+		private MapAreaRoomControl labelCustDownTime;
+		private MapAreaRoomControl labelCustDownCount;
+		private EscalationViewControl officesDownView;
+		private InternalTools.Phones.UserControlMapDetails userControlMapDetails1;
 	}
 }

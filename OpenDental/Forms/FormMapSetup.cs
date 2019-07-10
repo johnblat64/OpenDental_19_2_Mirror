@@ -295,6 +295,32 @@ namespace OpenDental {
 			FillMap();
 		}
 
+		private void ButAddSmall_Click(object sender,EventArgs e) {
+			//edit this entry
+			if(gridEmployees.SelectedIndices==null
+				|| gridEmployees.SelectedIndices.Length<=0
+				|| gridEmployees.Rows[gridEmployees.SelectedIndices[0]].Tag==null
+				|| !(gridEmployees.Rows[gridEmployees.SelectedIndices[0]].Tag is Employee)) {
+				MsgBox.Show(this,"Select an employee");
+				return;
+			}
+			Employee employee=(Employee)gridEmployees.Rows[gridEmployees.SelectedIndices[0]].Tag;
+			FormMapAreaEdit FormEP=new FormMapAreaEdit();
+			FormEP.MapItem=new MapArea {
+				IsNew=true,
+				Width=3,
+				Height=3,
+				ItemType=MapItemType.Room,
+				Extension=employee.PhoneExt,
+				Description="",
+				MapAreaContainerNum=_mapCur.MapAreaContainerNum
+			};
+			if(FormEP.ShowDialog(this)!=DialogResult.OK) {
+				return;
+			}
+			FillMap();
+		}
+
 		private void butSave_Click(object sender,EventArgs e) {
 			PhoneMapJSON.SaveToDb(ListMaps);
 			DataValid.SetInvalid(InvalidType.PhoneMap);

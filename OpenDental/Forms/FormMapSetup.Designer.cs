@@ -49,6 +49,7 @@
 			this.butAddRoom = new OpenDental.UI.Button();
 			this.label8 = new System.Windows.Forms.Label();
 			this.comboSite = new System.Windows.Forms.ComboBox();
+			this.butAddSmall = new OpenDental.UI.Button();
 			((System.ComponentModel.ISupportInitialize)(this.numFloorWidthFeet)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numFloorHeightFeet)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numPixelsPerFoot)).BeginInit();
@@ -235,9 +236,7 @@
 			this.gridEmployees.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridEmployees.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridEmployees.Font = new System.Drawing.Font("Calibri", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.gridEmployees.HasAddButton = false;
 			this.gridEmployees.HasDropDowns = false;
-			this.gridEmployees.HasMultilineHeaders = false;
 			this.gridEmployees.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridEmployees.HeaderHeight = 15;
 			this.gridEmployees.HScrollVisible = false;
@@ -409,11 +408,29 @@
 			this.comboSite.TabIndex = 58;
 			this.comboSite.SelectionChangeCommitted += new System.EventHandler(this.comboSite_SelectionChangeCommitted);
 			// 
+			// butAddSmall
+			// 
+			this.butAddSmall.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butAddSmall.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butAddSmall.Autosize = true;
+			this.butAddSmall.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butAddSmall.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butAddSmall.CornerRadius = 4F;
+			this.butAddSmall.Image = global::OpenDental.Properties.Resources.Add;
+			this.butAddSmall.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.butAddSmall.Location = new System.Drawing.Point(1491, 960);
+			this.butAddSmall.Name = "butAddSmall";
+			this.butAddSmall.Size = new System.Drawing.Size(83, 24);
+			this.butAddSmall.TabIndex = 60;
+			this.butAddSmall.Text = "Add Small";
+			this.butAddSmall.Click += new System.EventHandler(this.ButAddSmall_Click);
+			// 
 			// FormMapSetup
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.AutoScroll = true;
 			this.ClientSize = new System.Drawing.Size(1579, 1045);
+			this.Controls.Add(this.butAddSmall);
 			this.Controls.Add(this.label8);
 			this.Controls.Add(this.comboSite);
 			this.Controls.Add(this.butAddRoom);
@@ -468,5 +485,6 @@
 		private UI.Button butAddRoom;
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.ComboBox comboSite;
+		private UI.Button butAddSmall;
 	}
 }

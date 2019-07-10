@@ -229,7 +229,7 @@ namespace OpenDental {
 		public void AddCubicle(MapArea cubicle,bool allowRightClickOptions=true) {
 			MapAreaRoomControl phone=new MapAreaRoomControl(
 				cubicle,
-				TimeSpan.FromSeconds(Rand.Next(60,1200)).ToString(),
+				TimeSpan.FromSeconds(Rand.Next(60,1200)),
 				"Emp: "+this.Controls.Count.ToString(),
 				this.Controls.Count,
 				cubicle.Extension.ToString(),
