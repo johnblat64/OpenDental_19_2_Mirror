@@ -36,11 +36,14 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<MobileAppDevice>>(MethodBase.GetCurrentMethod(),user);
 			}
-			List<Clinic> listClinicsForUser=Clinics.GetForUserod(user);
-			if(listClinicsForUser.Count==0) {
-				return new List<MobileAppDevice>();
+			string command=$"SELECT * FROM mobileappdevice ";
+			if(PrefC.HasClinicsEnabled) {
+				List<Clinic> listClinicsForUser=Clinics.GetForUserod(user);
+				if(listClinicsForUser.Count==0) {
+					return new List<MobileAppDevice>();
+				}
+				command+=$"WHERE ClinicNum in ({ string.Join(",",listClinicsForUser.Select(x => x.ClinicNum))})";
 			}
-			string command=$"SELECT * FROM mobileappdevice WHERE ClinicNum in ({string.Join(",",listClinicsForUser.Select(x => x.ClinicNum))})";
 			return Crud.MobileAppDeviceCrud.SelectMany(command);
 		}
 
