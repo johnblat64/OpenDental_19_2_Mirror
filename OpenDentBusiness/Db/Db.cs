@@ -56,7 +56,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Throws Exception.
 		///Checks to see if the query is safe for replication and if the user has permission to run a command query if it is a command query.</summary>
-		public static bool IsSqlAllowed(string command) {
+		public static bool IsSqlAllowed(string command,bool suppressMessage=false) {
 			if(!IsSafeSqlForReplication(command)) {
 				return false;
 			}
@@ -67,7 +67,7 @@ namespace OpenDentBusiness {
 			catch {
 				throw new ApplicationException("Validation failed. Please remove mid-query comments and try again.");
 			}
-			if(isCommand && !Security.IsAuthorized(Permissions.CommandQuery)) {
+			if(isCommand && !Security.IsAuthorized(Permissions.CommandQuery,suppressMessage)) {
 				return false;
 			}
 			if(isCommand) {

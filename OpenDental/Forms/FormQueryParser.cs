@@ -51,7 +51,7 @@ namespace OpenDental {
 			gridMain.Columns.Add(new ODGridColumn(Lan.g(gridMain.TranslationName,"Value"),200,true));
 			gridMain.Rows.Clear();
 			foreach(string strSetStmt in listSetStmts) { //for each SET statement
-				List<QuerySetStmtObject> listQObjs = GetListQuerySetStmtObjs(strSetStmt); //find the variable name
+				List<QuerySetStmtObject> listQObjs = UserQueries.GetListQuerySetStmtObjs(strSetStmt); //find the variable name
 				foreach(QuerySetStmtObject qObj in listQObjs) {
 					ODGridRow row = new ODGridRow();
 					row.Cells.Add(qObj.Variable);
@@ -69,27 +69,6 @@ namespace OpenDental {
 					//suppress if the row doesn't exist (such as filling the grid for the first time)
 				}
 			}
-		}
-
-		///<summary>Returns the list of variables in the query contained within the passed-in SET statement.
-		///Pass in one SET statement. Used in conjunction with GetListVals.</summary>
-		private List<QuerySetStmtObject> GetListQuerySetStmtObjs(string setStmt) {
-			List<string> strSplits = UserQueries.SplitQuery(setStmt,false,",");
-			for(int i = 0;i < strSplits.Count;i++) {
-				Regex r = new Regex(@"\s*set\s+",RegexOptions.IgnoreCase);
-				strSplits[i]=r.Replace(strSplits[i],"");
-			}
-			UserQueries.TrimList(strSplits);
-			strSplits.RemoveAll(x => string.IsNullOrWhiteSpace(x) || !x.StartsWith("@") || x.StartsWith("@_"));
-			List<QuerySetStmtObject> bufferList = new List<QuerySetStmtObject>();
-			for(int i = 0;i < strSplits.Count;i++) {
-				QuerySetStmtObject qObj = new QuerySetStmtObject();
-				qObj.Stmt = setStmt;
-				qObj.Variable = strSplits[i].Split(new char[] { '=' },2).First();
-				qObj.Value = strSplits[i].Split(new char[] { '=' },2).Last();
-				bufferList.Add(qObj);
-			}
-			return bufferList;
 		}
 		
 		///<summary>When a row is double clicked, bring up an input box that allows the user to change the variable's value.</summary>
@@ -174,6 +153,7 @@ namespace OpenDental {
 			if(valOld == valNew) {
 				return; //don't bother doing any of the logic below if nothing changed.
 			}
+			valNew = "'"+valNew.Trim('\'')+"'";
 			//Regular expression for the expression @Variable = Value.
 			Regex r = new Regex(Regex.Escape(varOld)+@"\s*=\s*"+Regex.Escape(valOld));
 			string stmtNew = r.Replace(stmtOld,varOld+"="+valNew);
@@ -200,13 +180,6 @@ namespace OpenDental {
 				return;
 			}
 			_queryCur.QueryText=textQuery.Text;
-		}
-
-		///<summary>A tiny class that contains a single SET statement's variable, value, and the entire statement.</summary>
-		private class QuerySetStmtObject {
-			public string Variable;
-			public string Value;
-			public string Stmt;
 		}
 	}
 }
