@@ -11,6 +11,12 @@ namespace OpenDental {
 		string _query;
 		private int _pagesPrinted;
 
+		protected override bool HasHelpKey {
+			get {
+				return false;
+			}
+		}
+
 		public FormFriendlyException(string friendlyMessage,Exception ex,string textCloseButton="") {
 			InitializeComponent();
 			Lan.F(this);
