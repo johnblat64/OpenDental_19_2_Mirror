@@ -482,6 +482,10 @@ namespace OpenDental {
 
 		//Prints one timecard for each employee.
 		private void butPrintAll_Click(object sender,EventArgs e) {
+			if(gridMain.Rows.Count==0) {
+				MsgBox.Show(this,"No time cards to print.");
+				return;
+			}
 			_pagesPrinted=0;
 			PrinterL.TryPreview(pd2_PrintPage,
 				Lan.g(this,Lans.g(this,"Employee time cards printed")),
