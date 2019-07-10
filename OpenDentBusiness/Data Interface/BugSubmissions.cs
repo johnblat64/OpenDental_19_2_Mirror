@@ -252,14 +252,16 @@ namespace OpenDentBusiness {
 			string practiceTitle=null;
 			string practicePhone=null;
 			string programVersion=null;
+			string webServiceHqURL="";
 			if(bugSubmission.RegKey=="7E57-1NPR-0DUC-710N") {
 				registrationKey=bugSubmission.RegKey;
 				practiceTitle="Unknown";
 				practicePhone="Unknown";
 				programVersion=bugSubmission.Info.OpenDentBusinessVersion;
+				webServiceHqURL="https://www.patientviewer.com:49997/OpenDentalWebServiceHQ/WebServiceMainHQ.asmx";
 			}
 			return BugSubmissions.ParseBugSubmissionResult(
-				WebServiceMainHQProxy.GetWebServiceMainHQInstance().SubmitUnhandledException(
+				WebServiceMainHQProxy.GetWebServiceMainHQInstance(webServiceHqURL).SubmitUnhandledException(
 					PayloadHelper.CreatePayload(
 						PayloadHelper.CreatePayloadContent(bugSubmission,"bugSubmission"),
 							eServiceCode.BugSubmission,
