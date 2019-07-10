@@ -241,7 +241,10 @@ namespace OpenDentBusiness {
 			if(MockBugSubmissions!=null) {
 				return MockBugSubmissions.SubmitException(ex,threadName,patNumCur,moduleName);
 			}
-			if(!PrefC.GetBool(PrefName.SendUnhandledExceptionsToHQ)) {
+			//Default SendUnhandledExceptionsToHQ to true if the preference cache is null or the preference was not found.
+			//There might not be a database connection yet, therefore the preference cache could be null.
+			//HQ needs to know more information regarding unhandled exceptions prior to setting a database connection (.NET issue, release issue, etc).
+			if(!PrefC.GetBoolSilent(PrefName.SendUnhandledExceptionsToHQ,true)) {
 				return BugSubmissionResult.None;
 			}
 			return BugSubmissions.ParseBugSubmissionResult(

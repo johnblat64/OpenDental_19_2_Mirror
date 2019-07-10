@@ -180,9 +180,16 @@ namespace OpenDentBusiness {
 				}
 			}
 			DbInfoJson=GetDbInfoJSON(patNum,moduleName);
-			//The following lines will fail if we do not have the office's database context in DataConnection.
-			RegKey=Info.DictPrefValues[PrefName.RegistrationKey];
-			DbVersion=Info.DictPrefValues[PrefName.DataBaseVersion];
+			try {
+				RegKey=Info.DictPrefValues[PrefName.RegistrationKey];
+				DbVersion=Info.DictPrefValues[PrefName.DataBaseVersion];
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
+				//The previous lines will fail if there is no database context.  These bug submissions are still desired.
+				//Set a fake RegKey value that HQ will accept bug submissions for.
+				RegKey="7E57-1NPR-0DUC-710N";
+			}
 			Info.ThreadName=threadName;
 		}
 	
@@ -190,10 +197,11 @@ namespace OpenDentBusiness {
 			return (BugSubmission)this.MemberwiseClone();
 		}
 
-		///<summary>Returns serialized DbInfo object as JSON string of database info from both the preference table and non preferernce table info.</summary>
+		///<summary>Returns serialized DbInfo object as JSON string of database info from both the preference table and non preferernce table info.
+		///Every unique bit of information is individually try / caught so that we return as much information as possible.</summary>
 		private string GetDbInfoJSON(long patNum,string moduleName) {
 			_info=new BugSubmission.SubmissionInfo();
-			try {
+			ODException.SwallowAnyException(() => {
 				//This list is not in a separate method because we want to ensure that future development related to bug submissions don't try to make assumptions
 				//on which preferences are in an object at any given time.
 				//Ex.  Let's say in version 17.4, the list doesn't contain the payplan version preference, but 17.5 does.
@@ -228,26 +236,25 @@ namespace OpenDentBusiness {
 				foreach(PrefName pref in listPrefs) {
 					_info.DictPrefValues[pref]=Prefs.GetOne(pref).ValueString;
 				}
-				_info.CountClinics=Clinics.GetCount();
-				_info.EnabledPlugins=Programs.GetWhere(x => x.Enabled && !string.IsNullOrWhiteSpace(x.PluginDllName)).Select(x => x.ProgName).ToList();
-				_info.ClinicNumCur=Clinics.ClinicNum;
-				_info.UserNumCur=Security.CurUser.UserNum;
-				_info.PatientNumCur=patNum;
-				_info.IsOfficeOnReplication=(ReplicationServers.GetCount() > 0 ? true : false);
-				_info.IsOfficeUsingMiddleTier=(RemotingClient.RemotingRole==RemotingRole.ClientWeb ? true : false);
-				_info.WindowsVersion=MiscData.GetOSVersionInfo();
-				_info.CompName=Security.CurComputerName;
+			});
+			ODException.SwallowAnyException(() => { _info.CountClinics=Clinics.GetCount(); });
+			ODException.SwallowAnyException(() => { _info.EnabledPlugins=Programs.GetWhere(x => x.Enabled && !string.IsNullOrWhiteSpace(x.PluginDllName)).Select(x => x.ProgName).ToList(); });
+			ODException.SwallowAnyException(() => { _info.ClinicNumCur=Clinics.ClinicNum; });
+			ODException.SwallowAnyException(() => { _info.UserNumCur=Security.CurUser.UserNum; });
+			ODException.SwallowAnyException(() => { _info.PatientNumCur=patNum; });
+			ODException.SwallowAnyException(() => { _info.IsOfficeOnReplication=(ReplicationServers.GetCount() > 0 ? true : false); });
+			ODException.SwallowAnyException(() => { _info.IsOfficeUsingMiddleTier=(RemotingClient.RemotingRole==RemotingRole.ClientWeb ? true : false); });
+			ODException.SwallowAnyException(() => { _info.WindowsVersion=MiscData.GetOSVersionInfo(); });
+			ODException.SwallowAnyException(() => { _info.CompName=Security.CurComputerName; });
+			ODException.SwallowAnyException(() => {
 				List<UpdateHistory> listHist=UpdateHistories.GetPreviouUpdateHistories(2);//Ordered by newer versions first.
 				_info.PreviousUpdateVersion=listHist.Count==2 ? listHist[1].ProgramVersion : "";//Show the previous version they updated from
 				_info.PreviousUpdateTime=listHist.Count>0 ? listHist[0].DateTimeUpdated : DateTime.MinValue;//Show when they updated to the current version.
-				_info.ModuleNameCur=moduleName;
-				_info.DatabaseName=DataConnection.GetDatabaseName();
-				ODException.SwallowAnyException(() => { _info.OpenDentBusinessVersion=MiscData.GetAssemblyVersion(); });
-				ODException.SwallowAnyException(() => { _info.OpenDentBusinessMiddleTierVersion=MiscData.GetAssemblyVersionForMiddleTier(); });
-			}
-			catch(Exception ex) {
-				ex.DoNothing();
-			}
+			});
+			ODException.SwallowAnyException(() => { _info.ModuleNameCur=moduleName; });
+			ODException.SwallowAnyException(() => { _info.DatabaseName=DataConnection.GetDatabaseName(); });
+			ODException.SwallowAnyException(() => { _info.OpenDentBusinessVersion=MiscData.GetAssemblyVersion(); });
+			ODException.SwallowAnyException(() => { _info.OpenDentBusinessMiddleTierVersion=MiscData.GetAssemblyVersionForMiddleTier(); });
 			return JsonConvert.SerializeObject(_info);
 		}
 		
