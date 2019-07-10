@@ -222,6 +222,7 @@ namespace OpenDentBusiness {
 					PrefName.ReportingServerMySqlUser,
 					PrefName.ReportingServerMySqlPassHash,
 					PrefName.ReportingServerURI,
+					PrefName.SecurityLogOffAfterMinutes,
 					PrefName.WebServiceServerName
 				};
 				foreach(PrefName pref in listPrefs) {

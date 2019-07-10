@@ -6382,6 +6382,7 @@ namespace OpenDental{
 
 		#region MenuEvents
 		private void menuItemLogOff_Click(object sender, System.EventArgs e) {
+			NullUserCheck("menuItemLogOff_Click");
 			UserOdPref logOffMessage=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.SuppressLogOffMessage).FirstOrDefault();
 			if(logOffMessage==null) {//Doesn't exist in the database
 				InputBox checkResult=new InputBox(Lan.g(this,"Are you sure you would like to log off?"),Lan.g(this,"Do not show me this message again."),true,new Point(0,40));
@@ -9349,6 +9350,7 @@ namespace OpenDental{
 				return;
 			}
 			Plugins.HookAddCode(this,"FormOpenDental.FinishLogOff_start",isForced);//perform logoff 
+			NullUserCheck("FinishLogOff");
 			LastModule=myOutlookBar.SelectedIndex;
 			myOutlookBar.SelectedIndex=-1;
 			myOutlookBar.Invalidate();
@@ -9412,6 +9414,23 @@ namespace OpenDental{
 			if(myOutlookBar.SelectedIndex==-1) {
 				MsgBox.Show(this,"You do not have permission to use any modules.");
 			}
+		}
+
+		///<summary>Call this method in places where Security.CurUser should not be null in order to
+		///notify HQ with additional information when a null Security.CurUser is detected.  Does nothing if CurUser is not null.</summary>
+		private void NullUserCheck(string methodName) {
+			if(Security.CurUser!=null) {
+				return;
+			}
+			StringBuilder strBld=new StringBuilder("OpenForms:");
+			foreach(Form form in Application.OpenForms) {
+				strBld.Append($"\r\n  {(form==null ? "Unknown" : form.Name)}");
+			}
+			ODException.SwallowAnyException(() => BugSubmissions.SubmitException(new ODException("Null user detected during log off.\r\n"
+				+$"Method: {methodName}\r\n"
+				+$"ActiveForm.Name: {(ODForm.ActiveForm==null ? "Unknown" : ODForm.ActiveForm.Name)}\r\n"
+				+strBld.ToString()))
+			);
 		}
 		#endregion Logoff
 
