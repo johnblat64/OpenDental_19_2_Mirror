@@ -1786,7 +1786,7 @@ namespace OpenDental{
 					row.Cells.Add("0");//index of infobutton
 				}
 				AllergyDef allergyDef=AllergyDefs.GetOne(allergyList[i].AllergyDefNum);
-				row.Cells.Add(allergyDef.Description);
+				row.Cells.Add(allergyDef==null ? "MISSING ALLERGY" : allergyDef.Description);
 				if(allergyList[i].DateAdverseReaction<DateTime.Parse("1-1-1800")) {
 					row.Cells.Add(allergyList[i].Reaction);
 				}

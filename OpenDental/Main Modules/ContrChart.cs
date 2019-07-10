@@ -5984,7 +5984,17 @@ namespace OpenDental {
 						}
 						for(int i = 0;allergyList.Count>i;i++) {
 							row=new ODGridRow();
-							cell=new ODGridCell(AllergyDefs.GetOne(allergyList[i].AllergyDefNum).Description);
+							//In the instance that an AllergyDef is somehow deleted/removed from the DB, create an AllergyDef - display only - based upon the selected 
+							//number. Populate it with a description that tells the user that the Allergy is missing. 
+							//The user can click on the allergy in FormMedical and remedy the issue on their own.
+							AllergyDef def=AllergyDefs.GetOne(allergyList[i].AllergyDefNum);
+							if(def==null) {
+								def=new AllergyDef() {
+									AllergyDefNum=allergyList[i].AllergyDefNum,
+									Description="MISSING ALLERGY"
+								};
+							}
+							cell=new ODGridCell(def.Description);
 							cell.Bold=YN.Yes;
 							cell.ColorText=Color.Red;
 							row.Cells.Add(cell);
