@@ -347,6 +347,7 @@ namespace OpenDental {
 			public void SetPatNum(long patNum) {
 				if(IsKiosk) {
 					TerminalActives.SetPatNum(_computerKiosk.TerminalActiveNum,patNum);
+					Signalods.SetInvalid(InvalidType.Kiosk,KeyType.ProcessId,Process.GetCurrentProcess().Id);//signal the terminal manager to refresh its grid
 				}
 				else {
 					MobileAppDevices.SetPatNum(_mobileDevice.MobileAppDeviceNum,patNum);
