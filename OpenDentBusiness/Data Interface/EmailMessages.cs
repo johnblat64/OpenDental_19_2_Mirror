@@ -1233,18 +1233,32 @@ namespace OpenDentBusiness{
 
 		///<summary>Generates the image and returns the path to where the file was saved.  Returns null if the image could not be created.
 		///Used to save images for received html messages.</summary>
-		public static string SaveMimeImageToFile(Health.Direct.Common.Mime.MimeEntity mimeEntityForImage,string directoryPath) {
+		public static string SaveMimeImageToFile(Health.Direct.Common.Mime.MimeEntity mimeEntityForImage,string directoryPath,string sourceFileName) {
 			//No need to check RemotingRole; no call to db.
 			if(!IsMimeEntityBase64(mimeEntityForImage)) {
 				return null;
 			}
 			try {
-				byte[] bytesForImage=Convert.FromBase64String(mimeEntityForImage.Body.Text);
-				MemoryStream ms=new MemoryStream(bytesForImage);
-				Bitmap bitmap=new Bitmap(ms);
 				string fileName=GetMimeImageFileName(mimeEntityForImage);
 				string fileExt=Path.GetExtension(fileName);
 				string filePath=ODFileUtils.CombinePaths(directoryPath,fileName);
+				MemoryStream ms=null;
+				Bitmap bitmap=null;
+				try {
+					//Access the bitmap via passed in actualFilePath and actualFileName from EmailAttach obj, since we strip out embedded images from emails
+					//and save them separately as attachments.
+					bitmap=FileAtoZ.GetImage(FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),sourceFileName));
+				}
+				catch(Exception ex) {
+					//Something went wrong fetching image from file. Attempt to get from mimeEntityForImage, in case we didn't extract it during download.
+					ex.DoNothing();
+					if(!IsMimeEntityBase64(mimeEntityForImage)) {
+						return null;
+					}
+					byte[] bytesForImage=Convert.FromBase64String(mimeEntityForImage.Body.Text);
+					ms=new MemoryStream(bytesForImage);
+					bitmap=new Bitmap(ms);
+				}
 				System.Drawing.Imaging.ImageFormat imageFormat=System.Drawing.Imaging.ImageFormat.Jpeg;
 				if(fileExt.ToLower()==".bmp") {
 					imageFormat=System.Drawing.Imaging.ImageFormat.Bmp;
@@ -1275,7 +1289,7 @@ namespace OpenDentBusiness{
 				}
 				bitmap.Save(filePath,imageFormat);
 				bitmap.Dispose();
-				ms.Dispose();
+				ms?.Dispose();
 				return filePath;
 			}
 			catch {
@@ -1968,7 +1982,9 @@ namespace OpenDentBusiness{
 						retVal.Append(arrayBodyEncoded[i].Substring(2));
 					}
 					else {
-						retVal.Append(arrayBodyEncoded[i]);
+						//This loop can, and will, remove more than just "=3D", or similiar encoded characters. It will also remove "=" from necessary html code 
+						//such as alt and src. Appending sp here allows it to be put back into the code when sp was not followed by two hex characters.
+						retVal.Append(sp+arrayBodyEncoded[i]);
 					}
 				}
 			}

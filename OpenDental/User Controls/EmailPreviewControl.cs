@@ -633,7 +633,10 @@ namespace OpenDental {
 					string contentId=EmailMessages.GetMimeImageContentId(_listImageParts[i]);
 					string fileName=EmailMessages.GetMimeImageFileName(_listImageParts[i]);
 					html=html.Replace("cid:"+contentId,fileName);
-					EmailMessages.SaveMimeImageToFile(_listImageParts[i],htmlFolderPath);
+					EmailAttach attachment=_listEmailAttachDisplayed.FirstOrDefault(x => x.DisplayedFileName.ToLower().Trim()==fileName.ToLower().Trim());
+					//The path and filename must be directly accessed from the EmailAttach object in question, otherwise subsequent code would have accessed
+					//an empty bodied message and never shown an image.
+					EmailMessages.SaveMimeImageToFile(_listImageParts[i],htmlFolderPath,attachment?.ActualFileName);
 				}
 				File.WriteAllText(filePathHtml,html);
 				_isLoading=true;
