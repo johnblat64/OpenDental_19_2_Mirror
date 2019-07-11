@@ -78,7 +78,8 @@ namespace OpenDental {
 
 		private void ODForm_Load(object sender,EventArgs e) {
 			BackColor=ODColorTheme.FormBackColor;
-			_windowsEdition=new ComputerInfo().OSFullName;
+			_windowsEdition="Windows 10";
+			ODException.SwallowAnyException(() => { _windowsEdition=new ComputerInfo().OSFullName; });
 		}
 
 		private void ODForm_Shown(object sender,EventArgs e) {
