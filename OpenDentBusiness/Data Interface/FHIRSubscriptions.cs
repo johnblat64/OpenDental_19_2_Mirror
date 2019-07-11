@@ -75,6 +75,15 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary></summary>
+		public static void Update(FHIRSubscription fHIRSubscription,FHIRSubscription fHIRSubscriptionOld) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),fHIRSubscription,fHIRSubscriptionOld);
+				return;
+			}
+			Crud.FHIRSubscriptionCrud.Update(fHIRSubscription,fHIRSubscriptionOld);
+		}
+
+			///<summary></summary>
 		public static void Delete(long fHIRSubscriptionNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),fHIRSubscriptionNum);
