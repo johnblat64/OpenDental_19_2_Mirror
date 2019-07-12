@@ -262,21 +262,22 @@ namespace OpenDental {
 			_formHelp=new FormHelpWrapper(_windowsEdition,buttonSize);
 			EventHandler handler=(o1,e1) => {
 				var thisRect=this.RectangleToScreen(this.DisplayRectangle);
-				//The x coordinate to place our HelpForm. We find this by starting at x 
-				//and subtracting the sizes of the various buttons that can be show in the titlebar.
+				//The x coordinate to place our HelpForm. We find this by starting at x, adding the width of the form
+				//(to get to the right hand side) and subtracting the sizes of the various buttons that can be shown in the titlebar.
 				int x=thisRect.X+thisRect.Width;
 				//Subtract ? button width
 				x-=buttonSize.Width;
-				//Subtract X button width
-				x-=buttonSize.Width;
-				//If one is present they both are, subtract their buton sizes to find our location.
-				if(MaximizeBox || MinimizeBox) {
+				if(ControlBox && (MaximizeBox || MinimizeBox)){//X, Minimize, and Maximize are all set to show
+					//Subtract X button size
+					x-=buttonSize.Width;
+					//Subtract size of maximize and minimize. If one is present they both are.
 					x-=(buttonSize.Width)*2;
-					x+=GetHelpButtonXLocationAdjustment(true);
 				}
-				else {
-					x+=GetHelpButtonXLocationAdjustment(false);
+				else if(ControlBox){//Just X button is shown
+					x-=buttonSize.Width;
 				}
+				//Adjust for the current operating system.
+				x+=GetHelpButtonXLocationAdjustment(true);
 				if(!_formHelp.IsDisposed) {
 					if(this.WindowState==FormWindowState.Maximized) {
 						_formHelp.SetLocation(x,this.Location.Y+3);
