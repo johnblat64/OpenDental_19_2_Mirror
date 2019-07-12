@@ -4823,6 +4823,11 @@ namespace OpenDental {
 				PaySplit oldSplit=_listPaySplitsOld.FirstOrDefault(x => x.SplitNum==split.SplitNum);
 				string secLogText="Payment changes canceled:";
 				string changesMade="";
+				if(oldSplit==null) {//null when splits are new
+					secLogText="New paysplit canceled.";
+					SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,split.PatNum,secLogText,0);
+					continue;
+				}
 				changesMade+=SecurityLogEntryHelper(Providers.GetAbbr(oldSplit.ProvNum),Providers.GetAbbr(split.ProvNum),"Provider");
 				changesMade+=SecurityLogEntryHelper(Clinics.GetAbbr(oldSplit.ClinicNum),Clinics.GetAbbr(split.ClinicNum),"Clinic");
 				changesMade+=SecurityLogEntryHelper(oldSplit.SplitAmt.ToString("F"),split.SplitAmt.ToString("F"),"Amount");
