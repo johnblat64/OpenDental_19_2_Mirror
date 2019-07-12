@@ -845,19 +845,19 @@ namespace OpenDental {
 		}
 
 		private void SetSurfButtons(){
-			if(textSurfaces.Text.Contains("B") || textSurfaces.Text.Contains("F")) butBF.BackColor=Color.White;
+			butBF.BackColor=(textSurfaces.Text.Contains("B") || textSurfaces.Text.Contains("F"))?Color.White:SystemColors.Control;
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 				if(textSurfaces.Text.Contains("V")) butBF.BackColor=Color.White;
 			}
-			if(textSurfaces.Text.Contains("O") || textSurfaces.Text.Contains("I")) butOI.BackColor=Color.White;
-			if(textSurfaces.Text.Contains("M")) butM.BackColor=Color.White;
-			if(textSurfaces.Text.Contains("D")) butD.BackColor=Color.White;
-			if(textSurfaces.Text.Contains("L")) butL.BackColor=Color.White;
+			butOI.BackColor=(textSurfaces.Text.Contains("O") || textSurfaces.Text.Contains("I"))?Color.White:SystemColors.Control;
+			butM.BackColor=textSurfaces.Text.Contains("M")?Color.White:SystemColors.Control;
+			butD.BackColor=textSurfaces.Text.Contains("D")?Color.White:SystemColors.Control;
+			butL.BackColor=textSurfaces.Text.Contains("L")?Color.White:SystemColors.Control;
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-				if(textSurfaces.Text.Contains("5")) butV.BackColor=Color.White;
+				butV.BackColor=textSurfaces.Text.Contains("5")?Color.White:SystemColors.Control;
 			}
 			else{
-				if(textSurfaces.Text.Contains("V")) butV.BackColor=Color.White;
+				butV.BackColor=textSurfaces.Text.Contains("V")?Color.White:SystemColors.Control;
 			}
 		}
 
@@ -1556,6 +1556,7 @@ namespace OpenDental {
 				errorProvider2.SetError(textSurfaces,"No surfaces selected.");
 			else
 				errorProvider2.SetError(textSurfaces,"");
+			SetSurfButtons();
 		}
 
 		private void groupSextant_Validating(object sender,CancelEventArgs e) {
