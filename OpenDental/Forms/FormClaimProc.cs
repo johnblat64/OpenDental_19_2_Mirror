@@ -362,7 +362,7 @@ namespace OpenDental {
 			comboProvider.Items.Clear();
 			_listProviders=Providers.GetProvsForClinic(ClaimProcCur.ClinicNum);
 			for(int i=0;i<_listProviders.Count;i++) {
-				comboProvider.Items.Add(_listProviders[i].Abbr);
+				comboProvider.Items.Add(new ODBoxItem<Provider>(_listProviders[i].Abbr,_listProviders[i]));
 				if(ClaimProcCur.ProvNum==_listProviders[i].ProvNum) {
 					comboProvider.SelectedIndex=i;
 				}
@@ -803,7 +803,7 @@ namespace OpenDental {
 		}
 
 		private void butPickProv_Click(object sender,EventArgs e) {
-			FormProviderPick formp=new FormProviderPick();
+			FormProviderPick formp=new FormProviderPick(_listProviders);
 			if(comboProvider.SelectedIndex > -1) {
 				formp.SelectedProvNum=_listProviders[comboProvider.SelectedIndex].ProvNum;
 			}
@@ -811,7 +811,11 @@ namespace OpenDental {
 			if(formp.DialogResult!=DialogResult.OK) {
 				return;
 			}
-			comboProvider.SelectedIndex=Providers.GetIndex(formp.SelectedProvNum);
+			//Set the combo box to the ODBoxItem that contains the provider that was just selected.
+			//If we can't find it, reselect the same item that was already selected.
+			comboProvider.SelectedItem=comboProvider.Items.OfType<ODBoxItem<Provider>>()
+				.FirstOrDefault(x => x.Tag.ProvNum==formp.SelectedProvNum)
+				?? comboProvider.SelectedItem;
 		}
 
 		private void comboStatus_SelectionChangeCommitted(object sender,EventArgs e) {
