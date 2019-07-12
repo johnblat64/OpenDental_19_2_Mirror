@@ -14,6 +14,12 @@ namespace OpenDental {
 		///<summary>Set this date before opening the form.  Also after OK, this date is available to the calling class.</summary>
 		public DateTime DateEnd;
 
+		protected override bool HasHelpKey {
+			get {
+				return false;
+			}
+		}
+
 		public FormChartViewDateFilter() {
 			InitializeComponent();
 			Lan.F(this);
