@@ -125,6 +125,14 @@ namespace OpenDentBusiness{
 			return Crud.EClipboardSheetDefCrud.SelectMany(command);
 		}
 
+		public static bool IsSheetDefInUse(long sheetDefNum) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetBool(MethodBase.GetCurrentMethod(),sheetDefNum);
+			}
+			string command="SELECT COUNT(*) FROM eclipboardsheetdef WHERE SheetDefNum="+POut.Long(sheetDefNum);
+			return PIn.Int(Db.GetCount(command))>0;
+		}
+
 		#endregion Get Methods
 		#region Modification Methods
 		#region Insert

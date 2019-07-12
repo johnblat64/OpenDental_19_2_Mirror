@@ -144,12 +144,17 @@ namespace OpenDental {
 		private void EClipboardSetControlsForClinicPrefs(){
 			long clinicNumSelected=clinicPickerEClipboard.SelectedClinicNum;
 			checkEClipboardUseDefaults.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardUseDefaults,clinicNumSelected);
-			checkEClipboardAllowCheckIn.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardAllowSelfCheckIn,clinicNumSelected);
-			checkEClipboardAllowSelfPortrait.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardAllowSelfPortraitOnCheckIn,clinicNumSelected);
-			checkEClipboardAllowSheets.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardPresentAvailableFormsOnCheckIn,clinicNumSelected);
-			checkEClipboardCreateMissingForms.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardCreateMissingFormsOnCheckIn,clinicNumSelected);
-			checkEClipboardPopupKiosk.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardPopupKioskOnCheckIn,clinicNumSelected);
-			textEClipboardMessage.Text=_clinicPrefHelperEClipboard.GetStringVal(PrefName.EClipboardMessageComplete,clinicNumSelected);
+			if(checkEClipboardUseDefaults.Checked) {
+				EClipboardSetControlsToPrefDefaults();
+			}
+			else {
+				checkEClipboardAllowCheckIn.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardAllowSelfCheckIn,clinicNumSelected);
+				checkEClipboardAllowSelfPortrait.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardAllowSelfPortraitOnCheckIn,clinicNumSelected);
+				checkEClipboardAllowSheets.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardPresentAvailableFormsOnCheckIn,clinicNumSelected);
+				checkEClipboardCreateMissingForms.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardCreateMissingFormsOnCheckIn,clinicNumSelected);
+				checkEClipboardPopupKiosk.Checked=_clinicPrefHelperEClipboard.GetBoolVal(PrefName.EClipboardPopupKioskOnCheckIn,clinicNumSelected);
+				textEClipboardMessage.Text=_clinicPrefHelperEClipboard.GetStringVal(PrefName.EClipboardMessageComplete,clinicNumSelected);
+			}
 		}
 
 		///<summary>Fills listEClipboardSheetsAvailable and small grid to its right.</summary>
@@ -158,6 +163,8 @@ namespace OpenDental {
 			List<SheetDef> listSheets=new List<SheetDef>();
 			listSheets.AddRange(SheetDefs.GetCustomForType(SheetTypeEnum.PatientForm));
 			listSheets.AddRange(SheetDefs.GetCustomForType(SheetTypeEnum.MedicalHistory));
+			//Clear any custom sheet defs that don't have a mobile layout
+			listSheets.RemoveAll(x => !x.HasMobileLayout);
 			//Get the list of in-memory eclipboard sheets
 			long clinicNum=checkEClipboardUseDefaults.Checked?0:_clinicNumEClipboardTab;
 			List<EClipboardSheetDef> listClinicSheets=_listEClipboardSheets.FindAll(x => x.ClinicNum==clinicNum);

@@ -120,8 +120,16 @@ namespace OpenDental {
 			}
 			SheetDef sheetDef;
 			Sheet sheet=null;//only useful if not Terminal
+			bool isPatUsingEClipboard=MobileAppDevices.PatientIsAlreadyUsingDevice(PatNum);
 			for(int i=0;i<FormS.SelectedSheetDefs.Count;i++) {
 				sheetDef=FormS.SelectedSheetDefs[i];
+				if(FormS.TerminalSend && isPatUsingEClipboard && !sheetDef.HasMobileLayout) {
+					if(!MsgBox.Show(MsgBoxButtons.YesNo,$"The patient is currently using an eClipboard to fill out forms, but the "+
+						$"{sheetDef.Description} sheet does not have a mobile layout and cannot be used with eClipboard. "+
+						$"If you add this form to the patient's list it will not be shown in eClipboard. Do you still want to add this form?")) {
+						continue;
+					}
+				}
 				sheet=SheetUtil.CreateSheet(sheetDef,PatNum);
 				SheetParameter.SetParameter(sheet,"PatNum",PatNum);
 				SheetFiller.FillFields(sheet);
@@ -129,9 +137,11 @@ namespace OpenDental {
 				if(FormS.TerminalSend) {
 					sheet.InternalNote="";//because null not ok
 					sheet.ShowInTerminal=(byte)(Sheets.GetBiggestShowInTerminal(PatNum)+1);
-					Sheets.SaveNewSheet(sheet);//save each sheet.
+					Sheets.SaveNewSheet(sheet);//save each sheet.					
 					//Push new sheet to eClipboard.
-					OpenDentBusiness.WebTypes.PushNotificationUtils.CI_AddSheet(sheet.PatNum,sheet.SheetNum);
+					if(isPatUsingEClipboard && sheetDef.HasMobileLayout) {
+						OpenDentBusiness.WebTypes.PushNotificationUtils.CI_AddSheet(sheet.PatNum,sheet.SheetNum);
+					}
 				}
 			}
 			if(FormS.TerminalSend) {
@@ -139,7 +149,7 @@ namespace OpenDental {
 				FillGrid();
 				Signalods.SetInvalid(InvalidType.Kiosk);
 			}
-			else{
+			else if(sheet!=null) {
 				FormSheetFillEdit.ShowForm(sheet,FormSheetFillEdit_FormClosing);
 			}
 		}

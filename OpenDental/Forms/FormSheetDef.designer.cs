@@ -233,6 +233,7 @@ namespace OpenDental{
 			this.checkHasMobileLayout.Text = "Use Mobile Layout";
 			this.checkHasMobileLayout.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkHasMobileLayout.UseVisualStyleBackColor = true;
+			this.checkHasMobileLayout.CheckedChanged+=new System.EventHandler(this.CheckHasMobileLayout_CheckedChanged);
 			// 
 			// FormSheetDef
 			// 

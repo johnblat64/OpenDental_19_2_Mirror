@@ -13,8 +13,18 @@ namespace OpenDental{
 		private List<PrefName> _listPrefNames=new List<PrefName>();
 
 		public ClinicPrefHelper(params PrefName[] prefNames) {
+			List<Clinic> listClinics=Clinics.GetForUserod(Security.CurUser,doIncludeHQ:true);
 			foreach(PrefName prefName in prefNames.Distinct()) {
-				_listClinicPrefs.AddRange(ClinicPrefs.GetPrefAllClinics(prefName,includeDefault:true));
+				//Explicity load the entire list because some forms using the clinicPrefHelper might have a "use defaults" pref
+				//that this ClinicPrefHelper doesn't and shouldn't know about. We will clean up unneccessary clinic prefs when 
+				//we call SyncPrefs.
+				foreach(Clinic clinic in listClinics) {
+					_listClinicPrefs.Add(new ClinicPref() {
+						PrefName=prefName,
+						ClinicNum=clinic.ClinicNum,
+						ValueString=ClinicPrefs.GetPrefValue(prefName,clinic.ClinicNum)
+					});
+				}
 				_listPrefNames.Add(prefName);
 			}
 		}

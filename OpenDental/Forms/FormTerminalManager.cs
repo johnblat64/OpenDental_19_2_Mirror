@@ -118,6 +118,14 @@ namespace OpenDental {
 									"appointment on the same day can be sent to eClipboard.");
 								return;
 							}
+							List<Sheet> listNonMobileSheets=listSheets.AllTags<Sheet>().FindAll(x => !x.HasMobileLayout);
+							if(listNonMobileSheets.Count>0) {
+								if(!MsgBox.Show(MsgBoxButtons.YesNo,"The following sheets that have been queued for this patient cannot be "+
+									$"loaded onto an eClipboard device because they do not have a mobile layout: \r\n"+
+									$"{string.Join(", ",listNonMobileSheets.Select(x => x.Description))}. \r\nDo you still wish to continue?")) {
+									return;
+								}
+							}
 							//They are in setup mode (not normal workflow) and there are no sheets for this patient. They have not run the rules to generate
 							//sheets as the patient has not been marked as arrived. When they push the patient to the device, they will not generate the sheets
 							//from there either. Ask them if they want to generate the sheets in this case.
@@ -190,7 +198,7 @@ namespace OpenDental {
 				else {
 					labelPatient.Text=Patients.GetLim(FormOpenDental.CurPatNum).GetNameLF();
 					butPatForms.Enabled=true;
-					Sheets.GetForTerminal(FormOpenDental.CurPatNum).ForEach(x => listSheets.Items.Add(x.Description));
+					Sheets.GetForTerminal(FormOpenDental.CurPatNum).ForEach(x => listSheets.Items.Add(new ODBoxItem<Sheet>(x.Description,tag: x)));
 				}
 			}
 			else {
@@ -198,7 +206,7 @@ namespace OpenDental {
 				labelSheets.Text="Forms on Device";
 				labelPatient.Text=device.PatName;
 				butPatForms.Enabled=!device.IsKiosk;
-				Sheets.GetForTerminal(device.PatNum).ForEach(x => listSheets.Items.Add(x.Description));
+				Sheets.GetForTerminal(device.PatNum).ForEach(x => listSheets.Items.Add(new ODBoxItem<Sheet>(x.Description,x)));
 			}
 		}
 
