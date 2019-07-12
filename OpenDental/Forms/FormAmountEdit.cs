@@ -11,6 +11,12 @@ namespace OpenDental {
 		public decimal Amount;
 		private string _text;
 
+		protected override bool HasHelpKey {
+			get {
+				return false;
+			}
+		}
+
 		public FormAmountEdit(string text) {
 			InitializeComponent();
 			Lan.F(this);
