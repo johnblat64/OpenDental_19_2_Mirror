@@ -204,7 +204,7 @@ namespace OpenDentBusiness {
 			}
 		}
 
-		private static void InsertMany(List<InsEditLog> listLogs) {
+		public static void InsertMany(List<InsEditLog> listLogs) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),listLogs);
 				return;
