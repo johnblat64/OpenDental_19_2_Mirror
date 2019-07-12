@@ -40,7 +40,7 @@ namespace OpenDental{
 			this.butOK.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butOK.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butOK.CornerRadius = 4F;
-			this.butOK.Location = new System.Drawing.Point(187, 91);
+			this.butOK.Location = new System.Drawing.Point(274,86);
 			this.butOK.Name = "butOK";
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
@@ -56,7 +56,7 @@ namespace OpenDental{
 			this.butCancel.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butCancel.CornerRadius = 4F;
 			this.butCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.butCancel.Location = new System.Drawing.Point(268, 91);
+			this.butCancel.Location = new System.Drawing.Point(355,86);
 			this.butCancel.Name = "butCancel";
 			this.butCancel.Size = new System.Drawing.Size(75, 24);
 			this.butCancel.TabIndex = 2;
@@ -65,14 +65,14 @@ namespace OpenDental{
 			// 
 			// textUsername
 			// 
-			this.textUsername.Location = new System.Drawing.Point(112, 20);
+			this.textUsername.Location = new System.Drawing.Point(162, 20);
 			this.textUsername.Name = "textUsername";
 			this.textUsername.Size = new System.Drawing.Size(187, 20);
 			this.textUsername.TabIndex = 6;
 			// 
 			// label4
 			// 
-			this.label4.Location = new System.Drawing.Point(31, 46);
+			this.label4.Location = new System.Drawing.Point(81, 46);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(79, 20);
 			this.label4.TabIndex = 4;
@@ -81,7 +81,7 @@ namespace OpenDental{
 			// 
 			// textPassword
 			// 
-			this.textPassword.Location = new System.Drawing.Point(112, 46);
+			this.textPassword.Location = new System.Drawing.Point(162, 46);
 			this.textPassword.Name = "textPassword";
 			this.textPassword.PasswordChar = '*';
 			this.textPassword.Size = new System.Drawing.Size(187, 20);
@@ -89,7 +89,7 @@ namespace OpenDental{
 			// 
 			// label3
 			// 
-			this.label3.Location = new System.Drawing.Point(34, 20);
+			this.label3.Location = new System.Drawing.Point(84, 20);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(76, 20);
 			this.label3.TabIndex = 5;
@@ -100,7 +100,7 @@ namespace OpenDental{
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.CancelButton = this.butCancel;
-			this.ClientSize = new System.Drawing.Size(355, 127);
+			this.ClientSize = new System.Drawing.Size(442,122);
 			this.Controls.Add(this.textUsername);
 			this.Controls.Add(this.label4);
 			this.Controls.Add(this.textPassword);
