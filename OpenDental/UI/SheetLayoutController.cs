@@ -22,11 +22,12 @@ namespace OpenDental {
 		///<summary>The sheet type which is used to define the dynamic layout.</summary>
 		private SheetTypeEnum _sheetType;
 		///<summary>Used when there are controls that are not part of they dynamic framework but still need to show.
-		///After drawing and placing all controls these controls are set invisible.
 		///Controls in list will effect the dynamic controls fill logic based on their position and visibility.</summary>
 		private List<Control> _listControlsStatic;
 		///<summary>The currently logged in UserOd.UserNum.</summary>
 		private long _userNumCur;
+		///<summary>Only set true when user has been logged off, after a layout is finished this is always set back to false.</summary>
+		private bool _hasUserLoggedOff;
 
 		///<summary>Returns the currently loaded layout. May be null if ListLayoutSheetDefs is empty and the layout hasn't been initialized.</summary>
 		public SheetDef SheetDefDynamicLayoutCur {
@@ -35,7 +36,8 @@ namespace OpenDental {
 			}
 		}
 
-		///<summary></summary>
+		///<summary>Set arrayStaticControls to any controls that are always visible or handle their own layout logic.  
+		///Controls that are dynamically resized will never impede upon these static controls.</summary>
 		public SheetLayoutController(UserControl controlHosting,params Control[] arrayStaticControls) {
 			_controlHosting=controlHosting;
 			if(controlHosting is ContrChart) {
@@ -47,64 +49,65 @@ namespace OpenDental {
 			_listControlsStatic=arrayStaticControls.ToList();
 		}
 		
-		///<summary>Refreshes dynamic layout sheetDefs for the current user.
+		///<summary>Reloads the control with any new sheet layouts available.  
 		///This should only be called if a dynamic sheetDef was added/modified/deleted, the SheetLayoutMode has changed, or a new user signed in.</summary>
-		public void RefreshSheetLayout(SheetFieldLayoutMode sheetFieldLayoutMode,Dictionary<string,Control> dictionaryControls) {
-			int countPreviousTotal=(ListSheetDefsLayout?.Count??0);//Null when first loading
+		public void ReloadSheetLayout(SheetFieldLayoutMode sheetFieldLayoutMode,Dictionary<string,Control> dictionaryControls) {
 			long defaultSheetDefNum=PrefC.GetLong(PrefName.ChartDefaultLayoutSheetDefNum);
 			ListSheetDefsLayout=SheetDefs.GetCustomForType(_sheetType);
-			ListSheetDefsLayout.Add(SheetsInternal.GetSheetDef(SheetsInternal.GetInternalType(_sheetType)));
+			ListSheetDefsLayout.Add(SheetsInternal.GetSheetDef(SheetsInternal.GetInternalType(_sheetType)));//Internal at bottom of list. UI reflects this too.
 			ListSheetDefsLayout=ListSheetDefsLayout
 				.OrderBy(x => x.SheetDefNum!=defaultSheetDefNum)//default sheetdef should be at the top of the list
 				.ThenBy(x => x.SheetDefNum==0)//if the internal sheetdef is not the default it should be last
 				.ThenBy(x => x.Description)//order custom sheetdefs by description
 				.ThenBy(x => x.SheetDefNum).ToList();//then by SheetDefNum to be deterministic order
-			SheetDef sheetDefLayout;
-			if(_sheetDefDynamicLayoutCur==null) {//Initial load.
-				sheetDefLayout=GetDefaultLayout();
-				_userNumCur=Security.CurUser.UserNum;
-			}
-			else if(_sheetDefDynamicLayoutCur.SheetDefNum==0 && countPreviousTotal!=ListSheetDefsLayout.Count) {
-				//Current layout is associated to the internal sheetdef and there is a new sheetdef that should now be used.
-				sheetDefLayout=ListSheetDefsLayout[0];
-			}
-			else {//Not first time loading and user was not viewing default internal layout or user was viewing default layout but did not add any new ones.
-				//Either a new user logged in or the current user navigated to FormLayoutSheetDefs.
-				//If new user logged in then get the user's default layout.  Otherwise same user so the matching logic will work below, unless it was 
-				//deleted. If matching works then we still force re-draw below.
-				if(_userNumCur!=Security.CurUser.UserNum) {//Logged in user has changed.
-					sheetDefLayout=GetDefaultLayout();
-					_userNumCur=Security.CurUser.UserNum;
-				}
-				else {
-					sheetDefLayout=ListSheetDefsLayout.FirstOrDefault(x => x.SheetDefNum==_sheetDefDynamicLayoutCur.SheetDefNum);//Try and reselect the same layout.
-				}
-				if(sheetDefLayout==null) {//Layout not found. Either deleted or new user signed on.
-					sheetDefLayout=ListSheetDefsLayout[0];//Will always have at least the internal def.
-				}
-			}
-			InitLayoutForSheetDef(sheetDefLayout,sheetFieldLayoutMode,dictionaryControls,true);//Force refresh in case they edit current layout.
+			InitLayoutForSheetDef(GetLayoutForUser(),sheetFieldLayoutMode,dictionaryControls,true);//Force refresh in case they edit current layout.
 		}
-
+		
 		///<summary>Attempts to find a UserOdPref indicating to the the most recently loaded layout for user, defaulting to the practice default if not 
 		///found, then defaulting to the first SheetDef in listLayoutSheetDefs.  Returns null if listLayoutSheetDefs is null or empty.</summary>
-		private SheetDef GetDefaultLayout() {
+		private SheetDef GetLayoutForUser() {
+			//Avoid changing the layout when user is simply navigating and switching view modes.
+			//If this user is using the practice default and then the practice default is changed by another user
+			//we want to continue to use the same layout the user is currently viewing.
+			//If the user logs off/exits for the day the next time they log in they will get the new practice default layout.
+			if(!_hasUserLoggedOff
+				&&_userNumCur==Security.CurUser.UserNum
+				&&_sheetDefDynamicLayoutCur!=null
+				&&ListSheetDefsLayout.Any(x => x.SheetDefNum==_sheetDefDynamicLayoutCur.SheetDefNum))
+			{
+				return ListSheetDefsLayout.First(x => x.SheetDefNum==_sheetDefDynamicLayoutCur.SheetDefNum);
+			}
+			#region UserOdPref based layout selection. If no UserOdPref use practice default or first item in list as last line of defense.
+			SheetDef def=null;
 			List<UserOdPref> listPrefs=UserOdPrefs.GetByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.DynamicChartLayout);
 			UserOdPref userPref=listPrefs.FirstOrDefault();//There is only at most a single link per user.
-			if(userPref!=null && ListSheetDefsLayout.Any(x => x.SheetDefNum==userPref.Fkey)) {
-				return ListSheetDefsLayout.FirstOrDefault(x => x.SheetDefNum==userPref.Fkey);//Use the layout from the user pref.
+			if(userPref!=null//User has viewed the chart module before
+				&& ListSheetDefsLayout.Any(x => x.SheetDefNum==userPref.Fkey))//Layout still exists in the list of options
+			{
+				def=ListSheetDefsLayout.FirstOrDefault(x => x.SheetDefNum==userPref.Fkey);//Use previous layout when not practice default.
 			}
-			else if(ListSheetDefsLayout.Any(x => x.SheetDefNum==PrefC.GetLong(PrefName.ChartDefaultLayoutSheetDefNum))) {//Use practice default.
-				return ListSheetDefsLayout.FirstOrDefault(x => x.SheetDefNum==PrefC.GetLong(PrefName.ChartDefaultLayoutSheetDefNum));
+			else {//Try to use the practice default.
+				long sheetDefNum=PrefC.GetLong(PrefName.ChartDefaultLayoutSheetDefNum);
+				if(_hasUserLoggedOff){//Currently the cache is not loaded fast enough after logging back on to trust.
+					sheetDefNum=PIn.Long(PrefC.GetStringNoCache(PrefName.ChartDefaultLayoutSheetDefNum));
+				}
+				def=ListSheetDefsLayout.FirstOrDefault(x => x.SheetDefNum==sheetDefNum);//Can be null
 			}
-			else {
-				return ListSheetDefsLayout[0];//Use first in the list.
+			if(def==null) {//Just in case.
+				def=ListSheetDefsLayout[0];//Use first in the list.
 			}
+			#endregion
+			return def;
 		}
-
-		///<summary>Uses the given sheetDef to set contorl's location, size and anchors.
-		///Usually only called from outside base DynamicLayoutControl when UI is switching to a different layout sheetDef.</summary>
-		public void InitLayoutForSheetDef(SheetDef sheetDef,SheetFieldLayoutMode sheetFieldLayoutMode,Dictionary<string,Control> dictionaryControls,bool isForcedRefresh=false) {
+		
+		///<summary>Uses the given sheetDef to set the location, size, and anchors for dynamic controls.
+		///Usually only called from outside base DynamicLayoutControl when UI is switching to a different layout sheetDef.
+		///Set isUserSelection true in order to save the current layout to the user's preference override.</summary>
+		public void InitLayoutForSheetDef(SheetDef sheetDef,SheetFieldLayoutMode sheetFieldLayoutMode,Dictionary<string,Control> dictionaryControls
+			,bool isForcedRefresh=false,bool isUserSelection=false)
+		{
+			_hasUserLoggedOff=false;//At this point we are showing the chart module to a user, reset.
+			_userNumCur=Security.CurUser.UserNum;
 			if(!isForcedRefresh && _sheetDefDynamicLayoutCur!=null && sheetDef.SheetDefNum==_sheetDefDynamicLayoutCur.SheetDefNum){
 				//Not forcing a refresh and _dynamicLayoutCur and sheetDef are the same sheet. No point in re-running logic.  Prevents flicker.
 				return;
@@ -136,17 +139,26 @@ namespace OpenDental {
 			RefreshGridVerticalSpace(sheetFieldLayoutMode,dictionaryControls);
 			RefreshGridHorizontalSpace(sheetFieldLayoutMode,dictionaryControls);
 			_listControlsStatic.ForEach(x => x.BringToFront());
-			_controlHosting.Controls.OfType<Control>().Where(x => !listDynamicControls.Contains(x) && !_listControlsStatic.Contains(x)).ForEach(x => x.Visible=false);
-			UpdateChartLayoutUserPref();
+			_controlHosting.Controls.OfType<Control>()
+				.Where(x => !listDynamicControls.Contains(x) && !_listControlsStatic.Contains(x))
+				.ForEach(x => x.Visible=false);
+			if(isUserSelection) {
+				UpdateChartLayoutUserPref();
+			}
 		}
 
-		///<summary>Updates, if necessary, the user's preference dictating which Dynamic Chart Layout will load by default.</summary>
+		///<summary>Updates or inserts (if necessary) the user's preference dictating which chart layout sheet def the user last viewed.
+		///Should only be called when a user selects a specific layout.</summary>
 		private void UpdateChartLayoutUserPref() {
 			UserOdPref userPref=UserOdPrefs.GetFirstOrNewByUserAndFkeyType(Security.CurUser.UserNum,UserOdFkeyType.DynamicChartLayout);
-			if(!userPref.IsNew && userPref.Fkey==_sheetDefDynamicLayoutCur.SheetDefNum) {//Existing user pref points to the current layout already
+			userPref.Fkey=_sheetDefDynamicLayoutCur.SheetDefNum;
+			if(userPref.Fkey==PrefC.GetLong(PrefName.ChartDefaultLayoutSheetDefNum)){
+				if(!userPref.IsNew){
+					UserOdPrefs.Delete(userPref.UserOdPrefNum);//Delete old entry, this will cause user to view any newly selected practice defaults.
+				}
+				//User selected the practice default, flag so that this user continues to get the practice default.
 				return;
 			}
-			userPref.Fkey=_sheetDefDynamicLayoutCur.SheetDefNum;
 			UserOdPrefs.Upsert(userPref);
 		}
 
@@ -229,6 +241,10 @@ namespace OpenDental {
 				 && (controlOther.Left.Between(control.Left,control.Right)
 				|| controlOther.Right.Between(control.Left,control.Right))
 			);
+		}
+
+		public void UserLogOffCommited(){
+			_hasUserLoggedOff=true;
 		}
 
 	}

@@ -3526,7 +3526,7 @@ namespace OpenDental {
 			this.toothChart.DrawMode=ComputerPrefs.LocalComputer.GraphicsSimple;//triggers ResetControls.
 			//Passed in controls will maintain their location and be shown but are not part of the dynamic layout fields.
 			_sheetLayoutControler=new SheetLayoutController(this,ToolBarMain,tabControlImages,panelImages);
-			RefreshSheetLayout();
+			ReloadSheetLayout();//First time loading.
 			if(Programs.UsingOrion) {
 				tabProc.SelectedTab=tabPatInfo;
 			}
@@ -3534,8 +3534,8 @@ namespace OpenDental {
 		}
 
 		///<summary>Local helper method that retrieves the current layout mode and sheetFieldDef information prior to refreshing the sheet layout.</summary>
-		private void RefreshSheetLayout() {
-			_sheetLayoutControler.RefreshSheetLayout(GetSheetLayoutMode(),GetSheetFieldDefControlDict());
+		private void ReloadSheetLayout() {
+			_sheetLayoutControler.ReloadSheetLayout(GetSheetLayoutMode(),GetSheetFieldDefControlDict());
 		}
 
 		private void FillListPriorities() {
@@ -3782,7 +3782,7 @@ namespace OpenDental {
 				odInternalCustomerGrids.BringToFront();
 				odInternalCustomerGrids.PatCur=PatCur;
 			}
-			RefreshSheetLayout();//Must be before LayoutToolBar().
+			ReloadSheetLayout();//Module selected
 			Logger.LogAction("RefreshModuleScreen",LogPath.ChartModule,() => RefreshModuleScreen(isClinicRefresh));//Update UI to reflect any changed dynamic SheetDefs.
 			Plugins.HookAddCode(this,"ContrChart.ModuleSelected_end",patNum);
 		}
@@ -5787,7 +5787,7 @@ namespace OpenDental {
 			FormSheetDefs FormSD=new FormSheetDefs(SheetTypeEnum.ChartModule);
 			FormSD.ShowDialog();
 			SecurityLogs.MakeLogEntry(Permissions.Setup,0,"Sheets");
-			RefreshSheetLayout();//Could have added or deleted layouts, refresh list.
+			ReloadSheetLayout();//Could have added or deleted layouts, refresh list.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
 		}
 
@@ -5796,7 +5796,7 @@ namespace OpenDental {
 			if(menuItem.Tag is SheetDef) {
 				menuItem.Parent.MenuItems.OfType<MenuItem>().ForEach(x => x.Checked=(x==menuItem));
 				SheetDef sheetDefCur=menuItem.Tag as SheetDef;
-				_sheetLayoutControler.InitLayoutForSheetDef(sheetDefCur,GetSheetLayoutMode(),GetSheetFieldDefControlDict());
+				_sheetLayoutControler.InitLayoutForSheetDef(sheetDefCur,GetSheetLayoutMode(),GetSheetFieldDefControlDict(),isUserSelection:true);
 			}
 			else {
 				Tool_Layout_Click();
@@ -9085,6 +9085,10 @@ namespace OpenDental {
 			ModuleSelected(PatCur.PatNum);
 		}
 
+		public void UserLogOffCommited() {
+			_sheetLayoutControler?.UserLogOffCommited();//Can be null if user never visted the chart module.
+		}
+
 		private void radioEntryEO_CheckedChanged(object sender,System.EventArgs e) {
 			newStatus=ProcStat.EO;
 		}
@@ -9705,7 +9709,7 @@ namespace OpenDental {
 				gridTreatPlans.SetSelected(0,true);
 			}
 			FillProgNotes();
-			RefreshSheetLayout();//This changes the sheet layout selected.
+			ReloadSheetLayout();//Shows or hides the TP UI. This changes the sheet layout selected.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
 		}
 		#endregion EnterTx
@@ -12185,7 +12189,7 @@ namespace OpenDental {
 					panelEcw.Height=tabControlImages.Top-panelEcw.Top+1;
 				}
 			}
-			RefreshSheetLayout();//This changes the sheet layout.
+			ReloadSheetLayout();//Shows or hides the images bar. This changes the sheet layout.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
 		}
 
@@ -12382,7 +12386,7 @@ namespace OpenDental {
 			if(IsDistributorKey) {
 				gridCustomerViews.SetSelected(e.Row,true);
 			}
-			RefreshSheetLayout();//This changes the sheet layout.
+			ReloadSheetLayout();//Changes the progress notes grid. This changes the sheet layout.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
 		}
 
@@ -12426,7 +12430,7 @@ namespace OpenDental {
 			if(IsDistributorKey) {
 				gridCustomerViews.SetSelected(gridChartViews.GetSelectedIndex(),true);
 			}
-			RefreshSheetLayout();//This changes the sheet layout.
+			ReloadSheetLayout();//Changes the progress notes grid. This changes the sheet layout.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
 		}
 

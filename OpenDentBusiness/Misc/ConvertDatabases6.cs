@@ -1059,6 +1059,7 @@ namespace OpenDentBusiness {
 			command="INSERT INTO preference (PrefName,ValueString) VALUES('PatientSelectSearchWithEmptyParams','0')";//0 for Unknown (YN enum), to maintain current behavior
 			Db.NonQ(command);
 		}
+
 		private static void To19_1_25() {
 			string command;
 			command="INSERT INTO alertcategorylink (AlertCategoryNum,AlertType) VALUES (1,21)";//eservices, WebMailRecieved
@@ -1564,6 +1565,11 @@ namespace OpenDentBusiness {
 			Db.NonQ(command);
 			command="ALTER TABLE taskhist ADD INDEX (DateTStamp)";
 			Db.NonQ(command);
+		}
+
+		private static void To19_2_7() {
+			long chartDefaultDefNum=PIn.Long(Db.GetScalar("SELECT ValueString FROM preference WHERE PrefName='ChartDefaultLayoutSheetDefNum'"),false);
+			Db.NonQ("DELETE FROM userodpref WHERE FKeyType=18 AND Fkey="+POut.Long(chartDefaultDefNum));//18 => DynamicChartLayout
 		}
 
 	}

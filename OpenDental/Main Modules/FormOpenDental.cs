@@ -9362,6 +9362,7 @@ namespace OpenDental{
 			myOutlookBar.Invalidate();
 			UnselectActive(true);
 			allNeutral();
+			ContrChart2.UserLogOffCommited();//Ensures that we refresh view when user logs back on or a new user logs on.
 			if(userControlTasks1.Visible) {
 				userControlTasks1.ClearLogOff();
 			}
