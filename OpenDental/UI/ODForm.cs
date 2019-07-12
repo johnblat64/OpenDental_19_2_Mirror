@@ -261,6 +261,7 @@ namespace OpenDental {
 			Size buttonSize=new Size(buttonWidth,height);
 			_formHelp=new FormHelpWrapper(_windowsEdition,buttonSize);
 			EventHandler handler=(o1,e1) => {
+				bool hasMinMaxButtons=false;
 				var thisRect=this.RectangleToScreen(this.DisplayRectangle);
 				//The x coordinate to place our HelpForm. We find this by starting at x, adding the width of the form
 				//(to get to the right hand side) and subtracting the sizes of the various buttons that can be shown in the titlebar.
@@ -268,6 +269,7 @@ namespace OpenDental {
 				//Subtract ? button width
 				x-=buttonSize.Width;
 				if(ControlBox && (MaximizeBox || MinimizeBox)){//X, Minimize, and Maximize are all set to show
+					hasMinMaxButtons=true;
 					//Subtract X button size
 					x-=buttonSize.Width;
 					//Subtract size of maximize and minimize. If one is present they both are.
@@ -277,7 +279,7 @@ namespace OpenDental {
 					x-=buttonSize.Width;
 				}
 				//Adjust for the current operating system.
-				x+=GetHelpButtonXLocationAdjustment(true);
+				x+=GetHelpButtonXLocationAdjustment(hasMinMaxButtons);
 				if(!_formHelp.IsDisposed) {
 					if(this.WindowState==FormWindowState.Maximized) {
 						_formHelp.SetLocation(x,this.Location.Y+3);
@@ -329,10 +331,10 @@ namespace OpenDental {
 		/// https://en.wikipedia.org/wiki/List_of_Microsoft_Windows_versions </summary>
 		private int GetHelpButtonXLocationAdjustment(bool hasMinMaxButtons) {
 			if(_windowsEdition.Contains("Windows 7")) {
-				return hasMinMaxButtons ? 30 : 10;
+				return hasMinMaxButtons ? 30 : 5;
 			}
 			else if(_windowsEdition.Contains("Windows 8")) {
-				return hasMinMaxButtons ? 35 : 10;
+				return hasMinMaxButtons ? 35 : -5;
 			}
 			else if(_windowsEdition.Contains("Microsoft Windows Server 2012")) {
 				return hasMinMaxButtons ? -30 : -10;
