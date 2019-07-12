@@ -101,6 +101,12 @@ namespace OpenDental{
 			}
 		}
 
+		protected override bool HasHelpKey {
+			get {
+				return false;
+			}
+		}
+
 		///<summary>Returns the text that was entered in the textboxes. Will be in the order they were passed into the constructor.</summary>
 		public List<string> ListTextEntered {
 			get {
