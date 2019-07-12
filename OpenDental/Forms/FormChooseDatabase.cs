@@ -10,6 +10,12 @@ namespace OpenDental {
 		///<summary></summary>
 		public ChooseDatabaseModel Model;
 
+		protected override bool HasHelpKey {
+			get {
+				return false;
+			}
+		}
+
 		public FormChooseDatabase(ChooseDatabaseModel model) {
 			InitializeComponent();
 			Lan.F(this);
