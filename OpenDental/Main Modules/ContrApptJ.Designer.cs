@@ -110,6 +110,7 @@
 			this.menuReminderEdit = new System.Windows.Forms.ContextMenu();
 			this.menuItemReminderDone = new System.Windows.Forms.MenuItem();
 			this.menuItemReminderGoto = new System.Windows.Forms.MenuItem();
+			this.imageListTasks = new System.Windows.Forms.ImageList(this.components);
 			this.panelCalendar.SuspendLayout();
 			this.panelArrows.SuspendLayout();
 			this.panelMakeButtons.SuspendLayout();
@@ -1169,6 +1170,16 @@
 			this.menuItemReminderGoto.Index = 1;
 			this.menuItemReminderGoto.Text = "Go To";
 			// 
+			// imageListTasks
+			// 
+			this.imageListTasks.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListTasks.ImageStream")));
+			this.imageListTasks.TransparentColor = System.Drawing.Color.Transparent;
+			this.imageListTasks.Images.SetKeyName(0, "TaskList.gif");
+			this.imageListTasks.Images.SetKeyName(1, "checkBoxChecked.gif");
+			this.imageListTasks.Images.SetKeyName(2, "checkBoxUnchecked.gif");
+			this.imageListTasks.Images.SetKeyName(3, "TaskListHighlight.gif");
+			this.imageListTasks.Images.SetKeyName(4, "checkBoxNew.gif");
+			// 
 			// ContrApptJ
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1292,5 +1303,6 @@
 		private System.Windows.Forms.ContextMenu menuReminderEdit;
 		private System.Windows.Forms.MenuItem menuItemReminderDone;
 		private System.Windows.Forms.MenuItem menuItemReminderGoto;
+		private System.Windows.Forms.ImageList imageListTasks;
 	}
 }

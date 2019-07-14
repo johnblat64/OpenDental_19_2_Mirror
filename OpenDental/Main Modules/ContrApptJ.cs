@@ -1585,6 +1585,63 @@ namespace OpenDental {
 			formTaskEdit.Show();//non-modal
 		}
 
+		///<summary>The logic for this function was copied from UserControlTasks.gridMain_MouseDown() and modified slightly for this scenaro.</summary>
+		private void gridReminders_MouseDown(object sender,MouseEventArgs e) {
+			int clickedI=gridReminders.PointToRow(e.Y);
+			int clickedCol=gridReminders.PointToCol(e.X);
+			if(clickedI==-1){
+				return;
+			}
+			gridReminders.SetSelected(clickedI,true);//if right click.
+			if(e.Button!=MouseButtons.Left) {
+				return;
+			}
+			ODGridRow row=gridReminders.Rows[clickedI];
+			Task reminderTask=((Task)row.Tag).Copy();
+			if(clickedCol==0){//check tasks off
+				if(PrefC.GetBool(PrefName.TasksNewTrackedByUser)) {
+					long userNumInbox=TaskLists.GetMailboxUserNum(reminderTask.TaskListNum);
+					if(userNumInbox != 0 && userNumInbox != Security.CurUser.UserNum) {
+						MsgBox.Show(this,"Not allowed to mark off tasks in someone else's inbox.");
+						return;
+					}
+					//might not need to go to db to get this info 
+					//might be able to check this:
+					//if(task.IsUnread) {
+					//But seems safer to go to db.
+					if(TaskUnreads.IsUnread(Security.CurUser.UserNum,reminderTask)) {
+						TaskUnreads.SetRead(Security.CurUser.UserNum,reminderTask);
+						reminderTask.TaskStatus=TaskStatusEnum.Viewed;
+						gridReminders.BeginUpdate();
+						SetReminderGridRow(row,reminderTask);//To get the status to immediately show up in the reminders grid.
+						gridReminders.EndUpdate();
+						long signalNum=Signalods.SetInvalid(InvalidType.Task,KeyType.Task,reminderTask.TaskNum);
+						UserControlTasks.RefillLocalTaskGrids(reminderTask,TaskNotes.GetForTask(reminderTask.TaskNum),new List<long>() { signalNum });
+					}
+					//if already read, nothing else to do.  If done, nothing to do
+				}
+				else {
+					if(reminderTask.TaskStatus==TaskStatusEnum.New) {
+						Task taskOld=reminderTask.Copy();
+						reminderTask.TaskStatus=TaskStatusEnum.Viewed;
+						try {
+							Tasks.Update(reminderTask,taskOld);
+							gridReminders.BeginUpdate();
+							SetReminderGridRow(row,reminderTask);//To get the status to immediately show up in the reminders grid.
+							gridReminders.EndUpdate();
+							long signalNum=Signalods.SetInvalid(InvalidType.Task,KeyType.Task,reminderTask.TaskNum);
+							UserControlTasks.RefillLocalTaskGrids(reminderTask,TaskNotes.GetForTask(reminderTask.TaskNum),new List<long>() { signalNum });
+						}
+						catch(Exception ex) {
+							MessageBox.Show(ex.Message);
+							return;
+						}
+					}
+					//no longer allowed to mark done from here
+				}
+			}
+		}
+
 		private void timerWaitingRoom_Tick(object sender,EventArgs e) {
 			FillWaitingRoom();
 		}
@@ -2310,7 +2367,7 @@ namespace OpenDental {
 			_hasInitializedOnStartup=true;
 		}
 
-		///<summary>stub</summary>
+		///<summary></summary>
 		public void LayoutToolBar(){
 			toolBarMain.Buttons.Clear();
 			toolBarMain.Buttons.Add(new ODToolBarButton("",2,"Appointment Lists","Lists"));
@@ -2339,9 +2396,10 @@ namespace OpenDental {
 			contrApptPanel.EndUpdate();
 		}
 
-		///<summary>stub</summary>
+		///<summary></summary>
 		public void ModuleUnselected(){
-			//todo:
+			//We could get rid of our main bitmaps to free up a little memory, I suppose			
+			Plugins.HookAddCode(this,"ContrAppt.ModuleUnselected_end");
 		}
 
 		///<summary></summary>
@@ -2419,7 +2477,6 @@ namespace OpenDental {
 
 		///<summary>This is public so that FormOpenDental can pass refreshed tasks here in order to avoid an extra query.</summary>
 		public void RefreshReminders(List <Task> listReminderTasks) {
-			/*
 			Logger.LogToPath("",LogPath.Signals,LogPhase.Start);
 			List<Task> listSortedReminderTasks=listReminderTasks
 				.Where(x => x.DateTimeEntry.Date <= DateTimeOD.Today)
@@ -2445,7 +2502,82 @@ namespace OpenDental {
 				gridReminders.Rows.Add(row);
 			}
 			gridReminders.EndUpdate();
-			Logger.LogToPath("",LogPath.Signals,LogPhase.End);*/
+			Logger.LogToPath("",LogPath.Signals,LogPhase.End);
+		}
+
+		///<summary>This logic mimics filling a row within UserControlTasks.FillGrid().
+		///However, the logic is simpler here because we are only dealing with reminders.</summary>
+		private void SetReminderGridRow(ODGridRow row,Task reminderTask) {
+			row.Tag=reminderTask;
+			row.Cells.Clear();
+			string dateStr="";
+			if(reminderTask.DateTask.Year>1880) {
+				if(reminderTask.DateType==TaskDateType.Day) {
+					dateStr+=reminderTask.DateTask.ToShortDateString()+" - ";
+				}
+				else if(reminderTask.DateType==TaskDateType.Week) {
+					dateStr+=Lan.g(this,"Week of")+" "+reminderTask.DateTask.ToShortDateString()+" - ";
+				}
+				else if(reminderTask.DateType==TaskDateType.Month) {
+					dateStr+=reminderTask.DateTask.ToString("MMMM")+" - ";
+				}
+			}
+			else if(reminderTask.DateTimeEntry.Year>1880) {
+				dateStr+=reminderTask.DateTimeEntry.ToShortDateString()+" "+reminderTask.DateTimeEntry.ToShortTimeString()+" - ";
+			}
+			string objDesc="";
+			if(reminderTask.TaskStatus==TaskStatusEnum.Done){
+				objDesc=Lan.g(this,"Done:")+reminderTask.DateTimeFinished.ToShortDateString()+" - ";
+			}
+			if(reminderTask.ObjectType==TaskObjectType.Patient) {
+				if(reminderTask.KeyNum!=0) {
+					objDesc+=Patients.GetPat(reminderTask.KeyNum).GetNameLF()+" - ";
+				}
+			}
+			else if(reminderTask.ObjectType==TaskObjectType.Appointment) {
+				if(reminderTask.KeyNum!=0) {
+					Appointment appointment=Appointments.GetOneApt(reminderTask.KeyNum);
+					if(appointment!=null) {
+						objDesc=Patients.GetPat(appointment.PatNum).GetNameLF()//this is going to stay. Still not optimized, but here at HQ, we don't use it.
+							+"  "+appointment.AptDateTime.ToString()
+							+"  "+appointment.ProcDescript
+							+"  "+appointment.Note
+							+" - ";
+					}
+				}
+			}
+			if(!reminderTask.Descript.StartsWith("==") && reminderTask.UserNum!=0) {
+				objDesc+=Userods.GetName(reminderTask.UserNum)+" - ";
+			}
+			if(PrefC.GetBool(PrefName.TasksNewTrackedByUser)) {//The new way
+				if(reminderTask.TaskStatus==TaskStatusEnum.Done) {
+					row.Cells.Add("1");
+				}
+				else {
+					if(reminderTask.IsUnread) {
+						row.Cells.Add("4");
+					}
+					else{
+						row.Cells.Add("2");
+					}
+				}
+			}
+			else {
+				switch(reminderTask.TaskStatus) {
+					case TaskStatusEnum.New:
+						row.Cells.Add("4");
+						break;
+					case TaskStatusEnum.Viewed:
+						row.Cells.Add("2");
+						break;
+					case TaskStatusEnum.Done:
+						row.Cells.Add("1");
+						break;
+				}
+			}
+			row.Cells.Add(dateStr+objDesc+reminderTask.Descript);
+			//No need to do any text detection for triage priorities, we'll just use the task priority colors.
+			row.ColorBackG=Defs.GetColor(DefCat.TaskPriorities,reminderTask.PriorityDefNum);
 		}
 		#endregion Methods - Public Other
 
@@ -4055,24 +4187,26 @@ namespace OpenDental {
 }
 
 //todo:
-//RefreshReminders
+//AppointmentL.DateSelected is a public static variable used in about a dozen inappropriate places outside ContrAppt.
+//Example: FormOpenDental.GotoModule_ModuleSelected needs to be revisited for changing date
+//Remove "static" from variables from panel: _radiusCorn, listOpsVisible, _minPerIncr
 //Where are pinboard TableApptFields stored?  Need them when dragging off in order to make a copy.
 //Dispose of bitmaps on pinboard items when they are removed from list
 //FormApptsOther.MakeRecallAppointment, and similar methods.
-//FormOpenDental.GotoModule_ModuleSelected needs to be revisited for changing date
 //Check that appt colored procs are wrapping properly
-//Full line-by-line review and compare old vs new
 //MsgBox translations
 //Hooks
 //isInsuranceColor not used
 //Chased down all "todo"s in the two new files.
-//Make a checkbox to turn this feature on and off
+//I saw a bubble present on startup, at the bottom, but unable to duplicate
+//Full line-by-line review and compare old vs new
 
 //Needs more testing:
 //Grids at lower right
 //Search
 //DrawWebSchedASAPSlots (I don't know how to test this)
 //Blockouts
+//Reminders
 
 //For Documentation, new feature description:
 //Multiple appointments can be scheduled in the same operatory.  (But this is not really worth putting in the manual because it's obvious)

@@ -67,7 +67,7 @@ namespace OpenDental.UI{
 		private bool _isControlLoaded;
 		///<summary>This was being passed in.  Now, it's set during each PrintPage event.</summary>
 		private bool _isPrinting=false;
-		///<summary>True between BeginUpdate and EndUpdate.  Prevents paint as well as Redraw as needed from running.</summary>
+		///<summary></summary>
 		private bool _isUpdating;
 		///<summary>Keeps track of where are the appointments are located.</summary>
 		private List<ApptLayoutInfo> _listApptLayoutInfos;
@@ -855,6 +855,8 @@ namespace OpenDental.UI{
 		protected override void OnMouseLeave(EventArgs e) {
 			base.OnMouseLeave(e);
 			HeaderTipDraw(new Point(-1,-1));//to trigger hiding it
+			_isBubbleVisible=false;
+			Invalidate();
 		}
 		#endregion Events - Mouse
 
@@ -1525,19 +1527,6 @@ namespace OpenDental.UI{
 		}
 		public static float GetMinPerIncr(){return _minPerIncr; }
 
-		/*//<summary>PatCur?? Not used by this contr, but stored here for consistency.</summary>
-		[Browsable(false)]
-		public Patient PatCur{
-			get{
-				return _patCur;
-			}
-			set{
-				_patCur=value;
-			}
-		}
-		///<summary></summary>
-		private Patient _patCur;*/
-
 		///<summary>Based on the view.  If no view, then it is set to 1. Different computers can be showing different views.</summary>
 		[Browsable(false)]
 		[DefaultValue(1f)]
@@ -1860,18 +1849,29 @@ namespace OpenDental.UI{
 		#region Methods - Private Set Bitmaps
 		///<summary>Usually just grabs an existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from, depending on what data is invalid.  So it usually doesn't need to redraw much.  Triggered much less frequently than OnPaint.</summary>
 		private void SetBitmapMain(){
-			//Dispose of each bitmap to free memory before reinitializing
+			//Reuse each bitmap if it's the correct size.  Otherwise, dispose and reinitialize.
+			Size sizeMain=new Size(_widthMain,_heightMain);
 			if(!_isValidAllMain){
-				_bitmapBack?.Dispose();
-				_bitmapBack=new Bitmap(_widthMain,_heightMain);
+				if(_bitmapBack==null){
+					_bitmapBack=new Bitmap(_widthMain,_heightMain);
+				}
+				else if(_bitmapBack.Size!=sizeMain){
+					_bitmapBack.Dispose();
+					_bitmapBack=new Bitmap(_widthMain,_heightMain);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapBack)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					DrawBackground(g);
 				}
 			}
 			if(!_isValidAllMain || !_isValidApptsMain){
-				_bitmapBackAppts?.Dispose();
-				_bitmapBackAppts=new Bitmap(_widthMain,_heightMain);
+				if(_bitmapBackAppts==null){
+					_bitmapBackAppts=new Bitmap(_widthMain,_heightMain);
+				}
+				else if(_bitmapBackAppts.Size!=sizeMain){
+					_bitmapBackAppts.Dispose();
+					_bitmapBackAppts=new Bitmap(_widthMain,_heightMain);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapBackAppts)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					g.DrawImage(_bitmapBack,0,0);
@@ -1879,16 +1879,26 @@ namespace OpenDental.UI{
 				}
 			}
 			if(!_isValidAllMain || !_isValidApptsMain || !_isValidOutlineSelected){
-				_bitmapBackApptsOutlineSelected?.Dispose();
-				_bitmapBackApptsOutlineSelected=new Bitmap(_widthMain,_heightMain);
+				if(_bitmapBackApptsOutlineSelected==null){
+					_bitmapBackApptsOutlineSelected=new Bitmap(_widthMain,_heightMain);
+				}
+				else if(_bitmapBackApptsOutlineSelected.Size!=sizeMain){
+					_bitmapBackApptsOutlineSelected.Dispose();
+					_bitmapBackApptsOutlineSelected=new Bitmap(_widthMain,_heightMain);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapBackApptsOutlineSelected)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					g.DrawImage(_bitmapBackAppts,0,0);
 					DrawOutlineSelected(g);
 				}
 			}
-			_bitmapMainWithRed?.Dispose();
-			_bitmapMainWithRed=new Bitmap(_widthMain,_heightMain);
+			if(_bitmapMainWithRed==null){
+				_bitmapMainWithRed=new Bitmap(_widthMain,_heightMain);
+			}
+			else if(_bitmapMainWithRed.Size!=sizeMain){
+				_bitmapMainWithRed.Dispose();
+				_bitmapMainWithRed=new Bitmap(_widthMain,_heightMain);
+			}
 			using(Graphics g=Graphics.FromImage(_bitmapMainWithRed)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 				g.DrawImage(_bitmapBackApptsOutlineSelected,0,0);
@@ -1902,9 +1912,15 @@ namespace OpenDental.UI{
 
 		///<summary>Always draws a red timeline, even if _bitmapProvBars doesn't need a redraw.</summary>
 		private void SetBitmapProvBars(){
+			Size sizeProvBars=new Size((int)(_listProvsVisible.Count*_widthProv),_heightMain);
 			if(!_isValidProvBars){
-				_bitmapProvBarsBack?.Dispose();			
-				_bitmapProvBarsBack=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				if(_bitmapProvBarsBack==null){
+					_bitmapProvBarsBack=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				}
+				else if(_bitmapProvBarsBack.Size!=sizeProvBars){
+					_bitmapProvBarsBack.Dispose();
+					_bitmapProvBarsBack=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapProvBarsBack)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					DrawProvBarsBackground(g);
@@ -1915,16 +1931,26 @@ namespace OpenDental.UI{
 				}
 			}
 			if(!_isValidProvBars || !_isValidProvBarsAppts){
-				_bitmapProvBars?.Dispose();
-				_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				if(_bitmapProvBars==null){
+					_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				}
+				else if(_bitmapProvBars.Size!=sizeProvBars){
+					_bitmapProvBars.Dispose();
+					_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapProvBars)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					g.DrawImage(_bitmapProvBarsBack,0,0);
 					DrawProvBarsAppts(g);
 				}
 			}
-			_bitmapProvBarsWithRed?.Dispose();
-			_bitmapProvBarsWithRed=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+			if(_bitmapProvBarsWithRed==null){
+				_bitmapProvBarsWithRed=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+			}
+			else if(_bitmapProvBarsWithRed.Size!=sizeProvBars){
+				_bitmapProvBarsWithRed.Dispose();
+				_bitmapProvBarsWithRed=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
+			}
 			using(Graphics g=Graphics.FromImage(_bitmapProvBarsWithRed)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 				g.DrawImage(_bitmapProvBars,0,0);
@@ -1937,8 +1963,13 @@ namespace OpenDental.UI{
 		///<summary>Does nothing unless _bitmapProvBarsHeader needs a redraw.</summary>
 		private void SetBitmapProvBarsHeader(){
 			if(!_isValidProvBarsHeader){
-				_bitmapProvBarsHeader?.Dispose();
-				_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
+				if(_bitmapProvBarsHeader==null){
+					_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
+				}
+				else if(_bitmapProvBarsHeader.Size!=new Size((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders)){
+					_bitmapProvBarsHeader.Dispose();
+					_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapProvBarsHeader)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 					g.TextRenderingHint=TextRenderingHint.AntiAlias;
@@ -1951,8 +1982,13 @@ namespace OpenDental.UI{
 		///<summary>Does nothing unless _bitmapOpsHeader needs a redraw.</summary>
 		private void SetBitmapOpsHeader(){
 			if(!_isValidOpsHeader){
-				_bitmapOpsHeader?.Dispose();
-				_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
+				if(_bitmapOpsHeader==null){
+					_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
+				}
+				else if(_bitmapOpsHeader.Size!=new Size(_widthMain,(int)_heightProvOpHeaders)){
+					_bitmapOpsHeader.Dispose();
+					_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapOpsHeader)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					g.TextRenderingHint=TextRenderingHint.AntiAlias;
@@ -1964,32 +2000,45 @@ namespace OpenDental.UI{
 		
 		///<summary>Always draws the red timeline, even if _bitmapTimebarLeft/Right don't need a redraw.</summary>
 		private void SetBitmapsTimebar(){
+			Size sizeTimebar=new Size((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
 			if(!_isValidTimebars){
-				_bitmapTimebarLeft?.Dispose();
-				_bitmapTimebarRight?.Dispose();
-				_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				if(_bitmapTimebarLeft==null){
+					_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+					_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				}
+				else if(_bitmapTimebarLeft.Size!=sizeTimebar){
+					_bitmapTimebarLeft.Dispose();
+					_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+					_bitmapTimebarRight.Dispose();
+					_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				}
 				using(Graphics g=Graphics.FromImage(_bitmapTimebarLeft)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					g.TextRenderingHint=TextRenderingHint.AntiAlias;
 					DrawTimebar(g,true);
 				}
-				_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
 				using(Graphics g=Graphics.FromImage(_bitmapTimebarRight)){
 					g.SmoothingMode=SmoothingMode.HighQuality;
 					g.TextRenderingHint=TextRenderingHint.AntiAlias;
 					DrawTimebar(g,false);
 				}
 			}
-			_bitmapTimebarLeftWithRed?.Dispose();
-			_bitmapTimebarRightWithRed?.Dispose();
-			_bitmapTimebarLeftWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+			if(_bitmapTimebarLeftWithRed==null){
+				_bitmapTimebarLeftWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				_bitmapTimebarRightWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+			}
+			else if(_bitmapTimebarLeftWithRed.Size!=sizeTimebar){
+				_bitmapTimebarLeftWithRed.Dispose();
+				_bitmapTimebarLeftWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				_bitmapTimebarRightWithRed.Dispose();
+				_bitmapTimebarRightWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+			}
 			using(Graphics g=Graphics.FromImage(_bitmapTimebarLeftWithRed)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 				g.TextRenderingHint=TextRenderingHint.AntiAlias;
 				g.DrawImage(_bitmapTimebarLeft,0,0);
 				DrawRedTimeLineTimebar(g);
 			}
-			_bitmapTimebarRightWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
 			using(Graphics g=Graphics.FromImage(_bitmapTimebarRightWithRed)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 				g.TextRenderingHint=TextRenderingHint.AntiAlias;
