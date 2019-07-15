@@ -181,7 +181,7 @@ namespace OpenDental {
 				else {
 					FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
 					CheckStatus();
-					formApptsOther.IsInitialClick=true;
+					//formApptsOther.IsInitialDoubleClick=true;
 					formApptsOther.DateTNew=e.DateT;
 					formApptsOther.OpNumNew=e.OpNum;
 					formApptsOther.MakeAppointment();
@@ -644,7 +644,7 @@ namespace OpenDental {
 					listApptNums.Add(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["AptNum"].ToString()));
 				}
 			}
-			FormApptPrintSetup formApptPrintSetup=new FormApptPrintSetup(listApptNums);
+			FormApptPrintSetup formApptPrintSetup=new FormApptPrintSetup(listApptNums);//,contrApptPanel.DateSelected,contrApptPanel.IsWeeklyView);
 			formApptPrintSetup.ShowDialog();
 			if(formApptPrintSetup.DialogResult!=DialogResult.OK) {
 				return;
@@ -676,33 +676,33 @@ namespace OpenDental {
 		#region Events - PanelCalendar Upper
 		///<summary>Clicked today.</summary>
 		private void butToday_Click(object sender,System.EventArgs e) {
-			SetDateSelected(DateTimeOD.Today);
+			ModuleSelected(DateTimeOD.Today);
 		}
 
 		///<summary>Clicked back one day.</summary>
 		private void butBack_Click(object sender,System.EventArgs e) {
-			SetDateSelected(contrApptPanel.DateSelected.AddDays(-1));
+			ModuleSelected(contrApptPanel.DateSelected.AddDays(-1));
 		}
 
 		///<summary>Clicked forward one day.</summary>
 		private void butFwd_Click(object sender,System.EventArgs e) {
-			SetDateSelected(contrApptPanel.DateSelected.AddDays(1));
+			ModuleSelected(contrApptPanel.DateSelected.AddDays(1));
 		}
 				
 		private void butBackMonth_Click(object sender,EventArgs e) {
-			SetDateSelected(contrApptPanel.DateSelected.AddMonths(-1));
+			ModuleSelected(contrApptPanel.DateSelected.AddMonths(-1));
 		}
 
 		private void butBackWeek_Click(object sender,EventArgs e) {
-			SetDateSelected(contrApptPanel.DateSelected.AddDays(-7));
+			ModuleSelected(contrApptPanel.DateSelected.AddDays(-7));
 		}
 
 		private void butFwdWeek_Click(object sender,EventArgs e) {
-			SetDateSelected(contrApptPanel.DateSelected.AddDays(7));
+			ModuleSelected(contrApptPanel.DateSelected.AddDays(7));
 		}
 
 		private void butFwdMonth_Click(object sender,EventArgs e) {
-			SetDateSelected(contrApptPanel.DateSelected.AddMonths(1));
+			ModuleSelected(contrApptPanel.DateSelected.AddMonths(1));
 		}
 
 		private void radioDay_Click(object sender,EventArgs e) {
@@ -716,7 +716,7 @@ namespace OpenDental {
 		///<summary>Clicked a date on the calendar.</summary>
 		private void Calendar2_DateSelected(object sender,System.Windows.Forms.DateRangeEventArgs e) {
 			//Do not use the DateChanged event, because that reacts to programmatic changes to the calendar date, causing weird loops.
-			SetDateSelected(Calendar2.SelectionStart);
+			ModuleSelected(Calendar2.SelectionStart);
 		}
 
 		///<summary></summary>
@@ -1054,7 +1054,7 @@ namespace OpenDental {
 			}
 			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
 			CheckStatus();
-			formApptsOther.IsInitialClick=false;
+			//formApptsOther.IsInitialDoubleClick=false;
 			formApptsOther.MakeAppointment();
 			SendToPinBoardAptNums(formApptsOther.AptNumsSelected);
 		}
@@ -1082,7 +1082,7 @@ namespace OpenDental {
 				return;
 			}
 			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
-			formApptsOther.IsInitialClick=false;
+			//formApptsOther.IsInitialDoubleClick=false;
 			formApptsOther.MakeRecallAppointment();
 			if(formApptsOther.DialogResult!=DialogResult.OK) {
 				return;
@@ -1110,7 +1110,7 @@ namespace OpenDental {
 				return;
 			}
 			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
-			formApptsOther.IsInitialClick=false;
+			//formApptsOther.IsInitialDoubleClick=false;
 			formApptsOther.MakeRecallFamily();
 			if(formApptsOther.DialogResult!=DialogResult.OK) {
 				return;
@@ -2023,10 +2023,9 @@ namespace OpenDental {
 
 		#region Events - Menu TextAppts Click
 		private void menuTextASAPList_Click(object sender,EventArgs e) {
-			TimeSpan timeClicked=UserControlApptsPanelJ.RoundTimeDown(contrApptPanel.GetTimeClicked(),contrApptPanel.MinPerIncr);
-			DateTime dateTimeClicked=contrApptPanel.DateSelected+timeClicked;
+			DateTime dateTimeClicked=UserControlApptsPanelJ.GetDateTimeClicked();
 			if(PrefC.GetBool(PrefName.WebSchedAsapEnabled)) {
-				DisplayFormAsapForWebSched(contrApptPanel.GetOpNumClicked(),dateTimeClicked);
+				DisplayFormAsapForWebSched(UserControlApptsPanelJ.GetOpNumClicked(),dateTimeClicked);
 			}
 			else {//Texting the ASAP list manually
 				if(_formASAP!=null && !_formASAP.IsDisposed) {
@@ -2043,7 +2042,7 @@ namespace OpenDental {
 
 		private void menuTextApptsForDayOp_Click(object sender,EventArgs e) {
 			DateTime dateClicked=contrApptPanel.DateSelected;
-			long opNumClicked=contrApptPanel.GetOpNumClicked();
+			long opNumClicked=UserControlApptsPanelJ.GetOpNumClicked();
 			List<long> listPatNums=new List<long>();
 			for(int i=0;i<contrApptPanel.TableAppointments.Rows.Count;i++){
 				if(PIn.Long(contrApptPanel.TableAppointments.Rows[i]["Op"].ToString())!=opNumClicked){
@@ -2087,7 +2086,7 @@ namespace OpenDental {
 			if(!Security.IsAuthorized(Permissions.Setup) || !Security.IsAuthorized(Permissions.AppointmentEdit)) {
 				return;
 			}
-			Operatory operatory=Operatories.GetOperatory(contrApptPanel.GetOpNumClicked());
+			Operatory operatory=Operatories.GetOperatory(UserControlApptsPanelJ.GetOpNumClicked());
 			if(Security.CurUser.ClinicIsRestricted && !Clinics.GetForUserod(Security.CurUser).Exists(x => x.ClinicNum==operatory.ClinicNum)) {
 				MsgBox.Show("You are restricted from accessing the clinic belonging to the selected operatory.  No changes will be made.");
 				return;
@@ -2143,12 +2142,49 @@ namespace OpenDental {
 		#endregion Events - Menu Jobs
 
 		#region Events - Search
+		private void ButAdvSearch_Click(object sender, EventArgs e){
+			if(pinBoard.SelectedIndex==-1) {
+				MsgBox.Show(this,"There is no appointment on the pinboard.");
+				return;
+			}
+			long aptNum=pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].AptNum;
+			FormApptSearchAdvanced formApptSearchAdvanced=new FormApptSearchAdvanced(aptNum);
+			List<long> listProvsInBox=new List<long>();
+			foreach(ODBoxItem<Provider> prov in _listBoxProviders.Items) {
+				listProvsInBox.Add(prov.Tag.ProvNum);
+			}
+			formApptSearchAdvanced.SetSearchArgs(aptNum,listProvsInBox,textBefore.Text,textAfter.Text,PIn.Date(dateSearch.Text));
+			formApptSearchAdvanced.ShowDialog();
+		}
+
+		private void ButGraph_Click(object sender, EventArgs e){
+			//only visible on computers at OD corporate.
+			//FormGraphEmployeeTime form=new FormGraphEmployeeTime(contrApptPanel.DateSelected);
+			//form.ShowDialog();
+		}
+
+		private void ButLab_Click(object sender, EventArgs e){
+			FormLabCases formLabCases=new FormLabCases();
+			formLabCases.ShowDialog();
+			if(formLabCases.GoToAptNum!=0) {
+				Appointment apt=Appointments.GetOneApt(formLabCases.GoToAptNum);
+				Patient pat=Patients.GetPat(apt.PatNum);
+				//PatientSelectedEventArgs eArgs=new OpenDental.PatientSelectedEventArgs(pat.PatNum,pat.GetNameLF(),pat.Email!="",pat.ChartNumber);
+				//if(PatientSelected!=null){
+				//	PatientSelected(this,eArgs);
+				//}
+				//Contr_PatientSelected(this,eArgs);
+				FormOpenDental.S_Contr_PatientSelected(pat,false,false);
+				GotoModule.GotoAppointment(apt.AptDateTime,apt.AptNum);
+			}
+		}
+
 		private void butProvDentist_Click(object sender,EventArgs e) {
 			_listProvidersSearch=new List<Provider>();
 			_listBoxProviders.Items.Clear();
 			List<Provider> listProvidersShort=Providers.GetDeepCopy(true);
 			for(int i=0;i<listProvidersShort.Count;i++){
-				if(ApptViewItemL.ProvIsInView(listProvidersShort[i].ProvNum)) {
+				if(contrApptPanel.ListApptViewItems.Exists(x=>x.ProvNum==listProvidersShort[i].ProvNum)) {
 					if(!listProvidersShort[i].IsSecondary) {
 						_listProvidersSearch.Add(listProvidersShort[i]);
 						_listBoxProviders.Items.Add(new ODBoxItem<Provider>(listProvidersShort[i].Abbr,listProvidersShort[i]));
@@ -2167,7 +2203,7 @@ namespace OpenDental {
 			_listBoxProviders.Items.Clear();
 			List<Provider> listProvidersShort=Providers.GetDeepCopy(true);
 			for(int i=0;i<listProvidersShort.Count;i++) {
-				if(ApptViewItemL.ProvIsInView(listProvidersShort[i].ProvNum)) {
+				if(contrApptPanel.ListApptViewItems.Exists(x=>x.ProvNum==listProvidersShort[i].ProvNum)) {
 					if(listProvidersShort[i].IsSecondary) {
 						_listProvidersSearch.Add(listProvidersShort[i]);
 						_listBoxProviders.Items.Add(new ODBoxItem<Provider>(listProvidersShort[i].Abbr,listProvidersShort[i]));
@@ -2238,7 +2274,7 @@ namespace OpenDental {
 			if(clickedI==-1) {
 				return;
 			}
-			SetDateSelected(_listScheduleOpenings[clickedI].DateTimeAvail);
+			ModuleSelected(_listScheduleOpenings[clickedI].DateTimeAvail);
 		}
 
 		private void butRefresh_Click(object sender,EventArgs e) {
@@ -2382,6 +2418,28 @@ namespace OpenDental {
 		#endregion Methods - Public Initialize
 
 		#region Methods - Public Module Select
+		///<summary>This is a good way to set contrApptPanel.DateSelected while also refreshing the module.  If you are not changing the date or patient, then instead, simply use RefreshPeriod().</summary>
+		public void ModuleSelected(DateTime date){
+			contrApptPanel.BeginUpdate();//otherwise, the appointments will disappear
+			contrApptPanel.DateSelected=date;
+			long apptViewNum=0;
+			if(contrApptPanel.ApptViewCur!=null) {
+				apptViewNum=contrApptPanel.ApptViewCur.ApptViewNum;
+			}
+			if(contrApptPanel.IsWeeklyView) {
+				if(_patCur==null) {
+					ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+				}
+				else {
+					ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
+				}
+			}
+			else {
+				RefreshPeriod(listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum),isRefreshSchedules:true);
+			}
+			contrApptPanel.EndUpdate();
+		}
+
 		///<summary>Refreshes the module for the passed in patient.  A patNum of 0 is acceptable.  Any ApptNums within listPinApptNums will get forcefully added to the main DataSet for the appointment module.</summary>
 		public void ModuleSelected(long patNum,List<long> listPinApptNums=null,List<long> listOpNums=null,List<long> listProvNums=null){
 			if(IsHqNoneView()) {
@@ -2402,10 +2460,19 @@ namespace OpenDental {
 			Plugins.HookAddCode(this,"ContrAppt.ModuleUnselected_end");
 		}
 
-		///<summary></summary>
-		public void ModuleSelectedWithPinboard(long patNum,List<long> listPinApptNums){
+		///<summary>Jumping here from another module and placing appointments on the pinboard.</summary>
+		public void ModuleSelectedWithPinboard(long patNum,List<long> listPinApptNums,DateTime dateSelected){
+			contrApptPanel.BeginUpdate();
+			contrApptPanel.DateSelected=dateSelected;
 			ModuleSelected(patNum,listPinApptNums);
 			SendToPinBoardAptNums(listPinApptNums);
+			contrApptPanel.EndUpdate();
+		}
+
+		///<summary>Jumping here from another module and selecting an appointment.  Patient is already taken care of, frequently because the appointment is for the current patient.</summary>
+		public void ModuleSelectedGoToAppt(long aptNum,DateTime dateSelected){
+			ModuleSelected(dateSelected);
+			contrApptPanel.SelectedAptNum=aptNum;
 		}
 
 		///<summary>>Refreshes everything except the patient info. isRefreshBubble will refresh the appointment bubble.  If another workstation made a change, then refreshes datatables.</summary>
@@ -2432,6 +2499,16 @@ namespace OpenDental {
 		}
 		#endregion Methods - Public Module Select
 
+		#region Methods - Public Get Fields From Panel
+		public List<Operatory> GetListOpsVisible(){
+			return contrApptPanel.ListOpsVisible;
+		}
+
+		public List<Provider> GetListProvsVisible(){
+			return contrApptPanel.ListProvsVisible;
+		}
+		#endregion Methods - Public Get Fields From Panel
+
 		#region Methods - Public Other
 		///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user 
 		///doubleclicked on a blank time to get to this dialog.</summary>
@@ -2440,7 +2517,7 @@ namespace OpenDental {
 				return;
 			}
 			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);
-			formApptsOther.IsInitialClick=initialClick;
+			//formApptsOther.IsInitialDoubleClick=initialClick;
 			formApptsOther.DateTNew=dateTime;
 			formApptsOther.OpNumNew=opNum;
 			formApptsOther.ShowDialog();
@@ -2454,7 +2531,7 @@ namespace OpenDental {
 				return;
 			}
 			FormApptsOther FormAO=new FormApptsOther(_patCur.PatNum);
-			FormAO.IsInitialClick=initialClick;
+			//FormAO.IsInitialDoubleClick=initialClick;
 			FormAO.ShowDialog();
 			ProcessOtherDlg(FormAO.OResult,FormAO.SelectedPatNum,FormAO.DateJumpToString,FormAO.AptNumsSelected.ToArray());
 		}
@@ -2671,8 +2748,7 @@ namespace OpenDental {
 		#endregion Methods - Private Refresh Data
 
 		#region Methods - Private Refresh Screen
-		///<summary>Happens once per minute.  It used to just move the red timebar down without querying the database.  
-		///But now it queries the database so that the waiting room list shows accurately.  Always updates the waiting room.</summary>
+		///<summary>Happens once per minute.  It used to just move the red timebar down without querying the database.  If pref.ApptModuleRefreshesEveryMinute is on (it is by default), then this instead queries the database for appt signals so that the waiting room list shows accurately.  The update to the waiting room grid is on a different timer.</summary>
 		public void TickRefresh(){
 			try {
 				//dates already set
@@ -2685,7 +2761,9 @@ namespace OpenDental {
 						//Now we only query for the specific signals we care about. Instead of using Signalods.SignalLastRefreshed we now use Signalods.ApptSignalLastRefreshed.
 						//Signalods.ApptSignalLastRefreshed mimics the behavior of Signalods.SignalLastRefreshed but is guaranteed to not be stale from inactive sessions.
 						List<Signalod> listSignals=Signalods.RefreshTimed(Signalods.ApptSignalLastRefreshed,new List<InvalidType>(){ InvalidType.Appointment,InvalidType.Schedules });
-						bool isApptRefresh=Signalods.IsApptRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);
+						List<long> listOpNumsVisible = contrApptPanel.ListOpsVisible.Select(x => x.OperatoryNum).ToList();
+						List<long> listProvNumsVisible = contrApptPanel.ListProvsVisible.Select(x => x.ProvNum).ToList();
+						bool isApptRefresh=Signalods.IsApptRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);//,listOpNumsVisible,listProvNumsVisible);
 						bool isSchedRefresh=Signalods.IsSchedRefreshNeeded(contrApptPanel.DateStart,contrApptPanel.DateEnd,listSignals);
 						//either we have signals from other machines telling us to refresh, or we aren't using signals, in which case we still want to refresh
 						RefreshPeriod(false,isRefreshAppointments:isApptRefresh,isRefreshSchedules:isSchedRefresh);
@@ -3207,7 +3285,7 @@ namespace OpenDental {
 			}
 			if(listSearchResults.Items.Count>0) {
 				listSearchResults.SetSelected(0,true);
-				SetDateSelected(_listScheduleOpenings[0].DateTimeAvail);
+				ModuleSelected(_listScheduleOpenings[0].DateTimeAvail);
 			}
 			Cursor=Cursors.Default;
 			//scroll to make visible?
@@ -4072,28 +4150,6 @@ namespace OpenDental {
 			}
 		}
 
-		///<summary>This is a good way to set contrApptPanel.DateSelected while also refreshing the module.  If you are not changing the date or patient, then instead, simply use RefreshPeriod().</summary>
-		private void SetDateSelected(DateTime date){
-			contrApptPanel.BeginUpdate();//otherwise, the appointments will disappear
-			contrApptPanel.DateSelected=date;
-			long apptViewNum=0;
-			if(contrApptPanel.ApptViewCur!=null) {
-				apptViewNum=contrApptPanel.ApptViewCur.ApptViewNum;
-			}
-			if(contrApptPanel.IsWeeklyView) {
-				if(_patCur==null) {
-					ModuleSelected(0,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
-				}
-				else {
-					ModuleSelected(_patCur.PatNum,listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum));
-				}
-			}
-			else {
-				RefreshPeriod(listOpNums:ApptViewItems.GetOpsForView(apptViewNum),listProvNums:ApptViewItems.GetProvsForView(apptViewNum),isRefreshSchedules:true);
-			}
-			contrApptPanel.EndUpdate();
-		}
-
 		///<summary>Used when passing a family to the pinboard.</summary>
 		private void SendToPinBoardAptNums(List<long> aptNums) {
 			if(IsHqNoneView()) {
@@ -4176,10 +4232,6 @@ namespace OpenDental {
 			Appointments.TryAdjustAppointment(appt,UI.UserControlApptsPanelJ.GetListOpsVisible(),false,true,true,true,out isPatternChanged,out notUsed);
 			return isPatternChanged;
 		}
-
-
-
-
 		#endregion Methods - Private Other
 
 		
@@ -4187,9 +4239,11 @@ namespace OpenDental {
 }
 
 //todo:
-//AppointmentL.DateSelected is a public static variable used in about a dozen inappropriate places outside ContrAppt.
-//Example: FormOpenDental.GotoModule_ModuleSelected needs to be revisited for changing date
-//Remove "static" from variables from panel: _radiusCorn, listOpsVisible, _minPerIncr
+//Greatly reduce the number of main bitmaps to reduce memory
+//Changing increments affect _isValidTimebars
+//Translate from control to main and vv.
+//At the end of resizing appt, AppointmentEvent.Fire, Refresh bubble (the only place), etc.
+//Reduce the use of public static fields where easily feasible.
 //Where are pinboard TableApptFields stored?  Need them when dragging off in order to make a copy.
 //Dispose of bitmaps on pinboard items when they are removed from list
 //FormApptsOther.MakeRecallAppointment, and similar methods.
@@ -4207,6 +4261,16 @@ namespace OpenDental {
 //DrawWebSchedASAPSlots (I don't know how to test this)
 //Blockouts
 //Reminders
+//ModuleSelectedGoToAppt
+//ModuleSelectedWithPinboard
+
+//Issues to look into which are probably not really a problem:
+//TickRefresh looks dangerous
+//HasValidStartTime looks like it can be eliminated once we fully allow overlap
+
+//Done:
+//Did a find all references for each public field in each of the following files, to make sure they weren't in use outside the old files:
+//ApptDrawing,ApptSingleDrawing,ApptViewItemL,ContrApptSheet,ContrApptSingle,ApptOverlapOrdering,PinBoard
 
 //For Documentation, new feature description:
 //Multiple appointments can be scheduled in the same operatory.  (But this is not really worth putting in the manual because it's obvious)

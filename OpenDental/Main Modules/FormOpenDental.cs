@@ -4923,7 +4923,7 @@ namespace OpenDental{
 				if(PrefC.GetBool(PrefName.ApptModuleUses2019Overhaul)){
 					ContrApptJ2.Visible=true;
 					this.ActiveControl=this.ContrApptJ2;
-					ContrApptJ2.ModuleSelectedWithPinboard(CurPatNum,e.ListPinApptNums);
+					ContrApptJ2.ModuleSelectedWithPinboard(CurPatNum,e.ListPinApptNums,e.DateSelected);
 				}
 				else{
 					ContrAppt2.Visible=true;

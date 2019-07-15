@@ -32,25 +32,11 @@ namespace OpenDental.UI{
 		#endregion Fields - Public Printing
 
 		#region Fields - Private isValid flags
-		//Main-------------------------------------------------------------------------------------------
-		///<summary>This will trigger redrawing everything in the main area, including appointments. Always set _isValidProvBars at the same time.</summary>
-		private bool _isValidAllMain=false;//start false to trigger initial draw
-		///<summary>This will trigger redrawing all appointments in the main area. Includes redrawing appt outlines.  Usually set _isValidProvBarsAppts at the same time.</summary>
-		private bool _isValidApptsMain=true;
-		///<summary>This will trigger redrawing only the outlines around appointments.</summary>
-		private bool _isValidOutlineSelected=true;
-		//Prov bars at left-----------------------------------------------------------------------------
-		///<summary>This will trigger redrawing prov bars at left, including appointment markers.</summary>
-		private bool _isValidProvBars=false;
-		///<summary>This will trigger redrawing all appointment info on the provbars.</summary>
-		private bool _isValidProvBarsAppts=true;
-		//Headers---------------------------------------------------------------------------------------
-		///<summary>This will trigger redrawing only the provbars header. This just depends on providers which are set by views.</summary>
-		private bool _isValidProvBarsHeader=false;
-		///<summary>This will trigger redrawing only the ops header.  This does not depend at all on schedules or appointments, just ops, which are set by views.  This depends on ApptView.OnlyScheduledProvs affecting visible Ops.  So it's visible Ops that then sets this flag.</summary>
-		private bool _isValidOpsHeader=false;
-		//Timebars--------------------------------------------------------------------------------------
-		///<summary>This will trigger redrawing only timebars.  This is rare.  In fact, currently, there's nothing that triggers this after initial drawing.</summary>
+		///<summary>This will trigger redrawing everything in the main area, including appointments. It also triggers redraw of a second bitmap for ProvBars.</summary>
+		private bool _isValidMain=false;//start false to trigger initial draw
+		///<summary>This will trigger redrawing of the provbars header and Ops header.  Not as frequent as Main.</summary>
+		private bool _isValidHeaders=false;
+		///<summary>This will trigger redrawing only L&R timebars.  This is rare.</summary>
 		private bool _isValidTimebars=false;
 		#endregion Fields - Private isValid flags
 
@@ -67,8 +53,8 @@ namespace OpenDental.UI{
 		private bool _isControlLoaded;
 		///<summary>This was being passed in.  Now, it's set during each PrintPage event.</summary>
 		private bool _isPrinting=false;
-		///<summary></summary>
-		private bool _isUpdating;
+		///<summary>Starts out zero.  BeginUpdate increments it up, and EndUpdate increments it down. RedrawAsNeeded is blocked unless zero.</summary>
+		private int _updatingLevel;
 		///<summary>Keeps track of where are the appointments are located.</summary>
 		private List<ApptLayoutInfo> _listApptLayoutInfos;
 		///<summary>Typical values would be 10,15,5,or 7.5.  Derived from minPerIncr_10 / RowsPerIncr_2 =5. </summary>
@@ -106,40 +92,20 @@ namespace OpenDental.UI{
 		#endregion Fields - Private Measurements
 
 		#region Fields - Private Drawing
-		//Main-----------------------------------------------------------------------------------------
-		///<summary>Just the background.  Must place all the appts on it.</summary>
-		private Bitmap _bitmapBack;
-		///<summary>Background plus Appts.  No outlines or time line.</summary>
-		private Bitmap _bitmapBackAppts;
-		///<summary>Background plus Appts plus outlines.  No time line.</summary>
-		private Bitmap _bitmapBackApptsOutlineSelected;
-		///<summary>Easily assembled by combining one of the other bitmaps with a red time line and possibly the appointment bubble.  This is the one that's painted with OnPaint.</summary>
-		private Bitmap _bitmapMainWithRed;
-		//Appt Info bubble -----------------------------------------------------------------------------
+		///<summary>The main area background with appointments.</summary>
+		private Bitmap _bitmapMain;
 		///<summary>This bitmap for the info bubble includes text, patient pic, and outline.  There is only one.  It can be quickly placed on top of the background at various locations.  This is not combined with any background bitmap, but is instead painted separately in OnPaint.  It's not filled from RedrawAsNeeded() because its frequency is different, so it's not coupled.  It also has no _isValid flag.</summary>
 		private Bitmap _bitmapBubble;
-		//Prov bars at left------------------------------------------------------------------------------
-		///<summary>Just the background of the provbars at left.  Must place all the appt info on it.</summary>
-		private Bitmap _bitmapProvBarsBack;
-		///<summary>BitmapProvBarsBack background plus Appt info.</summary>
+		///<summary>Bitmap for ProvBars at the left, plus the Appt info squares on it.</summary>
 		private Bitmap _bitmapProvBars;
-		///<summary>BitmapProvBars plus red time line. Used by OnPaint for prov bars at left.</summary>
-		private Bitmap _bitmapProvBarsWithRed;
-		//Headers--------------------------------------------------------------------------------------
 		///<summary>The prov bars header that shows provider colors and info. Only redrawn if _isValidProvBarsHeader is false.</summary>
 		private Bitmap _bitmapProvBarsHeader;
 		///<summary>The header that shows operatory colors and info. Only redrawn if _isValidOpsHeader is false.</summary>
 		private Bitmap _bitmapOpsHeader;
-		//Timebars-------------------------------------------------------------------------------------
 		///<summary>The bitmap for the left timebar. Only redrawn if _isValidProvTimebar is false.</summary>
 		private Bitmap _bitmapTimebarLeft;
 		///<summary>The bitmap for the right timebar. Only redrawn if _isValidProvTimebar is false.</summary>
 		private Bitmap _bitmapTimebarRight;
-		///<summary>_bitmapTimebarLeft plus red time line.</summary>
-		private Bitmap _bitmapTimebarLeftWithRed;
-		///<summary>_bitmapTimebarRight plus red time line.</summary>
-		private Bitmap _bitmapTimebarRightWithRed;
-		//TempApptSingle-------------------------------------------------------------------------------
 		///<summary>The bitmap that shows on TempApptSingle.</summary>
 		private Bitmap _bitmapTempApptSingle;
 		//The Brushes and pens below will not change once set, and will exist as long as OD is open, so disposing is overkill
@@ -187,7 +153,7 @@ namespace OpenDental.UI{
 		//simple:
 		private ApptView _apptViewCur=null;
 		private DateTime _dateEnd;
-		private DateTime _dateSelected;
+		private static DateTime _dateSelected;
 		private DateTime _dateStart;
 		private bool _isWeeklyView=false;
 		private static float _minPerIncr=10;
@@ -209,13 +175,13 @@ namespace OpenDental.UI{
 		///<summary></summary>
 		private bool _isResizingAppt;
 		///<summary>The opNum of the clicked op, set in mousedown, and used in double click.</summary>
-		private long _opNumClicked;
+		private static long _opNumClicked;
 		///<summary>The point where the mouse was originally down.  In coordinates of this control.</summary>
 		private Point _pointMouseOrigin = new Point();
 		///<summary>Appt origin.  If moving an appointment, this is the location where the appointment was at the beginning of the drag, in coordinates of the parent control.</summary>
 		private Point _pointApptOrigin = new Point();
 		///<summary>The exact time that user clicked on, not rounded in any way.  Gets set in mousedown, then used in double click as well as external.</summary>
-		private TimeSpan _timeClicked;
+		private static TimeSpan _timeClicked;
 		///<summary>This user control is how we will drag appts around in this control as well as over to pinboard.  In beginning, it gets added to parent, where it stays and gets reused repeatedly.  We control it from here to hide the complexity and also to handle the drawing.</summary>
 		private UserControlDoubleBuffered contrTempAppt;
 
@@ -365,16 +331,11 @@ namespace OpenDental.UI{
 			_heightMainVisible=this.Height-(int)_heightProvOpHeaders;
 			//there is one actual control which needs to be placed and sized:
 			vScrollBar1.Location=new Point(this.Width-vScrollBar1.Width-1,(int)_heightProvOpHeaders);
-			vScrollBar1.Height=_heightMainVisible;			
-			//Width has changed, so need to redraw everything
-			_isValidAllMain=false;
-			//_isValidProvBars=false;//provbars don't need to redraw on resize
-			//_isValidProvBarsHeader=false;
-			_isValidOpsHeader=false;
-			//_isValidTimebars=false;//timebars don't need to redraw on resize
-			if(!_isUpdating){
-				RedrawAsNeeded();
-			}
+			vScrollBar1.Height=_heightMainVisible;		
+			_isValidMain=false;
+			_isValidHeaders=false;
+			//_isValidTimebars=;//timebars don't need to redraw on resize
+			RedrawAsNeeded();
 		}
 
 		private void vScrollBar1_Scroll(object sender,ScrollEventArgs e) {
@@ -434,11 +395,15 @@ namespace OpenDental.UI{
 				}
 				//First we'll check to see if the location the user clicked on is a blockout with the type NoSchedule
 				//DateTime dateSelected=_dateSelected;
+				if(IsWeeklyView) {
+					//we might even want to set this on single click, but double is a start
+					_dateSelected=DateStart.AddDays(_dayClicked);
+				}
 				TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,MinPerIncr);
 				DateTime dateTimeStart=DateSelected+timeSpanNew;
-				if(IsWeeklyView) {
-					dateTimeStart=dateTimeStart.AddDays(_dayClicked);
-				}
+				//if(IsWeeklyView) {
+				//	dateTimeStart=dateTimeStart.AddDays(_dayClicked);
+				//}
 				if(Appointments.CheckTimeForBlockoutOverlap(dateTimeStart,_opNumClicked)) {
 					MsgBox.Show(this, "Appointment cannot be created on a blockout marked as 'Block appointment scheduling'");
 					return;
@@ -561,10 +526,13 @@ namespace OpenDental.UI{
 			//	OnSelectedApptChanged(dataRow);
 			//}
 			//TimeSpan timeSpanNew=RoundTimeDown(_timeClicked,_minPerIncr);//not going to round down for now
-			DateTime dateTimeClicked=DateSelected+_timeClicked;
 			if(IsWeeklyView) {
-				dateTimeClicked=dateTimeClicked.AddDays(_dayClicked);
+				DateSelected=DateStart.AddDays(_dayClicked);
 			}
+			DateTime dateTimeClicked=DateSelected+_timeClicked;
+			//if(IsWeeklyView) {
+			//	dateTimeClicked=dateTimeClicked.AddDays(_dayClicked);
+			//}
 			//while mouse is down, there is no appt bubble.  Includes dragging, context menus, etc.
 			_isBubbleVisible=false;
 			timerBubble.Enabled=false;
@@ -865,6 +833,7 @@ namespace OpenDental.UI{
 		protected override void OnPaint(PaintEventArgs e) {
 			base.OnPaint(e);
 			Graphics graphics=e.Graphics;
+			graphics.SmoothingMode=SmoothingMode.HighQuality;
 			Rectangle rectangleOnControl;//the rectangle of the entire area under consideration. We cycle through subsections of the control.
 			Rectangle rectangleClip;//frequently smaller than e.ClipRectangle. 
 			Rectangle rectangleSource;//source within the bitmap we are pulling from
@@ -883,9 +852,10 @@ namespace OpenDental.UI{
 				rectangleSource=new Rectangle(rectangleClip.X-Round(_widthTime+widthProvs),
 					rectangleClip.Y-Round(_heightProvOpHeaders)+vScrollBar1.Value,
 					rectangleClip.Width,rectangleClip.Height);
-				//img,dest,source,graphicsUnit:
-				graphics.DrawImage(_bitmapMainWithRed,rectangleClip,rectangleSource,GraphicsUnit.Pixel);
+				graphics.DrawImage(_bitmapMain,rectangleClip,rectangleSource,GraphicsUnit.Pixel);
 			}
+			//No need for a clipping mask here because the other bitmaps will be drawn on top of this outline
+			DrawOutlineSelected(graphics);
 			//the other areas are small enough that we don't bother with calculating clip rectangles and smaller bitmaps.
 			//prov bars header------------------------------------------------------------------------------------------------
 			if(_showProvBars){
@@ -904,20 +874,22 @@ namespace OpenDental.UI{
 				rectangleOnControl=new Rectangle(Round(_widthTime),Round(_heightProvOpHeaders),Round(widthProvs),_heightMainVisible);
 				if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
 					rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(widthProvs),_heightMainVisible);
-					graphics.DrawImage(_bitmapProvBarsWithRed,_widthTime,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
+					graphics.DrawImage(_bitmapProvBars,_widthTime,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
 				}
 			}
 			//timebars---------------------------------------------------------------------------------------------------------
 			rectangleSource=new Rectangle(0,vScrollBar1.Value,Round(_widthTime),_heightMainVisible);
 			rectangleOnControl=new Rectangle(0,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
 			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				graphics.DrawImage(_bitmapTimebarLeftWithRed,0,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
+				graphics.DrawImage(_bitmapTimebarLeft,0,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
 			}
 			rectangleOnControl=new Rectangle(this.Width-vScrollBar1.Width-Round(_widthTime)-1,Round(_heightProvOpHeaders),Round(_widthTime),_heightMainVisible);
 			if(rectangleOnControl.IntersectsWith(e.ClipRectangle)){
-				graphics.DrawImage(_bitmapTimebarRightWithRed,this.Width-vScrollBar1.Width-_widthTime-1,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
+				graphics.DrawImage(_bitmapTimebarRight,this.Width-vScrollBar1.Width-_widthTime-1,_heightProvOpHeaders,rectangleSource,GraphicsUnit.Pixel);
 			}
 			graphics.DrawLine(_penVertPrimary,Width-1,_heightProvOpHeaders,Width-1,Height);
+			//red line--------------------------------------------------------------------------------------------------------
+			DrawRedTimeLine(graphics);//uses math to stay within bounds 
 			//Bubble----------------------------------------------------------------------------------------------------------
 			if(_isBubbleVisible && _bitmapBubble!=null){
 				rectangleOnControl=_rectangleBubble;
@@ -972,10 +944,8 @@ namespace OpenDental.UI{
 			}
 			_heightMain=(int)(_heightLine*_rowsPerHr*24f);//This is for multiple pages, 24 hrs 
 			//This entire height will be split among the pages later. Automatically rounded down.
-			_isValidAllMain=false;
-			_isValidProvBars=false;
-			_isValidProvBarsHeader=false;
-			_isValidOpsHeader=false;
+			_isValidMain=false;
+			_isValidHeaders=false;
 			_isValidTimebars=false;
 			RedrawAsNeeded();//All redrawn with these new widths and heights
 			int heightMainOnePage=rectangleMarginBounds.Height-(int)_heightProvOpHeaders;
@@ -1025,7 +995,7 @@ namespace OpenDental.UI{
 				graphicsClipboard.DrawImage(_bitmapProvBars,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
 				rectangleSource=new RectangleF(0,yTop,_widthMain,height);
 				rectangleDest=new RectangleF(_widthTime+widthProvs,0,_widthMain,height);	
-				graphicsClipboard.DrawImage(_bitmapBackAppts,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
+				graphicsClipboard.DrawImage(_bitmapMain,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
 				rectangleSource=new RectangleF(0,yTop,_widthTime,height);
 				rectangleDest=new RectangleF(_widthTime+widthProvs+_widthMain,0,_widthTime,height);	
 				graphicsClipboard.DrawImage(_bitmapTimebarRight,rectangleDest,rectangleSource,GraphicsUnit.Pixel);
@@ -1056,7 +1026,7 @@ namespace OpenDental.UI{
 				rectangleMarginBounds.Y+_heightProvOpHeaders,
 				rectangleSourceMain.Width,
 				rectangleSourceMain.Height);
-			g.DrawImage(_bitmapBackAppts,rectangleDestMain,rectangleSourceMain,GraphicsUnit.Pixel);
+			g.DrawImage(_bitmapMain,rectangleDestMain,rectangleSourceMain,GraphicsUnit.Pixel);
 			//Prov Bars------------------------------------------------------------------------------------------------------
 			if(_showProvBars){
 				RectangleF rectangleSourceProvBars=new RectangleF(
@@ -1143,10 +1113,8 @@ namespace OpenDental.UI{
 			if(!e.HasMorePages){
 				ComputeHeight();//must come after set _isPrinting=false
 				LayoutRecalcAfterResize();//for _widthMain
-				_isValidAllMain=false;
-				_isValidProvBars=false;
-				_isValidProvBarsHeader=false;
-				_isValidOpsHeader=false;
+				_isValidMain=false;
+				_isValidHeaders=false;
 				_isValidTimebars=false;
 				RedrawAsNeeded();
 			}
@@ -1194,9 +1162,7 @@ namespace OpenDental.UI{
 			}
 			set{
 				_listApptViewItemRowElements=value;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1209,9 +1175,7 @@ namespace OpenDental.UI{
 			}
 			set{
 				_listApptViewItems=value;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1224,18 +1188,13 @@ namespace OpenDental.UI{
 				_listOpsVisible=value;
 				//_countCol=_listOpsVisible.Count;
 				_dictOpNumToColumnNum=_listOpsVisible.ToDictionary(x => x.OperatoryNum,x => _listOpsVisible.FindIndex(y => y.OperatoryNum==x.OperatoryNum));
-				_isValidAllMain=false;//Must be because it changes the width of all ops and appts.
-				_isValidOpsHeader=false;
-				_isValidProvBarsHeader=false;//because header can change height based on length of op description
-				//doesn't affect provbars
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				_isValidHeaders=false;
+				RedrawAsNeeded();
 			}
 		}	
 		///<summary>Prevents looping through VisOps in order to find the 0-based column index for a given OpNum.</summary>
 		private Dictionary<long,int> _dictOpNumToColumnNum=new Dictionary<long, int>();
-		public static List<Operatory> GetListOpsVisible(){return _listOpsVisible;}
 
 		///<summary>Was VisProvs.  Visible provider bars in appt module.  Subset of all provs.  Can't include a hidden prov in this list.</summary>
 		[Browsable(false)]
@@ -1255,13 +1214,9 @@ namespace OpenDental.UI{
 				else{
 					_widthMain=this.Width-(int)_widthTime*2-vScrollBar1.Width-1;
 				}
-				_isValidAllMain=false;//Must be because it changes the width of all ops and appts.
-				_isValidProvBars=false;//not just appts
-				_isValidProvBarsHeader=false;
-				_isValidOpsHeader=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				_isValidHeaders=false;
+				RedrawAsNeeded();
 			}
 		}	
 		///<summary>Prevents looping through VisProvs in order to find the 0-based column index for a given ProvNum.</summary>
@@ -1283,11 +1238,8 @@ namespace OpenDental.UI{
 			get{ return _tableAppointments; }
 			set{
 				_tableAppointments=value;
-				_isValidApptsMain=false;
-				_isValidProvBarsAppts=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				RedrawAsNeeded();
 			}
 		}
 		
@@ -1297,11 +1249,8 @@ namespace OpenDental.UI{
 			get{ return _tableApptFields; }
 			set{
 				_tableApptFields=value;
-				_isValidApptsMain=false;
-				//_isValidProvBarsAppts=false;//Not needed here
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1311,11 +1260,8 @@ namespace OpenDental.UI{
 			get{ return _tableEmpSched; }
 			set{
 				_tableEmpSched=value;
-				_isValidAllMain=false;
-				_isValidProvBars=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1325,11 +1271,8 @@ namespace OpenDental.UI{
 			get{ return _tablePatFields; }
 			set{
 				_tablePatFields=value;
-				_isValidApptsMain=false;
-				//_isValidProvBarsAppts=false;//Not needed here
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1339,11 +1282,8 @@ namespace OpenDental.UI{
 			get{ return _tableProvSched; }
 			set{
 				_tableProvSched=value;
-				_isValidAllMain=false;
-				_isValidProvBars=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1354,11 +1294,8 @@ namespace OpenDental.UI{
 			set{
 				_tableSchedule=value;
 				_listSchedules=Schedules.ConvertTableToList(_tableSchedule);
-				_isValidAllMain=false;
-				_isValidProvBars=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1368,10 +1305,6 @@ namespace OpenDental.UI{
 			get{ return _tableWaitingRoom; }
 			set{
 				_tableWaitingRoom=value;
-				//_isValid=false; ?
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
 			}
 		}
 
@@ -1394,9 +1327,7 @@ namespace OpenDental.UI{
 			}
 			set{
 				_apptViewCur=value;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				//no need to set valid flags or redraw because listOpsVisible etc will get set.
 			}
 		}
 
@@ -1438,14 +1369,9 @@ namespace OpenDental.UI{
 					_dateStart=_dateSelected;
 					_dateEnd=_dateSelected;
 				}
-				//Pretty sure, but revisit.
-				_isValidAllMain=false;
-				_isValidProvBars=false;
-				_isValidProvBarsHeader=false;
-				_isValidOpsHeader=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				//I don't think headers would change
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1490,13 +1416,9 @@ namespace OpenDental.UI{
 				else{
 					_widthMain=this.Width-(int)_widthTime*2-vScrollBar1.Width-1;
 				}
-				_isValidAllMain=false;
-				_isValidProvBars=false;
-				_isValidProvBarsHeader=false;
-				_isValidOpsHeader=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				_isValidMain=false;
+				_isValidHeaders=false;
+				RedrawAsNeeded();
 			}
 		}
 		
@@ -1517,15 +1439,11 @@ namespace OpenDental.UI{
 				_rowsPerHr=60f/_minPerIncr*RowsPerIncr;
 				ComputeHeight();//needed to calc new scroll val
 				SetScrollByTime(timeScrollOriginal);
-				_isValidAllMain=false;
-				_isValidProvBars=false;
+				_isValidMain=false;
 				_isValidTimebars=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				RedrawAsNeeded();
 			}
 		}
-		public static float GetMinPerIncr(){return _minPerIncr; }
 
 		///<summary>Based on the view.  If no view, then it is set to 1. Different computers can be showing different views.</summary>
 		[Browsable(false)]
@@ -1547,12 +1465,9 @@ namespace OpenDental.UI{
 				_rowsPerHr=60f/MinPerIncr*_rowsPerIncr;
 				ComputeHeight();//needed to calc new scroll val
 				SetScrollByTime(timeScrollOriginal);
-				_isValidAllMain=false;//will harmlessley recompute height
-				_isValidProvBars=false;
+				_isValidMain=false;//will harmlessley recompute height
 				_isValidTimebars=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				RedrawAsNeeded();
 			}
 		}
 
@@ -1568,13 +1483,37 @@ namespace OpenDental.UI{
 					return;
 				}
 				_selectedAptNum=value;
-				_isValidOutlineSelected=false;
-				if(!_isUpdating){
-					RedrawAsNeeded();
-				}
+				Invalidate();
 			}
 		}
 		#endregion Properties - Simple Data
+
+		#region Methods - Public Static
+		///<summary>Used sparingly, but useful from certain nested dialogs.</summary>
+		public static DateTime GetDateSelected(){	
+			return _dateSelected;
+		}
+
+		///<summary>Used sparingly and trying to eliminate.  This is rounded down to nearest valid increment. Also valid for weekly view.</summary>
+		public static DateTime GetDateTimeClicked(){
+			return _dateSelected+RoundTimeDown(_timeClicked,_minPerIncr);
+		}
+
+		///<summary>Used sparingly and trying to eliminate.</summary>
+		public static List<Operatory> GetListOpsVisible(){
+			return _listOpsVisible;
+		}
+
+		///<summary>Used sparingly.</summary>
+		public static float GetMinPerIncr(){
+			return _minPerIncr; 
+		}
+
+		///<summary>Used sparingly and trying to eliminate.</summary>
+		public static long GetOpNumClicked(){
+			return _opNumClicked; 
+		}
+		#endregion Methods - Public Static
 
 		#region Methods - Public
 		public void GetBitmapForPinboard(Graphics g,DataRow dataRow,string patternShowing,float width,float height){
@@ -1633,22 +1572,20 @@ namespace OpenDental.UI{
 
 		///<summary>Call this whenever control should be redrawn, like after data is fetched, or when red timebar should move down.  Usually just grabs existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from as basis for new bitmap, as well as a variety of ancillary bitmaps for outside the main area. It all depends on what data is invalid.  So it usually doesn't need to redraw much.  The Bubble is handled completely separately from this.</summary>
 		public void RedrawAsNeeded(){
-			if(_isUpdating){//a little redundant
+			if(_updatingLevel>0){
 				return;
 			}
-			if(!_isValidAllMain){
+			if(!_isValidMain){
 				ComputeColWidth();//super fast.
 			}
-			if(!_isValidOpsHeader){//need widths above in order to calc whether text will wrap
+			if(!_isValidHeaders){//need widths above in order to calc whether text will wrap
 				ComputeHeightProvOpHeader();
 			}
-			if(!_isValidAllMain || !_isValidOpsHeader){
+			if(!_isValidMain || !_isValidHeaders){
 				ComputeHeight();
 			}
-			SetBitmapMain();
-			SetBitmapProvBars();
-			SetBitmapProvBarsHeader();
-			SetBitmapOpsHeader();
+			SetBitmapsMain();
+			SetBitmapsHeaders();
 			SetBitmapsTimebar();
 			Invalidate();
 		}
@@ -1662,13 +1599,13 @@ namespace OpenDental.UI{
 			//colorHoliday=(listDefs[3].ItemColor);
 			//colorBlockText=Defs.GetDefsForCategory(DefCat.AppointmentColors,true)[4].ItemColor;
 			//colorTimeLine=PrefC.GetColor(PrefName.AppointmentTimeLineColor)
+			DisposeObjects(_brushOpen,_brushClosed,_brushHoliday,_brushBlockText,_penTimeLine);
 			_brushOpen=new SolidBrush(colorOpen);
 			_brushClosed=new SolidBrush(colorClosed);
 			_brushHoliday=new SolidBrush(colorHoliday);
 			_brushBlockText=new SolidBrush(colorBlockText);
 			_penTimeLine=new Pen(colorTimeLine,1.55f);//there's a big difference between 1.5 and 1.55.  ??
-			_isValidAllMain=false;//if we change colors, redraw everything in main
-			_isValidProvBars=false;
+			_isValidMain=false;//if we change colors, redraw everything in main
 		}
 
 		public void SetScrollByTime(TimeSpan timeOfDay){
@@ -1714,14 +1651,14 @@ namespace OpenDental.UI{
 		#endregion Methods - Public
 
 		#region Methods - Public BeginEndUpdate
-		///<summary>Call this before making complex changes to properties.</summary>
+		///<summary>Call this before making complex changes to properties.  Always pair with EndUpdate.</summary>
 		public void BeginUpdate() {
-			_isUpdating=true;
+			_updatingLevel++;
 		}
 
-		///<summary>Call after BeginUpdate and when done making complex changes.</summary>
+		///<summary>Call after BeginUpdate, always paired, and when done making complex changes.</summary>
 		public void EndUpdate() {
-			_isUpdating=false;
+			_updatingLevel--;
 			RedrawAsNeeded();
 			Invalidate();
 		}
@@ -1757,14 +1694,6 @@ namespace OpenDental.UI{
 			double totalHours=truncatedIncrements*base10Increment;//for example, 8:10a would be 8.167
 			TimeSpan timeSpanTruncated=TimeSpan.FromHours(totalHours);//but there might be a stray second
 			return new TimeSpan(timeSpanTruncated.Hours,timeSpanTruncated.Minutes,0);
-		}
-
-		public long GetOpNumClicked(){
-			return _opNumClicked;
-		}
-
-		public TimeSpan GetTimeClicked(){
-			return _timeClicked;
 		}
 
 		///<summary>Used when dropping an appointment to a new location.  Converts x-coordinate to date and opIdx.  Used in both daily and weekly views.  It is very different from XPosToOpIdx, which doesn't round the same way. Pass in X in coords of this entire control.  Date will always be reasonable, but opIdx might be -1 if unable to resolve.</summary>
@@ -1847,203 +1776,101 @@ namespace OpenDental.UI{
 		#endregion Methods - Public Dropping
 
 		#region Methods - Private Set Bitmaps
-		///<summary>Usually just grabs an existing bitmap and draws a red timebar on it.  Has three fullsize bitmaps to choose from, depending on what data is invalid.  So it usually doesn't need to redraw much.  Triggered much less frequently than OnPaint.</summary>
-		private void SetBitmapMain(){
-			//Reuse each bitmap if it's the correct size.  Otherwise, dispose and reinitialize.
-			Size sizeMain=new Size(_widthMain,_heightMain);
-			if(!_isValidAllMain){
-				if(_bitmapBack==null){
-					_bitmapBack=new Bitmap(_widthMain,_heightMain);
-				}
-				else if(_bitmapBack.Size!=sizeMain){
-					_bitmapBack.Dispose();
-					_bitmapBack=new Bitmap(_widthMain,_heightMain);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapBack)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					DrawBackground(g);
-				}
+		///<summary>Triggered much less frequently than OnPaint.</summary>
+		private void SetBitmapsMain(){
+			if(_isValidMain){
+				return;
 			}
-			if(!_isValidAllMain || !_isValidApptsMain){
-				if(_bitmapBackAppts==null){
-					_bitmapBackAppts=new Bitmap(_widthMain,_heightMain);
-				}
-				else if(_bitmapBackAppts.Size!=sizeMain){
-					_bitmapBackAppts.Dispose();
-					_bitmapBackAppts=new Bitmap(_widthMain,_heightMain);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapBackAppts)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					g.DrawImage(_bitmapBack,0,0);
-					DrawAppts(g);
-				}
+			if(_bitmapMain==null){
+				_bitmapMain=new Bitmap(_widthMain,_heightMain);
 			}
-			if(!_isValidAllMain || !_isValidApptsMain || !_isValidOutlineSelected){
-				if(_bitmapBackApptsOutlineSelected==null){
-					_bitmapBackApptsOutlineSelected=new Bitmap(_widthMain,_heightMain);
-				}
-				else if(_bitmapBackApptsOutlineSelected.Size!=sizeMain){
-					_bitmapBackApptsOutlineSelected.Dispose();
-					_bitmapBackApptsOutlineSelected=new Bitmap(_widthMain,_heightMain);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapBackApptsOutlineSelected)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					g.DrawImage(_bitmapBackAppts,0,0);
-					DrawOutlineSelected(g);
-				}
+			//Reuse the bitmap if it's the correct size.  Otherwise, dispose and reinitialize.
+			else if(_bitmapMain.Size!=new Size(_widthMain,_heightMain)){
+				_bitmapMain.Dispose();
+				_bitmapMain=new Bitmap(_widthMain,_heightMain);
 			}
-			if(_bitmapMainWithRed==null){
-				_bitmapMainWithRed=new Bitmap(_widthMain,_heightMain);
-			}
-			else if(_bitmapMainWithRed.Size!=sizeMain){
-				_bitmapMainWithRed.Dispose();
-				_bitmapMainWithRed=new Bitmap(_widthMain,_heightMain);
-			}
-			using(Graphics g=Graphics.FromImage(_bitmapMainWithRed)){
+			using(Graphics g=Graphics.FromImage(_bitmapMain)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
-				g.DrawImage(_bitmapBackApptsOutlineSelected,0,0);
-				//Always paints the red timeline.  This is not cached.
-				DrawRedTimeLineMain(g);
+				DrawBackground(g);
+				DrawAppts(g);
 			}
-			_isValidAllMain=true;
-			_isValidApptsMain=true;
-			_isValidOutlineSelected=true;
-		}
-
-		///<summary>Always draws a red timeline, even if _bitmapProvBars doesn't need a redraw.</summary>
-		private void SetBitmapProvBars(){
-			Size sizeProvBars=new Size((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-			if(!_isValidProvBars){
-				if(_bitmapProvBarsBack==null){
-					_bitmapProvBarsBack=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-				}
-				else if(_bitmapProvBarsBack.Size!=sizeProvBars){
-					_bitmapProvBarsBack.Dispose();
-					_bitmapProvBarsBack=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapProvBarsBack)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					DrawProvBarsBackground(g);
-					if(!IsWeeklyView) {
-						DrawProvScheds(g);
-						//DrawProvBars(g);
-					}
-				}
+			//Provbars------------------------------------------------------------------------------------------------
+			if(_bitmapProvBars==null){
+				_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
 			}
-			if(!_isValidProvBars || !_isValidProvBarsAppts){
-				if(_bitmapProvBars==null){
-					_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-				}
-				else if(_bitmapProvBars.Size!=sizeProvBars){
-					_bitmapProvBars.Dispose();
-					_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapProvBars)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					g.DrawImage(_bitmapProvBarsBack,0,0);
-					DrawProvBarsAppts(g);
-				}
+			else if(_bitmapProvBars.Size!=new Size((int)(_listProvsVisible.Count*_widthProv),_heightMain)){
+				_bitmapProvBars.Dispose();
+				_bitmapProvBars=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
 			}
-			if(_bitmapProvBarsWithRed==null){
-				_bitmapProvBarsWithRed=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-			}
-			else if(_bitmapProvBarsWithRed.Size!=sizeProvBars){
-				_bitmapProvBarsWithRed.Dispose();
-				_bitmapProvBarsWithRed=new Bitmap((int)(_listProvsVisible.Count*_widthProv),_heightMain);
-			}
-			using(Graphics g=Graphics.FromImage(_bitmapProvBarsWithRed)){
+			using(Graphics g=Graphics.FromImage(_bitmapProvBars)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
-				g.DrawImage(_bitmapProvBars,0,0);
-				DrawRedTimeLineProvBars(g);
+				DrawProvBarsBackground(g);
+				if(!IsWeeklyView) {
+					DrawProvScheds(g);
+				}
+				DrawProvBarsAppts(g);
 			}
-			_isValidProvBars=true;
-			_isValidProvBarsAppts=true;
+			_isValidMain=true;
 		}
 
 		///<summary>Does nothing unless _bitmapProvBarsHeader needs a redraw.</summary>
-		private void SetBitmapProvBarsHeader(){
-			if(!_isValidProvBarsHeader){
-				if(_bitmapProvBarsHeader==null){
-					_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
-				}
-				else if(_bitmapProvBarsHeader.Size!=new Size((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders)){
-					_bitmapProvBarsHeader.Dispose();
-					_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapProvBarsHeader)){
+		private void SetBitmapsHeaders(){
+			if(_isValidHeaders){
+				return;
+			}
+			if(_bitmapProvBarsHeader==null){
+				_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
+			}
+			else if(_bitmapProvBarsHeader.Size!=new Size((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders)){
+				_bitmapProvBarsHeader.Dispose();
+				_bitmapProvBarsHeader=new Bitmap((int)(_widthProv*_listProvsVisible.Count),(int)_heightProvOpHeaders);
+			}
+			using(Graphics g=Graphics.FromImage(_bitmapProvBarsHeader)){
+			g.SmoothingMode=SmoothingMode.HighQuality;
+				g.TextRenderingHint=TextRenderingHint.AntiAlias;
+				DrawProvBarsHeader(g);
+			}
+			//Ops Header------------------------------------------------------------------------------------------------------
+			if(_bitmapOpsHeader==null){
+				_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
+			}
+			else if(_bitmapOpsHeader.Size!=new Size(_widthMain,(int)_heightProvOpHeaders)){
+				_bitmapOpsHeader.Dispose();
+				_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
+			}
+			using(Graphics g=Graphics.FromImage(_bitmapOpsHeader)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
-					g.TextRenderingHint=TextRenderingHint.AntiAlias;
-					DrawProvBarsHeader(g);
-				}
+				g.TextRenderingHint=TextRenderingHint.AntiAlias;
+				DrawOpsHeader(g);
 			}
-			_isValidProvBarsHeader=true;
-		}
-
-		///<summary>Does nothing unless _bitmapOpsHeader needs a redraw.</summary>
-		private void SetBitmapOpsHeader(){
-			if(!_isValidOpsHeader){
-				if(_bitmapOpsHeader==null){
-					_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
-				}
-				else if(_bitmapOpsHeader.Size!=new Size(_widthMain,(int)_heightProvOpHeaders)){
-					_bitmapOpsHeader.Dispose();
-					_bitmapOpsHeader=new Bitmap(_widthMain,(int)_heightProvOpHeaders);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapOpsHeader)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					g.TextRenderingHint=TextRenderingHint.AntiAlias;
-					DrawOpsHeader(g);
-				}
-			}
-			_isValidOpsHeader=true;
+			_isValidHeaders=true;
 		}
 		
-		///<summary>Always draws the red timeline, even if _bitmapTimebarLeft/Right don't need a redraw.</summary>
+		///<summary>L&R timebars</summary>
 		private void SetBitmapsTimebar(){
+			if(_isValidTimebars){
+				return;
+			}
 			Size sizeTimebar=new Size((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-			if(!_isValidTimebars){
-				if(_bitmapTimebarLeft==null){
-					_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-					_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-				}
-				else if(_bitmapTimebarLeft.Size!=sizeTimebar){
-					_bitmapTimebarLeft.Dispose();
-					_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-					_bitmapTimebarRight.Dispose();
-					_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapTimebarLeft)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					g.TextRenderingHint=TextRenderingHint.AntiAlias;
-					DrawTimebar(g,true);
-				}
-				using(Graphics g=Graphics.FromImage(_bitmapTimebarRight)){
-					g.SmoothingMode=SmoothingMode.HighQuality;
-					g.TextRenderingHint=TextRenderingHint.AntiAlias;
-					DrawTimebar(g,false);
-				}
+			if(_bitmapTimebarLeft==null){
+				_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
 			}
-			if(_bitmapTimebarLeftWithRed==null){
-				_bitmapTimebarLeftWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-				_bitmapTimebarRightWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+			else if(_bitmapTimebarLeft.Size!=sizeTimebar){
+				_bitmapTimebarLeft.Dispose();
+				_bitmapTimebarLeft=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
+				_bitmapTimebarRight.Dispose();
+				_bitmapTimebarRight=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
 			}
-			else if(_bitmapTimebarLeftWithRed.Size!=sizeTimebar){
-				_bitmapTimebarLeftWithRed.Dispose();
-				_bitmapTimebarLeftWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-				_bitmapTimebarRightWithRed.Dispose();
-				_bitmapTimebarRightWithRed=new Bitmap((int)_widthTime,(int)(_heightLine*24*_rowsPerHr)+1);
-			}
-			using(Graphics g=Graphics.FromImage(_bitmapTimebarLeftWithRed)){
+			using(Graphics g=Graphics.FromImage(_bitmapTimebarLeft)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 				g.TextRenderingHint=TextRenderingHint.AntiAlias;
-				g.DrawImage(_bitmapTimebarLeft,0,0);
-				DrawRedTimeLineTimebar(g);
+				DrawTimebar(g,true);
 			}
-			using(Graphics g=Graphics.FromImage(_bitmapTimebarRightWithRed)){
+			using(Graphics g=Graphics.FromImage(_bitmapTimebarRight)){
 				g.SmoothingMode=SmoothingMode.HighQuality;
 				g.TextRenderingHint=TextRenderingHint.AntiAlias;
-				g.DrawImage(_bitmapTimebarRight,0,0);
-				DrawRedTimeLineTimebar(g);
+				DrawTimebar(g,false);
 			}
 			_isValidTimebars=true;
 		}
@@ -2051,7 +1878,7 @@ namespace OpenDental.UI{
 		///<summary></summary>
 		private void SetBitmapTempAppt(){
 			//no isValid to track. Just call this to redraw the bitmap
-			//See TempApptSingle_Paint, which simply paint the bitmap at 0,0, then draws a lower border.
+			//See TempApptSingle_Paint, which simply paints the bitmap at 0,0, then draws a lower border.
 			_bitmapTempApptSingle?.Dispose();
 			int heightTemp=0;
 			if(_isResizingAppt){
@@ -2083,7 +1910,7 @@ namespace OpenDental.UI{
 			DrawGridLinesMain(g);
 		}
 
-		///<summary>Including the practice schedule, prov scheduls in main area, and blockouts.</summary>
+		///<summary>Including the practice schedule, prov schedules in main area, and blockouts.</summary>
 		private void DrawMainBackground(Graphics g) {
 			List<Schedule> provSchedsForOp;
 			//one giant rectangle for everything closed
@@ -2805,7 +2632,6 @@ namespace OpenDental.UI{
 				ProcessOverlaps(listApptLayoutInfos,listOverlaps,widthCol,apptLayoutInfo.IdxOp,widthNarrowedOnRight);
 			}
 			return listApptLayoutInfos;
-
 			//Local function to avoid passing lots of parameters.
 			//X and width are calculated automatically, based on op, position, etc.  Y and height were set ahead of time and won't change here.
 			void CreateRectangle(ApptLayoutInfo apptLayoutInfoLocal){
@@ -3637,14 +3463,6 @@ namespace OpenDental.UI{
 				if(aptNum!=SelectedAptNum){
 					continue;
 				}
-				//match
-				//PointF location=SetLocation(dataRow);
-				string pattern=PIn.String(dataRow["Pattern"].ToString());
-				//SizeF sizeAppt=SetSize(pattern);
-				//if(sizeAppt.Width<1){
-				//	return;
-				//}
-				//Rectangle rectangle=new Rectangle(location,sizeAppt);
 				Pen penProvOutline;
 				if(dataRow["ProvNum"].ToString()!="0" && dataRow["IsHygiene"].ToString()=="0") {//dentist
 					penProvOutline=new Pen(Providers.GetOutlineColor(PIn.Long(dataRow["ProvNum"].ToString())),3f);
@@ -3653,38 +3471,31 @@ namespace OpenDental.UI{
 					penProvOutline=new Pen(Providers.GetOutlineColor(PIn.Long(dataRow["ProvHyg"].ToString())),3f);
 				}
 				else {//unknown
-					penProvOutline=new Pen(Color.Black,3f);//Do not use Pens.Black because we will be disposing this pen later on.
+					penProvOutline=new Pen(Color.Black,3f);
 				}
-				GraphicsPath graphicsPathOutline=GetRoundedPath(_listApptLayoutInfos[i].RectangleBounds);
-					//new RectangleF(location.X,location.Y,sizeAppt.Width-_widthNarrowedOnRight,sizeAppt.Height));
+				RectangleF rectangleF=new RectangleF();
+				rectangleF.Location=TranslateMainToContr(_listApptLayoutInfos[i].RectangleBounds.Location);
+				rectangleF.Size=_listApptLayoutInfos[i].RectangleBounds.Size;
+				if(rectangleF.Bottom<0 || rectangleF.Top>_heightMainVisible+_heightProvOpHeaders){//if outside visible area
+					return;
+				}
+				GraphicsPath graphicsPathOutline=GetRoundedPath(rectangleF);
 				g.DrawPath(penProvOutline,graphicsPathOutline);
-				//g.DrawRectangle(penProvOutline,(int)location.X+1.5f,(int)location.Y+.5f,sizeAppt.Width-2,sizeAppt.Height-1);
 				DisposeObjects(penProvOutline);
 			}
 		}
 		#endregion Methods - Private DrawApptOutlineSelected
 
-		#region Methods - Private DrawTimeLine
-		private void DrawRedTimeLineMain(Graphics g){
-			int curTimeY=(int)((float)DateTime.Now.Hour*_heightLine*(float)_rowsPerHr+(float)DateTime.Now.Minute/60f*_heightLine*(float)_rowsPerHr);
-			//line is 2px, so drop it down one px
-			g.DrawLine(_penTimeLine,0,curTimeY+1,_widthMain,curTimeY+1);
-			//g.DrawLine(_penTimeLine,0,curTimeY+1,_widthMain,curTimeY+1);
+		#region Methods - Private DrawRedTimeLine
+		private void DrawRedTimeLine(Graphics g){
+			float curTimeY=(float)DateTime.Now.TimeOfDay.TotalHours*_heightLine*_rowsPerHr;
+			float yVal=TranslateYMainToContr(curTimeY);
+			if(yVal<_heightProvOpHeaders || yVal>_heightMainVisible+_heightProvOpHeaders){//if outside visible area
+				return;
+			}
+			g.DrawLine(_penTimeLine,0,yVal,Width,yVal);//draws under the scrollbar
 		}
-
-		private void DrawRedTimeLineProvBars(Graphics g){
-			int curTimeY=(int)((float)DateTime.Now.Hour*_heightLine*(float)_rowsPerHr+(float)DateTime.Now.Minute/60f*_heightLine*(float)_rowsPerHr);
-			//line is 2px, so drop it down one px
-			g.DrawLine(_penTimeLine,0,curTimeY+1,(int)(_widthProv*(float)_listProvsVisible.Count),curTimeY+1);
-		}
-
-		private void DrawRedTimeLineTimebar(Graphics g){
-			int curTimeY=(int)((float)DateTime.Now.Hour*_heightLine*(float)_rowsPerHr+(float)DateTime.Now.Minute/60f*_heightLine*(float)_rowsPerHr);
-			//line is 2px, so drop it down one px
-			g.DrawLine(_penTimeLine,0,curTimeY+1,_widthTime,curTimeY+1);
-		}
-
-		#endregion Methods - Private DrawTimeLine
+		#endregion Methods - Private DrawRedTimeLine
 
 		#region Methods - Private DrawInfoBubble
 		///<summary>Before calling this, do a hit test for appts.  Fills the bubble with data and then positions it.  In coordinates of this UserContrApptsPanel (mouse).</summary>
@@ -4281,6 +4092,36 @@ namespace OpenDental.UI{
 			}
 		}
 
+		///<summary>Translates a given point from Control frame of reference to the Main bitmap frame of reference.</summary>
+		private PointF TranslateContrToMain(Point point){
+			return TranslateContrToMain(new PointF(point.X,point.Y));
+		}
+
+		///<summary>Translates a given point from Control frame of reference to the Main bitmap frame of reference.</summary>
+		private PointF TranslateContrToMain(PointF pointF){
+			if(_showProvBars){
+				return new PointF(pointF.X-_widthTime-(float)_listProvsVisible.Count*_widthProv,pointF.Y-_heightProvOpHeaders+(float)vScrollBar1.Value);
+			}
+			else{
+				return new PointF(pointF.X-_widthTime,pointF.Y-_heightProvOpHeaders+(float)vScrollBar1.Value);
+			}
+		}
+
+		///<summary>Translates a given point from Main bitmap frame of reference to the Control frame of reference.</summary>
+		private PointF TranslateMainToContr(PointF pointF){
+			if(_showProvBars){
+				return new PointF(pointF.X+_widthTime+(float)_listProvsVisible.Count*_widthProv,pointF.Y+_heightProvOpHeaders-(float)vScrollBar1.Value);
+			}
+			else{
+				return new PointF(pointF.X+_widthTime,pointF.Y+_heightProvOpHeaders-(float)vScrollBar1.Value);
+			}
+		}
+
+		///<summary>Translates a given Y val from Main bitmap frame of reference to the Control frame of reference.</summary>
+		private float TranslateYMainToContr(float yVal){
+			return yVal+_heightProvOpHeaders-(float)vScrollBar1.Value;
+		}
+
 		#endregion Methods - Private Computations
 
 		#region Methods - Private HitTest
@@ -4289,16 +4130,7 @@ namespace OpenDental.UI{
 			if(ListOpsVisible.Count==0) {//no ops visible.
 				return -1;
 			}
-			//location is in control coordinates, so convert to bitmap coords.
-			PointF pointF;
-			if(_showProvBars){
-				pointF=new PointF(point.X-_widthTime-_listProvsVisible.Count*_widthProv,
-					point.Y-_heightProvOpHeaders+vScrollBar1.Value);
-			}
-			else{
-				pointF=new PointF(point.X-_widthTime,
-					point.Y-_heightProvOpHeaders+vScrollBar1.Value);
-			}
+			PointF pointF=TranslateContrToMain(point);
 			for(int i=0;i<_listApptLayoutInfos.Count;i++){
 				if(_listApptLayoutInfos[i].RectangleBounds.Contains(pointF)){
 					return i;
@@ -4523,7 +4355,7 @@ namespace OpenDental.UI{
 	public class ApptLayoutInfo{
 		///<summary>This is the index of the appointment within TableAppointments. We won't duplicate any of that info here, but we can quickly cross reference it.</summary>
 		public int idxInTableAppointments;
-		///<summary>This allows more efficient hit testing, especially with appointments that are double booked.</summary>
+		///<summary>This allows efficient hit testing, especially with appointments that are double booked. In main bitmap coordinates.</summary>
 		public RectangleF RectangleBounds;
 		///<summary>For example, if it's taking up 1/3 of the width of an operatory, this would be 3.</summary>
 		public int OverlapSections=1;
