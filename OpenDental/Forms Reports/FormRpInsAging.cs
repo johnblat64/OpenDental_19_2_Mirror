@@ -35,15 +35,14 @@ namespace OpenDental{
 		private RadioButton radioGroupByPat;
 		private RadioButton radioGroupByFam;
 		private CheckBox checkOnlyShowPatsOutstandingClaims;
-		private GroupBox groupBreakdownOptions;
+		private Label labelFutureTrans;
+		private GroupBox groupFilter;
 		private TextBox textGroupName;
 		private TextBox textCarrier;
 		private Label labelGroupName;
 		private Label labelCarrier;
 		#endregion
 		private List<Provider> _listProviders;
-		private Label labelFutureTrans;
-		private GroupBox groupFilter;
 		private List<Def> _listBillingTypeDefs;
 
 		///<summary></summary>
@@ -89,7 +88,6 @@ namespace OpenDental{
 			this.radioGroupByFam = new System.Windows.Forms.RadioButton();
 			this.labelFutureTrans = new System.Windows.Forms.Label();
 			this.checkOnlyShowPatsOutstandingClaims = new System.Windows.Forms.CheckBox();
-			this.groupBreakdownOptions = new System.Windows.Forms.GroupBox();
 			this.groupFilter = new System.Windows.Forms.GroupBox();
 			this.textGroupName = new System.Windows.Forms.TextBox();
 			this.textCarrier = new System.Windows.Forms.TextBox();
@@ -97,7 +95,6 @@ namespace OpenDental{
 			this.labelCarrier = new System.Windows.Forms.Label();
 			this.groupAgeOfAccount.SuspendLayout();
 			this.groupGroupBy.SuspendLayout();
-			this.groupBreakdownOptions.SuspendLayout();
 			this.groupFilter.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -348,23 +345,13 @@ namespace OpenDental{
 			this.checkOnlyShowPatsOutstandingClaims.UseVisualStyleBackColor = true;
 			this.checkOnlyShowPatsOutstandingClaims.CheckedChanged += new System.EventHandler(this.checkShowBreakdownOptions_CheckedChanged);
 			// 
-			// groupBreakdownOptions
-			// 
-			this.groupBreakdownOptions.Controls.Add(this.groupFilter);
-			this.groupBreakdownOptions.Location = new System.Drawing.Point(12, 269);
-			this.groupBreakdownOptions.Name = "groupBreakdownOptions";
-			this.groupBreakdownOptions.Size = new System.Drawing.Size(233, 95);
-			this.groupBreakdownOptions.TabIndex = 13;
-			this.groupBreakdownOptions.TabStop = false;
-			this.groupBreakdownOptions.Text = "Insurance Breakdown Options";
-			// 
 			// groupFilter
 			// 
 			this.groupFilter.Controls.Add(this.textGroupName);
 			this.groupFilter.Controls.Add(this.textCarrier);
 			this.groupFilter.Controls.Add(this.labelGroupName);
 			this.groupFilter.Controls.Add(this.labelCarrier);
-			this.groupFilter.Location = new System.Drawing.Point(6, 19);
+			this.groupFilter.Location = new System.Drawing.Point(12, 269);
 			this.groupFilter.Name = "groupFilter";
 			this.groupFilter.Size = new System.Drawing.Size(221, 71);
 			this.groupFilter.TabIndex = 14;
@@ -408,7 +395,7 @@ namespace OpenDental{
 			this.AcceptButton = this.butOK;
 			this.CancelButton = this.butCancel;
 			this.ClientSize = new System.Drawing.Size(764, 476);
-			this.Controls.Add(this.groupBreakdownOptions);
+			this.Controls.Add(this.groupFilter);
 			this.Controls.Add(this.checkOnlyShowPatsOutstandingClaims);
 			this.Controls.Add(this.labelFutureTrans);
 			this.Controls.Add(this.groupGroupBy);
@@ -436,7 +423,6 @@ namespace OpenDental{
 			this.Load += new System.EventHandler(this.FormRpInsAging_Load);
 			this.groupAgeOfAccount.ResumeLayout(false);
 			this.groupGroupBy.ResumeLayout(false);
-			this.groupBreakdownOptions.ResumeLayout(false);
 			this.groupFilter.ResumeLayout(false);
 			this.groupFilter.PerformLayout();
 			this.ResumeLayout(false);
@@ -484,7 +470,7 @@ namespace OpenDental{
 				labelFutureTrans.Visible=true;//Set to false in designer
 			}
 			if(!checkOnlyShowPatsOutstandingClaims.Checked) {
-				groupBreakdownOptions.Visible=false;
+				groupFilter.Visible=false;
 			}
 		}
 
@@ -641,7 +627,7 @@ namespace OpenDental{
 		}
 
 		private void checkShowBreakdownOptions_CheckedChanged(object sender,EventArgs e) {
-			groupBreakdownOptions.Visible=checkOnlyShowPatsOutstandingClaims.Checked;
+			groupFilter.Visible=checkOnlyShowPatsOutstandingClaims.Checked;
 		}
 	}
 
