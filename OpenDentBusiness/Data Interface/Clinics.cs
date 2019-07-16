@@ -762,7 +762,7 @@ namespace OpenDentBusiness{
 				EmailAddressNum=PrefC.GetLong(PrefName.EmailDefaultAddressNum),
 				DefaultProv=PrefC.GetLong(PrefName.PracticeDefaultProv),
 				SmsContractDate=PrefC.GetDate(PrefName.SmsContractDate),
-				SmsMonthlyLimit=PrefC.GetDouble(PrefName.SmsMonthlyLimit),
+				SmsMonthlyLimit=PrefC.GetDouble(PrefName.SmsMonthlyLimit,doUseEnUSFormat:true),
 				IsMedicalOnly=PrefC.GetBool(PrefName.PracticeIsMedicalOnly)
 			};
 		}

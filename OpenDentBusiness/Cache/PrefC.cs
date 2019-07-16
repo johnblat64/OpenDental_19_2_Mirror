@@ -168,6 +168,11 @@ namespace OpenDentBusiness {
 		public static double GetDouble(PrefName prefName) {
 			return PIn.Double(Prefs.GetOne(prefName).ValueString);
 		}
+		
+		///<summary>Gets a pref of type double.</summary>
+		public static double GetDouble(PrefName prefName,bool doUseEnUSFormat) {
+			return PIn.Double(Prefs.GetOne(prefName).ValueString,doUseEnUSFormat);
+		}
 
 		///<summary>Gets a pref of type bool.</summary>
 		public static bool GetBool(PrefName prefName) {
