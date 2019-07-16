@@ -707,7 +707,7 @@ namespace OpenDental {
 			List<AccountEntry> listNegCharges=gridCharges.SelectedGridRows.Select(x => (AccountEntry)x.Tag).Where(x => x.AmountEnd<0).ToList();
 			//We need to detect if parent rows are selected (row.DropDownParent==null).   If it is, we need to find all child rows of that row
 			//We need to add the child rows into the list of charges even if they aren't explicitly selected
-			foreach(ODGridRow row in gridCharges.SelectedGridRows) {
+			foreach(ODGridRow row in gridCharges.SelectedGridRows.OrderBy(x => x.RowNum)) {//Reorder the rows so we know for sure they are in FIFO order.
 				if(row.DropDownParent!=null) {
 					continue;
 				}
