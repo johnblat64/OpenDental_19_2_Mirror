@@ -153,7 +153,7 @@ namespace OpenDental {
 			if(valOld == valNew) {
 				return; //don't bother doing any of the logic below if nothing changed.
 			}
-			valNew = "'"+valNew.Trim('\'')+"'";
+			valNew = "'"+valNew.Trim().Trim('\"').Trim('\'')+"'";
 			//Regular expression for the expression @Variable = Value.
 			Regex r = new Regex(Regex.Escape(varOld)+@"\s*=\s*"+Regex.Escape(valOld));
 			string stmtNew = r.Replace(stmtOld,varOld+"="+valNew);
