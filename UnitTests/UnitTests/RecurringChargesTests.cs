@@ -53,7 +53,7 @@ namespace UnitTests.RecurringCharges_Tests {
 			List<RecurringChargeData> listCharges=charger.FillCharges(new List<Clinic> {}).FindAll(x => x.RecurringCharge.PatNum==pat.PatNum);
 			Assert.IsTrue(listCharges.Count()==1);
 			RecurringChargeData recCharge=listCharges.FirstOrDefault(x => x.RecurringCharge.PatNum==pat.PatNum);
-			charger.CreatePayment(pat,recCharge,"",chargeAmt,"");
+			charger.CreatePayment(pat,recCharge,"",recCharge.RecurringCharge.ChargeAmt,"");
 			Payment payment=Payments.Refresh(pat.PatNum).FirstOrDefault(x => x.PayDate.Date==recCharge.RecurringChargeDate);
 			pat=Patients.GetPat(pat.PatNum); 
 			Assert.AreEqual((balStarting+proc.ProcFee)-chargeAmt,pat.BalTotal);
@@ -76,7 +76,7 @@ namespace UnitTests.RecurringCharges_Tests {
 			List<RecurringChargeData> listCharges=charger.FillCharges(new List<Clinic> {}).FindAll(x => x.RecurringCharge.PatNum==pat.PatNum);
 			Assert.IsTrue(listCharges.Count()==1);
 			RecurringChargeData recCharge=listCharges.FirstOrDefault(x => x.RecurringCharge.PatNum==pat.PatNum);
-			charger.CreatePayment(pat,recCharge,"",chargeAmt,"");
+			charger.CreatePayment(pat,recCharge,"",recCharge.RecurringCharge.ChargeAmt,"");
 			Payment payment=Payments.Refresh(pat.PatNum).FirstOrDefault(x => x.PayDate.Date==recCharge.RecurringChargeDate);
 			pat=Patients.GetPat(pat.PatNum); 
 			Assert.AreEqual(payment.PayNote,"Recurring Charge");
@@ -106,8 +106,8 @@ namespace UnitTests.RecurringCharges_Tests {
 			Payment payment=new Payment();
 			foreach(RecurringChargeData charge in listCharges) {
 				recCharge=listCharges.FirstOrDefault(x => x.RecurringCharge.PatNum==pat.PatNum);
-				charger.CreatePayment(pat,recCharge,"",chargeAmt,"");
-				payment = Payments.Refresh(pat.PatNum).FirstOrDefault(x => x.PayDate.Date==recCharge.RecurringChargeDate);
+				charger.CreatePayment(pat,recCharge,"",recCharge.RecurringCharge.ChargeAmt,"");
+				payment=Payments.Refresh(pat.PatNum).FirstOrDefault(x => x.PayDate.Date==recCharge.RecurringChargeDate);
 			}
 			pat=Patients.GetPat(pat.PatNum); 
 			Assert.AreEqual(payment.PayNote,"Recurring Charge");
@@ -135,9 +135,9 @@ namespace UnitTests.RecurringCharges_Tests {
 			List<RecurringChargeData> listCharges=charger.FillCharges(new List<Clinic> {}).FindAll(x => x.RecurringCharge.PatNum==pat.PatNum);
 			Assert.IsTrue(listCharges.Count()==1);
 			RecurringChargeData recCharge=listCharges.FirstOrDefault(x => x.RecurringCharge.PatNum==pat.PatNum);
-			charger.CreatePayment(pat,recCharge,"",chargeAmt,"");
+			charger.CreatePayment(pat,recCharge,"",recCharge.RecurringCharge.ChargeAmt,"");
 			Payment payment=Payments.Refresh(pat.PatNum).FirstOrDefault(x => x.PayDate.Date==recCharge.RecurringChargeDate);
-			List<PaySplit> listSplits = PaySplits.GetForPayment(payment.PayNum);
+			List<PaySplit> listSplits=PaySplits.GetForPayment(payment.PayNum);
 			pat=Patients.GetPat(pat.PatNum); 
 			foreach (PaySplit split in listSplits) {
 				if(split.PayPlanNum==0) {
@@ -175,7 +175,7 @@ namespace UnitTests.RecurringCharges_Tests {
 			Patient pat=PatientT.CreatePatient(suffix);
 			double balStarting=pat.BalTotal;
 			double chargeAmt=100;
-			CreditCard creditCard = CreditCardT.CreateCard(pat.PatNum,chargeAmt,DateTime.Today.AddMonths(-3),0);
+			CreditCard creditCard=CreditCardT.CreateCard(pat.PatNum,chargeAmt,DateTime.Today.AddMonths(-3),0,canChargeWhenZeroBal:false);
 			Ledgers.ComputeAging(pat.Guarantor,DateTime.Today);
 			Assert.IsTrue(pat.BalTotal==balStarting);
 			RecurringChargeratorTest charger=new RecurringChargeratorTest(_log,null,true);
@@ -183,6 +183,33 @@ namespace UnitTests.RecurringCharges_Tests {
 			Assert.IsTrue(listCharges.Count()==0);
 		}
 
+		///<summary>Tests that, when Pref RecurringChargesAllowedWhenNoPatBal is true and CreditCard col CanChargeWhenNoBal is true.
+		///If the user has a zero starting balance, and we add a proc to pay for, the ChargeAmt and RepeatChargeAmt are the same instead of 
+		///the ChargeAmt matching the TotalDue.</summary>
+		[TestMethod]
+		public void RecurringCharges_RecurringChargesAllowedWhenPatBal0_ChargeEqualsRepeatCharge() {
+			PrefT.UpdateBool(PrefName.RecurringChargesAllowedWhenNoPatBal,true);
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(suffix);
+			double balStarting=pat.BalTotal;
+			double chargeAmt=100;//This is the amount paid by the patient
+			Procedure proc=ProcedureT.CreateProcedure(pat,"D0120",ProcStat.C,"0",200);
+			CreditCard creditCard=CreditCardT.CreateCard(pat.PatNum,chargeAmt,DateTime.Today.AddMonths(-3),0,canChargeWhenZeroBal:true);
+			Ledgers.ComputeAging(pat.Guarantor,DateTime.Today);
+			pat=Patients.GetPat(pat.PatNum);
+			Assert.IsTrue(pat.BalTotal==proc.ProcFee);
+			RecurringChargeratorTest charger=new RecurringChargeratorTest(_log,null,true);
+			List<RecurringChargeData> listCharges=charger.FillCharges(new List<Clinic> {}).FindAll(x => x.RecurringCharge.PatNum==pat.PatNum);
+			Assert.IsTrue(listCharges.Count()==1);
+			RecurringChargeData recCharge=listCharges.FirstOrDefault(x => x.RecurringCharge.PatNum==pat.PatNum);
+			charger.CreatePayment(pat,recCharge,"",recCharge.RecurringCharge.ChargeAmt,"");
+			pat=Patients.GetPat(pat.PatNum);
+			Assert.AreEqual(chargeAmt,recCharge.RecurringCharge.ChargeAmt);
+			Assert.AreEqual(chargeAmt,recCharge.RecurringCharge.RepeatAmt);
+			Assert.AreEqual(balStarting+proc.ProcFee-chargeAmt,pat.BalTotal);
+			//This test is to ensure that we are not charging the full family balance in this scenario (just the recurring charge amount on the credit card).
+			Assert.AreNotEqual(recCharge.RecurringCharge.ChargeAmt,recCharge.RecurringCharge.FamBal);
+		}
 		#endregion
 
 		///<summary>Tests that a recurring charge is created for a patient.</summary>

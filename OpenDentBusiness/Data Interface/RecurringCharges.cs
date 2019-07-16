@@ -269,11 +269,12 @@ namespace OpenDentBusiness {
 				//down the account balance. In the future if our customers desire it, we can come up with a way so that a credit card attached to a pay plan
 				//only charges the amount on the pay plan.
 				decimal chargeAmt=Math.Max(dictFamBals[guarNum],payPlanDue);
-				if(RecurringCharges.CanChargeWhenNoBal(chargeCur.CanChargeWhenNoBal)) {
+				//If we CAN overcharge this patient, and rptChargeAmt WILL cause an overcharge, use rptChargeAmt. 
+				if(RecurringCharges.CanChargeWhenNoBal(chargeCur.CanChargeWhenNoBal) && dictFamBals[guarNum]<=rptChargeAmt) {
 					//If the user has RecurringChargesAllowedWhenNoPatBal turned on and this card has CanChargeWhenNoBal set to true
 					//Ensure the charge amount is not modified to be less than the repeat charge amount so that it can credit the remainder
 					//to the Patient's balance by the end.
-					chargeAmt=Math.Max(rptChargeAmt,chargeAmt);
+					chargeAmt=rptChargeAmt;
 				}
 				else {
 					//Otherwise make sure the charge amount is not more than the repeat charge amount
