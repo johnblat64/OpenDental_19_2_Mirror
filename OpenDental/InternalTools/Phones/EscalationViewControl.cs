@@ -303,8 +303,8 @@ namespace OpenDental {
 			}
 			else {//MouseWheel down
 				indexItemStart=Math.Min(indexItemStart+1,_items.Count-1);//-1 so that there will always be 1 item drawn.
-				if(_items.Count-indexItemStart<9) {//Difference represents the number of items we are goin to draw.
-					indexItemStart=_items.Count-9;//Always keep the escalation view full, last item will be at bottom of the view.
+				if(_items.Count-indexItemStart<8) {//Difference represents the number of items we are goin to draw.
+					indexItemStart=_items.Count-8;//Always keep the escalation view full, last item will be at bottom of the view.
 				}
 			}
 			PropertyChanged(this,new PropertyChangedEventArgs("MouseWheel"));

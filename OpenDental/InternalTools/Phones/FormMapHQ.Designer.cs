@@ -395,7 +395,7 @@
 			// label3
 			// 
 			this.label3.Font = new System.Drawing.Font("Calibri", 16F);
-			this.label3.Location = new System.Drawing.Point(1, 583);
+			this.label3.Location = new System.Drawing.Point(1, 584);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(116, 30);
 			this.label3.TabIndex = 86;
@@ -416,7 +416,7 @@
 			this.labelTriageOpsCountLocal.Font = new System.Drawing.Font("Calibri", 40F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageOpsCountLocal.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelTriageOpsCountLocal.InnerColor = System.Drawing.Color.LightCyan;
-			this.labelTriageOpsCountLocal.Location = new System.Drawing.Point(184, 537);
+			this.labelTriageOpsCountLocal.Location = new System.Drawing.Point(184, 536);
 			this.labelTriageOpsCountLocal.Name = "labelTriageOpsCountLocal";
 			this.labelTriageOpsCountLocal.OuterColor = System.Drawing.Color.Blue;
 			this.labelTriageOpsCountLocal.PhoneCur = null;
@@ -716,7 +716,7 @@
 			// 
 			this.label6.AutoSize = true;
 			this.label6.Font = new System.Drawing.Font("Calibri", 22F);
-			this.label6.Location = new System.Drawing.Point(-1, 187);
+			this.label6.Location = new System.Drawing.Point(6, 187);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(90, 37);
 			this.label6.TabIndex = 10;
