@@ -275,10 +275,10 @@ namespace OpenDental{
 			this.pictureWebSched = new System.Windows.Forms.PictureBox();
 			this.textWebSchedDescript = new System.Windows.Forms.TextBox();
 			this.tabClinics = new System.Windows.Forms.TabPage();
+			this.labelClinicsDesc = new System.Windows.Forms.Label();
 			this.checkAllClinics = new System.Windows.Forms.CheckBox();
 			this.listBoxClinics = new System.Windows.Forms.ListBox();
 			this.labelClinics = new System.Windows.Forms.Label();
-			this.labelClinicsDesc = new System.Windows.Forms.Label();
 			this.groupBox2.SuspendLayout();
 			this.tabControlProvider.SuspendLayout();
 			this.tabGeneral.SuspendLayout();
@@ -724,6 +724,7 @@ namespace OpenDental{
 			// 
 			// textSchedRules
 			// 
+			this.textSchedRules.AcceptsReturn = true;
 			this.textSchedRules.Location = new System.Drawing.Point(419, 240);
 			this.textSchedRules.Multiline = true;
 			this.textSchedRules.Name = "textSchedRules";
@@ -1375,6 +1376,7 @@ namespace OpenDental{
 			// 
 			// textWebSchedDescript
 			// 
+			this.textWebSchedDescript.AcceptsReturn = true;
 			this.textWebSchedDescript.AcceptsTab = true;
 			this.textWebSchedDescript.BackColor = System.Drawing.SystemColors.Window;
 			this.textWebSchedDescript.Location = new System.Drawing.Point(153, 36);
@@ -1398,6 +1400,15 @@ namespace OpenDental{
 			this.tabClinics.Size = new System.Drawing.Size(862, 578);
 			this.tabClinics.TabIndex = 4;
 			this.tabClinics.Text = "Clinics";
+			// 
+			// labelClinicsDesc
+			// 
+			this.labelClinicsDesc.Location = new System.Drawing.Point(12, 9);
+			this.labelClinicsDesc.Name = "labelClinicsDesc";
+			this.labelClinicsDesc.Size = new System.Drawing.Size(504, 45);
+			this.labelClinicsDesc.TabIndex = 48;
+			this.labelClinicsDesc.Text = resources.GetString("labelClinicsDesc.Text");
+			this.labelClinicsDesc.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// checkAllClinics
 			// 
@@ -1426,15 +1437,6 @@ namespace OpenDental{
 			this.labelClinics.TabIndex = 47;
 			this.labelClinics.Text = "Clinics";
 			this.labelClinics.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			// 
-			// labelClinicsDesc
-			// 
-			this.labelClinicsDesc.Location = new System.Drawing.Point(12, 9);
-			this.labelClinicsDesc.Name = "labelClinicsDesc";
-			this.labelClinicsDesc.Size = new System.Drawing.Size(504, 45);
-			this.labelClinicsDesc.TabIndex = 48;
-			this.labelClinicsDesc.Text = resources.GetString("labelClinicsDesc.Text");
-			this.labelClinicsDesc.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// FormProvEdit
 			// 
