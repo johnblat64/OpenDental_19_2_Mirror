@@ -11,8 +11,6 @@ using OpenDental.UI;
 
 namespace OpenDental {
 	public partial class FormReleaseCalculator:ODForm {
-		private List<long> _listEngEmpNums = new List<long>() {15,34,36,64,72,74,88,94,118,121,163,173,177,179,253,257,299};
-		private List<long> _listDefaultEngEmpNums = new List<long>() {15,34,36,64,72,74,88,94,118,121,163,173,177,179,253,257,299};
 		private List<Tuple<long,double>> _listTopJobs=new List<Tuple<long,double>>();
 		private double _avgJobHours=9.43;
 		private double _jobTimePercent=0.173;
@@ -48,12 +46,9 @@ namespace OpenDental {
 					listCategories.SelectedIndices.Add(listCategories.Items.Count-1);
 				}
 			}
-			foreach(long engNum in _listEngEmpNums) {
-				Employee emp=Employees.GetEmp(engNum);
+			foreach(Employee emp in JobHelper.ListEngineerEmployees) {
 				listEngineers.Items.Add(new ODBoxItem<Employee>(emp.FName,emp));
-				if(_listDefaultEngEmpNums.Contains(engNum)) {
-					listEngineers.SelectedIndices.Add(listEngineers.Items.Count-1);
-				}
+				listEngineers.SelectedIndices.Add(listEngineers.Items.Count-1);
 			}
 		}
 

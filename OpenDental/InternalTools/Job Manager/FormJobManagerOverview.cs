@@ -13,7 +13,6 @@ using System.IO;
 
 namespace OpenDental {
 	public partial class FormJobManagerOverview:ODForm {
-		private List<long> _listEngUserNums = new List<long>() {7,24,29,52,59,61,72,77,98,31,138,149,157,223,227,273,349,355,383,393};
 		private List<Job> _listJobsAll;
 		private bool _headingPrinted;
 		private int _pagesPrinted;
@@ -48,8 +47,7 @@ namespace OpenDental {
 			listCategories.SelectedIndex=0;
 			comboEngineers.Items.Add(new ODBoxItem<Userod>("All",new Userod() { UserNum=-1 }));
 			comboEngineers.Items.Add(new ODBoxItem<Userod>("Unassigned",new Userod() { UserNum=0 }));
-			foreach(long engNum in _listEngUserNums) {
-				Userod eng=Userods.GetUser(engNum);
+			foreach(Userod eng in JobHelper.ListEngineerUsers) {
 				comboEngineers.Items.Add(new ODBoxItem<Userod>(eng.UserName,eng));
 			}
 			comboEngineers.SelectedIndex=0;
@@ -104,9 +102,8 @@ namespace OpenDental {
 			double jobPercent=jobSprint.JobPercent;
 			double avgDevHours=jobSprint.HoursAverageDevelopment;
 			double avgBreakHours=jobSprint.HoursAverageBreak;
-			List<Userod> listEngUsers=Userods.GetUsers(_listEngUserNums);
-			List<Schedule> listEngSchedules=Schedules.RefreshPeriodForEmps(jobSprint.DateStart,jobSprint.DateEndTarget,listEngUsers.Select(x => x.EmployeeNum).Distinct().ToList());
-			foreach(Userod userEng in listEngUsers) {
+			List<Schedule> listEngSchedules=Schedules.RefreshPeriodForEmps(jobSprint.DateStart,jobSprint.DateEndTarget,JobHelper.ListEngineerEmployeeNums);
+			foreach(Userod userEng in JobHelper.ListEngineerUsers) {
 				double schedHoursTotal=0;
 				double schedHoursBreaksTotal=0;
 				double schedHoursPercentTotal=0;

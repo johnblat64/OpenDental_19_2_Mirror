@@ -114,6 +114,10 @@ namespace OpenDentBusiness{
 			return _employeeCache.GetDeepCopy(isShort);
 		}
 
+		public static List<Employee> GetWhere(Predicate<Employee> match,bool isShort = false) {
+			return _employeeCache.GetWhere(match,isShort);
+		}
+
 		///<summary>Refreshes the cache and returns it as a DataTable. This will refresh the ClientWeb's cache and the ServerWeb's cache.</summary>
 		public static DataTable RefreshCache() {
 			return GetTableFromCache(true);
@@ -277,6 +281,12 @@ namespace OpenDentBusiness{
 				}
 			}
 			return null;
+		}
+
+		///<summary>From cache</summary>
+		public static List<Employee> GetEmps(List<long> employeeNums) {
+			//No need to check RemotingRole; no call to db.
+			return GetWhere(x => employeeNums.Contains(x.EmployeeNum));
 		}
 
 		///<summary>Gets all employees associated to users that have a clinic set to the clinic passed in.  Passing in 0 will get a list of employees not assigned to any clinic.  Gets employees from the cache which is sorted by FName, LastName.</summary>
