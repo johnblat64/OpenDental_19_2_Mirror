@@ -707,7 +707,7 @@ namespace OpenDental {
 			List<AccountEntry> listNegCharges=gridCharges.SelectedGridRows.Select(x => (AccountEntry)x.Tag).Where(x => x.AmountEnd<0).ToList();
 			//We need to detect if parent rows are selected (row.DropDownParent==null).   If it is, we need to find all child rows of that row
 			//We need to add the child rows into the list of charges even if they aren't explicitly selected
-			foreach(ODGridRow row in gridCharges.SelectedGridRows.OrderBy(x => x.RowNum)) {//Reorder the rows so we know for sure they are in FIFO order.
+			foreach(ODGridRow row in gridCharges.SelectedGridRows) {
 				if(row.DropDownParent!=null) {
 					continue;
 				}
@@ -733,6 +733,8 @@ namespace OpenDental {
 			List<long> listPatNumsForCharges=listPosCharges.Select(x => x.PatNum).Distinct().ToList();
 			//Get account entries so if any procs are attached to payment plans, their attached procedures can be attached to the new split from the transfer. 
 			List<AccountEntry> listEntriesForPats=_results.ListAccountCharges.FindAll(x => x.PatNum.In(listPatNumsForCharges));
+			listPosCharges=listPosCharges.OrderBy(x => x.Date).ToList();
+			listNegCharges=listNegCharges.OrderBy(x => x.Date).ToList();
 			CreateTransfers(listPosCharges,listNegCharges,listEntriesForPats);
 			FillGridSplits();//Fills charge grid too.
 		}
