@@ -8,7 +8,7 @@ using OpenDentBusiness;
 namespace UnitTestsCore {
 	public class PaymentT {
 		public static Payment MakePayment(long patNum,double payAmt,DateTime payDate,long payPlanNum=0,long provNum=0,long procNum=0,long payType=0,
-			long clinicNum=0,long unearnedType=0,bool isRecurringCharge=false,DateTime recurringChargeDate=default(DateTime)) 
+			long clinicNum=0,long unearnedType=0,bool isRecurringCharge=false,DateTime recurringChargeDate=default(DateTime),string externalId="") 
 		{
 			Payment payment=new Payment();
 			payment.PatNum=patNum;
@@ -19,6 +19,7 @@ namespace UnitTestsCore {
 			payment.DateEntry=payDate;
 			payment.IsRecurringCC=isRecurringCharge;
 			payment.RecurringChargeDate=recurringChargeDate;
+			payment.ExternalId=externalId;
 			Payments.Insert(payment);
 			PaySplit split=new PaySplit();
 			split.PayNum=payment.PayNum;
