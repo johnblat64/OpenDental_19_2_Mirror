@@ -467,7 +467,7 @@ namespace OpenDentBusiness{
 
 		///<summary>Surround with try/catch Combines all the given carriers into one. 
 		///The carrier that will be used as the basis of the combination is specified in the pickedCarrier argument. 
-		///Updates insplan, then deletes all the other carriers.</summary>
+		///Updates insplan and etrans, then deletes all the other carriers.</summary>
 		public static void Combine(List<long> carrierNums,long pickedCarrierNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),carrierNums,pickedCarrierNum);
@@ -483,30 +483,20 @@ namespace OpenDentBusiness{
 					continue;
 				carrierNumList.Add(carrierNums[i]);
 			}
-			//Make sure that none of the carrierNums are in use in the etrans table
-			string command="SELECT COUNT(*) FROM etrans WHERE";
-			for(int i=0;i<carrierNumList.Count;i++){
-				if(i>0){
-					command+=" OR";
-				}
-				command+=" (CarrierNum="+carrierNumList[i].ToString()+" AND CarrierTransCounter>0)";
-			}
-			for(int i=0;i<carrierNumList.Count;i++) {
-				command+=" OR (CarrierNum2="+carrierNumList[i].ToString()+" AND CarrierTransCounter2>0)";
-			}
-			DataTable table=Db.GetTable(command);
-			string ecount=table.Rows[0][0].ToString();
-			if(ecount!="0"){
-				throw new ApplicationException(Lans.g("Carriers","Not allowed to combine carriers because some are in use in the etrans table.  Number of entries involved: ")+ecount);
-			}
 			//Now, do the actual combining----------------------------------------------------------------------------------
 			for(int i=0;i<carrierNums.Count;i++){
 				if(carrierNums[i]==pickedCarrierNum)
 					continue;
-				command="SELECT * FROM insplan WHERE CarrierNum = "+POut.Long(carrierNums[i]);
+				string command="SELECT * FROM insplan WHERE CarrierNum = "+POut.Long(carrierNums[i]);
 				List<InsPlan> listInsPlan = Crud.InsPlanCrud.SelectMany(command);
-				command="UPDATE insplan SET CarrierNum = '"+POut.Long(pickedCarrierNum)
-					+"' WHERE CarrierNum = "+POut.Long(carrierNums[i]);
+				command="UPDATE insplan SET CarrierNum = '"+POut.Long(pickedCarrierNum)+"' "
+					+"WHERE CarrierNum = "+POut.Long(carrierNums[i]);
+				Db.NonQ(command);
+				command="UPDATE etrans SET CarrierNum='"+POut.Long(pickedCarrierNum)+"' "
+					+"WHERE CarrierNum="+POut.Long(carrierNums[i]);
+				Db.NonQ(command);
+				command="UPDATE etrans SET CarrierNum2='"+POut.Long(pickedCarrierNum)+"' "
+					+"WHERE CarrierNum2="+POut.Long(carrierNums[i]);
 				Db.NonQ(command);
 				//Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
 				listInsPlan.ForEach(x => { //Log InsPlan CarrierNum change.
