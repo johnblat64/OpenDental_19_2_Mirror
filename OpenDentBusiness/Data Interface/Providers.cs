@@ -930,7 +930,7 @@ namespace OpenDentBusiness{
         "procedurelog.ProvNum",
 				"procedurelog.ProvOrderOverride",
 				"provider.ProvNumBillingOverride",
-				"providerclinic.ProvNum",
+				//"providerclinic.ProvNum",
 				"providerident.ProvNum",
 				"refattach.ProvNum",
 				"reqstudent.ProvNum",
@@ -949,6 +949,18 @@ namespace OpenDentBusiness{
 					+" SET "+tableAndKeyName[1]+"="+POut.Long(provNumInto)
 					+" WHERE "+tableAndKeyName[1]+"="+POut.Long(provNumFrom);
 				retVal+=Db.NonQ(command);
+			}
+			//Merge any providerclinic rows associated to the FROM provider where the INTO provider does not have a row for said clinic.
+			List<ProviderClinic> listProviderClinicsAll=ProviderClinics.GetByProvNums(new List<long>(){ provNumFrom,provNumInto});
+			List<ProviderClinic> listProviderClinicsFrom=listProviderClinicsAll.FindAll(x => x.ProvNum==provNumFrom);
+			List<ProviderClinic> listProviderClinicsInto=listProviderClinicsAll.FindAll(x => x.ProvNum==provNumInto);
+			List<long> listProviderClinicNums=listProviderClinicsFrom.Where(x => !x.ClinicNum.In(listProviderClinicsInto.Select(y => y.ClinicNum)))
+				.Select(x => x.ProviderClinicNum)
+				.ToList();
+			if(!listProviderClinicNums.IsNullOrEmpty()) {
+				command=$@"UPDATE providerclinic SET ProvNum = {POut.Long(provNumInto)}
+					WHERE ProviderClinicNum IN({string.Join(",",listProviderClinicNums.Select(x => POut.Long(x)))})";
+				Db.NonQ(command);
 			}
 			command="UPDATE provider SET IsHidden=1 WHERE ProvNum="+POut.Long(provNumFrom);
 			Db.NonQ(command);
