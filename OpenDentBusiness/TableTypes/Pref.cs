@@ -965,6 +965,8 @@ namespace OpenDentBusiness {
 		///<summary>Missing in general: When clicking the "?" button with this preference present, the name of the Form (in the code) is placed in the user's clipboard.
 		///This helps the documentation team create a document of new forms and their associated manual page.</summary>
 		OpenDentalHelpCaptureFormName,
+		///<summary>Records the name of the computer running OpenDentalService.</summary>
+		OpenDentalServiceComputerName,
 		///<summary>Records a heartbeat for OpenDentalService. If the heartbeat is older than 6 minutes, an alert will notify the user.</summary>
 		OpenDentalServiceHeartbeat,
 		OpenDentalVendor,

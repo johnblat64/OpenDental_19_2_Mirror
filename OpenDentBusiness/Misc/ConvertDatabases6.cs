@@ -1572,5 +1572,10 @@ namespace OpenDentBusiness {
 			Db.NonQ("DELETE FROM userodpref WHERE FKeyType=18 AND Fkey="+POut.Long(chartDefaultDefNum));//18 => DynamicChartLayout
 		}
 
+		private static void To19_2_8() {
+			string command="INSERT INTO preference(PrefName,ValueString) VALUES('OpenDentalServiceComputerName','')";
+			Db.NonQ(command);
+		}
+
 	}
 }
