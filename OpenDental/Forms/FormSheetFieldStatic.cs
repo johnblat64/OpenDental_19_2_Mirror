@@ -66,26 +66,26 @@ namespace OpenDental {
 			}
 		}
 
-		private void listFields_MouseClick(object sender,MouseEventArgs e) {
-			string fieldStr="";
-			for(int i=0;i<listFields.Items.Count;i++) {
-				if(listFields.GetItemRectangle(i).Contains(e.Location)) {
-					fieldStr=listFields.Items[i].ToString();
-				}
-			}
-			if(fieldStr=="") {
+		private void ListFields_MouseDown(object sender,MouseEventArgs e) {
+			if(e.Button!=MouseButtons.Left) {
 				return;
 			}
+			//SelectedItem will be null if the user clicks inside the ListBox but not on an item in the list.
+			if(sender.GetType()!=typeof(ListBox) || ((ListBox)sender).SelectedItem==null) {
+				return;
+			}
+			string fieldStr=((ListBox)sender).SelectedItem.ToString();
 			if(textSelectionStart < textFieldValue.Text.Length-1) {
 				textFieldValue.Text=textFieldValue.Text.Substring(0,textSelectionStart)
 					+"["+fieldStr+"]"
 					+textFieldValue.Text.Substring(textSelectionStart);
 			}
-			else{//otherwise, just tack it on the end
+			else {//otherwise, just tack it on the end
 				textFieldValue.Text+="["+fieldStr+"]";
 			}
 			textFieldValue.Select(textSelectionStart+fieldStr.Length+2,0);
 			textFieldValue.Focus();
+			listFields.ClearSelected();
 			//if(!textFieldValue.Focused){
 			//	textFieldValue.Text+="["+fieldStr+"]";
 			//	return;
