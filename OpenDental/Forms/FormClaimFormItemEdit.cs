@@ -453,7 +453,7 @@ namespace OpenDental{
 				"AcceptAssignmentN",
 				"ClaimIdentifier",
 				"OrigRefNum",
-				"ResubmissionCode",
+				"CorrectionType",
 				"DateIllnessInjuryPreg",
 				"DateIllnessInjuryPregQualifier",
 				"DateOther",

@@ -1575,6 +1575,14 @@ namespace OpenDentBusiness {
 		private static void To19_2_8() {
 			string command="INSERT INTO preference(PrefName,ValueString) VALUES('OpenDentalServiceComputerName','')";
 			Db.NonQ(command);
+			command="UPDATE claim SET CorrectionType=1 WHERE ResubmissionCode=7 AND CorrectionType=0";//CorrectionType 1 and ResubmissionCode 7 are 'Replacement'
+			Db.NonQ(command);
+			command="UPDATE claim SET CorrectionType=2 WHERE ResubmissionCode=8 AND CorrectionType=0";//CorrectionType 2 and ResubmissionCode 8 are 'Void'
+			Db.NonQ(command);
+			command="UPDATE claimformitem SET FieldName='CorrectionType' WHERE FieldName='ResubmissionCode'";
+			Db.NonQ(command);
+			command="ALTER TABLE claim DROP COLUMN ResubmissionCode";
+			Db.NonQ(command);
 		}
 
 	}

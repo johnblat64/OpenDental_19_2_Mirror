@@ -149,7 +149,7 @@ namespace OpenDentBusiness{
 		public long CustomTracking;
 		///<summary>Used for historical purposes only, not sent electronically. Automatically set when CorrectionType is not original and the claim is resent.</summary>
 		public DateTime DateResent;
-		///<summary>X12 CLM05-3. Usually set to original, but can be used to resubmit claims.</summary>
+		///<summary>X12 CLM05-3. Usually set to original, but can be used to resubmit claims.  Also used in 1500 Medical Claim Form field 22.</summary>
 		public ClaimCorrectionType CorrectionType;
 		///<summary>X12 CLM01. Semi-unique identifier for the claim within the current database. Defaults to PatNum/ClaimNum, but can be edited by user, and is often modified by the clearinghouse to ensure uniqueness on their end.
 		///This also set for PreAuth claims.  The ClaimIdentifier for a PreAuth will probably not match the ClaimIdentifier for a regular claim, which makes ERA claim matching more straight forward for both PreAuths and regular claims.</summary>
@@ -192,8 +192,6 @@ namespace OpenDentBusiness{
 		public DateOtherQualifier DateOtherQualifier;
 		///<summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
 		public bool IsOutsideLab;
-		///<summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
-		public ResubmitCode ResubmissionCode;
 
 		///<summary>Not a data column.</summary>
 		[CrudColumn(IsNotDbColumn=true)]
@@ -321,19 +319,6 @@ namespace OpenDentBusiness{
 		///<summary>484 - Last Menstrual Period</summary>
 		[Description("Last Menstrual Period")]
 		LastMenstrualPeriod=484
-	}
-
-	///<summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
-	public enum ResubmitCode {
-		///<summary>0 - None</summary>
-		[Description("None")]
-		None=0,
-		///<summary>7 - Replacement of prior claim</summary>
-		[Description("Replacement of prior claim")]
-		Replacement=7,
-		///<summary>8 - Void/cancel of prior claim</summary>
-		[Description("Void/cancel of prior claim")]
-		VoidOrCancel=8
 	}
 
 }

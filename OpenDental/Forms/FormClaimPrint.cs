@@ -2078,8 +2078,14 @@ namespace OpenDental{
 					case "OrigRefNum":
 						displayStrings[i]=ClaimCur.OrigRefNum;
 						break;
-					case "ResubmissionCode":
-						displayStrings[i]=ClaimCur.ResubmissionCode==ResubmitCode.None?"":((int)ClaimCur.ResubmissionCode).ToString();
+					case "CorrectionType":
+						displayStrings[i]="";//Original claim
+						if(ClaimCur.CorrectionType==ClaimCorrectionType.Replacement) {
+							displayStrings[i]="7";
+						}
+						else if(ClaimCur.CorrectionType==ClaimCorrectionType.Void) {
+							displayStrings[i]="8";
+						}
 						break;
 					case "DateIllnessInjuryPreg":
 						if(ClaimCur.DateIllnessInjuryPreg.Year>1880) {

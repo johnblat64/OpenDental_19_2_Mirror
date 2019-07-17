@@ -1073,7 +1073,7 @@ namespace OpenDental{
 					case "DateOtherQualifier":
 						displayStrings[i]="000";
 						break;
-					case "ResubmissionCode":
+					case "CorrectionType":
 						displayStrings[i]="0";
 						break;
 				}//switch

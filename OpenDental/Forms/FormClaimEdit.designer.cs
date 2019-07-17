@@ -112,8 +112,6 @@
 			this.labelAttachmentID = new System.Windows.Forms.Label();
 			this.gridSent = new OpenDental.UI.ODGrid();
 			this.tabMisc = new System.Windows.Forms.TabPage();
-			this.labelResubCode = new System.Windows.Forms.Label();
-			this.comboResubCode = new System.Windows.Forms.ComboBox();
 			this.textClaimIdOriginal = new System.Windows.Forms.TextBox();
 			this.labelClaimIdOriginal = new System.Windows.Forms.Label();
 			this.labelShareOfCost = new System.Windows.Forms.Label();
@@ -1339,8 +1337,6 @@
 			// tabMisc
 			// 
 			this.tabMisc.AutoScroll = true;
-			this.tabMisc.Controls.Add(this.labelResubCode);
-			this.tabMisc.Controls.Add(this.comboResubCode);
 			this.tabMisc.Controls.Add(this.textClaimIdOriginal);
 			this.tabMisc.Controls.Add(this.labelClaimIdOriginal);
 			this.tabMisc.Controls.Add(this.labelShareOfCost);
@@ -1366,24 +1362,6 @@
 			this.tabMisc.Text = "Misc";
 			this.tabMisc.UseVisualStyleBackColor = true;
 			// 
-			// labelResubCode
-			// 
-			this.labelResubCode.Location = new System.Drawing.Point(6, 127);
-			this.labelResubCode.Name = "labelResubCode";
-			this.labelResubCode.Size = new System.Drawing.Size(132, 17);
-			this.labelResubCode.TabIndex = 168;
-			this.labelResubCode.Text = "Resubmission Code";
-			this.labelResubCode.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// comboResubCode
-			// 
-			this.comboResubCode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboResubCode.Location = new System.Drawing.Point(139, 125);
-			this.comboResubCode.MaxDropDownItems = 100;
-			this.comboResubCode.Name = "comboResubCode";
-			this.comboResubCode.Size = new System.Drawing.Size(150, 21);
-			this.comboResubCode.TabIndex = 169;
-			// 
 			// textClaimIdOriginal
 			// 
 			this.textClaimIdOriginal.Location = new System.Drawing.Point(139, 65);
@@ -1403,7 +1381,7 @@
 			// 
 			// labelShareOfCost
 			// 
-			this.labelShareOfCost.Location = new System.Drawing.Point(6, 148);
+			this.labelShareOfCost.Location = new System.Drawing.Point(6, 127);
 			this.labelShareOfCost.Name = "labelShareOfCost";
 			this.labelShareOfCost.Size = new System.Drawing.Size(132, 17);
 			this.labelShareOfCost.TabIndex = 164;
@@ -1523,7 +1501,7 @@
 			// 
 			// textShareOfCost
 			// 
-			this.textShareOfCost.Location = new System.Drawing.Point(139, 146);
+			this.textShareOfCost.Location = new System.Drawing.Point(139, 125);
 			this.textShareOfCost.MaxVal = 100000000D;
 			this.textShareOfCost.MinVal = 0D;
 			this.textShareOfCost.Name = "textShareOfCost";
@@ -4216,7 +4194,5 @@
 		private System.Windows.Forms.Label labelDateIllness;
 		private System.Windows.Forms.GroupBox groupDateIllnessInjuryPreg;
 		private System.Windows.Forms.CheckBox checkIsOutsideLab;
-		private System.Windows.Forms.Label labelResubCode;
-		private System.Windows.Forms.ComboBox comboResubCode;
 	}
 }

@@ -667,10 +667,6 @@ namespace OpenDental{
 			textClaimIdOriginal.Text=Claims.ConvertClaimId(ClaimCur,PatCur);
 			textClaimIdentifier.Text=string.IsNullOrWhiteSpace(ClaimCur.ClaimIdentifier) ? textClaimIdOriginal.Text : ClaimCur.ClaimIdentifier;
 			textOrigRefNum.Text=ClaimCur.OrigRefNum;
-			comboResubCode.SetItems(Enum.GetValues(typeof(ResubmitCode)).OfType<ResubmitCode>()
-				,(submitCode) => submitCode.GetDescription()
-				,(submitCode) => submitCode==ClaimCur.ResubmissionCode);
-			comboResubCode.SelectedIndex=Math.Max(comboResubCode.SelectedIndex,0);//select index 0 if selected index is -1
 			if(ClaimCur.ShareOfCost > 0) {
 				textShareOfCost.Text=ClaimCur.ShareOfCost.ToString("F2");
 			}
@@ -2997,7 +2993,6 @@ namespace OpenDental{
 			ClaimCur.CorrectionType=(ClaimCorrectionType)Enum.GetValues(typeof(ClaimCorrectionType)).GetValue(comboCorrectionType.SelectedIndex);
 			ClaimCur.ClaimIdentifier=string.IsNullOrWhiteSpace(textClaimIdentifier.Text) ? Claims.ConvertClaimId(ClaimCur,PatCur) : textClaimIdentifier.Text;
 			ClaimCur.OrigRefNum=textOrigRefNum.Text;
-			ClaimCur.ResubmissionCode=comboResubCode.SelectedTag<ResubmitCode>();
 			ClaimCur.ShareOfCost=PIn.Double(textShareOfCost.Text);
 			//attachments
 			ClaimCur.Radiographs=PIn.Byte(textRadiographs.Text);

@@ -129,7 +129,6 @@ namespace OpenDentBusiness.Crud{
 				claim.DateOther                     = PIn.Date  (row["DateOther"].ToString());
 				claim.DateOtherQualifier            = (OpenDentBusiness.DateOtherQualifier)PIn.Int(row["DateOtherQualifier"].ToString());
 				claim.IsOutsideLab                  = PIn.Bool  (row["IsOutsideLab"].ToString());
-				claim.ResubmissionCode              = (OpenDentBusiness.ResubmitCode)PIn.Int(row["ResubmissionCode"].ToString());
 				retVal.Add(claim);
 			}
 			return retVal;
@@ -224,7 +223,6 @@ namespace OpenDentBusiness.Crud{
 			table.Columns.Add("DateOther");
 			table.Columns.Add("DateOtherQualifier");
 			table.Columns.Add("IsOutsideLab");
-			table.Columns.Add("ResubmissionCode");
 			foreach(Claim claim in listClaims) {
 				table.Rows.Add(new object[] {
 					POut.Long  (claim.ClaimNum),
@@ -310,7 +308,6 @@ namespace OpenDentBusiness.Crud{
 					POut.DateT (claim.DateOther,false),
 					POut.Int   ((int)claim.DateOtherQualifier),
 					POut.Bool  (claim.IsOutsideLab),
-					POut.Int   ((int)claim.ResubmissionCode),
 				});
 			}
 			return table;
@@ -330,7 +327,7 @@ namespace OpenDentBusiness.Crud{
 			if(useExistingPK || PrefC.RandomKeys) {
 				command+="ClaimNum,";
 			}
-			command+="PatNum,DateService,DateSent,ClaimStatus,DateReceived,PlanNum,ProvTreat,ClaimFee,InsPayEst,InsPayAmt,DedApplied,PreAuthString,IsProsthesis,PriorDate,ReasonUnderPaid,ClaimNote,ClaimType,ProvBill,ReferringProv,RefNumString,PlaceService,AccidentRelated,AccidentDate,AccidentST,EmployRelated,IsOrtho,OrthoRemainM,OrthoDate,PatRelat,PlanNum2,PatRelat2,WriteOff,Radiographs,ClinicNum,ClaimForm,AttachedImages,AttachedModels,AttachedFlags,AttachmentID,CanadianMaterialsForwarded,CanadianReferralProviderNum,CanadianReferralReason,CanadianIsInitialLower,CanadianDateInitialLower,CanadianMandProsthMaterial,CanadianIsInitialUpper,CanadianDateInitialUpper,CanadianMaxProsthMaterial,InsSubNum,InsSubNum2,CanadaTransRefNum,CanadaEstTreatStartDate,CanadaInitialPayment,CanadaPaymentMode,CanadaTreatDuration,CanadaNumAnticipatedPayments,CanadaAnticipatedPayAmount,PriorAuthorizationNumber,SpecialProgramCode,UniformBillType,MedType,AdmissionTypeCode,AdmissionSourceCode,PatientStatusCode,CustomTracking,DateResent,CorrectionType,ClaimIdentifier,OrigRefNum,ProvOrderOverride,OrthoTotalM,ShareOfCost,SecUserNumEntry,SecDateEntry,OrderingReferralNum,DateSentOrig,DateIllnessInjuryPreg,DateIllnessInjuryPregQualifier,DateOther,DateOtherQualifier,IsOutsideLab,ResubmissionCode) VALUES(";
+			command+="PatNum,DateService,DateSent,ClaimStatus,DateReceived,PlanNum,ProvTreat,ClaimFee,InsPayEst,InsPayAmt,DedApplied,PreAuthString,IsProsthesis,PriorDate,ReasonUnderPaid,ClaimNote,ClaimType,ProvBill,ReferringProv,RefNumString,PlaceService,AccidentRelated,AccidentDate,AccidentST,EmployRelated,IsOrtho,OrthoRemainM,OrthoDate,PatRelat,PlanNum2,PatRelat2,WriteOff,Radiographs,ClinicNum,ClaimForm,AttachedImages,AttachedModels,AttachedFlags,AttachmentID,CanadianMaterialsForwarded,CanadianReferralProviderNum,CanadianReferralReason,CanadianIsInitialLower,CanadianDateInitialLower,CanadianMandProsthMaterial,CanadianIsInitialUpper,CanadianDateInitialUpper,CanadianMaxProsthMaterial,InsSubNum,InsSubNum2,CanadaTransRefNum,CanadaEstTreatStartDate,CanadaInitialPayment,CanadaPaymentMode,CanadaTreatDuration,CanadaNumAnticipatedPayments,CanadaAnticipatedPayAmount,PriorAuthorizationNumber,SpecialProgramCode,UniformBillType,MedType,AdmissionTypeCode,AdmissionSourceCode,PatientStatusCode,CustomTracking,DateResent,CorrectionType,ClaimIdentifier,OrigRefNum,ProvOrderOverride,OrthoTotalM,ShareOfCost,SecUserNumEntry,SecDateEntry,OrderingReferralNum,DateSentOrig,DateIllnessInjuryPreg,DateIllnessInjuryPregQualifier,DateOther,DateOtherQualifier,IsOutsideLab) VALUES(";
 			if(useExistingPK || PrefC.RandomKeys) {
 				command+=POut.Long(claim.ClaimNum)+",";
 			}
@@ -416,8 +413,7 @@ namespace OpenDentBusiness.Crud{
 				+    POut.Int   ((int)claim.DateIllnessInjuryPregQualifier)+","
 				+    POut.Date  (claim.DateOther)+","
 				+    POut.Int   ((int)claim.DateOtherQualifier)+","
-				+    POut.Bool  (claim.IsOutsideLab)+","
-				+    POut.Int   ((int)claim.ResubmissionCode)+")";
+				+    POut.Bool  (claim.IsOutsideLab)+")";
 			if(useExistingPK || PrefC.RandomKeys) {
 				Db.NonQ(command);
 			}
@@ -442,7 +438,7 @@ namespace OpenDentBusiness.Crud{
 			if(isRandomKeys || useExistingPK) {
 				command+="ClaimNum,";
 			}
-			command+="PatNum,DateService,DateSent,ClaimStatus,DateReceived,PlanNum,ProvTreat,ClaimFee,InsPayEst,InsPayAmt,DedApplied,PreAuthString,IsProsthesis,PriorDate,ReasonUnderPaid,ClaimNote,ClaimType,ProvBill,ReferringProv,RefNumString,PlaceService,AccidentRelated,AccidentDate,AccidentST,EmployRelated,IsOrtho,OrthoRemainM,OrthoDate,PatRelat,PlanNum2,PatRelat2,WriteOff,Radiographs,ClinicNum,ClaimForm,AttachedImages,AttachedModels,AttachedFlags,AttachmentID,CanadianMaterialsForwarded,CanadianReferralProviderNum,CanadianReferralReason,CanadianIsInitialLower,CanadianDateInitialLower,CanadianMandProsthMaterial,CanadianIsInitialUpper,CanadianDateInitialUpper,CanadianMaxProsthMaterial,InsSubNum,InsSubNum2,CanadaTransRefNum,CanadaEstTreatStartDate,CanadaInitialPayment,CanadaPaymentMode,CanadaTreatDuration,CanadaNumAnticipatedPayments,CanadaAnticipatedPayAmount,PriorAuthorizationNumber,SpecialProgramCode,UniformBillType,MedType,AdmissionTypeCode,AdmissionSourceCode,PatientStatusCode,CustomTracking,DateResent,CorrectionType,ClaimIdentifier,OrigRefNum,ProvOrderOverride,OrthoTotalM,ShareOfCost,SecUserNumEntry,SecDateEntry,OrderingReferralNum,DateSentOrig,DateIllnessInjuryPreg,DateIllnessInjuryPregQualifier,DateOther,DateOtherQualifier,IsOutsideLab,ResubmissionCode) VALUES(";
+			command+="PatNum,DateService,DateSent,ClaimStatus,DateReceived,PlanNum,ProvTreat,ClaimFee,InsPayEst,InsPayAmt,DedApplied,PreAuthString,IsProsthesis,PriorDate,ReasonUnderPaid,ClaimNote,ClaimType,ProvBill,ReferringProv,RefNumString,PlaceService,AccidentRelated,AccidentDate,AccidentST,EmployRelated,IsOrtho,OrthoRemainM,OrthoDate,PatRelat,PlanNum2,PatRelat2,WriteOff,Radiographs,ClinicNum,ClaimForm,AttachedImages,AttachedModels,AttachedFlags,AttachmentID,CanadianMaterialsForwarded,CanadianReferralProviderNum,CanadianReferralReason,CanadianIsInitialLower,CanadianDateInitialLower,CanadianMandProsthMaterial,CanadianIsInitialUpper,CanadianDateInitialUpper,CanadianMaxProsthMaterial,InsSubNum,InsSubNum2,CanadaTransRefNum,CanadaEstTreatStartDate,CanadaInitialPayment,CanadaPaymentMode,CanadaTreatDuration,CanadaNumAnticipatedPayments,CanadaAnticipatedPayAmount,PriorAuthorizationNumber,SpecialProgramCode,UniformBillType,MedType,AdmissionTypeCode,AdmissionSourceCode,PatientStatusCode,CustomTracking,DateResent,CorrectionType,ClaimIdentifier,OrigRefNum,ProvOrderOverride,OrthoTotalM,ShareOfCost,SecUserNumEntry,SecDateEntry,OrderingReferralNum,DateSentOrig,DateIllnessInjuryPreg,DateIllnessInjuryPregQualifier,DateOther,DateOtherQualifier,IsOutsideLab) VALUES(";
 			if(isRandomKeys || useExistingPK) {
 				command+=POut.Long(claim.ClaimNum)+",";
 			}
@@ -528,8 +524,7 @@ namespace OpenDentBusiness.Crud{
 				+    POut.Int   ((int)claim.DateIllnessInjuryPregQualifier)+","
 				+    POut.Date  (claim.DateOther)+","
 				+    POut.Int   ((int)claim.DateOtherQualifier)+","
-				+    POut.Bool  (claim.IsOutsideLab)+","
-				+    POut.Int   ((int)claim.ResubmissionCode)+")";
+				+    POut.Bool  (claim.IsOutsideLab)+")";
 			if(useExistingPK || isRandomKeys) {
 				Db.NonQ(command);
 			}
@@ -623,8 +618,7 @@ namespace OpenDentBusiness.Crud{
 				+"DateIllnessInjuryPregQualifier=  "+POut.Int   ((int)claim.DateIllnessInjuryPregQualifier)+", "
 				+"DateOther                     =  "+POut.Date  (claim.DateOther)+", "
 				+"DateOtherQualifier            =  "+POut.Int   ((int)claim.DateOtherQualifier)+", "
-				+"IsOutsideLab                  =  "+POut.Bool  (claim.IsOutsideLab)+", "
-				+"ResubmissionCode              =  "+POut.Int   ((int)claim.ResubmissionCode)+" "
+				+"IsOutsideLab                  =  "+POut.Bool  (claim.IsOutsideLab)+" "
 				+"WHERE ClaimNum = "+POut.Long(claim.ClaimNum);
 			Db.NonQ(command);
 		}
@@ -951,10 +945,6 @@ namespace OpenDentBusiness.Crud{
 				if(command!="") { command+=",";}
 				command+="IsOutsideLab = "+POut.Bool(claim.IsOutsideLab)+"";
 			}
-			if(claim.ResubmissionCode != oldClaim.ResubmissionCode) {
-				if(command!="") { command+=",";}
-				command+="ResubmissionCode = "+POut.Int   ((int)claim.ResubmissionCode)+"";
-			}
 			if(command=="") {
 				return false;
 			}
@@ -1205,9 +1195,6 @@ namespace OpenDentBusiness.Crud{
 				return true;
 			}
 			if(claim.IsOutsideLab != oldClaim.IsOutsideLab) {
-				return true;
-			}
-			if(claim.ResubmissionCode != oldClaim.ResubmissionCode) {
 				return true;
 			}
 			return false;
