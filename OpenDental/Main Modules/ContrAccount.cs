@@ -5041,7 +5041,7 @@ namespace OpenDental {
 			FormSO.StmtCur=stmt;
 			FormSO.ShowDialog();
 			if(FormSO.DialogResult!=DialogResult.OK) {
-				Statements.Delete(stmt.StatementNum);//detached from adjustments, procedurelogs, and paysplits as well
+				Statements.DeleteStatements(new List<Statement> { stmt });//detached from adjustments, procedurelogs, and paysplits as well
 			}
 			ModuleSelected(PatCur.PatNum);
 		}
@@ -5122,7 +5122,7 @@ namespace OpenDental {
 			FormSO.StmtCur=stmt;
 			FormSO.ShowDialog();
 			if(FormSO.DialogResult!=DialogResult.OK) {
-				Statements.Delete(stmt.StatementNum);//detached from adjustments, procedurelogs, and paysplits as well
+				Statements.DeleteStatements(new List<Statement> { stmt });//detached from adjustments, procedurelogs, and paysplits as well
 			}
 			ModuleSelected(PatCur.PatNum);
 		}

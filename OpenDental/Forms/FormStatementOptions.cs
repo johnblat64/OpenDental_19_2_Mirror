@@ -1890,9 +1890,10 @@ namespace OpenDental{
 			if(!SaveToDb()){
 				return;
 			}
-			//if(StmtCur.Mode_==StatementMode.Email){
-
-			//}
+			//If saving a statement that doesn't yet have an image/doc, create one so we can view this in patient portal
+			if(StmtList==null && StmtCur.DocNum==0) {
+				SaveAsDocument(false);//needs to be called after the statement is inserted for the payment plan grid (if present)
+			}
 			DialogResult=DialogResult.OK;
 		}
 
@@ -2027,10 +2028,6 @@ namespace OpenDental{
 					StmtCur.StatementNum=Statements.Insert(StmtCur);
 					textInvoiceNum.Text=StmtCur.StatementNum.ToString();
 					StmtCur.IsNew=false;//so that if we run this again, it will not do a second insert.
-				}
-				//If saving a statement that doesn't yet have an image/doc, create one so we can view this in patient portal
-				if(StmtCur.DocNum==0) {
-					SaveAsDocument(false);//needs to be called after the statement is inserted for the payment plan grid (if present)
 				}
 			}
 			else{
