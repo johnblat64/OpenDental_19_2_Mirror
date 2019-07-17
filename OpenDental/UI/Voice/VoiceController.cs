@@ -64,6 +64,7 @@ namespace OpenDental.UI.Voice {
 			voiceCommand.DoSayResponse=false;
 			if(e.Result.Confidence<ConfidenceThreshold) {
 				voiceCommand.ActionToPerform=VoiceCommandAction.DidntGetThat;
+				voiceCommand.Response="I didn't get that";
 			}
 			switch(voiceCommand.ActionToPerform) {
 				case VoiceCommandAction.GiveFeedback:
