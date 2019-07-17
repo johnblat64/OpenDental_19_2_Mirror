@@ -341,7 +341,7 @@ namespace OpenDental.UI {
 				ODGridRow rowSub=new ODGridRow(sub.ExceptionMessageText+"\r\n"
 						+sub.SubmissionDateTime.ToString("MM/dd/yyyy HH:mm:ss",CultureInfo.InvariantCulture)
 						+"\r\nEXPERT: "+expertName,
-					sub.Info.DictPrefValues[PrefName.ProgramVersion],
+					sub.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"),
 					(hasJob?"X":"")
 				);
 				rowSub.Tag=sub;

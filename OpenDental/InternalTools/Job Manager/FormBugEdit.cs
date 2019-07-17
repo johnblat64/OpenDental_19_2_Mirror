@@ -56,7 +56,7 @@ namespace OpenDental {
 			foreach(BugSubmission sub in _listBugSubs){
 				ODGridRow row=new ODGridRow();
 				row.Cells.Add(sub.RegKey);
-				row.Cells.Add(sub.Info.DictPrefValues[PrefName.ProgramVersion]);
+				row.Cells.Add(sub.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"));
 				row.Cells.Add(sub.SubmissionDateTime.ToString());
 				row.Tag=sub;
 				gridSubs.Rows.Add(row);

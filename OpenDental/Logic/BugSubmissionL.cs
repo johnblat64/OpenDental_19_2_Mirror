@@ -43,8 +43,10 @@ namespace OpenDental {
 			task.TaskListNum=-1;//don't show it in any list yet.
 			Tasks.Insert(task);
 			Task taskOld=task.Copy();
-			task.KeyNum=pat.PatNum;
-			task.ObjectType=TaskObjectType.Patient;
+			if(pat.PatNum!=0) {
+				task.KeyNum=pat.PatNum;
+				task.ObjectType=TaskObjectType.Patient;
+			}
 			task.TaskListNum=FormT.ListSelectedLists[0];
 			task.UserNum=Security.CurUser.UserNum;
 			//Mimics the ?bug quick note at HQ.
@@ -132,11 +134,13 @@ namespace OpenDental {
 			return bugNew;
 		}
 
-		public static bool TryAssociateSimilarBugSubmissions(Point pointFormLocaiton) {
+		public static bool TryAssociateSimilarBugSubmissions(Point? pointFormLocaiton=null, bool isVerbose=true) {
 			List<BugSubmission> listAllSubs=BugSubmissions.GetAll();
 			List<BugSubmission> listUnattachedSubs=listAllSubs.Where(x => x.BugId==0).ToList();
 			if(listUnattachedSubs.Count==0) {
-				MsgBox.Show("FormBugSubmissions","All submissions are associated to bugs already.");
+				if(isVerbose) {
+					MsgBox.Show("FormBugSubmissions","All submissions are associated to bugs already.");
+				}
 				return false;
 			}
 			//Dictionary where key is a BugId and the value is list of submissions associated to that BugID.
@@ -146,7 +150,7 @@ namespace OpenDental {
 				.ToDictionary(x => x.Key, x => 
 					x.GroupBy(y => y.ExceptionStackTrace)
 					//Sub dictionary of unique ExceptionStackStraces as the key and the value is the submission from the highest version.
-					.ToDictionary(y => y.Key, y => y.OrderByDescending(z => new Version(z.Info.DictPrefValues[PrefName.ProgramVersion])).First())
+					.ToDictionary(y => y.Key, y => y.OrderByDescending(z => new Version(z.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"))).First())
 					.Values.ToList()
 				);
 			Dictionary<long,List<BugSubmission>> dictSimilarBugSubs=new Dictionary<long,List<BugSubmission>>();
@@ -165,12 +169,17 @@ namespace OpenDental {
 				}
 			}
 			if(dictSimilarBugSubs.All(x => x.Value.Count==0)) {
-				MsgBox.Show("FormBugSubmissions","All similar submissions are already attached to bugs.  No action needed.");
+				if(isVerbose) {
+					MsgBox.Show("FormBugSubmissions","All similar submissions are already attached to bugs.  No action needed.");
+				}
 				return false;
 			}
 			dictSimilarBugSubs=dictSimilarBugSubs.Where(x => x.Value.Count!=0).ToDictionary(x => x.Key,x => x.Value);
-			bool isAutoAssign=(MsgBox.Show("FormBugSubmissions",MsgBoxButtons.YesNo,"Click Yes to auto attach duplicate submissions to bugs with identical stack traces?"
-				+"\r\nClick No to manually validate all groupings found."));
+			bool isAutoAssign=true;
+			if(isVerbose) {
+				isAutoAssign=(MsgBox.Show("FormBugSubmissions",MsgBoxButtons.YesNo,"Click Yes to auto attach duplicate submissions to bugs with identical stack traces?"
+					+"\r\nClick No to manually validate all groupings found."));
+			}
 			List<long> listBugIds=listAllSubs.Where(x => x.BugId!=0).Select(x => x.BugId).ToList();
 			List<JobLink> listLinks=JobLinks.GetManyForType(JobLinkType.Bug,listBugIds);
 			List<Bug> listBugs=Bugs.GetMany(listBugIds);
@@ -178,7 +187,7 @@ namespace OpenDental {
 			foreach(KeyValuePair<long,List<BugSubmission>> pair in dictSimilarBugSubs) {
 				Bug bugFixed=listBugs.FirstOrDefault(x => x.BugId==pair.Key && !string.IsNullOrEmpty(x.VersionsFixed));
 				if(bugFixed!=null) {
-					List<BugSubmission> listIssueSubs=pair.Value.Where(x => new Version(x.Info.DictPrefValues[PrefName.ProgramVersion])>=new Version(bugFixed.VersionsFixed.Split(';').Last())).ToList();
+					List<BugSubmission> listIssueSubs=pair.Value.Where(x => new Version(x.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"))>=new Version(bugFixed.VersionsFixed.Split(';').Last())).ToList();
 					if(listIssueSubs.Count>0) {
 						List<JobLink> listBugJobLinks=listLinks.FindAll(x => x.FKey==bugFixed.BugId);
 						List<Job> listBugJobs=Jobs.GetMany(listBugJobLinks.Select(x => x.JobNum).ToList());
@@ -197,7 +206,7 @@ namespace OpenDental {
 					formGroupBugSubs.ListViewedSubs=pair.Value;//Add unnattached submissions to grid
 					formGroupBugSubs.ListViewedSubs.AddRange(dictAttachedSubs[pair.Key]);//Add already attached submissions to grid
 					formGroupBugSubs.StartPosition=FormStartPosition.Manual;
-					Point newLoc=pointFormLocaiton;
+					Point newLoc=pointFormLocaiton??new Point(0,0);
 					newLoc.X+=10;//Offset
 					newLoc.Y+=10;
 					formGroupBugSubs.Location=newLoc;
@@ -207,13 +216,16 @@ namespace OpenDental {
 				}
 				BugSubmissions.UpdateBugIds(pair.Key,pair.Value.Select(x => x.BugSubmissionNum).ToList());
 			}
-			string msg="";
-			dictSimilarBugSubs.Keys.ToList().FindAll(x => dictSimilarBugSubs[x].Count>0)
-				.ForEach(x => msg+="Bug: "+x+" Found submissions: "+dictSimilarBugSubs[x].Count+"\r\n");
-			msg+=issueSubmissionPrompt.ToString();
-			new MsgBoxCopyPaste(msg) { 
-				Text="Done"
-			}.ShowDialog();
+			if(isVerbose) {
+				string msg="";
+				dictSimilarBugSubs.Keys.ToList().FindAll(x => dictSimilarBugSubs[x].Count>0)
+					.ForEach(x => msg+="Bug: "+x+" Found submissions: "+dictSimilarBugSubs[x].Count+"\r\n");
+				msg+=issueSubmissionPrompt.ToString();
+				new MsgBoxCopyPaste(msg)
+				{
+					Text="Done"
+				}.ShowDialog();
+			}
 			return true;
 		}
 

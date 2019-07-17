@@ -148,7 +148,7 @@ namespace OpenDental.UI {
 					gridCustomerSubs.Rows.Clear();
 					Dictionary<string,List<BugSubmission>> dictCustomerSubVersions=_listSubs
 						.Where(x => x.RegKey==sub.RegKey)
-						.GroupBy(x => x.Info.DictPrefValues[PrefName.ProgramVersion])
+						.GroupBy(x => x.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"))
 						.ToDictionary(x => x.Key,x => x.DistinctBy(y => y.ExceptionStackTrace).ToList());
 					foreach(KeyValuePair<string,List<BugSubmission>> pair in dictCustomerSubVersions) {
 						gridCustomerSubs.Rows.Add(new ODGridRow(pair.Key,pair.Value.Count.ToString()));
@@ -177,7 +177,7 @@ namespace OpenDental.UI {
 						if(_dictPatients.TryGetValue(x.RegKey,out rowPat)) {
 							patDescript=rowPat.GetNameLF();
 						}
-						ODGridRow row=new ODGridRow(x.Info.DictPrefValues[PrefName.ProgramVersion],patDescript);
+						ODGridRow row=new ODGridRow(x.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"),patDescript);
 						row.Tag=x;
 						gridCustomerSubs.Rows.Add(row);
 					});

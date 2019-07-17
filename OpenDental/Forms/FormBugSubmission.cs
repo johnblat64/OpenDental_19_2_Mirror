@@ -37,7 +37,7 @@ namespace OpenDental {
 			}
 			labelName.Text=_patCur?.GetNameLF()??"";
 			labelDateTime.Text=POut.DateT(_subCur.SubmissionDateTime);
-			labelVersion.Text=_subCur.Info.DictPrefValues[PrefName.ProgramVersion];
+			labelVersion.Text=_subCur.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0");
 			if(_subCur.BugId!=0) {//Already associated to a bug
 				_bug=Bugs.GetOne(_subCur.BugId);
 				butAddViewBug.Text="View Bug";

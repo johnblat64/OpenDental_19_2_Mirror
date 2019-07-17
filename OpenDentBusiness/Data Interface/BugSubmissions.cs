@@ -75,7 +75,7 @@ namespace OpenDentBusiness {
 						&& x.BugId==bugSub.BugId);
 					listGroupedSubs.ForEach(x => x.TagCustom=true);//Flag all bugsubmissions in this group as handled.
 					//Only add the most pertinent item from the group to our return value.
-					listRetVals.Add(listGroupedSubs.OrderByDescending(x => new Version(x.Info.DictPrefValues[PrefName.ProgramVersion])).First());
+					listRetVals.Add(listGroupedSubs.OrderByDescending(x => new Version(x.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0"))).First());
 				}
 			},false);
 			return listRetVals;
@@ -288,7 +288,7 @@ namespace OpenDentBusiness {
 		public static string GetSubmissionDescription(Patient patCur,BugSubmission sub) {
 			return "Caller Name and #: "+patCur.GetNameLF() +" (work) "+patCur.WkPhone+"\r\n"
 				+"Quick desc: "+sub.ExceptionMessageText+"\r\n"
-				+"OD version: "+sub.Info.DictPrefValues[PrefName.ProgramVersion]+"\r\n"
+				+"OD version: "+sub.TryGetPrefValue(PrefName.ProgramVersion,"0.0.0.0")+"\r\n"
 				+"Windows version: "+sub.Info.WindowsVersion+"\r\n"
 				+"Comps affected: "+sub.Info.CompName+"\r\n"
 				+"Database name: "+sub.Info.DatabaseName+"\r\n"

@@ -146,7 +146,7 @@ namespace OpenDentBusiness {
 					//The format within the JSON will be like "ProgramVersion":"17.4.44.0"
 					Regex programVersionRegex=new Regex(@"""ProgramVersion"":""(([\d]+\.?){4})""");
 					Match match=programVersionRegex.Match(DbInfoJson);
-					_programVersion=match.Success ? match.Groups[1].Value : "";
+					_programVersion=match.Success ? match.Groups[1].Value : "0.0.0.0";
 				}
 				return _programVersion;
 			}
@@ -256,6 +256,14 @@ namespace OpenDentBusiness {
 			ODException.SwallowAnyException(() => { _info.OpenDentBusinessVersion=MiscData.GetAssemblyVersion(); });
 			ODException.SwallowAnyException(() => { _info.OpenDentBusinessMiddleTierVersion=MiscData.GetAssemblyVersionForMiddleTier(); });
 			return JsonConvert.SerializeObject(_info);
+		}
+
+		public string TryGetPrefValue(PrefName prefName,string defaultReturn = "") {
+			string prefValue;
+			if(Info.DictPrefValues.TryGetValue(PrefName.ProgramVersion,out prefValue)) {
+				return prefValue;
+			}
+			return defaultReturn;
 		}
 		
 		///<summary>This is not a database table.  This is the structure of the DbInfoJSON column.
