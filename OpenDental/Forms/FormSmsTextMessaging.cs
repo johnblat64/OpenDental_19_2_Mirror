@@ -866,7 +866,10 @@ namespace OpenDental {
 				return;
 			}
 			long clinicNum=0;
-			if(_selectedSmsGroup!=null) {
+			if(!PrefC.HasClinicsEnabled) {
+				clinicNum=0;
+			}
+			else if(_selectedSmsGroup!=null) {
 				clinicNum=_selectedSmsGroup.ClinicNum;//can be 0
 			}
 			else if(_selectedSmsFromMobile!=null) {
