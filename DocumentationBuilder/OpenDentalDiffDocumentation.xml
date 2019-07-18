@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
-<database version="19.2.7.0">
+<database version="19.2.8.0">
     <table name="benefit">
         <summary></summary>
         <column order="12" name="SecDateTEntry" type="datetime">
@@ -53,15 +53,6 @@
         </column>
         <column order="82" name="IsOutsideLab" type="tinyint(4)">
             <summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
-        </column>
-        <column order="83" name="ResubmissionCode" type="tinyint(4)">
-            <summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
-            <Enumeration name="ResubmitCode">
-                <summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
-                <EnumValue name="None">0 - None</EnumValue>
-                <EnumValue name="Replacement">7 - Replacement of prior claim</EnumValue>
-                <EnumValue name="VoidOrCancel">8 - Void/cancel of prior claim</EnumValue>
-            </Enumeration>
         </column>
     </table>
     <table name="creditcard">

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDocumentation.xsl"?>
-<database version="19.2.7.0">
+<database version="19.2.8.0">
     <table name="account">
         <summary>Used in the accounting section in chart of accounts.  Not related to patient accounts in any way.</summary>
         <column order="0" name="AccountNum" type="bigint(20)">
@@ -1665,7 +1665,7 @@
             <summary>Used for historical purposes only, not sent electronically. Automatically set when CorrectionType is not original and the claim is resent.</summary>
         </column>
         <column order="67" name="CorrectionType" type="tinyint(4)">
-            <summary>X12 CLM05-3. Usually set to original, but can be used to resubmit claims.</summary>
+            <summary>X12 CLM05-3. Usually set to original, but can be used to resubmit claims.  Also used in 1500 Medical Claim Form field 22.</summary>
         </column>
         <column order="68" name="ClaimIdentifier" type="varchar(255)">
             <summary>X12 CLM01. Semi-unique identifier for the claim within the current database. Defaults to PatNum/ClaimNum, but can be edited by user, and is often modified by the clearinghouse to ensure uniqueness on their end.
@@ -1738,15 +1738,6 @@
         </column>
         <column order="82" name="IsOutsideLab" type="tinyint(4)">
             <summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
-        </column>
-        <column order="83" name="ResubmissionCode" type="tinyint(4)">
-            <summary>Enum:ResubmitCode Used in 1500 Medical Claim Form field 22.  7 - Replacement of prior claim, 8 - Void/cancel of prior claim.</summary>
-            <Enumeration name="ResubmitCode">
-                <summary>Used for 1500 Medical Claim Form field 22.  Populate with either '7' or '8' if one of these is set for the proc.</summary>
-                <EnumValue name="None">0 - None</EnumValue>
-                <EnumValue name="Replacement">7 - Replacement of prior claim</EnumValue>
-                <EnumValue name="VoidOrCancel">8 - Void/cancel of prior claim</EnumValue>
-            </Enumeration>
         </column>
     </table>
     <table name="claimattach">
