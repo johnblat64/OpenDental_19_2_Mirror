@@ -288,7 +288,7 @@ namespace OpenDentBusiness {
 			//This logic matches a lot of our custom queries and can be removed if it becomes an issue, as it doesn't exist in our internal reports currently.
 			string command = @"
 				SELECT 'WriteoffEst' TranType,cp.PatNum,cp.ProcDate TranDate,
-				cp.WriteOff TranAmount 
+				-cp.WriteOff TranAmount 
 				FROM claimproc cp
 				WHERE cp.PatNum != 0
 				AND ((cp.Status="+(int)ClaimProcStatus.NotReceived+@")
