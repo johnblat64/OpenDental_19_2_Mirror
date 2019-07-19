@@ -352,24 +352,15 @@ namespace OpenDental {
 		}
 
 		private static bool AllergyComparison(AutomationCondition autoCond,long patNum) {
-			List<Allergy> allergyList=Allergies.GetAll(patNum,false);
+			List<AllergyDef> listAllergyDefs=AllergyDefs.GetAllergyDefs(patNum,false);
 			switch(autoCond.Comparison) {
 				case AutoCondComparison.Equals:
-					for(int i=0;i<allergyList.Count;i++) {
-						if(AllergyDefs.GetOne(allergyList[i].AllergyDefNum).Description==autoCond.CompareString) {
-							return true;
-						}
-					}
-					break;
+					return listAllergyDefs.Any(x => x.Description==autoCond.CompareString);
 				case AutoCondComparison.Contains:
-					for(int i=0;i<allergyList.Count;i++) {
-						if(AllergyDefs.GetOne(allergyList[i].AllergyDefNum).Description.ToLower().Contains(autoCond.CompareString.ToLower())) {
-							return true;
-						}
-					}
-					break;
+					return listAllergyDefs.Any(x => x.Description.ToLower().Contains(autoCond.CompareString.ToLower()));
+				default:
+					return false;
 			}
-			return false;
 		}
 
 		private static bool AgeComparison(AutomationCondition autoCond,long patNum) {

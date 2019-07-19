@@ -165,6 +165,21 @@ namespace OpenDentBusiness{
 			return allergyDefList;
 		}
 
+		///<summary>Gets all the AllergyDefs for the given patient, including those linked to an Allergy such that StatisIsActive!=0 if 
+		///includeInactive==true.  If an Allergy linked to this patNum is linked to a missing AllergyDef, this missing AllergyDef is ignored.</summary>
+		public static List<AllergyDef> GetAllergyDefs(long patNum,bool includeInactive) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetObject<List<AllergyDef>>(MethodBase.GetCurrentMethod(),patNum,includeInactive);
+			}
+			string command=@"SELECT allergydef.* FROM allergydef
+				INNER JOIN allergy ON allergy.AllergyDefNum=allergydef.AllergyDefNum
+				WHERE allergy.PatNum="+POut.Long(patNum)+" ";
+			if(!includeInactive) {
+				command+="AND allergy.StatusIsActive!=0";
+			}
+			return Crud.AllergyDefCrud.TableToList(Db.GetTable(command));
+		}
+
 		///<summary>Do not call from outside of ehr.  Returns the text for a SnomedAllergy Enum as it should appear in human readable form for a CCD.</summary>
 		public static string GetSnomedAllergyDesc(SnomedAllergy snomed) {
 			string result;
