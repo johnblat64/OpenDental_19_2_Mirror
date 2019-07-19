@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
+using System.Linq;
 
 namespace OpenDental {
 	public partial class FormInsRemain:ODForm {
@@ -43,7 +44,8 @@ namespace OpenDental {
 		private void FillGrid() {
 			gridRemainTimeUnits.BeginUpdate();
 			gridRemainTimeUnits.Rows.Clear();
-			List<Benefit> listPatBenefits=Benefits.Refresh(PatPlans.Refresh(_patCur.PatNum),InsSubs.GetListForSubscriber(_patCur.PatNum));
+			List<PatPlan> listPatPlans=PatPlans.Refresh(_patCur.PatNum);
+			List<Benefit> listPatBenefits=Benefits.Refresh(listPatPlans,InsSubs.GetListForSubscriber(_patCur.PatNum));
 			ODGridRow gridRow; 
 			List<Procedure> listProcs;
 			double amtUsed;
@@ -81,8 +83,21 @@ namespace OpenDental {
 							listProcs=Procedures.GetCompletedForDateRange(new DateTime(DateTimeOD.Today.Year-1,monthRenew,1),DateTimeOD.Today,null,listPatNums);
 						}
 					}
+					List<ClaimProc> listClaimProcs;
+					if(listPatBenefits[i].PatPlanNum!=0) {
+						//The list of benefits that we are looping through was filled via listPatPlans so this will never fail.
+						//If this line fails then it means that there was a valid PlanNum AND a valid PatPlanNum set on the benefit which is invalid ATM.
+						listClaimProcs=ClaimProcs.GetForProcs(listProcs.Select(x => x.ProcNum).ToList())
+							.FindAll(x => x.InsSubNum==listPatPlans.First(y => y.PatPlanNum==listPatBenefits[i].PatPlanNum).InsSubNum);
+					}
+					else {//benefit.PatPlanNum was not set so benefit.PlanNum must be set.
+						listClaimProcs=ClaimProcs.GetForProcs(listProcs.Select(x => x.ProcNum).ToList())
+							.FindAll(x => x.PlanNum==listPatBenefits[i].PlanNum);
+					}
+					//Filter out any procedures that are not associated to the insurance plan of the current benefit.
+					listProcs=listProcs.FindAll(x => x.ProcNum.In(listClaimProcs.Select(y => y.ProcNum)));
 					//Calculate the amount used for one benefit.
-					amtUsed=GetAmtUsedForCat(listProcs,CovCats.GetCovCat(listPatBenefits[i].CovCatNum)); 
+					amtUsed=GetAmtUsedForCat(listProcs,CovCats.GetCovCat(listPatBenefits[i].CovCatNum));
 					gridRow=new ODGridRow();
 					gridRow.Cells.Add(CovCats.GetCovCat(listPatBenefits[i].CovCatNum).EbenefitCat.ToString()); //Coverage Category
 					gridRow.Cells.Add(listPatBenefits[i].Quantity.ToString()); //Quantity	
