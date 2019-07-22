@@ -5056,8 +5056,22 @@ namespace OpenDental {
 				try {
 					doseSpotUserID=DoseSpot.GetUserID(Security.CurUser,clinicNum);
 					DoseSpot.GetClinicIdAndKey(clinicNum,doseSpotUserID,null,null,out doseSpotClinicID,out doseSpotClinicKey);
+				}
+				catch(Exception ex) {
+					ex.DoNothing();
+					SetErxButtonNotification(0,0,0,true);
+					return;
+				}
+				//We have valid DoseSpot credentials.  Try to access information from DoseSpot's API.  Catch independently to ensure as much data is gathered as possible.
+				try {
 					DoseSpot.GetPrescriberNotificationCounts(doseSpotClinicID,doseSpotClinicKey,doseSpotUserID,out countRefillRequests,out countErrors,out countPendingPrescriptions);
 					SetErxButtonNotification(countRefillRequests,countErrors,countPendingPrescriptions,false);
+				}
+				catch(Exception ex) {
+					ex.DoNothing();
+					SetErxButtonNotification(0,0,0,true);
+				}
+				try {
 					Action<List<RxPat>> onRxAdd=new Action<List<RxPat>>((listRx) => {
 						AutomationL.Trigger(AutomationTrigger.RxCreate,new List<string>(),PatCur.PatNum,0,listRx);
 					});
