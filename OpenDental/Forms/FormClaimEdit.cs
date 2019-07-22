@@ -226,6 +226,14 @@ namespace OpenDental{
 			PatPlanList=_loadData.ListPatPlans;
 			tablePayments=_loadData.TablePayments;
 			InsPlan insPlan=InsPlans.GetPlan(ClaimCur.PlanNum,PlanList);
+			//If there is no insplan then we need to close
+			if(insPlan==null) {
+				MsgBox.Show(Lans.g(this,"Invalid insurance plan associated to claim. Please run database maintenance method")+" "+nameof(DatabaseMaintenances.InsSubNumMismatchPlanNum)
+					+" "+Lans.g(this,"found in the old tab"));
+				this.DialogResult=DialogResult.Cancel;
+				this.Close();
+				return;
+			}
 			if(insPlan.PlanType=="p"){//ppo
 				butPayTotal.Enabled=false;	
 			}
