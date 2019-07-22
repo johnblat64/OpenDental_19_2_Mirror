@@ -83,11 +83,11 @@ namespace OpenDentBusiness.Eclaims {
 			long insSubNum2=claim.InsSubNum2;
 			Relat patRelat2=claim.PatRelat2;
 			if(claim.ClaimType=="PreAuth") {
-				etrans=Etranss.SetClaimSentOrPrinted(queueItem.ClaimNum,queueItem.PatNum,clearinghouseClin.HqClearinghouseNum,EtransType.Predeterm_CA,0,Security.CurUser.UserNum);
+				etrans=CreateEtransForSendClaim(queueItem.ClaimNum,queueItem.PatNum,clearinghouseClin.HqClearinghouseNum,EtransType.Predeterm_CA);//Can throw exception
 			}
 			else if(claim.ClaimType=="S") {//Secondary
 				//We first need to verify that the claimprocs on the secondary/cob claim are the same as the claimprocs on the primary claim.
-				etrans=Etranss.SetClaimSentOrPrinted(queueItem.ClaimNum,queueItem.PatNum,clearinghouseClin.HqClearinghouseNum,EtransType.ClaimCOB_CA,0,Security.CurUser.UserNum);
+				etrans=CreateEtransForSendClaim(queueItem.ClaimNum,queueItem.PatNum,clearinghouseClin.HqClearinghouseNum,EtransType.ClaimCOB_CA);//Can throw exception
 				long claimNumPrimary=0;
 				for(int i=0;i<claimProcsClaim.Count;i++) {
 					List<ClaimProc> claimProcsForProc=ClaimProcs.GetForProc(claimProcList,claimProcsClaim[i].ProcNum);
@@ -151,9 +151,9 @@ namespace OpenDentBusiness.Eclaims {
 				patRelat2=claimPrimary.PatRelat2;
 			}
 			else { //primary claim
-				etrans=Etranss.SetClaimSentOrPrinted(queueItem.ClaimNum,queueItem.PatNum,clearinghouseClin.HqClearinghouseNum,EtransType.Claim_CA,0,Security.CurUser.UserNum);
+				etrans=CreateEtransForSendClaim(queueItem.ClaimNum,queueItem.PatNum,clearinghouseClin.HqClearinghouseNum,EtransType.Claim_CA);//Can throw exception
 			}
-			claim=Claims.GetClaim(claim.ClaimNum);//Refresh the claim since the status might have changed above.
+			claim=Claims.GetClaim(claim.ClaimNum);
 			clinic=Clinics.GetClinic(claim.ClinicNum);
 			Provider providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
 			billProv=Providers.GetFirstOrDefault(x => x.ProvNum==claim.ProvBill)??providerFirst;
@@ -887,6 +887,9 @@ namespace OpenDentBusiness.Eclaims {
 					}
 				}
 				etransAck.Etype=fieldInputter.GetEtransType();
+				//Called after new CCDFieldInputter(...) so that we know the response is valid response format, would throw exception otherwise (try/catch?).
+				Claims.SetClaimSent(queueItem.ClaimNum);//No error, safe to set sent.
+				claim.ClaimStatus="S";//Reflect changes in cached object.
 			}
 			Etranss.Insert(etransAck);
 			Etranss.SetMessage(etransAck.EtransNum,result);//Save incomming history.
@@ -913,7 +916,6 @@ namespace OpenDentBusiness.Eclaims {
 					,LogSources.CanadaEobAutoImport);
 			}
 			if(claim.ClaimType!="PreAuth") {
-				Claims.SetClaimSent(queueItem.ClaimNum);//when called from ClaimEdit, that window will close immediately, so we're directly changing the db.
 				CCDField fieldTransRefNum=fieldInputter.GetFieldById("G01");
 				if(fieldTransRefNum!=null && fieldTransRefNum.valuestr!=null) {
 					if(etransAck.AckCode!="R") {
@@ -999,6 +1001,22 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			return etransAck.EtransNum;
 		}
+
+		///<summary>Throws exception. Similar to Etrans.SetClaimSentOrPrinted(...) but not set the claim sent in the DB.
+		///Creates and inserts an etrans using given information then returns it.</summary>
+		public static Etrans CreateEtransForSendClaim(long claimNum,long patNum,long clearinghouseNum,EtransType etype) {
+			Etrans etrans=Etranss.CreateEtransForClaim(claimNum,patNum,clearinghouseNum,etype,batchNumber:0,Security.CurUser.UserNum);
+			try {
+				Etranss.SetCanadianEtransFields(etrans);//etrans.CarrierNum, etrans.CarrierNum2 and etrans.EType all set prior to calling this.
+			}
+			catch(Exception ex){
+				BugSubmissions.SubmitException(ex);//Inform HQ if this ever happens.
+				throw ex;//Throw exception still since currently calling methods also throw other exceptions. Previously this was not try/caught.
+			}
+			Etranss.Insert(etrans);
+			return Etranss.GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
+		}
+
 		///<summary>Helper method that loops through given listClaimProcsForClaim and does various claimProc related updates depending on fieldInputter.MsgType.
 		///Currently only applies to EOB and Predetermination EOBs.  listLabProcs and listClaimProcs are used to pull information regarding lab procedures.
 		///For eraBehavior, do not pass in None.</summary>
