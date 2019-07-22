@@ -6,7 +6,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CodeBase;
 using OpenDentBusiness;
+using OpenDentBusiness.Eclaims;
 
 namespace OpenDentBusiness{
 	///<summary></summary>
@@ -295,9 +297,11 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Not for claim types, just other types, including Eligibility. This function gets run first.  Then, the messagetext is created and an attempt is made to send the message.  Finally, the messagetext is added to the etrans.  This is necessary because the transaction numbers must be incremented and assigned to each message before creating the message and attempting to send.  If it fails, we will need to roll back.  Provide EITHER a carrierNum OR a canadianNetworkNum.  Many transactions can be sent to a carrier or to a network.</summary>
-		public static Etrans CreateCanadianOutput(long patNum,long carrierNum,long canadianNetworkNum,long clearinghouseNum,EtransType etype,long planNum,long insSubNum,long userNum) {
+		public static Etrans CreateCanadianOutput(long patNum,long carrierNum,long canadianNetworkNum
+			,long clearinghouseNum,EtransType etype,long planNum,long insSubNum,long userNum,bool hasSecondary=false)
+		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<Etrans>(MethodBase.GetCurrentMethod(),patNum,carrierNum,canadianNetworkNum,clearinghouseNum,etype,planNum,insSubNum,userNum);
+				return Meth.GetObject<Etrans>(MethodBase.GetCurrentMethod(),patNum,carrierNum,canadianNetworkNum,clearinghouseNum,etype,planNum,insSubNum,userNum,hasSecondary);
 			}
 			//validation of carrier vs network
 			if(etype==EtransType.Eligibility_CA){
@@ -320,62 +324,88 @@ namespace OpenDentBusiness{
 			etrans.PlanNum=planNum;
 			etrans.InsSubNum=insSubNum;
 			etrans.UserNum=userNum;
+			etrans.BatchNumber=0;
 			//Get next OfficeSequenceNumber-----------------------------------------------------------------------------------------
+			SetCanadianEtransFields(etrans,hasSecondary);
+			Insert(etrans);
+			return GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
+		}
+
+		///<summary>Throws exceptions.
+		///When etrans.Etype is associated to a Canadian EType, this runs multiple queries to set etrans.CarrierTransCounter and etrans.CarrierTransCounter2.
+		///Otherwise returns without making any changes.
+		///The etrans.CarrierNum, etrans.CarrierNum2 and etrans.Etype columns must be set prior to running this.</summary>
+		public static void SetCanadianEtransFields(Etrans etrans,bool hasSecondary=true) {
+			if(!etrans.Etype.In(EtransType.Claim_CA,EtransType.ClaimCOB_CA,EtransType.Predeterm_CA,EtransType.PredetermEOB_CA,EtransType.Claim_Ramq)) {
+				return;//If not for a Canadian etrans claim type then nothing to do.
+			}
 			etrans.OfficeSequenceNumber=0;
+			//find the next officeSequenceNumber
 			string command="SELECT MAX(OfficeSequenceNumber) FROM etrans";
 			DataTable table=Db.GetTable(command);
 			if(table.Rows.Count>0) {
 				etrans.OfficeSequenceNumber=PIn.Int(table.Rows[0][0].ToString());
 				if(etrans.OfficeSequenceNumber==999999){//if the office has sent > 1 million messages, and has looped back around to 1.
-					//get the date of the most recent max
-					//This works, but it got even more complex for CarrierTransCounter, so we will just throw an exception for now.
-					/*command="SELECT MAX(DateTimeTrans) FROM etrans WHERE OfficeSequenceNumber=999999";
-					table=Db.GetTable(command);
-					DateTime maxDateT=PIn.PDateT(table.Rows[0][0].ToString());
-					//then, just get the max that's newer than that.
-					command="SELECT MAX(OfficeSequenceNumber) FROM etrans WHERE DateTimeTrans > '"+POut.PDateT(maxDateT)+"'";
-					table=Db.GetTable(command);
-					if(table.Rows.Count>0) {
-						etrans.OfficeSequenceNumber=PIn.PInt(table.Rows[0][0].ToString());
-					}*/
 					throw new ApplicationException("OfficeSequenceNumber has maxed out at 999999.  This program will need to be enhanced.");
 				}
 			}
-			#if DEBUG
-				etrans.OfficeSequenceNumber=PIn.Int(File.ReadAllText(@"..\..\..\TestCanada\LastOfficeSequenceNumber.txt"));
-				File.WriteAllText(@"..\..\..\TestCanada\LastOfficeSequenceNumber.txt",(etrans.OfficeSequenceNumber+1).ToString());
-			#endif
 			etrans.OfficeSequenceNumber++;
-			//if(etype==EtransType.Eligibility_CA){ //The counter must be incremented for all transaction types, according to the documentation for field A09 Carrier Transaction Counter.
-				//find the next CarrierTransCounter------------------------------------------------------------------------------------
-				etrans.CarrierTransCounter=0;
-				command="SELECT MAX(CarrierTransCounter) FROM etrans "
-					+"WHERE CarrierNum="+POut.Long(etrans.CarrierNum);
-				table=Db.GetTable(command);
-				int tempcounter=0;
-				if(table.Rows.Count>0) {
-					tempcounter=PIn.Int(table.Rows[0][0].ToString());
-				}
-				if(tempcounter>etrans.CarrierTransCounter) {
-					etrans.CarrierTransCounter=tempcounter;
-				}
-				command="SELECT MAX(CarrierTransCounter2) FROM etrans "
-					+"WHERE CarrierNum2="+POut.Long(etrans.CarrierNum);
-				table=Db.GetTable(command);
-				if(table.Rows.Count>0) {
-					tempcounter=PIn.Int(table.Rows[0][0].ToString());
-				}
-				if(tempcounter>etrans.CarrierTransCounter) {
-					etrans.CarrierTransCounter=tempcounter;
-				}
-				if(etrans.CarrierTransCounter==99999){
-					throw new ApplicationException("CarrierTransCounter has maxed out at 99999.  This program will need to be enhanced.");
-					//maybe by adding a reset date to the preference table which will apply to all counters as a whole.
-				}
-				etrans.CarrierTransCounter++;
-			//}
-			Insert(etrans);
-			return GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
+			//find the next CarrierTransCounter for the primary carrier
+			#region CarrierTransCounter
+			etrans.CarrierTransCounter=0;
+			command="SELECT MAX(CarrierTransCounter) FROM etrans "
+				+"WHERE CarrierNum="+POut.Long(etrans.CarrierNum);
+			table=Db.GetTable(command);
+			int tempcounter=0;
+			if(table.Rows.Count>0) {
+				tempcounter=PIn.Int(table.Rows[0][0].ToString());
+			}
+			if(tempcounter>etrans.CarrierTransCounter) {
+				etrans.CarrierTransCounter=tempcounter;
+			}
+			command="SELECT MAX(CarrierTransCounter2) FROM etrans "
+				+"WHERE CarrierNum2="+POut.Long(etrans.CarrierNum);
+			table=Db.GetTable(command);
+			if(table.Rows.Count>0) {
+				tempcounter=PIn.Int(table.Rows[0][0].ToString());
+			}
+			if(tempcounter>etrans.CarrierTransCounter) {
+				etrans.CarrierTransCounter=tempcounter;
+			}
+			if(etrans.CarrierTransCounter==99999){
+				throw new ApplicationException("CarrierTransCounter has maxed out at 99999.  This program will need to be enhanced.");
+				//maybe by adding a reset date to the preference table which will apply to all counters as a whole.
+			}
+			etrans.CarrierTransCounter++;
+			#endregion CarrierTransCounter
+			if(!hasSecondary || etrans.CarrierNum2==0) {
+				return;
+			}
+			#region CarrierTransCounter2
+			etrans.CarrierTransCounter2=1;
+			command="SELECT MAX(CarrierTransCounter) FROM etrans "
+				+"WHERE CarrierNum="+POut.Long(etrans.CarrierNum2);
+			table=Db.GetTable(command);
+			if(table.Rows.Count>0) {
+				tempcounter=PIn.Int(table.Rows[0][0].ToString());
+			}
+			if(tempcounter>etrans.CarrierTransCounter2) {
+				etrans.CarrierTransCounter2=tempcounter;
+			}
+			command="SELECT MAX(CarrierTransCounter2) FROM etrans "
+				+"WHERE CarrierNum2="+POut.Long(etrans.CarrierNum2);
+			table=Db.GetTable(command);
+			if(table.Rows.Count>0) {
+				tempcounter=PIn.Int(table.Rows[0][0].ToString());
+			}
+			if(tempcounter>etrans.CarrierTransCounter2) {
+				etrans.CarrierTransCounter2=tempcounter;
+			}
+			if(etrans.CarrierTransCounter2==99999) {
+				throw new ApplicationException("CarrierTransCounter has maxed out at 99999.  This program will need to be enhanced.");
+			}
+			etrans.CarrierTransCounter2++;
+			#endregion
 		}
 
 		///<summary>Only used by Canadian code right now.  CAUTION!  This does not update the EtransMessageTextNum field of an object in memory without a refresh.</summary>
@@ -448,7 +478,16 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<Etrans>(MethodBase.GetCurrentMethod(),claimNum,patNum,clearinghouseNum,etype,batchNumber,userNum);
 			}
-			string command;
+			Etrans etrans=CreateEtransForClaim(claimNum,patNum,clearinghouseNum,etype,batchNumber,userNum);
+			SetCanadianEtransFields(etrans);//etrans.CarrierNum, etrans.CarrierNum2 and etrans.EType all set prior to calling this.
+			Claims.SetClaimSent(claimNum);
+			Insert(etrans);
+			return GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
+		}
+
+		///<summary>Returns an etrans that has not been inserted into the DB.
+		///Should only be called with etrans is related an EtransType that is of claim type, currently no validation is done in this function to ensure this.</summary>
+		public static Etrans CreateEtransForClaim(long claimNum,long patNum,long clearinghouseNum,EtransType etype,int batchNumber,long userNum) {
 			Etrans etrans=new Etrans();
 			//etrans.DateTimeTrans handled automatically
 			etrans.ClearingHouseNum=clearinghouseNum;
@@ -457,7 +496,7 @@ namespace OpenDentBusiness{
 			etrans.PatNum=patNum;
 			etrans.UserNum=userNum;
 			//Get the primary and secondary carrierNums for this claim.
-			command="SELECT carrier1.CarrierNum,carrier2.CarrierNum AS CarrierNum2 FROM claim "
+			string command="SELECT carrier1.CarrierNum,carrier2.CarrierNum AS CarrierNum2 FROM claim "
 				+"LEFT JOIN insplan insplan1 ON insplan1.PlanNum=claim.PlanNum "
 				+"LEFT JOIN carrier carrier1 ON carrier1.CarrierNum=insplan1.CarrierNum "
 				+"LEFT JOIN insplan insplan2 ON insplan2.PlanNum=claim.PlanNum2 "
@@ -473,91 +512,7 @@ namespace OpenDentBusiness{
 					+"Claim may have been deleted during sending.");
 			}
 			etrans.BatchNumber=batchNumber;
-			//if(X837.IsX12(messageText)) {
-			//	X837 x837=new X837(messageText);
-			//	etrans.TransSetNum=x837.GetTransNum(claimNum);
-			//}
-			#region Canadians
-			if(etype==EtransType.Claim_CA || etype==EtransType.ClaimCOB_CA || etype==EtransType.Predeterm_CA || etype==EtransType.PredetermEOB_CA
-				|| etype==EtransType.Claim_Ramq)
-			{
-				etrans.OfficeSequenceNumber=0;
-				//find the next officeSequenceNumber
-				command="SELECT MAX(OfficeSequenceNumber) FROM etrans";
-				table=Db.GetTable(command);
-				if(table.Rows.Count>0) {
-					etrans.OfficeSequenceNumber=PIn.Int(table.Rows[0][0].ToString());
-					if(etrans.OfficeSequenceNumber==999999) {//if the office has sent > 1 million messages, and has looped back around to 1.
-						throw new ApplicationException
-							("OfficeSequenceNumber has maxed out at 999999.  This program will need to be enhanced.");
-					}
-				}
-#if DEBUG
-				etrans.OfficeSequenceNumber=PIn.Int(File.ReadAllText(@"..\..\..\TestCanada\LastOfficeSequenceNumber.txt"));
-				File.WriteAllText(@"..\..\..\TestCanada\LastOfficeSequenceNumber.txt",(etrans.OfficeSequenceNumber+1).ToString());
-#endif
-				etrans.OfficeSequenceNumber++;
-				//find the next CarrierTransCounter for the primary carrier
-				etrans.CarrierTransCounter=0;
-				command="SELECT MAX(CarrierTransCounter) FROM etrans "
-					+"WHERE CarrierNum="+POut.Long(etrans.CarrierNum);
-				table=Db.GetTable(command);
-				int tempcounter=0;
-				if(table.Rows.Count>0) {
-					tempcounter=PIn.Int(table.Rows[0][0].ToString());
-				}
-				if(tempcounter>etrans.CarrierTransCounter) {
-					etrans.CarrierTransCounter=tempcounter;
-				}
-				command="SELECT MAX(CarrierTransCounter2) FROM etrans "
-					+"WHERE CarrierNum2="+POut.Long(etrans.CarrierNum);
-				table=Db.GetTable(command);
-				if(table.Rows.Count>0) {
-					tempcounter=PIn.Int(table.Rows[0][0].ToString());
-				}
-				if(tempcounter>etrans.CarrierTransCounter) {
-					etrans.CarrierTransCounter=tempcounter;
-				}
-				if(etrans.CarrierTransCounter==99999) {
-					throw new ApplicationException("CarrierTransCounter has maxed out at 99999.  This program will need to be enhanced.");
-				}
-				etrans.CarrierTransCounter++;
-				if(etrans.CarrierNum2>0) {//if there is secondary coverage on this claim
-					etrans.CarrierTransCounter2=1;
-					command="SELECT MAX(CarrierTransCounter) FROM etrans "
-						+"WHERE CarrierNum="+POut.Long(etrans.CarrierNum2);
-					table=Db.GetTable(command);
-					if(table.Rows.Count>0) {
-						tempcounter=PIn.Int(table.Rows[0][0].ToString());
-					}
-					if(tempcounter>etrans.CarrierTransCounter2) {
-						etrans.CarrierTransCounter2=tempcounter;
-					}
-					command="SELECT MAX(CarrierTransCounter2) FROM etrans "
-						+"WHERE CarrierNum2="+POut.Long(etrans.CarrierNum2);
-					table=Db.GetTable(command);
-					if(table.Rows.Count>0) {
-						tempcounter=PIn.Int(table.Rows[0][0].ToString());
-					}
-					if(tempcounter>etrans.CarrierTransCounter2) {
-						etrans.CarrierTransCounter2=tempcounter;
-					}
-					if(etrans.CarrierTransCounter2==99999) {
-						throw new ApplicationException("CarrierTransCounter has maxed out at 99999.  This program will need to be enhanced.");
-					}
-					etrans.CarrierTransCounter2++;
-				}
-			}
-			#endregion
-			DateTime dateTimeNow=MiscData.GetNowDateTime();
-			command="UPDATE claim SET ClaimStatus = 'S',"
-				+"DateSent= "+POut.Date(dateTimeNow)+","
-				+"DateSentOrig= "
-					+"CASE WHEN DateSentOrig = '0001-01-01' THEN "+POut.Date(dateTimeNow)+" ELSE DateSentOrig END "
-				+"WHERE claimnum = "+POut.Long(claimNum);
-			Db.NonQ(command);
-			Etranss.Insert(etrans);
-			return GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
+			return etrans;
 		}
 
 		///<summary>Etrans type will be figured out by this class.  Either TextReport, Acknowledge_997, Acknowledge_999, or StatusNotify_277.</summary>

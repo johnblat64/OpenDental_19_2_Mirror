@@ -482,15 +482,16 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Also sets the DateSent to today.</summary>
-		public static void SetCanadianClaimSent(long claimNum) {
+		public static void SetClaimSent(long claimNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),claimNum);
 				return;
 			}
+			DateTime dateT=MiscData.GetNowDateTime();
 			string command="UPDATE claim SET ClaimStatus = 'S',"
-					+"DateSent= "+POut.Date(MiscData.GetNowDateTime())+", "
-					+" DateSentOrig= "+POut.Date(MiscData.GetNowDateTime())
-					+" WHERE ClaimNum = "+POut.Long(claimNum);
+				+"DateSent="+POut.Date(dateT)+", "
+				+"DateSentOrig=(CASE WHEN DateSentOrig='0001-01-01' THEN "+POut.Date(dateT)+" ELSE DateSentOrig END) "
+				+"WHERE ClaimNum = "+POut.Long(claimNum);
 			Db.NonQ(command);
 		}
 

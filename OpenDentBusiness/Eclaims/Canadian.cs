@@ -913,7 +913,7 @@ namespace OpenDentBusiness.Eclaims {
 					,LogSources.CanadaEobAutoImport);
 			}
 			if(claim.ClaimType!="PreAuth") {
-				Claims.SetCanadianClaimSent(queueItem.ClaimNum);//when called from ClaimEdit, that window will close immediately, so we're directly changing the db.
+				Claims.SetClaimSent(queueItem.ClaimNum);//when called from ClaimEdit, that window will close immediately, so we're directly changing the db.
 				CCDField fieldTransRefNum=fieldInputter.GetFieldById("G01");
 				if(fieldTransRefNum!=null && fieldTransRefNum.valuestr!=null) {
 					if(etransAck.AckCode!="R") {
