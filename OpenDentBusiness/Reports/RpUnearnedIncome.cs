@@ -34,7 +34,6 @@ namespace OpenDentBusiness {
 				command+="clinic.Abbr Clinic,";
 			}
 			command+="results.SplitAmt FROM (";
-			//Inner Select - Prepayments
 			command+="SELECT SplitNum,DatePay,PatNum,UnearnedType,ClinicNum,SplitAmt FROM paysplit "
 				+"WHERE paysplit.DatePay >= "+POut.Date(date1Start)+" "
 				+"AND paysplit.DatePay <= "+POut.Date(date2Start)+" ";
@@ -42,20 +41,8 @@ namespace OpenDentBusiness {
 					command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 				}
 				command+=whereClin
-				+"AND UnearnedType!=0 AND FsplitNum=0 ";
-			//Inner Select - Union All
-			command+="UNION ALL ";
-			//Inner Select - Negative Split
-			command+="SELECT SplitNum,DatePay,PatNum,UnearnedType,ClinicNum,SplitAmt FROM paysplit "
-				+"WHERE paysplit.DatePay >= "+POut.Date(date1Start)+" "
-				+"AND paysplit.DatePay <= "+POut.Date(date2Start)+" ";
-				if(listHiddenUnearnedDefNums.Count>0) {
-					command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
-				}
-				command+=whereClin
-				+"AND paysplit.FSplitNum!=0 "
-				+"AND paysplit.FSplitNum IN (SELECT SplitNum FROM paysplit	WHERE UnearnedType!=0	AND FSplitNum=0)"; //Attached to a prepayment
-			//Back to Outer Select
+				+"AND UnearnedType!=0 ";
+			//is to also show unearned that is now allocated. 
 			command+=") results "
 				+"INNER JOIN patient ON patient.PatNum=results.PatNum "
 				+"LEFT JOIN definition ON definition.DefNum=results.UnearnedType ";
@@ -83,46 +70,28 @@ namespace OpenDentBusiness {
 			//DatePay = the earliest date of unallocated unearned.
 			//Unallocated Amt = the total unallocated amt for the patient.
 			string command = $@"
-				SELECT patient.Guarantor, MIN(paysplit.DatePay) DatePay, SUM(COALESCE(paysplit.SplitAmt,0)) + SUM(COALESCE(alloc.AllocAmt,0)) UnallocAmt
+				SELECT patient.Guarantor, MIN(paysplit.DatePay) DatePay, SUM(paysplit.SplitAmt) UnallocAmt
 				FROM paysplit
-				LEFT JOIN (
-					SELECT paysplit.FSplitNum,SUM(paysplit.SplitAmt) AllocAmt
-					FROM paysplit
-					WHERE paysplit.FSplitNum != 0 ";
-			if(listHiddenUnearnedDefNums.Count > 0) {
-				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
-			}
-			command+=@"GROUP BY paysplit.FSplitNum
-				)alloc ON paysplit.SplitNum = alloc.FSplitNum
 				INNER JOIN patient ON patient.PatNum = paysplit.PatNum ";
 			if(listClinicNums.Count>0 || listProvNums.Count>0) {
-				command += @"
-					INNER JOIN patient guar ON guar.PatNum = patient.Guarantor ";
+				command += "INNER JOIN patient guar ON guar.PatNum = patient.Guarantor ";
 				if(listClinicNums.Count>0) {
-					command += @"
-					AND guar.ClinicNum IN ("+string.Join(",",listClinicNums.Select(x => POut.Long(x)))+") ";
+					command += "AND guar.ClinicNum IN ("+string.Join(",",listClinicNums.Select(x => POut.Long(x)))+") ";
 				}
 				if(listProvNums.Count>0) {
-					command += @"
-					AND guar.PriProv IN ("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
+					command += "AND guar.PriProv IN ("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
 				}
 			}
-			command += @"
-				WHERE paysplit.UnearnedType != 0 ";
+			command +="WHERE paysplit.UnearnedType != 0 ";
 			if(listUnearnedTypeNums.Count>0) {
-				command += @"
-					AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => POut.Long(x)))+") ";
+				command +="AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => POut.Long(x)))+") ";
 			}
 			if(listHiddenUnearnedDefNums.Count > 0) {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 			}
-			command += @"
-				AND paysplit.FSplitNum = 0
-				AND (ABS(paysplit.SplitAmt + alloc.AllocAmt) > 0.005 OR alloc.AllocAmt IS NULL) 
-				GROUP BY patient.Guarantor ";
+			command += "GROUP BY patient.Guarantor ";
 			if(isExcludeNetZeroUnearned) {
-				command+=@"
-				HAVING ABS(UnallocAmt) > 0.005 ";
+				command+="HAVING ABS(UnallocAmt) > 0.005 ";
 			}
 			//one row per family
 			DataTable tableUnallocatedUnearned = ReportsComplex.RunFuncOnReportServer(() => Db.GetTable(command));
@@ -204,18 +173,8 @@ namespace OpenDentBusiness {
 			retVal.Columns.Add("FamBal");
 			string command = @"
 			SELECT patient.Guarantor, paysplit.PatNum, patient.FName, patient.LName,
-			guar.FName GuarF, guar.LName GuarL, 
-			SUM(IFNULL(paysplit.SplitAmt,0)) + SUM(IFNULL(alloc.AllocAmt,0)) UnallocatedAmt
+			guar.FName GuarF, guar.LName GuarL,SUM(paysplit.SplitAmt) UnallocatedAmt
 			FROM paysplit
-			LEFT JOIN (
-				SELECT paysplit.FSplitNum, SUM(paysplit.SplitAmt) AllocAmt
-				FROM paysplit
-				WHERE paysplit.FSplitNum != 0 ";			
-			if(listHiddenUnearnedDefNums.Count>0) {
-				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
-			}
-			command+=@"GROUP BY paysplit.FSplitNum
-			)alloc ON paysplit.SplitNum = alloc.FSplitNum
 			INNER JOIN patient ON patient.PatNum = paysplit.PatNum ";
 			if(listClinicNums.Count>0) {
 				command += @"
@@ -226,22 +185,17 @@ namespace OpenDentBusiness {
 					AND patient.PriProv IN ("+string.Join(",",listProvNums.Select(x => POut.Long(x)))+") ";
 			}
 			command += @"
-			INNER JOIN patient guar ON guar.PatNum = patient.Guarantor
+			INNER JOIN patient guar ON guar.PatNum = patient.Guarantor 
 			WHERE paysplit.UnearnedType != 0 ";
 			if(listUnearnedTypeNums.Count>0) {
-				command += @"
-					AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => POut.Long(x)))+") ";
+				command +="AND paysplit.UnearnedType IN ("+string.Join(",",listUnearnedTypeNums.Select(x => POut.Long(x)))+") ";
 			}
-			if(listHiddenUnearnedDefNums.Count>0) {
+			if(listHiddenUnearnedDefNums.Count > 0) {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 			}
-			command += @"
-			AND paysplit.FSplitNum = 0
-			AND (paysplit.SplitAmt + alloc.AllocAmt != 0 OR alloc.AllocAmt IS NULL)
-			GROUP BY paysplit.PatNum,patient.Guarantor,patient.FName,patient.LName,guar.FName,guar.LName ";
+			command += "GROUP BY paysplit.PatNum ";
 			if(isExcludeNetZero) {
-				command+=@"
-				HAVING ABS(UnallocatedAmt) > 0.005";
+				command+="HAVING ABS(UnallocatedAmt) > 0.005 ";
 			}
 			DataTable tableUnallocatedPrepayments = ReportsComplex.RunFuncOnReportServer(() => Db.GetTable(command));
 			//get remaining amount for all procedures of the returned families.
@@ -285,9 +239,9 @@ namespace OpenDentBusiness {
 			);
 			string command = "";
 			string whereClin = "";
-			//This query is kind-of a mess, but we're trying to account for bugs in previous versions.
-			//Logic is meant to match the account module "Unearned" value logic as closely as possible.
-			//Cameron and I tried to optimize this code for speed as much as we could in mysql, but filtering by clinic won't make this query much faster.
+			//We used to get original paysplits based on FSplitNum being 0 and having an unearned type and then get the offsetting splits from the
+			//FSplitNum matching the original paysplit num. 
+			//FSplitNums no longer are important when calculating unearned so they are no included in this logic intentionally.
 			//The patient table joins are quite slow for large customers, which is why they were moved outside the FROM.
 			//If a customer complains we might do some logic to get the patnums of any family member in that clinic first, so we can filter down the unions.
 			if(listClinics.Count>0) {
@@ -299,24 +253,14 @@ namespace OpenDentBusiness {
 				command+=",clinic.Abbr";
 			}
 			command+=",SUM(splits.Amt) Amount FROM (";
-			//Prepay
+			//Prepay. Unearned is simply defined as having an unearned type set. Nothing more. 
 			command+="SELECT paysplit.PatNum, paysplit.SplitAmt Amt,paysplit.UnearnedType "
 				+"FROM paysplit "
-				+"WHERE paysplit.UnearnedType!=0 AND paysplit.FSplitNum=0 ";
+				+"WHERE paysplit.UnearnedType!=0 ";
 			if(listHiddenUnearnedDefNums.Count>0) {
 				command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
 			}
-			//UNION ALL
-			command+="UNION ALL ";
-			//Negative Split
-			command+="SELECT paysplit.PatNum, SUM(paysplit.SplitAmt) Amt,NULL UnearnedType "//UnearnedType should match prepayment, might be 0
-				+"FROM paysplit "
-				+"WHERE paysplit.FSplitNum!=0 "
-				+"AND paysplit.FSplitNum IN (SELECT paysplit.SplitNum FROM paysplit WHERE paysplit.UnearnedType!=0 AND paysplit.FSplitNum=0) ";
-				if(listHiddenUnearnedDefNums.Count>0) {
-					command+=$"AND paysplit.UnearnedType NOT IN ({string.Join(",",listHiddenUnearnedDefNums)}) ";
-				}
-				command+="GROUP BY paysplit.FSplitNum";
+			command+="GROUP BY paysplit.SplitNum";
 			command+=") splits "
 				+"INNER JOIN patient ON patient.PatNum=splits.PatNum "
 				+"INNER JOIN patient guar ON guar.PatNum=patient.Guarantor "
