@@ -3027,8 +3027,18 @@ namespace OpenDentBusiness {
 				else {//Procedure is part of a multi visit group.
 					List<ProcMultiVisit> listGroupPmvs=listClaimPmvs.FindAll(x => x.GroupProcMultiVisitNum==pmvForProc.GroupProcMultiVisitNum);
 					//Using the maximum group date on the claimproc.ProcDate will cause the insurance billable date to be the delivery date,
-					//while the attached proc.ProcDate will remain unchanged and be the billing date in the account to preserve statement history.						
-					cp.ProcDate=listGroupPmvs.Max(x => listPatProcs.FirstOrDefault(y => y.ProcNum==x.ProcNum).ProcDate);//Max ProcDate for the group.						
+					//while the attached proc.ProcDate will remain unchanged and be the billing date in the account to preserve statement history.
+					DateTime dateForGroup=DateTime.MinValue;//Max ProcDate for the group.
+					foreach(ProcMultiVisit pmv in listGroupPmvs) {
+						Procedure procCur=listPatProcs.FirstOrDefault(x => x.ProcNum==pmv.ProcNum);
+						if(procCur!=null && procCur.ProcDate > dateForGroup) {//Can be null if the user deleted the proc after the multi visit group was created.
+							dateForGroup=procCur.ProcDate;
+						}
+					}
+					//If all procs were deleted from the multi visit group (possible?), then leave the cp.ProcDate alone because it is probably correct.
+					if(dateForGroup > DateTime.MinValue) {
+						cp.ProcDate=dateForGroup;
+					}
 				}
 				//The cp changes will be updated to the database at the end of this function.
 			}

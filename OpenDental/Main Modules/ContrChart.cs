@@ -9490,7 +9490,8 @@ namespace OpenDental {
 			if(procButton!=null && procButton.IsMultiVisit) {
 				//There are many complicated paths which might cause some of the procedures to be deleted (such as user cancel).
 				//Refresh the procedures from the database to ensure the ones that we group together actually exist.
-				_listChartedProcs=Procedures.GetManyProc(_listChartedProcs.Select(x => x.ProcNum).Where(x => x!=0).ToList(),false);
+				_listChartedProcs=Procedures.GetManyProc(_listChartedProcs.Select(x => x.ProcNum).Where(x => x!=0).ToList(),false)
+					.FindAll(x => x.ProcStatus!=ProcStat.D);
 				ProcMultiVisits.CreateGroup(_listChartedProcs);
 			}
 			_listChartedProcs=null;

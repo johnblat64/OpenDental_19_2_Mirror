@@ -107,10 +107,10 @@ namespace OpenDentBusiness{
 			return Crud.ProcMultiVisitCrud.Insert(procMultiVisit);
 		}
 
-		///<summary>Also sends signal and refreshes cache.</summary>
+		///<summary>Will not create a group if there are less than 2 items in listProcs.  Also sends signal and refreshes cache.</summary>
 		public static void CreateGroup(List<Procedure> listProcs) {
 			//No need to check RemotingRole; no call to db.
-			if(listProcs.Count==0) {
+			if(listProcs.Count<2) {//No reason to make a "group" with 0 or 1 items.
 				return;
 			}
 			List<ProcMultiVisit> listPmvs=new List<ProcMultiVisit>();
