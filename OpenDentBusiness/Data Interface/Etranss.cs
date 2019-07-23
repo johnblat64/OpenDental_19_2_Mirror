@@ -339,6 +339,10 @@ namespace OpenDentBusiness{
 			if(!etrans.Etype.In(EtransType.Claim_CA,EtransType.ClaimCOB_CA,EtransType.Predeterm_CA,EtransType.PredetermEOB_CA,EtransType.Claim_Ramq)) {
 				return;//If not for a Canadian etrans claim type then nothing to do.
 			}
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),etrans,hasSecondary);
+				return;
+			}
 			etrans.OfficeSequenceNumber=0;
 			//find the next officeSequenceNumber
 			string command="SELECT MAX(OfficeSequenceNumber) FROM etrans";
@@ -488,6 +492,9 @@ namespace OpenDentBusiness{
 		///<summary>Returns an etrans that has not been inserted into the DB.
 		///Should only be called with etrans is related an EtransType that is of claim type, currently no validation is done in this function to ensure this.</summary>
 		public static Etrans CreateEtransForClaim(long claimNum,long patNum,long clearinghouseNum,EtransType etype,int batchNumber,long userNum) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetObject<Etrans>(MethodBase.GetCurrentMethod(),claimNum,patNum,clearinghouseNum,etype,batchNumber,userNum);
+			}
 			Etrans etrans=new Etrans();
 			//etrans.DateTimeTrans handled automatically
 			etrans.ClearingHouseNum=clearinghouseNum;
