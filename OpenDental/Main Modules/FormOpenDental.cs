@@ -6458,6 +6458,7 @@ namespace OpenDental{
 			}
 			SecurityLogs.MakeLogEntry(Permissions.ChooseDatabase,0,"");//make the entry before switching databases.
 			ChooseDatabaseModel chooseDatabaseModel=ChooseDatabaseModel.GetChooseDatabaseModelFromConfig();
+			ChooseDatabaseModel.UpdateChooseDatabaseModelFromCurrentConnection(chooseDatabaseModel);
 			chooseDatabaseModel.IsAccessedFromMainMenu=true;
 			FormChooseDatabase FormCD=new FormChooseDatabase(chooseDatabaseModel);
 			if(FormCD.ShowDialog()!=DialogResult.OK) {

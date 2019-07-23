@@ -246,6 +246,25 @@ namespace OpenDental {
 			#endregion
 			return chooseDatabaseModel;
 		}
+
+		///<summary>Updates the passed in ChooseDatabaseModel with the current database/middle tier connection. Only updates values that are stored in
+		///FreeDentalConfig and are also kept in memory.</summary>
+		public static void UpdateChooseDatabaseModelFromCurrentConnection(ChooseDatabaseModel chooseDatabaseModel) {
+			if(string.IsNullOrEmpty(RemotingClient.ServerURI)) {//Direct connection
+				chooseDatabaseModel.CentralConnectionCur.ServerName=DataConnection.GetServerName();
+				chooseDatabaseModel.CentralConnectionCur.DatabaseName=DataConnection.GetDatabaseName();
+				chooseDatabaseModel.CentralConnectionCur.MySqlUser=DataConnection.GetMysqlUser();
+				chooseDatabaseModel.CentralConnectionCur.MySqlPassword=DataConnection.GetMysqlPass();
+				chooseDatabaseModel.CentralConnectionCur.ServiceURI="";
+			}
+			else {//using Middle Tier
+				chooseDatabaseModel.CentralConnectionCur.ServiceURI=RemotingClient.ServerURI;
+				chooseDatabaseModel.CentralConnectionCur.ServerName="";
+				chooseDatabaseModel.CentralConnectionCur.DatabaseName="";
+				chooseDatabaseModel.CentralConnectionCur.MySqlUser="";
+				chooseDatabaseModel.CentralConnectionCur.MySqlPassword="";
+			}
+		}
 	}
 
 }
