@@ -13,6 +13,10 @@ namespace DatabaseIntegrityCheck {
 		private List<string> _corruptTables;
 		private bool _patientRowsLost;
 		MySqlConnection _con;
+		///<summary>True if the user is currently running CHECK TABLES.</summary>
+		private bool _isCheckRunning;
+		///<summary>True if the user is currently running REPAIR TABLES.</summary>
+		private bool _isRepairRunning;
 
 		public FormDatabaseCheck() {
 			InitializeComponent();
@@ -203,9 +207,13 @@ namespace DatabaseIntegrityCheck {
 		}
 
 		private void butCheck_Click(object sender,EventArgs e) {
+			if(_isCheckRunning || _isRepairRunning) {
+				return;
+			}
 			if(!OpenConnection()) {
 				return;
 			}
+			_isCheckRunning=true;
 			string command="SHOW FULL TABLES WHERE Table_type='BASE TABLE'";//Tables, not views.  Does not work in MySQL 4.1, however we test for MySQL version >= 5.0 in PrefL.
 			try {
 				Cursor=Cursors.WaitCursor;
@@ -251,10 +259,14 @@ namespace DatabaseIntegrityCheck {
 			finally {
 				Cursor=Cursors.Default;
 				_con.Close();
+				_isCheckRunning=false;
 			}
 		}
 
 		private void butRepair_Click(object sender,EventArgs e) {
+			if(_isCheckRunning || _isRepairRunning) {
+				return;
+			}
 			_patientRowsLost=false;
 			if(!OpenConnection()) {
 				return;
@@ -276,6 +288,7 @@ namespace DatabaseIntegrityCheck {
 				return;
 			}
 			//this tool would only be used with MySQL, so the current code is just fine.
+			_isRepairRunning=true;
 			try {
 				Cursor=Cursors.WaitCursor;
 				string results="";
@@ -307,6 +320,7 @@ namespace DatabaseIntegrityCheck {
 			finally {
 				Cursor=Cursors.Default;
 				_con.Close();
+				_isRepairRunning=false;
 			}
 		}
 
