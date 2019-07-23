@@ -194,6 +194,7 @@ namespace OpenDentBusiness.Eclaims
 			}
 			queueItem.Warnings="";
 			queueItem.MissingData="";
+			queueItem.ErrorsPreventingSave="";
 			//this is usually just the default clearinghouse or the clearinghouse for the PayorID.
 			if(clearinghouseClin==null) {
 				if(queueItem.MedType==EnumClaimMedType.Dental) {
@@ -214,6 +215,7 @@ namespace OpenDentBusiness.Eclaims
 			Claim claim=Claims.GetClaim(queueItem.ClaimNum);//This should always exist, because we just did a select to get the queue item.
 			InsPlan insPlan=InsPlans.RefreshOne(claim.PlanNum);
 			if(insPlan==null) {//Check for missing PlanNums
+				queueItem.ErrorsPreventingSave=Lans.g("Eclaims","Claim insurance plan record missing.  Please recreate claim.");
 				queueItem.MissingData=Lans.g("Eclaims","Claim insurance plan record missing.  Please recreate claim.");
 				return queueItem;
 			}

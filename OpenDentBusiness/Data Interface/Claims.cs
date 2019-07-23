@@ -1553,6 +1553,8 @@ namespace OpenDentBusiness{
 		public bool HasIcd9;
 		///<summary>The ordinal of the insurance plan for the subscriber associated with this claim.</summary>
 		public int Ordinal;
+		///<summary>Errors which will prevent FormClaimEdit.cs from saving the claim when the user clicks OK.</summary>
+		public string ErrorsPreventingSave;
 
 		[XmlIgnore]
 		public bool CanSendElect {
