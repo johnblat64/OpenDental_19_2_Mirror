@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -14,16 +15,15 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Xml;
-using Health.Direct.Common.Certificates;
-using CodeBase;
-using OpenDentBusiness.FileIO;
-using System.Data;
-using CDO;
 using System.Web;
+using System.Xml;
+using CDO;
+using CodeBase;
+using Health.Direct.Common.Certificates;
 using OpenDentBusiness.Email;
+using OpenDentBusiness.FileIO;
 
-namespace OpenDentBusiness{
+namespace OpenDentBusiness {
 	///<summary>An email message is always attached to a patient.</summary>
 	public class EmailMessages{		
 		#region Get Methods
@@ -1760,7 +1760,7 @@ namespace OpenDentBusiness{
 			else {//Sending the email.
 				emailMessage.MsgDateTime=DateTime.Now;
 			}
-			emailMessage.Subject=SubjectTidy(message.SubjectValue);
+			emailMessage.Subject=SubjectTidy(ProcessMimeSubject(message.SubjectValue));
 			emailMessage.ToAddress=POut.String(message.ToValue).Trim();//ToValue can be null if recipients were CC or BCC only.
 			emailMessage.CcAddress=POut.String(message.CcValue).Trim();
 			emailMessage.BccAddress=POut.String(message.BccValue).Trim();
@@ -1931,13 +1931,29 @@ namespace OpenDentBusiness{
 			return message;
 		}
 
+		///<summary>Decodes the subject line of an email, which may contain non-ascii characters, either due to base64 or quoted-printable encoding.
+		///</summary>
+		public static string ProcessMimeSubject(string text) {
+			string subject=text;
+			//str must be in "=?bodycharset?[B or Q]?input?=" format for Attachment to properly decode non-ascii chars.  This is the case for the email subject
+			//line, but not for the body, which is why we decode the body differently.  
+			//Ex. =?UTF-8?B?RndkOiDCoiDDhiAxMjM0NSDDpiDDvyBzb21lIGFzY2lpIGNoYXJzIMOCIMOD?= decodes to "Fwd: ¢ Æ 12345 æ ÿ some ascii chars Â Ã"
+			//=?UTF-8?Q?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?= decodes to "nu¤ Â À ¢"
+			subject=Regex.Replace(subject,"=\\?.*\\?[BQ]{1}\\?.+\\?="
+				,new MatchEvaluator((match) => Attachment.CreateAttachmentFromString("",match.Value)?.Name));
+			return subject;
+		}
+
 		public static string ProcessMimeTextPart(Health.Direct.Common.Mime.MimeEntity mimeEntity) {
 			//No need to check RemotingRole; no call to db.
 			string strBodyText=mimeEntity.Body.Text;
 			//Convert clear text mime parts which are base64 encoded into utf8 to make the text readable (plain text, html, xml, etc...)
 			//This includes messages which were received as encryped and which were successfully decrypted.
+			bool isBase64=false;
+			Encoding enc=Encoding.GetEncoding("utf-8");
+			ODException.SwallowAnyException(() => enc=GetMimeEncoding(mimeEntity));
 			if(!IsMimeEntityEncrypted(mimeEntity) && IsMimeEntityText(mimeEntity) && IsMimeEntityBase64(mimeEntity)) {
-				Encoding enc=GetMimeEncoding(mimeEntity);
+				isBase64=true;
 				byte[] arrayBodyBytes=Convert.FromBase64String(mimeEntity.Body.Text);
 				strBodyText=enc.GetString(arrayBodyBytes);
 			}
@@ -1966,29 +1982,59 @@ namespace OpenDentBusiness{
 				}
 			}
 			//Soft line breaks have now been removed from the message.
-			//In the remaining message, the same special character is used to precede encoded characters.
-			//For example, "=3D" needs to be converted to an '=' character, because 3D in hexadecimal is the '=' character.
-			//Another example, "=20" would be converted to a ' ' character.
-			string strBodyTextUnwrapped=sbBodyText.ToString();
+			return DecodeBodyText(sp,sbBodyText.ToString(),isBase64,enc);
+		}
+
+		///<summary>Decodes the body text of an email.  Primary function is to handle non-ascii </summary>
+		public static string DecodeBodyText(string sp,string strBodyTextUnwrapped,bool isBase64,Encoding encoding) {
 			string[] arrayBodyEncoded=strBodyTextUnwrapped.Split(new string[] { sp },StringSplitOptions.None);
-			StringBuilder retVal=new StringBuilder();
-			if(arrayBodyEncoded.Length>0) {
-				retVal.Append(arrayBodyEncoded[0]);
-				for(int i=1;i<arrayBodyEncoded.Length;i++) {
-					if(Regex.IsMatch(arrayBodyEncoded[i],"^[0-9A-F]{2}.*")) {//Starts with a 2 digit hexadecimal number.
-						string hexStr=arrayBodyEncoded[i].Substring(0,2);
-						char c=(char)Convert.ToInt32(hexStr,16);
-						retVal.Append(c);
-						retVal.Append(arrayBodyEncoded[i].Substring(2));
-					}
-					else {
-						//This loop can, and will, remove more than just "=3D", or similiar encoded characters. It will also remove "=" from necessary html code 
-						//such as alt and src. Appending sp here allows it to be put back into the code when sp was not followed by two hex characters.
-						retVal.Append(sp+arrayBodyEncoded[i]);
+			//If the mimeEntity is Base64, multiple bytes have already been decoded to their =FF format here, so use the old method, which casts directly
+			//from a single set of =FF to a character.
+			if(isBase64) {
+				//In the remaining message, the same special character is used to precede encoded characters.
+				//For example, "=3D" needs to be converted to an '=' character, because 3D in hexadecimal is the '=' character.
+				//Another example, "=20" would be converted to a ' ' character.
+				StringBuilder retVal=new StringBuilder();
+				if(arrayBodyEncoded.Length>0) {
+					retVal.Append(arrayBodyEncoded[0]);
+					for(int i=1;i<arrayBodyEncoded.Length;i++) {
+						if(Regex.IsMatch(arrayBodyEncoded[i],"^[0-9A-F]{2}.*")) {//Starts with a 2 digit hexadecimal number.
+							string hexStr=arrayBodyEncoded[i].Substring(0,2);
+							char c=(char)Convert.ToInt32(hexStr,16);
+							retVal.Append(c);
+							retVal.Append(arrayBodyEncoded[i].Substring(2));
+						}
+						else {
+							//This loop can, and will, remove more than just "=3D", or similiar encoded characters. It will also remove "=" from necessary html code 
+							//such as alt and src. Appending sp here allows it to be put back into the code when sp was not followed by two hex characters.
+							retVal.Append(sp+arrayBodyEncoded[i]);
+						}
 					}
 				}
+				return retVal.ToString();
 			}
-			return retVal.ToString();
+			else {//Otherwise, non-ascii characters will be in a =FF =FF format, which must be cast to bytes for proper decoding.  This is expected in
+				//quoted-printable encoded emails.
+				List<byte> listBytes=new List<byte>();
+				if(arrayBodyEncoded.Length>0) {
+					listBytes.AddRange(arrayBodyEncoded[0].Select(x => (byte)x));
+					for(int i=1;i<arrayBodyEncoded.Length;i++) {
+						if(Regex.IsMatch(arrayBodyEncoded[i],"^[0-9A-F]{2}.*")) {//Starts with a 2 digit hexadecimal number.
+							string hexStr=arrayBodyEncoded[i].Substring(0,2);
+							int hex=Convert.ToInt32(hexStr,16);
+							byte b=Convert.ToByte(hex);
+							listBytes.Add(b);
+							listBytes.AddRange(arrayBodyEncoded[i].Substring(2).Select(x => (byte)x));
+						}
+						else {
+							//This loop can, and will, remove more than just "=3D", or similiar encoded characters. It will also remove "=" from necessary html code 
+							//such as alt and src. Appending sp here allows it to be put back into the code when sp was not followed by two hex characters.
+							listBytes.AddRange(sp.Select(x => (byte)x).Concat(arrayBodyEncoded[i].Select(x => (byte)x)));
+						}
+					}
+				}
+				return encoding.GetString(listBytes.ToArray());
+			}
 		}
 
 		private static Encoding GetMimeEncoding(Health.Direct.Common.Mime.MimeEntity mimeEntity) {
@@ -2036,6 +2082,14 @@ namespace OpenDentBusiness{
 		private static bool IsMimeEntityBase64(Health.Direct.Common.Mime.MimeEntity mimeEntity) {
 			//No need to check RemotingRole; no call to db.
 			if(mimeEntity.ContentTransferEncoding!=null && mimeEntity.ContentTransferEncoding.ToLower().Contains("base64")) {
+				return true;
+			}
+			return false;
+		}
+
+		private static bool IsMimeEntityQuotedPrintable(Health.Direct.Common.Mime.MimeEntity mimeEntity) {
+			//No need to check RemotingRole; no call to db.
+			if(mimeEntity.ContentTransferEncoding!=null && mimeEntity.ContentTransferEncoding.ToLower().Contains("quoted-printable")) {
 				return true;
 			}
 			return false;
