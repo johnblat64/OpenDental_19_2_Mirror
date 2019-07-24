@@ -55,6 +55,16 @@ namespace UnitTests.UserQueries_Tests {
 			}
 		}
 
+		/// <summary>Assert.True UserQueries.ParseSetStatements() matches listExpectedStrings.</summary>
+		/// <param name="strQuery">Provide a query that will be split up.</param>
+		/// <param name="listExpectedStrings">Provide the list of strings that strQuery should get split up into.</param>
+		private static void RunParseSetStatementsTest(string strQuery,List<string> listExpectedStrings) {
+			List<string> listSplitQueries=UserQueries.ParseSetStatements(strQuery);
+			foreach(string strSplit in listSplitQueries) {
+				Assert.IsTrue(listExpectedStrings.Contains(strSplit));
+			}
+		}
+
 		[TestMethod]
 		public void UserQueries_SplitQuery_CaseStatement() {
 			string strQuery=@"SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 ELSE 10 END);
@@ -100,7 +110,7 @@ namespace UnitTests.UserQueries_Tests {
 				SET @CarrierName='CSC Medicaid'; 
 				SET @OperatoryName='%%';
 				SELECT * FROM patient;";
-			RunSplitQueryTest(strQuery,CreateList("SET @FromDate='2012-12-03 , @ToDate=2016-12-03'","SET @CarrierName='CSC Medicaid'",
+			RunParseSetStatementsTest(strQuery,CreateList("SET @FromDate='2012-12-03 , @ToDate=2016-12-03'","SET @CarrierName='CSC Medicaid'",
 				"SET @OperatoryName='%%'","SELECT * FROM patient","SET @FromDate2='2012-12-03 , @ToDate2=2016-12-03"));
 		}
 
