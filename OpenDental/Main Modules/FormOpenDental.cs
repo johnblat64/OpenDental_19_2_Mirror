@@ -9149,7 +9149,8 @@ namespace OpenDental{
 			Userods.SetIsCacheAllowed(false);
 			FormLogOn_=new FormLogOn(doRefreshSecurityCache:false);
 			FormLogOn_.ShowDialog(this);
-			if(FormLogOn_.DialogResult==DialogResult.Cancel) {
+			if(FormLogOn_.DialogResult!=DialogResult.OK) {
+				//Using FormLogOn_.DialogResult==DailogResult.CANCEL previously resulted in a null user/UE.
 				Cursor=Cursors.Default;
 				Application.Exit();
 			}
