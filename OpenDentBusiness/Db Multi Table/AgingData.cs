@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Serialization;
 using CodeBase;
 
 namespace OpenDentBusiness {
@@ -238,13 +239,28 @@ namespace OpenDentBusiness {
 
 	///<summary>This object helps track of max date for certain billing transaction types.</summary>
 	[Serializable]
+	[XmlType(TypeName="A")]
 	public class PatAgingTransaction {
 		///<summary>The type of transaction which we are tracking max date for.</summary>
+		[XmlIgnore]
 		public TransactionTypes TransactionType;
 		///<summary>The max date for the corresponding transaction type entity.  E.g. procedurelog.ProcDate, claimproc.DateCP, etc.</summary>
+		[XmlElement("B",typeof(DateTime))]
 		public DateTime DateLastTrans;
 		///<summary>Optional field used to keep track of the security DateT entry for the corresponding transaction type.</summary>
+		[XmlElement("C",typeof(DateTime))]
 		public DateTime SecDateTEntryTrans;
+
+		///<summary>Xml serialized as an int to reduce space.</summary>
+		[XmlElement("D",typeof(int))]
+		public int TransactionTypeInt {
+			get {
+				return (int)TransactionType;
+			}
+			set {
+				TransactionType=(TransactionTypes)value;
+			}
+		}
 
 		///<summary>Only for serialization purposes.  Private so it won't be used.</summary>
 		private PatAgingTransaction() { }

@@ -22,14 +22,14 @@ namespace OpenDentBusiness {
 				return;
 			}
 			while(reader.NodeType != System.Xml.XmlNodeType.EndElement) {
-				reader.ReadStartElement("Item");
-				reader.ReadStartElement("Key");
+				reader.ReadStartElement("I");//Item
+				reader.ReadStartElement("K");//Key
 				TKey key=(TKey)keySerializer.Deserialize(reader);
 				if(key!=null) {
 					key=(TKey)XmlConverter.XmlUnescapeRecursion(typeof(TKey),key);
 				}
 				reader.ReadEndElement();
-				reader.ReadStartElement("Value");
+				reader.ReadStartElement("V");//Value
 				TValue value=(TValue)valueSerializer.Deserialize(reader);
 				if(value!=null) {
 					value=(TValue)XmlConverter.XmlUnescapeRecursion(typeof(TValue),value);
@@ -46,11 +46,11 @@ namespace OpenDentBusiness {
 			XmlSerializer keySerializer=new XmlSerializer(typeof(TKey));
 			XmlSerializer valueSerializer=new XmlSerializer(typeof(TValue));
 			foreach(TKey key in this.Keys) {
-				writer.WriteStartElement("Item");
-				writer.WriteStartElement("Key");
+				writer.WriteStartElement("I");//Item
+				writer.WriteStartElement("K");//Key
 				keySerializer.Serialize(writer,(TKey)XmlConverter.XmlEscapeRecursion(typeof(TKey),key));
 				writer.WriteEndElement();
-				writer.WriteStartElement("Value");
+				writer.WriteStartElement("V");//Value
 				valueSerializer.Serialize(writer,(TValue)XmlConverter.XmlEscapeRecursion(typeof(TValue),this[key]));
 				writer.WriteEndElement();
 				writer.WriteEndElement();
