@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental.UI {
@@ -48,16 +49,19 @@ namespace OpenDental.UI {
 		}
 
 		private void RectifyScrollValue() {
-			if(sigButStates==null){
-				return;
-			}
-			int maxScroll=sigButStates.Length*_buttonH-this.Height;
-			if(_scrollVal>maxScroll) {
-				_scrollVal=maxScroll;
-			}
-			if(_scrollVal<0) {
-				_scrollVal=0;
-			}
+			//Previously sigButStates has causes UEs even with the null check.
+			ODException.SwallowAnyException(() => {
+				if(sigButStates==null){
+					return;
+				}
+				int maxScroll=sigButStates.Length*_buttonH-this.Height;
+				if(_scrollVal>maxScroll) {
+					_scrollVal=maxScroll;
+				}
+				if(_scrollVal<0) {
+					_scrollVal=0;
+				}
+			});
 		}
 
 		#region Properties
