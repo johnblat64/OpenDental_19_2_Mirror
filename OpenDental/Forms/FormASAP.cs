@@ -1714,6 +1714,9 @@ namespace OpenDental {
 				return;
 			}
 			long clinicNum=ODMethodsT.Coalesce(Operatories.GetOperatory(_opNum)).ClinicNum;
+			if(!PrefC.HasClinicsEnabled) {
+				clinicNum=0;
+			}
 			bool isSignedUp=(clinicNum.In(_listClinicNumsWebSched) || (!PrefC.HasClinicsEnabled && _listClinicNumsWebSched.Count > 0));
 			if(!isSignedUp) {
 				if(!MsgBox.Show(this,MsgBoxButtons.YesNo,
