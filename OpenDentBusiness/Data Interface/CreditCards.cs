@@ -567,11 +567,11 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetInt(MethodBase.GetCurrentMethod(),token,includeXWeb);
 			}
-			string command=$"SELECT COUNT(*) FROM creditcard WHERE XChargeToken='{POut.String(token)}' ";
+			string command=$"SELECT * FROM creditcard WHERE XChargeToken='{POut.String(token)}' ";
 			if(!includeXWeb) {
 				command+=$"AND CCSource NOT IN({POut.Int((int)CreditCardSource.XWeb)},{POut.Int((int)CreditCardSource.XWebPortalLogin)}) ";
 			}
-			return Db.GetInt(command);
+			return CountSameCard(Crud.CreditCardCrud.SelectMany(command));
 		}
 
 		///<summary>Returns number of times token is in use.</summary>
@@ -582,8 +582,8 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetInt(MethodBase.GetCurrentMethod(),token);
 			}
-			string command=$"SELECT COUNT(*) FROM creditcard WHERE PayConnectToken='{POut.String(token)}' ";
-			return Db.GetInt(command);
+			string command=$"SELECT * FROM creditcard WHERE PayConnectToken='{POut.String(token)}' ";
+			return CountSameCard(Crud.CreditCardCrud.SelectMany(command));
 		}
 
 		///<summary>Returns number of times token is in use.</summary>
@@ -594,20 +594,25 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetInt(MethodBase.GetCurrentMethod(),token,isAch);
 			}
-			string command=$"SELECT COUNT(*) FROM creditcard WHERE PaySimpleToken='{POut.String(token)}' ";
+			string command=$"SELECT * FROM creditcard WHERE PaySimpleToken='{POut.String(token)}' ";
 			if(!isAch) {
 				command+=$"AND CCSource!={POut.Int((int)CreditCardSource.PaySimpleACH)} ";
 			}
-			return Db.GetInt(command);
+			return CountSameCard(Crud.CreditCardCrud.SelectMany(command));
 		}
 
 		///<summary>Returns number of times token is in use.  Token was duplicated once and caused the wrong card to be charged.</summary>
 		public static int GetTokenCount(string token,List<CreditCardSource> listSources) {
 			//No need to check RemotingRole; no call to db.
+			return CountSameCard(GetCardsByToken(token,listSources));
+		}
+
+		///<summary>Counts how many cards are probably the same.</summary>
+		private static int CountSameCard(List<CreditCard> listCards) {
 			//There may be duplicate tokens if the office adds the same CC multiple times (on the same patient or on multiple patients).
 			//This is considered valid and we only want to catch duplicates for different CC numbers
 			//CCNumberMasked only stores 4 digits, so adding the extra data to the select "grouping" allows a more reliable count.
-			return GetCardsByToken(token,listSources)
+			return listCards
 				.Select(x => x.CCNumberMasked+x.CCExpiration.ToString("MMYYYYY")+x.CCSource.ToString())
 				.Distinct()
 				.Count();

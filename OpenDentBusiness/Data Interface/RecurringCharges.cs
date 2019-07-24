@@ -390,7 +390,7 @@ namespace OpenDentBusiness {
 			int tokenCount=CreditCards.GetXChargeTokenCount(chargeData.XChargeToken,false);
 			if(chargeData.XChargeToken!="" && tokenCount!=1) {
 				string msg=(tokenCount>1)?"A duplicate token was found":"A token no longer exists";
-				MarkFailed(chargeData,Lans.g(_lanThis,msg+", the card cannot be charged for customer")+": "+chargeData.PatName);
+				MarkFailed(chargeData,Lans.g(_lanThis,msg+", the card cannot be charged."));
 				return;
 			}
 			Patient patCur=Patients.GetPat(chargeData.RecurringCharge.PatNum);
@@ -622,7 +622,7 @@ namespace OpenDentBusiness {
 				return true;
 			}
 			catch(Exception ex) {
-				MarkFailed(chargeData,"Unable to charge card for PatNum "+chargeData.RecurringCharge.PatNum+"\r\nError Message: "+ex.Message,LogLevel.Error);
+				MarkFailed(chargeData,"Unable to charge card.\r\nError Message: "+ex.Message,LogLevel.Error);
 				amount=0;
 				if(ex is ODException) {
 					return false;
@@ -645,7 +645,7 @@ namespace OpenDentBusiness {
 			int tokenCount=CreditCards.GetPayConnectTokenCount(tokenOrCCMasked);
 			if(tokenOrCCMasked!="" && tokenCount!=1) {
 				string msg=(tokenCount>1)?"A duplicate token was found":"A token no longer exists";
-				MarkFailed(chargeData,Lans.g(_lanThis,msg+", the card cannot be charged for customer")+": "+chargeData.PatName);
+				MarkFailed(chargeData,Lans.g(_lanThis,msg+", the card cannot be charged."));
 				return;
 			}
 			long patNum=chargeData.RecurringCharge.PatNum;
@@ -677,7 +677,7 @@ namespace OpenDentBusiness {
 			StringBuilder strBuilderResultText=new StringBuilder();//this payment's result text, used in payment note and then appended to file string builder
 			strBuilderResultFile.AppendLine("PatNum: "+patNum+" Name: "+patCur.GetNameFLnoPref());
 			if(payConnectResponse==null || payConnectResponse.Status==null) {
-				MarkFailed(chargeData,Lans.g(_lanThis,"Transaction Failed, unknown error")+" "+chargeData.RecurringCharge.PatNum,LogLevel.Information);
+				MarkFailed(chargeData,Lans.g(_lanThis,"Transaction Failed, unknown error"),LogLevel.Information);
 				if(PrefC.HasClinicsEnabled && dictClinicNumDesc.ContainsKey(clinicNumCur)) {
 					strBuilderResultText.AppendLine("CLINIC="+dictClinicNumDesc[clinicNumCur]);
 				}
@@ -742,7 +742,7 @@ namespace OpenDentBusiness {
 			int tokenCount=CreditCards.GetPaySimpleTokenCount(paySimpleAccountId,chargeData.CCSource==CreditCardSource.PaySimpleACH);
 			if(string.IsNullOrWhiteSpace(paySimpleAccountId) || tokenCount!=1) {
 				string msg=(tokenCount>1)?"A duplicate token was found":"A token was not found";
-				MarkFailed(chargeData,Lans.g(_lanThis,msg+", the card cannot be charged for customer")+": "+chargeData.PatName);
+				MarkFailed(chargeData,Lans.g(_lanThis,msg+", the card cannot be charged."));
 				return;
 			}
 			long patNum=chargeData.RecurringCharge.PatNum;
@@ -846,7 +846,7 @@ namespace OpenDentBusiness {
 				Failed++;
 			}
 			chargeData.RecurringCharge.ErrorMsg=chargeData.RecurringCharge.ErrorMsg?.AppendLine(errorMsg)??errorMsg;
-			_log.WriteLine(errorMsg,logLevel);
+			_log.WriteLine(errorMsg+(errorMsg[errorMsg.Length-1]=='\n'?"":"\r\n")+"  "+Lans.g(_lanThis,"Patient:")+" "+chargeData.PatName,logLevel);
 		}
 
 		///<summary>Sets the fields that are keeping count of the number of successes and failures.</summary>
