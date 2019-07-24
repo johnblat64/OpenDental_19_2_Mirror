@@ -380,7 +380,7 @@ namespace OpenDental{
 			// buttonExport
 			// 
 			this.buttonExport.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.buttonExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.buttonExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.buttonExport.Autosize = true;
 			this.buttonExport.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.buttonExport.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
@@ -396,7 +396,7 @@ namespace OpenDental{
 			// butLettersPreview
 			// 
 			this.butLettersPreview.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butLettersPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butLettersPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.butLettersPreview.Autosize = true;
 			this.butLettersPreview.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butLettersPreview.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
@@ -413,7 +413,7 @@ namespace OpenDental{
 			// butLabelSingle
 			// 
 			this.butLabelSingle.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butLabelSingle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butLabelSingle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.butLabelSingle.Autosize = true;
 			this.butLabelSingle.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butLabelSingle.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
@@ -430,7 +430,7 @@ namespace OpenDental{
 			// butLabelPreview
 			// 
 			this.butLabelPreview.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butLabelPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butLabelPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.butLabelPreview.Autosize = true;
 			this.butLabelPreview.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butLabelPreview.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
@@ -535,6 +535,7 @@ namespace OpenDental{
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.butCancel);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.MinimumSize = new System.Drawing.Size(1065, 309);
 			this.Name = "FormRpTreatmentFinder";
 			this.Text = "Treatment Finder";
 			this.Load += new System.EventHandler(this.FormRpTreatmentFinder_Load);
