@@ -126,9 +126,36 @@ namespace OpenDental.Bridges {
 				MsgBox.Show("Guru","Please select a patient first.");
 				return;
 			}
-			int errorNum=MVStart();
-			if(errorNum != 0) {
-				MsgBox.Show("Guru","An error has occured.");
+			try {
+				int errorNum=MVStart();
+				if(errorNum!=0) {
+					/* Error codes:
+					MV_SUCCESS if successful
+					MV_WRONG_PARAM if hPMS is not null and pContextString is null
+					MV_WRONG_PARAM if pContextString is length 0 or is not null terminated within strSize characters
+					MV_ERROR if an unknown error occurred
+
+					Enumeration Name - E_MV_ERROR
+					This enumeration defines the different return values of exported functions.  When successful, functions return MV_SUCCESS, an other value otherwise:  see the full list below.
+					MV_SUCCESS - The function has succeeded
+					MV_NOT_RUNNING - MV is not running
+					MV_NOT_CREATED - MedVisor has not been created
+					MV_NO_PATIENT - No patient has been set in MedVisor
+					MV_REQUIRED_DATA - Required data has not been sent
+					MV_WRONG_VALUE - Send data are not valid
+					MV_FILE_NOT_FOUND - Sent file cannot be found
+					MV_ERROR - General Error
+					*/
+					throw new ODException(Lan.g("Guru","MedVisorInterface.MVStart() returned with an error code of:")+$" {errorNum}");
+				}
+			}
+			catch(DllNotFoundException e) {
+				e.DoNothing();
+				MessageBox.Show(Lans.g("Guru","Could not find MedVisorInterface.dll. Verify that Guru is installed."));
+				return;
+			}
+			catch(Exception ex) {
+				FriendlyException.Show(Lans.g("Guru","An error occurred when launching Guru."),ex);
 				return;
 			}
 			MVPatient mvPatient = new MVPatient();
