@@ -562,13 +562,15 @@ namespace UnitTests.Benefits_Test {
 			Assert.AreEqual(100,listClaimProcs.First(x => x.ProcNum==proc3.ProcNum).InsPayEst);
 		}
 
-		///<summary>Limitation frequency for BW. Frequency set to 2 in the Last 12 months. In this scenario, two procedures are completed on
+		///<summary>This method specifically tests that $0 procedures count against the frequency limit.
+		///Frequency set to 2 in the Last 12 months. In this scenario, two procedures are completed on
 		///October 1st and 2nd. When the third is charted on October 3rd of the same year, the insurance estimate will be 0 as the frequency
-		///has been met. When the fourth procedure is charted on October 1st of the following year, the insurance estimate will be non-0. This
-		///is because the October 1st procedure has fallen out of the range. The October 2nd procedure was paid for (1 against limitation) while the
-		///October 3rd procedure was not paid for by the insurance. Therefore, there is only 1 procedure for the limitation for the last 12 months.</summary>
+		///has been met. When the fourth procedure is charted on October 1st of the following year, the insurance estimate will be 0 because
+		///our frequency limitation logic counts $0 procedures against the frequency limit. Meaning, even though the October 1st procedure
+		///has fallen out of the date range we still have 2 procedures counting against the limit (proc2,proc3). Thus when we chart a 4th
+		///procedure it's InsPayEst should be 0 as we have already met our limit.</summary>
 		[TestMethod]
-		public void Benefits_InLast12Months_FrequencyNotMetWithTwoProcsInLast12Months() {
+		public void Benefits_InLast12Months_FrequencyMetWithTwoProcsInLast12Months() {
 			string suffix=MethodBase.GetCurrentMethod().Name;
 			Patient pat=PatientT.CreatePatient(suffix);
 			InsuranceInfo ins=InsuranceT.AddInsurance(pat,suffix);
@@ -597,54 +599,8 @@ namespace UnitTests.Benefits_Test {
 			listProcs=new List<Procedure> { proc4 };
 			ClaimT.CreateClaim("P",ins.ListPatPlans,ins.ListInsPlans,listClaimProcs,listProcs,pat,listProcs,ins.ListBenefits,ins.ListInsSubs);
 			listClaimProcs=ClaimProcs.Refresh(pat.PatNum);
-			//The insurance should pay for all of it as only 1 procedure is counted against them. See summary of test for more details
-			Assert.AreEqual(100,listClaimProcs.First(x => x.ProcNum==proc4.ProcNum).InsPayEst);
-		}
-
-		///<summary>Limitation frequency for BW. Frequency set to 2 in the Last 12 months. In this scenario, two procedures are completed on
-		///October 1st and 2nd. The 1st procedure is paid in full by the insurance. The second procedure has a claimproc created for it. The insurance
-		///paid 0, and 0 was entered into the completed claim proc. The claim was resubmitted due to the error and the insurance paid for the procedure.
-		///This is the added a supplemental payment. Now, a third procedure is charted on November 1st of the same year. The estimate for this procedure
-		///will be 0 as the first two procedures were paid for, even if one was a supplemental payment.</summary>
-		[TestMethod]
-		public void Benefits_InLast12Months_FrequencyMetWithSupplementalPayments() {
-			string suffix=MethodBase.GetCurrentMethod().Name;
-			Patient pat=PatientT.CreatePatient(suffix);
-			InsuranceInfo ins=InsuranceT.AddInsurance(pat,suffix);
-			ins.ListBenefits.Add(BenefitT.CreateCategoryPercent(ins.PriInsPlan.PlanNum,EbenefitCategory.Diagnostic,100));
-			ins.ListBenefits.Add(BenefitT.CreateFrequencyLimitation("D0274",2,BenefitQuantity.NumberOfServices,ins.PriInsPlan.PlanNum,
-				BenefitTimePeriod.NumberInLast12Months));
-			//Add first procedure for the patient
-			Procedure proc1=ProcedureT.CreateProcedure(pat,"D0274",ProcStat.EC,"",100,new DateTime(2018,10,1));
-			//Create first claimproc. The insurance paid the full amount
-			ClaimProcT.AddInsPaid(pat.PatNum,ins.ListInsPlans.FirstOrDefault().PlanNum,proc1.ProcNum,100,
-				ins.ListInsSubs.FirstOrDefault().InsSubNum,0,0,new DateTime(2018,10,1));
-			//Create second procedure
-			Procedure proc2=ProcedureT.CreateProcedure(pat,"D0274",ProcStat.EC,"",100,new DateTime(2018,10,2));
-			//Create second claim/claimproc. Insurance paid nothing.
-			Claim claim2=ClaimT.CreateClaim("P",ins.ListPatPlans,ins.ListInsPlans,new List<ClaimProc>(),new List<Procedure> { proc2 },pat,
-				new List<Procedure> { proc2 },ins.ListBenefits,ins.ListInsSubs);
-			List<ClaimProc> listClaimProcs=ClaimProcs.Refresh(pat.PatNum);
-			ClaimT.ReceiveClaim(claim2,new List<ClaimProc> { listClaimProcs.First(x => x.ProcNum==proc2.ProcNum) });
-			//Create third procedure
-			Procedure proc3=ProcedureT.CreateProcedure(pat,"D0274",ProcStat.EC,"",100,new DateTime(2018,10,3));
-			listClaimProcs=new List<ClaimProc> { };
-			List<Procedure> listProcs=new List<Procedure> { proc3 };
-			//Create claim for the third procedure.
-			Claim claim3=ClaimT.CreateClaim("P",ins.ListPatPlans,ins.ListInsPlans,listClaimProcs,listProcs,pat,listProcs,ins.ListBenefits,ins.ListInsSubs);
-			listClaimProcs=ClaimProcs.Refresh(pat.PatNum);
-			//Should be 100 as the second was not paid for by the insurance
-			Assert.AreEqual(100,listClaimProcs.First(x => x.ProcNum==proc3.ProcNum).InsPayEst);
-			//Add Supplemental payment to Claim2 as the insurance finally paid.
-			ClaimProc claimProcSupp=ClaimProcT.CreateClaimProc(pat.PatNum,proc2.ProcNum,ins.ListInsPlans.FirstOrDefault().PlanNum,
-				ins.ListInsSubs.FirstOrDefault().InsSubNum,new DateTime(2018,10,2),-1,-1,-1,ClaimProcStatus.Supplemental,100);
-			//Recalculate estimate
-			pat.Birthdate=DateTime.Today.AddYears(-21).AddMonths(-1);
-			Claims.CalculateAndUpdate(new List<Procedure> { proc3 },ins.ListInsPlans,claim3,ins.ListPatPlans,ins.ListBenefits,pat,ins.ListInsSubs);
-			//Refresh
-			listClaimProcs=ClaimProcs.Refresh(pat.PatNum);
-			//Should be 0 as the second was paid for by the insurance in the supplemental payment
-			Assert.AreEqual(0,listClaimProcs.First(x => x.ProcNum==proc3.ProcNum).InsPayEst);
+			//proc4 should not be covered as we have already hit our frequency limit from proc2 and proc3.
+			Assert.AreEqual(0,listClaimProcs.First(x => x.ProcNum==proc4.ProcNum).InsPayEst);
 		}
 
 		#endregion

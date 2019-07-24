@@ -3050,12 +3050,9 @@ namespace OpenDentBusiness {
 					if(ben.TimePeriod==BenefitTimePeriod.NumberInLast12Months) {
 						datePast=proc.ProcDate.AddMonths(-12);//Exactly 12 months in the past.
 						claimProcHistList=claimProcHistList
-							.Where(x => x.Status.In(ClaimProcStatus.Received,ClaimProcStatus.InsHist,ClaimProcStatus.Supplemental,ClaimProcStatus.NotReceived)
+							.Where(x => x.Status.In(ClaimProcStatus.Received,ClaimProcStatus.InsHist,ClaimProcStatus.NotReceived)
 							//For NumberInLast12Months, we do not include procedure exactly 1 year ago. This is why our lower bound is not inclusive.
-							&& x.ProcDate.Between(datePast,datePast.AddYears(1),isLowerBoundInclusive:false)
-							//We only count claimprocs if their amount is greater than 0. ClaimProcs with inshist do not have an
-							//amount so we do not check these. 
-							&& (x.Status==ClaimProcStatus.InsHist || x.Amount.IsGreaterThan(0))).ToList();
+							&& x.ProcDate.Between(datePast,datePast.AddYears(1),isLowerBoundInclusive:false)).ToList();
 					}
 					else {
 						if(ben.TimePeriod==BenefitTimePeriod.CalendarYear) {
