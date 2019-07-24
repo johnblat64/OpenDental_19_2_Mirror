@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CodeBase;
 using WebServiceSerializer;
@@ -86,9 +88,20 @@ namespace OpenDentBusiness.WebTypes.WebForms {
 			}
 		}
 
-		///<summary></summary>Parses the given date with the given culture.
-		public static DateTime ParseDateWebForms(string date,string webFormPrefCulture) {
+		///<summary>Parses the given date with the given culture.  If the culture is not supplied, makes a web call to fetch the office's CultureName 
+		///preference, defaulting to the LanguageAndRegion preference if not found.  Supports the following delimiters in the date string even if they 
+		///do not match the format determined by webFormPrefCulture: '/','.','-','\'</summary>
+		public static DateTime ParseDateWebForms(string date,string webFormPrefCulture=null) {
 			string dateTimeFormat="M/d/yyyy";//Default to en-US format just in case we don't currently support the culture passed in.
+			if(webFormPrefCulture.IsNullOrEmpty()) {
+				if(WebForms_Preferences.TryGetPreference(out WebForms_Preference webFormPref)) {
+					webFormPrefCulture=webFormPref.CultureName;
+				}
+				else {
+					webFormPrefCulture=PrefC.GetString(PrefName.LanguageAndRegion);
+				}
+			}
+			string delimiterSupported="/";
 			switch(webFormPrefCulture) {
 				case "ar-JO":
 				case "en-CA":
@@ -101,6 +114,7 @@ namespace OpenDentBusiness.WebTypes.WebForms {
 				case "da-DK":
 				case "en-IN":
 					dateTimeFormat="dd-MM-yyyy";
+					delimiterSupported="-";
 					break;
 				case "en-AU":
 				case "en-NZ":
@@ -108,15 +122,16 @@ namespace OpenDentBusiness.WebTypes.WebForms {
 					break;
 				case "mn-MN":
 					dateTimeFormat="yy.MM.dd";
+					delimiterSupported=".";
 					break;
 				case "zh-CN":
 					dateTimeFormat="yyyy/M/d";
 					break;
 			}
 			DateTime retVal;
-			if(!DateTime.TryParseExact(date,dateTimeFormat,new System.Globalization.CultureInfo(webFormPrefCulture),
-				System.Globalization.DateTimeStyles.None,out retVal)) 
-			{
+			//Ensure any characters in between digits are the correct delimiter.
+			string dateScrubbed=string.Join(delimiterSupported,Regex.Split(date,"[^\\d]+").Where(x => !string.IsNullOrWhiteSpace(x)));
+			if(!DateTime.TryParseExact(dateScrubbed,dateTimeFormat,new CultureInfo(webFormPrefCulture),DateTimeStyles.None,out retVal)) {
 				retVal=DateTime.MinValue;
 			}
 			return retVal;

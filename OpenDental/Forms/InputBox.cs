@@ -6,6 +6,7 @@ using System.Linq;
 using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
+using System.Globalization;
 
 namespace OpenDental{
 	/// <summary>A quick entry form for various purposes. You can put several different types of controls on this form.</summary>
@@ -392,7 +393,16 @@ namespace OpenDental{
 						validDate.Name="validDate"+itemOrder;
 						validDate.Location=new Point(posX,curLocationY);
 						validDate.Size=new Size(100,20);
+						validDate.Text=inputParam.Text;
 						inputControl=validDate;
+						Label label=new Label();
+						label.Size=new Size(label.Width,validDate.Height);
+						label.Text=$"({CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern})";
+						label.Name="labelDateFormat"+itemOrder;
+						label.TextAlign=ContentAlignment.MiddleLeft;
+						label.Location=new Point(validDate.Location.X+validDate.Width+12,curLocationY);
+						label.Tag=inputParam;
+						listLabels.Add(label);
 						curLocationY+=22;
 						break;
 					case InputBoxType.ValidTime:

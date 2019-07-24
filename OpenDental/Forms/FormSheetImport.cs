@@ -12,6 +12,7 @@ using Acrobat;
 using AFORMAUTLib;//Acrobat forms
 using System.Linq;
 using CodeBase;
+using System.Globalization;
 
 namespace OpenDental {
 	public partial class FormSheetImport:ODForm {
@@ -42,6 +43,7 @@ namespace OpenDental {
 		///<summary>In order to import insurance plans the sheet must contain Relationship, Subscriber, SubscriberID, CarrierName, and CarrierPhone.  This variable gets set when the sheet loads and will indicate if all fields are present for primary OR for secondary insurance.  Insurance should not attempt to import if this is false.</summary>
 		private bool HasRequiredInsFields;
 		private bool _isPatTransferSheet;
+		private const string INVALID_DATE="Invalid Date";
 
 		public FormSheetImport() {
 			InitializeComponent();
@@ -329,14 +331,27 @@ namespace OpenDental {
 						row.OldValDisplay=PatCur.Birthdate.ToShortDateString();
 					}
 					row.OldValObj=PatCur.Birthdate;
-					row.NewValObj=PIn.Date(fieldVal);
-					if(((DateTime)row.NewValObj).Year<1880) {
-						row.NewValDisplay="";
+					//Parse the birthdate field using our websheet_preference for this practice if this sheet was a WebForm, otherwise, use the current 
+					//computer's region/language settings.
+					if(SheetCur.IsWebForm) {
+						row.NewValObj=OpenDentBusiness.WebTypes.WebForms.WebForms_Sheets.ParseDateWebForms(fieldVal);
 					}
 					else {
-						row.NewValDisplay=((DateTime)row.NewValObj).ToShortDateString();
+						row.NewValObj=PIn.Date(fieldVal);
 					}
-					row.ImpValDisplay=row.NewValDisplay;
+					if(string.IsNullOrWhiteSpace(fieldVal)) {//Patient entered blank date, consider this to be valid blank date.
+						row.NewValDisplay="";
+						row.ImpValDisplay="";
+					}
+					else if(((DateTime)row.NewValObj).Year<1880) {//Patient entered date in incorrect format, consider this invalid (imports as MinValue)
+						row.NewValDisplay=fieldVal;
+						row.ImpValDisplay=INVALID_DATE;
+						row.IsFlaggedImp=true;
+					}
+					else {
+						row.NewValDisplay=((DateTime)row.NewValObj).ToShortDateString();//Correct formatting, valid date.
+						row.ImpValDisplay=row.NewValDisplay;
+					}
 					row.ImpValObj=row.NewValObj;
 					row.ObjType=typeof(DateTime);
 					if(row.OldValDisplay!=row.NewValDisplay) {
@@ -1759,34 +1774,29 @@ namespace OpenDental {
 			}
 			#endregion
 			#region DateTime
-			else if(Rows[e.Row].ObjType==typeof(DateTime)) {//this is only for one field so far: Birthdate
-				InputBox inputbox=new InputBox(Rows[e.Row].FieldName);
-				inputbox.textResult.Text=Rows[e.Row].ImpValDisplay;
+			else if(Rows[e.Row].ObjType==typeof(DateTime)) {//this is only for one field so far: Birthdate				
+				InputBox inputbox=new InputBox(new List<InputBoxParam>() {
+					//Display the date format that the current computer will use when parsing the date.
+					new InputBoxParam(InputBoxType.ValidDate,Rows[e.Row].FieldName)
+				});
+				//Display the importing date if valid, otherwise display the invalid date from the form.
+				inputbox.textResult.Text=(Rows[e.Row].ImpValDisplay==INVALID_DATE) ? Rows[e.Row].NewValDisplay : Rows[e.Row].ImpValDisplay;
 				inputbox.ShowDialog();
 				if(inputbox.DialogResult!=DialogResult.OK) {
 					return;
 				}
-				DateTime enteredDate;
-				if(inputbox.textResult.Text=="") {
-					enteredDate=DateTime.MinValue;
-					Rows[e.Row].ImpValObj=enteredDate;
+				DateTime enteredDate=inputbox.DateEntered;
+				if(enteredDate==DateTime.MinValue) {
 					Rows[e.Row].ImpValDisplay="";
 				}
+				else if(enteredDate.Year<1880 || enteredDate.Year>2050) {
+					MsgBox.Show(this,INVALID_DATE);
+					return;
+				}
 				else {
-					try {
-						enteredDate=DateTime.Parse(inputbox.textResult.Text);
-					}
-					catch {
-						MsgBox.Show(this,"Invalid date");
-						return;
-					}
-					if(enteredDate.Year<1880 || enteredDate.Year>2050) {
-						MsgBox.Show(this,"Invalid date");
-						return;
-					}
-					Rows[e.Row].ImpValObj=enteredDate;
 					Rows[e.Row].ImpValDisplay=enteredDate.ToShortDateString();
 				}
+				Rows[e.Row].ImpValObj=enteredDate;
 				if(Rows[e.Row].ImpValDisplay==Rows[e.Row].OldValDisplay) {//value is now same as original
 					Rows[e.Row].DoImport=false;
 				}
@@ -2273,6 +2283,10 @@ namespace OpenDental {
 		private void butOK_Click(object sender,EventArgs e) {
 			if(!Rows.Any(x => x.DoImport)) {
 				MsgBox.Show(this,"No rows are set for import.");
+				return;
+			}
+			if(Rows.Any(x => x.DoImport && x.ImpValObj is DateTime && x.ImpValDisplay==INVALID_DATE)) {
+				MsgBox.Show(this,$"Please fix data entry errors first (ImportValues with '{INVALID_DATE}').");
 				return;
 			}
 			#region Patient Form
