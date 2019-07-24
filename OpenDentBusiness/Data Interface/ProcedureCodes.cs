@@ -364,6 +364,45 @@ namespace OpenDentBusiness{
 			}
 		}
 
+		///<summary>Hard-coded dictionary of eService codes and their corresponding ProcCode within the database at HQ.</summary>
+		private static readonly Dictionary<eServiceCode,string> _dictEServiceProcCodes=new Dictionary<eServiceCode,string>() {
+			{ eServiceCode.Bundle,"042" },
+			{ eServiceCode.ConfirmationOwn,"045" },
+			{ eServiceCode.ConfirmationRequest,"040" },
+			{ eServiceCode.EClipboard,"047" },
+			{ eServiceCode.MobileWeb,"027" },
+			{ eServiceCode.PatientPortal,"033" },
+			{ eServiceCode.ResellerSoftwareOnly,"043" },
+			{ eServiceCode.SoftwareOnly,"030" },
+			{ eServiceCode.IntegratedTexting,"038" },
+			{ eServiceCode.IntegratedTextingOwn,"046" },
+			{ eServiceCode.IntegratedTextingUsage,"039" },
+			{ eServiceCode.WebForms,"036" },
+			{ eServiceCode.WebSched,"037" },
+			{ eServiceCode.WebSchedNewPatAppt,"041" },
+			{ eServiceCode.WebSchedASAP,"044" },
+		};
+
+		public static string GetProcCodeForEService(eServiceCode eService) {
+			//No need to check RemotingRole; no call to db.
+			return _dictEServiceProcCodes[eService];
+		}
+
+		public static eServiceCode GetEServiceForProcCode(string procCode) {
+			//No need to check RemotingRole; no call to db.
+			foreach(eServiceCode eService in _dictEServiceProcCodes.Keys) {
+				if(_dictEServiceProcCodes[eService]==procCode) {
+					return eService;
+				}
+			}
+			throw new ODException("No corresponding eService found for the ProcCode provided.");
+		}
+
+		public static List<string> GetAllEServiceProcCodes() {
+			//No need to check RemotingRole; no call to db.
+			return _dictEServiceProcCodes.Values.ToList();
+		}
+
 		public static List<ProcedureCode> GetChangedSince(DateTime changedSince) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<ProcedureCode>>(MethodBase.GetCurrentMethod(),changedSince);

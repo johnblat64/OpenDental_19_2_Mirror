@@ -11,6 +11,14 @@ namespace OpenDentBusiness {
 		#region Get Methods
 
 		///<summary></summary>
+		public static List<ResellerService> GetAll() {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetObject<List<ResellerService>>(MethodBase.GetCurrentMethod());
+			}
+			return Crud.ResellerServiceCrud.SelectMany("SELECT * FROM resellerservice");
+		}
+
+		///<summary></summary>
 		public static List<ResellerService> GetServicesForReseller(long resellerNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<ResellerService>>(MethodBase.GetCurrentMethod(),resellerNum);

@@ -131,5 +131,13 @@ namespace OpenDentBusiness {
 		PaySimple,
 		///<summary>29 - Used for storing customers OD software versions.</summary>
 		CustomerVersion,
+		///<summary>30 - eServiceCode that corresponds to ProcCode 045 in customers db at HQ. Not used for eService validation. 
+		///Use ConfirmationRequest insted.</summary>
+		ConfirmationOwn,
+		///<summary>31 - eServiceCode that corresponds to ProcCode 046 in customers db at HQ. Not used for eService validation. 
+		///Use IntegratedTexting insted.</summary>
+		IntegratedTextingOwn,
+		///<summary>32 - eServiceCode that corresponds to ProcCode 030 in customers db at HQ. Not used for eService validation.</summary>
+		SoftwareOnly,
 	}
 }

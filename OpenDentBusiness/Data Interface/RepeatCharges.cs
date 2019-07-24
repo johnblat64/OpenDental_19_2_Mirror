@@ -509,9 +509,9 @@ namespace OpenDentBusiness {
 			DateTime dateStop=dateRun.AddDays(1);
 			List<SmsBilling> listSmsBilling=SmsBillings.GetByDateRange(dateStart,dateStop);
 			List<Patient> listPatients=Patients.GetMultPats(listSmsBilling.Select(x => x.CustPatNum).Distinct().ToList()).ToList(); //local cache
-			ProcedureCode procCodeAccess=ProcedureCodes.GetProcCode("038");
-			ProcedureCode procCodeUsage=ProcedureCodes.GetProcCode("039");
-			ProcedureCode procCodeConfirm=ProcedureCodes.GetProcCode("040");
+			ProcedureCode procCodeAccess=ProcedureCodes.GetProcCode(ProcedureCodes.GetProcCodeForEService(eServiceCode.IntegratedTexting));
+			ProcedureCode procCodeUsage=ProcedureCodes.GetProcCode(ProcedureCodes.GetProcCodeForEService(eServiceCode.IntegratedTextingUsage));
+			ProcedureCode procCodeConfirm=ProcedureCodes.GetProcCode(ProcedureCodes.GetProcCodeForEService(eServiceCode.ConfirmationRequest));
 			List<Procedure> listProcsAccess=Procedures.GetCompletedForDateRange(dateStart,dateStop,new List<long> {procCodeAccess.CodeNum});
 			List<Procedure> listProcsUsage=Procedures.GetCompletedForDateRange(dateStart,dateStop,new List<long> {procCodeUsage.CodeNum});
 			List<Procedure> listProcsConfirm=Procedures.GetCompletedForDateRange(dateStart,dateStop,new List<long> {procCodeConfirm.CodeNum});
