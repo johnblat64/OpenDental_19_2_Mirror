@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +11,9 @@ namespace OpenDentBusiness {
 		public static DataTable GetReportData(List<long> listProvNums,List<long> listUnearnedTypeDefNums,List<long> listClinicNums
 			,bool hasClinicsEnabled) 
 		{
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetTable(MethodBase.GetCurrentMethod(),listProvNums,listUnearnedTypeDefNums,listClinicNums,hasClinicsEnabled);
+			}
 			string command=$@"SELECT paysplit.DatePay,
 												CONCAT(patient.LName,', ',patient.FName),provider.Abbr,";
 			if(hasClinicsEnabled) {
