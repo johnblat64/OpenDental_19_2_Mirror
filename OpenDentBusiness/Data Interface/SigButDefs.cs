@@ -187,9 +187,6 @@ namespace OpenDentBusiness {
 		///<summary>Moves the selected item down in the supplied sub list.  Does not update the cache because the user could want to potentially move buttons around a lot.</summary>
 		public static SigButDef[] MoveDown(SigButDef selected,SigButDef[] subList) {
 			//No need to check RemotingRole; no call to db.
-			if(selected.ButtonIndex==20) {
-				throw new ApplicationException(Lans.g("SigButDefs","Max 20 buttons."));
-			}
 			int occupiedIdx=-1;
 			int selectedIdx=-1;
 			SigButDef occupied=null;

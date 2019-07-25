@@ -25,6 +25,7 @@ namespace OpenDental{
 		private Label label2;
 		private SigButDef[] _arraySigButDefs;
 		private List<Computer> _listComputers;
+		private const int _maxNumButtonsInList=40;
 
 		///<summary></summary>
 		public FormMessagingButSetup()
@@ -204,7 +205,7 @@ namespace OpenDental{
 			SigButDef sigButDef;
 			List<SigElementDef> listSigElementDefs;
 			string buttonText;
-			for(int i=0;i<40;i++) {
+			for(int i=0;i<_maxNumButtonsInList;i++) {
 				sigButDef=SigButDefs.GetByIndex(i,_arraySigButDefs);
 				if(sigButDef==null) {
 					listButtons.Items.Add("-"+(i+1).ToString()+"-");
@@ -311,6 +312,10 @@ namespace OpenDental{
 			}
 			SigButDef button=SigButDefs.GetByIndex(selected,_arraySigButDefs);
 			if(button==null) {
+				return;
+			}
+			if(button.ButtonIndex==_maxNumButtonsInList-1) {
+				MsgBox.Show(this,$"No more than {_maxNumButtonsInList} buttons are allowed.");
 				return;
 			}
 			_arraySigButDefs=SigButDefs.MoveDown(button,_arraySigButDefs);
