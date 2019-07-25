@@ -476,7 +476,7 @@ namespace OpenDental {
 				posSplit.PayPlanNum=0;
 				posSplit.PayNum=_paymentCur.PayNum;
 				posSplit.ProcNum=0;
-				posSplit.ProvNum=PrefC.GetInt(PrefName.RigorousAccounting)==0 ? 0 : negSplit.ProvNum;
+				posSplit.ProvNum=PrefC.GetBool(PrefName.AllowPrepayProvider) ? negSplit.ProvNum : 0 ;
 				posSplit.AdjNum=0;
 				posSplit.SplitAmt=(double)amt;
 				posSplit.UnearnedType=negSplit.UnearnedType==0 ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : negSplit.UnearnedType;
