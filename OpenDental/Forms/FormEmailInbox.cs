@@ -573,12 +573,12 @@ namespace OpenDental {
 						}
 					}
 					if(searchDateFrom!=DateTime.MinValue) {
-						if(messageCur.MsgDateTime<searchDateFrom) {
+						if(messageCur.MsgDateTime.Date<searchDateFrom.Date) {
 							continue;
 						}
 					}
 					if(searchDateTo!=DateTime.MinValue) {
-						if(messageCur.MsgDateTime>searchDateTo) {
+						if(messageCur.MsgDateTime.Date>searchDateTo.Date) {
 							continue;
 						}
 					}
@@ -602,7 +602,12 @@ namespace OpenDental {
 						}
 					}
 					if(searchDateFrom!=DateTime.MinValue) {
-						if(messageCur.MsgDateTime.ToShortDateString()!=searchDateFrom.ToShortDateString()) {
+						if(messageCur.MsgDateTime.Date<searchDateFrom.Date) {
+							continue;
+						}
+					}
+					if(searchDateTo!=DateTime.MinValue) {
+						if(messageCur.MsgDateTime.Date>searchDateTo.Date) {
 							continue;
 						}
 					}
