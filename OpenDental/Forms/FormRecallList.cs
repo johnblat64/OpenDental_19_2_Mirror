@@ -1587,11 +1587,15 @@ namespace OpenDental{
 			}
 		}
 
+		///<summary>We don't fill tabPageRecall when selected as that is the default selected tab and is filled on load.</summary>
 		private void tabControl_SelectedIndexChanged(object sender,EventArgs e) {
 			if(tabControl.SelectedTab==tabPageRecentlyContacted && gridRecentlyContacted.Columns.Count==0) {//The grid has not been initialized yet.
 				datePickerRecent.SetDateTimeFrom(DateTime.Today.AddMonths(-1));
 				datePickerRecent.SetDateTimeTo(DateTime.Today);
 				FillGridRecent();
+			}
+			else if(tabControl.SelectedTab==tabPageReactivations && gridReactivations.Columns.Count==0) {
+				FillReactivationGrid();
 			}
 		}
 
