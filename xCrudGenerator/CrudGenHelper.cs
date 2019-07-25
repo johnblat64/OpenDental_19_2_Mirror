@@ -564,7 +564,13 @@ namespace xCrudGenerator {
 				while(!prefCommandLine.Contains(";")) {
 					prefCommandLine+=listLines[++lineIndex];
 				}
-				string prefCommand=prefCommandLine.Trim().Substring("command=".Length).TrimStart('"','@','$');
+				string prefCommand=prefCommandLine.Trim();
+				if(prefCommand.StartsWith("string")) {
+					prefCommand=prefCommand.Substring("string command=".Length).TrimStart('"','@','$');
+				}
+				else {
+					prefCommand=prefCommand.Substring("command=".Length).TrimStart('"','@','$');
+				}
 				int endOfCommand=prefCommand.IndexOf("')\";")+2;
 				if(endOfCommand==1) {
 						endOfCommand=prefCommand.IndexOf(")\";")+1;//E.g. command="INSERT INTO preference(PrefName,ValueString) VALUES('RadiologyDateStartedUsing154',"+POut.DateT(DateTime.Now.Date)+")";
