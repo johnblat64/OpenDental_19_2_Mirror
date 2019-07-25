@@ -2122,6 +2122,7 @@ namespace OpenDental {
 			jobNew.Priority=priorityNum==0?listJobPriorities.First().DefNum:priorityNum;
 			jobNew.PhaseCur=JobPhase.Concept;
 			jobNew.UserNumConcept=Security.CurUser.UserNum;
+			jobNew.ProposedVersion=JobProposedVersion.Current;
 			JobLink jobLinkNew=new JobLink();
 			JobLink jobLinkTask=new JobLink();
 			jobLinkTask.LinkType=JobLinkType.Task;

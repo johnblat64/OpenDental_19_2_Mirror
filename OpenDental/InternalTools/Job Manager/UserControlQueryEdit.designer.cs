@@ -94,6 +94,15 @@
 			this.checkShowHistoryText = new System.Windows.Forms.CheckBox();
 			this.splitContainerNoFlicker1 = new OpenDental.SplitContainerNoFlicker();
 			this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+			this.textHoursLeft = new OpenDental.ValidDouble();
+			this.butAddTime = new OpenDental.UI.Button();
+			this.label15 = new System.Windows.Forms.Label();
+			this.butTimeLog = new OpenDental.UI.Button();
+			this.textActualHours = new OpenDental.ValidDouble();
+			this.textEstHours = new OpenDental.ValidDouble();
+			this.label21 = new System.Windows.Forms.Label();
+			this.label22 = new System.Windows.Forms.Label();
+			this.butChangeEst = new OpenDental.UI.Button();
 			this.panel3.SuspendLayout();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.panel4.SuspendLayout();
@@ -117,10 +126,8 @@
 			// 
 			this.gridFiles.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridFiles.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridFiles.EditableEnterMovesDown = false;
 			this.gridFiles.HasAddButton = true;
 			this.gridFiles.HasDropDowns = false;
-			this.gridFiles.HasMultilineHeaders = false;
 			this.gridFiles.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridFiles.HeaderHeight = 15;
 			this.gridFiles.HScrollVisible = false;
@@ -141,10 +148,8 @@
 			// 
 			this.gridAppointments.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridAppointments.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridAppointments.EditableEnterMovesDown = false;
 			this.gridAppointments.HasAddButton = true;
 			this.gridAppointments.HasDropDowns = false;
-			this.gridAppointments.HasMultilineHeaders = false;
 			this.gridAppointments.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridAppointments.HeaderHeight = 15;
 			this.gridAppointments.HScrollVisible = false;
@@ -165,10 +170,8 @@
 			// 
 			this.gridTasks.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridTasks.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridTasks.EditableEnterMovesDown = false;
 			this.gridTasks.HasAddButton = true;
 			this.gridTasks.HasDropDowns = false;
-			this.gridTasks.HasMultilineHeaders = false;
 			this.gridTasks.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridTasks.HeaderHeight = 15;
 			this.gridTasks.HScrollVisible = false;
@@ -278,10 +281,7 @@
 			// 
 			this.gridRoles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridRoles.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridRoles.EditableEnterMovesDown = false;
-			this.gridRoles.HasAddButton = false;
 			this.gridRoles.HasDropDowns = false;
-			this.gridRoles.HasMultilineHeaders = false;
 			this.gridRoles.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridRoles.HeaderHeight = 15;
 			this.gridRoles.HScrollVisible = false;
@@ -476,6 +476,15 @@
 			// 
 			// panel4
 			// 
+			this.panel4.Controls.Add(this.textHoursLeft);
+			this.panel4.Controls.Add(this.butAddTime);
+			this.panel4.Controls.Add(this.label15);
+			this.panel4.Controls.Add(this.butTimeLog);
+			this.panel4.Controls.Add(this.textActualHours);
+			this.panel4.Controls.Add(this.textEstHours);
+			this.panel4.Controls.Add(this.label21);
+			this.panel4.Controls.Add(this.label22);
+			this.panel4.Controls.Add(this.butChangeEst);
 			this.panel4.Controls.Add(this.butPhoneNums);
 			this.panel4.Controls.Add(this.label16);
 			this.panel4.Controls.Add(this.text0_30);
@@ -519,7 +528,7 @@
 			this.panel4.Dock = System.Windows.Forms.DockStyle.Top;
 			this.panel4.Location = new System.Drawing.Point(0, 0);
 			this.panel4.Name = "panel4";
-			this.panel4.Size = new System.Drawing.Size(766, 141);
+			this.panel4.Size = new System.Drawing.Size(766, 151);
 			this.panel4.TabIndex = 329;
 			// 
 			// butPhoneNums
@@ -529,7 +538,7 @@
 			this.butPhoneNums.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPhoneNums.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butPhoneNums.CornerRadius = 4F;
-			this.butPhoneNums.Location = new System.Drawing.Point(534, 104);
+			this.butPhoneNums.Location = new System.Drawing.Point(506, 116);
 			this.butPhoneNums.Name = "butPhoneNums";
 			this.butPhoneNums.Size = new System.Drawing.Size(75, 23);
 			this.butPhoneNums.TabIndex = 350;
@@ -539,7 +548,7 @@
 			// 
 			// label16
 			// 
-			this.label16.Location = new System.Drawing.Point(66, 92);
+			this.label16.Location = new System.Drawing.Point(45, 104);
 			this.label16.Name = "label16";
 			this.label16.Size = new System.Drawing.Size(55, 13);
 			this.label16.TabIndex = 349;
@@ -548,7 +557,7 @@
 			// 
 			// text0_30
 			// 
-			this.text0_30.Location = new System.Drawing.Point(64, 105);
+			this.text0_30.Location = new System.Drawing.Point(43, 117);
 			this.text0_30.Name = "text0_30";
 			this.text0_30.ReadOnly = true;
 			this.text0_30.Size = new System.Drawing.Size(55, 20);
@@ -557,7 +566,7 @@
 			// 
 			// label17
 			// 
-			this.label17.Location = new System.Drawing.Point(119, 92);
+			this.label17.Location = new System.Drawing.Point(98, 104);
 			this.label17.Name = "label17";
 			this.label17.Size = new System.Drawing.Size(55, 13);
 			this.label17.TabIndex = 347;
@@ -566,7 +575,7 @@
 			// 
 			// text31_60
 			// 
-			this.text31_60.Location = new System.Drawing.Point(119, 105);
+			this.text31_60.Location = new System.Drawing.Point(98, 117);
 			this.text31_60.Name = "text31_60";
 			this.text31_60.ReadOnly = true;
 			this.text31_60.Size = new System.Drawing.Size(55, 20);
@@ -575,7 +584,7 @@
 			// 
 			// label18
 			// 
-			this.label18.Location = new System.Drawing.Point(174, 92);
+			this.label18.Location = new System.Drawing.Point(153, 104);
 			this.label18.Name = "label18";
 			this.label18.Size = new System.Drawing.Size(55, 13);
 			this.label18.TabIndex = 345;
@@ -584,7 +593,7 @@
 			// 
 			// text61_90
 			// 
-			this.text61_90.Location = new System.Drawing.Point(174, 105);
+			this.text61_90.Location = new System.Drawing.Point(153, 117);
 			this.text61_90.Name = "text61_90";
 			this.text61_90.ReadOnly = true;
 			this.text61_90.Size = new System.Drawing.Size(55, 20);
@@ -593,7 +602,7 @@
 			// 
 			// label19
 			// 
-			this.label19.Location = new System.Drawing.Point(229, 92);
+			this.label19.Location = new System.Drawing.Point(208, 104);
 			this.label19.Name = "label19";
 			this.label19.Size = new System.Drawing.Size(55, 13);
 			this.label19.TabIndex = 343;
@@ -602,7 +611,7 @@
 			// 
 			// textOver90
 			// 
-			this.textOver90.Location = new System.Drawing.Point(229, 105);
+			this.textOver90.Location = new System.Drawing.Point(208, 117);
 			this.textOver90.Name = "textOver90";
 			this.textOver90.ReadOnly = true;
 			this.textOver90.Size = new System.Drawing.Size(55, 20);
@@ -612,16 +621,16 @@
 			// label20
 			// 
 			this.label20.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label20.Location = new System.Drawing.Point(11, 92);
+			this.label20.Location = new System.Drawing.Point(3, 104);
 			this.label20.Name = "label20";
-			this.label20.Size = new System.Drawing.Size(50, 33);
+			this.label20.Size = new System.Drawing.Size(37, 33);
 			this.label20.TabIndex = 341;
 			this.label20.Text = "Family\r\nAging";
 			this.label20.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			// 
 			// textState
 			// 
-			this.textState.Location = new System.Drawing.Point(404, 106);
+			this.textState.Location = new System.Drawing.Point(376, 118);
 			this.textState.Name = "textState";
 			this.textState.ReadOnly = true;
 			this.textState.Size = new System.Drawing.Size(35, 20);
@@ -629,7 +638,7 @@
 			// 
 			// label14
 			// 
-			this.label14.Location = new System.Drawing.Point(401, 91);
+			this.label14.Location = new System.Drawing.Point(373, 103);
 			this.label14.Name = "label14";
 			this.label14.Size = new System.Drawing.Size(38, 13);
 			this.label14.TabIndex = 338;
@@ -637,7 +646,7 @@
 			// 
 			// textZip
 			// 
-			this.textZip.Location = new System.Drawing.Point(445, 106);
+			this.textZip.Location = new System.Drawing.Point(417, 118);
 			this.textZip.Name = "textZip";
 			this.textZip.ReadOnly = true;
 			this.textZip.Size = new System.Drawing.Size(83, 20);
@@ -645,7 +654,7 @@
 			// 
 			// label13
 			// 
-			this.label13.Location = new System.Drawing.Point(445, 91);
+			this.label13.Location = new System.Drawing.Point(417, 103);
 			this.label13.Name = "label13";
 			this.label13.Size = new System.Drawing.Size(83, 13);
 			this.label13.TabIndex = 336;
@@ -653,7 +662,7 @@
 			// 
 			// textBillingType
 			// 
-			this.textBillingType.Location = new System.Drawing.Point(298, 106);
+			this.textBillingType.Location = new System.Drawing.Point(270, 118);
 			this.textBillingType.Name = "textBillingType";
 			this.textBillingType.ReadOnly = true;
 			this.textBillingType.Size = new System.Drawing.Size(100, 20);
@@ -661,7 +670,7 @@
 			// 
 			// label12
 			// 
-			this.label12.Location = new System.Drawing.Point(295, 91);
+			this.label12.Location = new System.Drawing.Point(267, 103);
 			this.label12.Name = "label12";
 			this.label12.Size = new System.Drawing.Size(103, 13);
 			this.label12.TabIndex = 334;
@@ -737,9 +746,9 @@
 			this.panel5.Controls.Add(this.splitContainerNoFlicker2);
 			this.panel5.Controls.Add(this.splitContainerNoFlicker1);
 			this.panel5.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panel5.Location = new System.Drawing.Point(0, 141);
+			this.panel5.Location = new System.Drawing.Point(0, 151);
 			this.panel5.Name = "panel5";
-			this.panel5.Size = new System.Drawing.Size(766, 585);
+			this.panel5.Size = new System.Drawing.Size(766, 575);
 			this.panel5.TabIndex = 330;
 			// 
 			// splitContainerNoFlicker2
@@ -755,7 +764,7 @@
 			// splitContainerNoFlicker2.Panel2
 			// 
 			this.splitContainerNoFlicker2.Panel2.Controls.Add(this.tabControlMain);
-			this.splitContainerNoFlicker2.Size = new System.Drawing.Size(766, 585);
+			this.splitContainerNoFlicker2.Size = new System.Drawing.Size(766, 575);
 			this.splitContainerNoFlicker2.SplitterDistance = 496;
 			this.splitContainerNoFlicker2.TabIndex = 308;
 			// 
@@ -766,13 +775,14 @@
 			this.textEditorMain.HasSaveButton = true;
 			this.textEditorMain.Location = new System.Drawing.Point(0, 0);
 			this.textEditorMain.MainFont = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.textEditorMain.MainRtf = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Consolas;}}" +
-    "\r\n\\viewkind4\\uc1\\pard\\f0\\fs18\\par\r\n}\r\n";
+			this.textEditorMain.MainRtf = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\nouicompat\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 " +
+    "Consolas;}}\r\n{\\*\\generator Riched20 10.0.17134}\\viewkind4\\uc1 \r\n\\pard\\f0\\fs18\\pa" +
+    "r\r\n}\r\n";
 			this.textEditorMain.MainText = "";
 			this.textEditorMain.MinimumSize = new System.Drawing.Size(450, 120);
 			this.textEditorMain.Name = "textEditorMain";
 			this.textEditorMain.ReadOnly = false;
-			this.textEditorMain.Size = new System.Drawing.Size(496, 585);
+			this.textEditorMain.Size = new System.Drawing.Size(496, 575);
 			this.textEditorMain.TabIndex = 306;
 			this.textEditorMain.SaveClick += new OpenDental.ODtextEditorSaveEventHandler(this.textEditor_SaveClick);
 			this.textEditorMain.OnTextEdited += new OpenDental.OdtextEditor.textChangedEventHandler(this.textEditorMain_OnTextEdited);
@@ -786,7 +796,7 @@
 			this.tabControlMain.Location = new System.Drawing.Point(0, 0);
 			this.tabControlMain.Name = "tabControlMain";
 			this.tabControlMain.SelectedIndex = 0;
-			this.tabControlMain.Size = new System.Drawing.Size(266, 585);
+			this.tabControlMain.Size = new System.Drawing.Size(266, 575);
 			this.tabControlMain.TabIndex = 261;
 			// 
 			// tabMain
@@ -795,7 +805,7 @@
 			this.tabMain.Location = new System.Drawing.Point(4, 22);
 			this.tabMain.Name = "tabMain";
 			this.tabMain.Padding = new System.Windows.Forms.Padding(3);
-			this.tabMain.Size = new System.Drawing.Size(258, 559);
+			this.tabMain.Size = new System.Drawing.Size(258, 549);
 			this.tabMain.TabIndex = 0;
 			this.tabMain.Text = "Discussion";
 			this.tabMain.UseVisualStyleBackColor = true;
@@ -804,17 +814,15 @@
 			// 
 			this.gridNotes.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridNotes.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridNotes.EditableEnterMovesDown = false;
 			this.gridNotes.HasAddButton = true;
 			this.gridNotes.HasDropDowns = false;
-			this.gridNotes.HasMultilineHeaders = false;
 			this.gridNotes.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridNotes.HeaderHeight = 15;
 			this.gridNotes.HScrollVisible = false;
 			this.gridNotes.Location = new System.Drawing.Point(3, 3);
 			this.gridNotes.Name = "gridNotes";
 			this.gridNotes.ScrollValue = 0;
-			this.gridNotes.Size = new System.Drawing.Size(252, 553);
+			this.gridNotes.Size = new System.Drawing.Size(252, 543);
 			this.gridNotes.TabIndex = 194;
 			this.gridNotes.Title = "Discussion";
 			this.gridNotes.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
@@ -838,10 +846,8 @@
 			// 
 			this.gridReview.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridReview.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridReview.EditableEnterMovesDown = false;
 			this.gridReview.HasAddButton = true;
 			this.gridReview.HasDropDowns = false;
-			this.gridReview.HasMultilineHeaders = false;
 			this.gridReview.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridReview.HeaderHeight = 15;
 			this.gridReview.HScrollVisible = true;
@@ -884,10 +890,7 @@
 			// 
 			this.gridHistory.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridHistory.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridHistory.EditableEnterMovesDown = false;
-			this.gridHistory.HasAddButton = false;
 			this.gridHistory.HasDropDowns = false;
-			this.gridHistory.HasMultilineHeaders = false;
 			this.gridHistory.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridHistory.HeaderHeight = 15;
 			this.gridHistory.HScrollVisible = true;
@@ -930,7 +933,7 @@
 			this.splitContainerNoFlicker1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.splitContainerNoFlicker1.Location = new System.Drawing.Point(0, 0);
 			this.splitContainerNoFlicker1.Name = "splitContainerNoFlicker1";
-			this.splitContainerNoFlicker1.Size = new System.Drawing.Size(766, 585);
+			this.splitContainerNoFlicker1.Size = new System.Drawing.Size(766, 575);
 			this.splitContainerNoFlicker1.SplitterDistance = 254;
 			this.splitContainerNoFlicker1.TabIndex = 307;
 			// 
@@ -948,6 +951,114 @@
 			this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
 			this.tableLayoutPanel2.Size = new System.Drawing.Size(247, 726);
 			this.tableLayoutPanel2.TabIndex = 307;
+			// 
+			// textHoursLeft
+			// 
+			this.textHoursLeft.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.textHoursLeft.Location = new System.Drawing.Point(647, 127);
+			this.textHoursLeft.MaxVal = 1000000D;
+			this.textHoursLeft.MinVal = 0D;
+			this.textHoursLeft.Name = "textHoursLeft";
+			this.textHoursLeft.ReadOnly = true;
+			this.textHoursLeft.Size = new System.Drawing.Size(44, 20);
+			this.textHoursLeft.TabIndex = 357;
+			// 
+			// butAddTime
+			// 
+			this.butAddTime.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butAddTime.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butAddTime.Autosize = true;
+			this.butAddTime.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butAddTime.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butAddTime.CornerRadius = 4F;
+			this.butAddTime.Location = new System.Drawing.Point(693, 106);
+			this.butAddTime.Name = "butAddTime";
+			this.butAddTime.Size = new System.Drawing.Size(71, 20);
+			this.butAddTime.TabIndex = 355;
+			this.butAddTime.Text = "Add Time";
+			this.butAddTime.Click += new System.EventHandler(this.butAddTime_Click);
+			// 
+			// label15
+			// 
+			this.label15.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.label15.Location = new System.Drawing.Point(597, 128);
+			this.label15.Name = "label15";
+			this.label15.Size = new System.Drawing.Size(49, 20);
+			this.label15.TabIndex = 356;
+			this.label15.Text = "Hrs. Left";
+			this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// butTimeLog
+			// 
+			this.butTimeLog.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butTimeLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butTimeLog.Autosize = true;
+			this.butTimeLog.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butTimeLog.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butTimeLog.CornerRadius = 4F;
+			this.butTimeLog.Location = new System.Drawing.Point(693, 127);
+			this.butTimeLog.Name = "butTimeLog";
+			this.butTimeLog.Size = new System.Drawing.Size(71, 20);
+			this.butTimeLog.TabIndex = 359;
+			this.butTimeLog.Text = "Log";
+			this.butTimeLog.Click += new System.EventHandler(this.butTimeLog_Click);
+			// 
+			// textActualHours
+			// 
+			this.textActualHours.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.textActualHours.Location = new System.Drawing.Point(647, 106);
+			this.textActualHours.MaxVal = 1000000D;
+			this.textActualHours.MinVal = 0D;
+			this.textActualHours.Name = "textActualHours";
+			this.textActualHours.ReadOnly = true;
+			this.textActualHours.Size = new System.Drawing.Size(44, 20);
+			this.textActualHours.TabIndex = 354;
+			// 
+			// textEstHours
+			// 
+			this.textEstHours.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.textEstHours.Location = new System.Drawing.Point(647, 85);
+			this.textEstHours.MaxVal = 1000000D;
+			this.textEstHours.MinVal = 0D;
+			this.textEstHours.Name = "textEstHours";
+			this.textEstHours.ReadOnly = true;
+			this.textEstHours.Size = new System.Drawing.Size(44, 20);
+			this.textEstHours.TabIndex = 353;
+			// 
+			// label21
+			// 
+			this.label21.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.label21.Location = new System.Drawing.Point(581, 106);
+			this.label21.Name = "label21";
+			this.label21.Size = new System.Drawing.Size(65, 20);
+			this.label21.TabIndex = 352;
+			this.label21.Text = "Hrs. So Far";
+			this.label21.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// label22
+			// 
+			this.label22.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.label22.Location = new System.Drawing.Point(597, 85);
+			this.label22.Name = "label22";
+			this.label22.Size = new System.Drawing.Size(49, 20);
+			this.label22.TabIndex = 351;
+			this.label22.Text = "Hrs. Est.";
+			this.label22.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// butChangeEst
+			// 
+			this.butChangeEst.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butChangeEst.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butChangeEst.Autosize = true;
+			this.butChangeEst.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butChangeEst.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butChangeEst.CornerRadius = 4F;
+			this.butChangeEst.Location = new System.Drawing.Point(693, 85);
+			this.butChangeEst.Name = "butChangeEst";
+			this.butChangeEst.Size = new System.Drawing.Size(71, 20);
+			this.butChangeEst.TabIndex = 358;
+			this.butChangeEst.Text = "Change Est.";
+			this.butChangeEst.Click += new System.EventHandler(this.butChangeEst_Click);
 			// 
 			// UserControlQueryEdit
 			// 
@@ -1054,5 +1165,14 @@
 		private System.Windows.Forms.Label label20;
 		private UI.Button butPhoneNums;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+		private ValidDouble textHoursLeft;
+		private UI.Button butAddTime;
+		private System.Windows.Forms.Label label15;
+		private UI.Button butTimeLog;
+		private ValidDouble textActualHours;
+		private ValidDouble textEstHours;
+		private System.Windows.Forms.Label label21;
+		private System.Windows.Forms.Label label22;
+		private UI.Button butChangeEst;
 	}
 }

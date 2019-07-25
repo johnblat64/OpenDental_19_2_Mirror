@@ -2461,7 +2461,12 @@ namespace OpenDental {
 		}
 
 		private void butMe_Click(object sender,EventArgs e) {
-			comboUser.Tag=Security.CurUser;
+			if(comboUser.Tag!=Security.CurUser) {
+				comboUser.Tag=Security.CurUser;
+			}
+			else {
+				comboUser.Tag=new Userod();
+			}
 			FillComboUser();
 			FillActiveTabGrid();
 		}

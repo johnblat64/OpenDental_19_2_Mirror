@@ -644,6 +644,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			grid.Columns.Add(new ODGridColumn(Lan.g(this,"Note"),400));
 			grid.Rows.Clear();
 			ODGridRow row;
+			listJobNotes=listJobNotes.OrderBy(x => x.DateTimeNote).ToList();
 			foreach(JobNote jobNote in listJobNotes) {
 				row=new ODGridRow();
 				row.Cells.Add(jobNote.DateTimeNote.ToShortDateString()+" "+jobNote.DateTimeNote.ToShortTimeString());

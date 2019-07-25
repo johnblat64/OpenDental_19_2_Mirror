@@ -159,6 +159,9 @@ namespace OpenDental.InternalTools.Job_Manager {
 			checkApproved.Checked=quote.IsCustomerApproved;
 			textQuoteDate.Text=_jobCur.DateTimeCustContact.Year<1880?"":_jobCur.DateTimeCustContact.ToShortDateString();
 			textSchedDate.Text=_jobCur.AckDateTime.Year<1880?"":_jobCur.AckDateTime.ToString();
+			textEstHours.Text=_jobCur.HoursEstimate.ToString();
+			textActualHours.Text=_jobCur.HoursActual.ToString();
+			SetHoursLeft();
 			FillAllGrids();
 			IsChanged=false;
 			CheckPermissions();
@@ -941,7 +944,96 @@ namespace OpenDental.InternalTools.Job_Manager {
 			JobQuote quote=_jobCur.ListJobQuotes.FirstOrDefault();
 			FormPhoneNumbersManage FormM=new FormPhoneNumbersManage();
 			FormM.PatNum=quote.PatNum;
-			FormM.ShowDialog();			
+			FormM.ShowDialog();
+		}
+
+		private void butAddTime_Click(object sender,EventArgs e) {
+			if(_isLoading) {
+				return;
+			}
+			if(_jobCur==null) {
+				return;//should never happen
+			}
+			if(!JobPermissions.IsAuthorized(JobPerm.Concept,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.NotifyCustomer,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.FeatureManager,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.Documentation,true)) 
+			{
+				return;
+			}
+			AddTime();
+		}
+
+		private void butChangeEst_Click(object sender,EventArgs e) {
+			if(_isLoading) {
+				return;
+			}
+			if(_jobCur==null) {
+				return;//should never happen
+			}
+			if(!JobPermissions.IsAuthorized(JobPerm.Concept,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.NotifyCustomer,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.FeatureManager,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.Documentation,true)) 
+			{
+				return;
+			}
+			FormJobEstimate FormJE=new FormJobEstimate(_jobCur);
+			if(FormJE.ShowDialog()!=DialogResult.OK) {
+				return;
+			}
+			textEstHours.Text=_jobCur.HoursEstimate.ToString();
+			Job jobFromDB = Jobs.GetOne(_jobCur.JobNum);//Get from DB to ensure freshest copy (Lists not filled)
+			jobFromDB.HoursEstimateConcept=_jobCur.HoursEstimateConcept;
+			jobFromDB.HoursEstimateWriteup=_jobCur.HoursEstimateWriteup;
+			jobFromDB.HoursEstimateDevelopment=_jobCur.HoursEstimateDevelopment;
+			jobFromDB.HoursEstimateReview=_jobCur.HoursEstimateReview;
+			Jobs.Update(jobFromDB);//update the checkout num.
+			Signalods.SetInvalid(InvalidType.Jobs,KeyType.Job,_jobCur.JobNum);//send signal that the job has been checked out.
+			SetHoursLeft();
+		}		
+		
+		private bool AddTime() {
+			if(_isLoading) {
+				return false;
+			}
+			if(_jobCur==null) {
+				return false;//should never happen
+			}
+			if(!JobPermissions.IsAuthorized(JobPerm.Concept,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.NotifyCustomer,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.FeatureManager,true)
+				&& !JobPermissions.IsAuthorized(JobPerm.Documentation,true)) 
+			{
+				return false;
+			}
+			JobReview timeLog=new JobReview();
+			timeLog.JobNum=_jobCur.JobNum;
+			FormJobTimeAdd FormJTA=new FormJobTimeAdd(timeLog);
+			FormJTA.ShowDialog();
+			if(FormJTA.DialogResult!=DialogResult.OK || FormJTA.TimeLogCur==null) {
+				return false;
+			}
+			JobReviews.Insert(FormJTA.TimeLogCur);
+			Signalods.SetInvalid(InvalidType.Jobs,KeyType.Job,_jobCur.JobNum);
+			_jobCur.ListJobTimeLogs.Add(FormJTA.TimeLogCur);
+			textActualHours.Text=_jobCur.HoursActual.ToString();
+			SetHoursLeft();
+			return true;
+		}	
+		
+		private void SetHoursLeft() {
+			double hoursLeft=_jobCur.HoursEstimate-_jobCur.HoursActual;
+			textHoursLeft.BackColor=SystemColors.Control;
+			if(hoursLeft<0) {
+				textHoursLeft.BackColor=Color.Salmon;
+			}
+			textHoursLeft.Text=(_jobCur.HoursEstimate-_jobCur.HoursActual).ToString();
+		}
+
+		private void butTimeLog_Click(object sender,EventArgs e) {
+			FormJobTimeLog FormJTL=new FormJobTimeLog(_jobCur);
+			FormJTL.Show(this);
 		}
 
 		private void comboPriority_SelectionChangeCommitted(object sender,EventArgs e) {
