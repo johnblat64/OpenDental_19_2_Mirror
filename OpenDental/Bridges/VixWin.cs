@@ -40,7 +40,7 @@ namespace OpenDental.Bridges {
 				info+=" -P "+ ppImagePath;
 			}
 			try {
-				ODFileUtils.ProcessStart(path);
+				ODFileUtils.ProcessStart(path,info);
 			}
 			catch(Exception ex){
 				MessageBox.Show(ex.Message+"\r\nFile and command line:\r\n"+path+" "+info);
