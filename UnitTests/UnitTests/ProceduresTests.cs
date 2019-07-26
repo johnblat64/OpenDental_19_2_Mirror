@@ -883,9 +883,11 @@ namespace UnitTests.Procedures_Test {
 			Patient pat=PatientT.CreatePatient(suffix,prov1);
 			InsuranceInfo ins=InsuranceT.AddInsurance(pat,suffix);
 			List<Procedure> listProcs=new List<Procedure>();
+			ProcedureCode code=ProcedureCodeT.CreateProcCode(MiscUtils.CreateRandomAlphaNumericString(15));
+			Assert.AreEqual(0,code.ProvNumDefault);
 			Appointment apt=AppointmentT.CreateAppointment(pat.PatNum,DateTime.Today.AddHours(9),0,prov1,aptStatus:ApptStatus.Complete);
-			Procedure proc1=ProcedureT.CreateProcedure(pat,"D1110",procstatus1,"",100,DateTime.Today,aptNum:apt.AptNum,provNum:prov1);
-			Procedure proc2=ProcedureT.CreateProcedure(pat,"D0120",procstatus2,"",120,DateTime.Today,aptNum:apt.AptNum,provNum:prov2);
+			Procedure proc1=ProcedureT.CreateProcedure(pat,code.ProcCode,procstatus1,"",100,DateTime.Today,aptNum:apt.AptNum,provNum:prov1);
+			Procedure proc2=ProcedureT.CreateProcedure(pat,code.ProcCode,procstatus2,"",120,DateTime.Today,aptNum:apt.AptNum,provNum:prov2);
 			listProcs.Add(proc1);
 			listProcs.Add(proc2);
 			bool removeCompletedProcs;
