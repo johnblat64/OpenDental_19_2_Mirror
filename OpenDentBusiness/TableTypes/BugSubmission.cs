@@ -136,7 +136,8 @@ namespace OpenDentBusiness {
 		[CrudColumn(IsNotDbColumn=true)]
 		private string _programVersion;
 
-		///<summary>The value of PrefName.ProgramVersion from the database when this bug was submitted.
+		///<summary>When IsMobileSubmission is false this is the value of PrefName.ProgramVersion from the database when this bug was submitted.
+		///Otherwise when IsMobileSubmission is true this is the value of the eServiceAccount.ProgramVersion when this bug was submitted.
 		///This is a helper property that is designed to be used in lieu of the Info property when only the ProgramVersion info is needed.
 		///This is mainly due to JsonConvert.DeserializeObject being CPU intensive.  This property uses Regex which is far less CPU intensive.</summary>
 		[XmlIgnore, JsonIgnore]
@@ -144,7 +145,7 @@ namespace OpenDentBusiness {
 			get {
 				if(_programVersion==null) {
 					if(IsMobileSubmission) {
-						_programVersion=DbVersion;//TODO: Send program version?
+						_programVersion=Info.MobileProgramVersion;
 					}
 					else {
 						//The regular expression to pull out the program version from the DbInfoJson column.
@@ -350,6 +351,8 @@ namespace OpenDentBusiness {
 			public string DeviceManufacturer;
 			///<summary></summary>
 			public string AppVersion;
+			///<summary></summary>
+			public string MobileProgramVersion;
 			#endregion
 
 			#region Shared submission info (mobile and proper)
