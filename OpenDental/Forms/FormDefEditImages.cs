@@ -209,7 +209,7 @@ namespace OpenDental{
 			this.checkR.Name = "checkR";
 			this.checkR.Size = new System.Drawing.Size(158, 18);
 			this.checkR.TabIndex = 9;
-			this.checkR.Text = "Treatment Plans (only one)";
+			this.checkR.Text = "Treatment Plans";
 			this.checkR.UseVisualStyleBackColor = true;
 			this.checkR.CheckedChanged += new System.EventHandler(this.checkR_CheckedChanged);
 			// 
