@@ -55,6 +55,7 @@ namespace OpenDental{
 			this.bugSubmissionControl = new OpenDental.UI.BugSubmissionControl();
 			this.labelDateTime = new System.Windows.Forms.Label();
 			this.label5 = new System.Windows.Forms.Label();
+			this.butRefreshMobile = new OpenDental.UI.Button();
 			this.groupFilters.SuspendLayout();
 			this.menuOptions.SuspendLayout();
 			this.SuspendLayout();
@@ -95,9 +96,7 @@ namespace OpenDental{
 			this.gridSubs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
 			this.gridSubs.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridSubs.HasAddButton = false;
 			this.gridSubs.HasDropDowns = false;
-			this.gridSubs.HasMultilineHeaders = false;
 			this.gridSubs.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridSubs.HeaderHeight = 15;
 			this.gridSubs.HScrollVisible = false;
@@ -184,6 +183,7 @@ namespace OpenDental{
 			// 
 			this.groupFilters.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.groupFilters.Controls.Add(this.butRefreshMobile);
 			this.groupFilters.Controls.Add(this.listVersionsFilter);
 			this.groupFilters.Controls.Add(this.textCategoryFilters);
 			this.groupFilters.Controls.Add(this.listShowHideOptions);
@@ -241,7 +241,7 @@ namespace OpenDental{
 			this.listShowHideOptions.Location = new System.Drawing.Point(1011, 12);
 			this.listShowHideOptions.Name = "listShowHideOptions";
 			this.listShowHideOptions.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
-			this.listShowHideOptions.Size = new System.Drawing.Size(106, 56);
+			this.listShowHideOptions.Size = new System.Drawing.Size(92, 56);
 			this.listShowHideOptions.TabIndex = 43;
 			// 
 			// textDevNoteFilter
@@ -303,9 +303,9 @@ namespace OpenDental{
 			this.butRefresh.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butRefresh.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butRefresh.CornerRadius = 4F;
-			this.butRefresh.Location = new System.Drawing.Point(1123, 48);
+			this.butRefresh.Location = new System.Drawing.Point(1109, 48);
 			this.butRefresh.Name = "butRefresh";
-			this.butRefresh.Size = new System.Drawing.Size(79, 24);
+			this.butRefresh.Size = new System.Drawing.Size(93, 24);
 			this.butRefresh.TabIndex = 26;
 			this.butRefresh.Text = "&Refresh";
 			this.butRefresh.Click += new System.EventHandler(this.butRefresh_Click);
@@ -436,6 +436,21 @@ namespace OpenDental{
 			this.label5.Text = "DateTime:";
 			this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
+			// butRefreshMobile
+			// 
+			this.butRefreshMobile.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butRefreshMobile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butRefreshMobile.Autosize = true;
+			this.butRefreshMobile.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butRefreshMobile.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butRefreshMobile.CornerRadius = 4F;
+			this.butRefreshMobile.Location = new System.Drawing.Point(1109, 19);
+			this.butRefreshMobile.Name = "butRefreshMobile";
+			this.butRefreshMobile.Size = new System.Drawing.Size(93, 24);
+			this.butRefreshMobile.TabIndex = 46;
+			this.butRefreshMobile.Text = "&Refresh Mobile";
+			this.butRefreshMobile.Click += new System.EventHandler(this.butRefreshMobile_Click);
+			// 
 			// FormBugSubmissions
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
@@ -501,5 +516,6 @@ namespace OpenDental{
 		private System.Windows.Forms.ListBox listShowHideOptions;
 		private ODtextBox textCategoryFilters;
 		private System.Windows.Forms.ListBox listVersionsFilter;
+		private UI.Button butRefreshMobile;
 	}
 }

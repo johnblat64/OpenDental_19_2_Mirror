@@ -51,6 +51,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Sometimes set to the bug object identified by the BugId column.  Will be null if instantiating method did not set or no bug found.
 		///This property is passed over MiddleTier so do not add XmlIgnore or JsonIgnore attributes.</summary>
+		[XmlIgnore, JsonIgnore]
 		public Bug BugObj { get; set; }
 
 		///<summary></summary>
@@ -142,14 +143,25 @@ namespace OpenDentBusiness {
 		public string ProgramVersion {
 			get {
 				if(_programVersion==null) {
-					//The regular expression to pull out the program version from the DbInfoJson column.
-					//The format within the JSON will be like "ProgramVersion":"17.4.44.0"
-					Regex programVersionRegex=new Regex(@"""ProgramVersion"":""(([\d]+\.?){4})""");
-					Match match=programVersionRegex.Match(DbInfoJson);
-					_programVersion=match.Success ? match.Groups[1].Value : "0.0.0.0";
+					if(IsMobileSubmission) {
+						_programVersion=DbVersion;//TODO: Send program version?
+					}
+					else {
+						//The regular expression to pull out the program version from the DbInfoJson column.
+						//The format within the JSON will be like "ProgramVersion":"17.4.44.0"
+						Regex programVersionRegex=new Regex(@"""ProgramVersion"":""(([\d]+\.?){4})""");
+						Match match=programVersionRegex.Match(DbInfoJson);
+						_programVersion=match.Success ? match.Groups[1].Value : "0.0.0.0";
+					}
 				}
 				return _programVersion;
 			}
+		}
+
+		///<summary></summary>
+		[XmlIgnore, JsonIgnore]
+		public bool IsMobileSubmission {
+			get { return !Info.DeviceId.IsNullOrEmpty(); }
 		}
 
 		///<summary>Custom tag object that is used instead of TagOD because it should not be serialized or deserialized.
@@ -255,7 +267,7 @@ namespace OpenDentBusiness {
 			ODException.SwallowAnyException(() => { _info.DatabaseName=DataConnection.GetDatabaseName(); });
 			ODException.SwallowAnyException(() => { _info.OpenDentBusinessVersion=MiscData.GetAssemblyVersion(); });
 			ODException.SwallowAnyException(() => { _info.OpenDentBusinessMiddleTierVersion=MiscData.GetAssemblyVersionForMiddleTier(); });
-			return JsonConvert.SerializeObject(_info);
+			return JsonConvert.SerializeObject(_info,new JsonSerializerSettings { NullValueHandling=NullValueHandling.Ignore });
 		}
 
 		public string TryGetPrefValue(PrefName prefName,string defaultReturn = "") {
@@ -270,14 +282,13 @@ namespace OpenDentBusiness {
 		///This class doesn't throw exceptions when using JsonConvert.SerializeObject and JsonConvert.DeserializeObject
 		/// for missing/additional columns that what it thinks it should get.</summary>
 		public class SubmissionInfo {
+			#region OD Proper UE submission info
 			///<summary></summary>
 			public Dictionary<PrefName,string> DictPrefValues=new Dictionary<PrefName, string>();
 			///<summary>List of enabled plugin names.</summary>
 			public List<string> EnabledPlugins;
 			///<summary></summary>
 			public int CountClinics;
-			///<summary></summary>
-			public long ClinicNumCur;
 			///<summary></summary>
 			public long UserNumCur;
 			///<summary></summary>
@@ -314,6 +325,37 @@ namespace OpenDentBusiness {
 			public string OpenDentBusinessVersion;
 			///<summary></summary>
 			public string OpenDentBusinessMiddleTierVersion;
+			#endregion
+
+			#region Mobile UE submission info
+			///<summary></summary>
+			public long RegKeyNum;
+			///<summary></summary>
+			public string DeviceId;
+			///<summary>Like E-Clipboard or Open Dental Mobile. (Enum ApplicationTarget: 0=None,1=CheckIin,2=MobileWeb)</summary>
+			public string AppTarget;
+			///<summary></summary>
+			public string EConnectorVersion;
+			///<summary>ODUser.UserNum</summary>
+			public long MWUserIdentifier;
+			///<summary></summary>
+			public DateTime TimeSignalsLastReceived;
+			///<summary></summary>
+			public string DevicePlatform;
+			///<summary></summary>
+			public string DeviceModel;
+			///<summary></summary>
+			public string DeviceVersion;
+			///<summary></summary>
+			public string DeviceManufacturer;
+			///<summary></summary>
+			public string AppVersion;
+			#endregion
+
+			#region Shared submission info (mobile and proper)
+			///<summary></summary>
+			public long ClinicNumCur;
+			#endregion
 
 			public SubmissionInfo() {
 				//Needed for middle tier serialization.	

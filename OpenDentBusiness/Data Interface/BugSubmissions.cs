@@ -86,19 +86,20 @@ namespace OpenDentBusiness {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<BugSubmission>>(MethodBase.GetCurrentMethod(),dateFrom,dateTo,listVersionFilters);
 			}
+			bool hasSelections=(!listVersionFilters.IsNullOrEmpty());
 			List<BugSubmission> listBugSubs=new List<BugSubmission>();
 			DataAction.RunBugsHQ(() => { 
-				string command="SELECT * FROM bugsubmission WHERE "+DbHelper.BetweenDates("SubmissionDateTime",dateFrom,dateTo);
-				if(!listVersionFilters.IsNullOrEmpty()) {
-					command+=" AND (";
-					for(int i=0;i<listVersionFilters.Count;i++) {
-						command+=$"DbVersion LIKE '{POut.String(listVersionFilters[i])}%'";
-						if(i<listVersionFilters.Count-1) {
-							command+=" OR ";
-						}
-					}
-					command+=")";
-				}
+				string command=$@"SELECT * FROM bugsubmission WHERE {DbHelper.BetweenDates("SubmissionDateTime",dateFrom,dateTo)} 
+					{(hasSelections 
+						? $@" AND ({string.Join(" OR ",listVersionFilters.Select(x => 
+								(x=="Mobile"
+									? "DbInfoJson like '%\"DeviceId\":%' and DbInfoJson NOT LIKE '%\"DeviceId\":null%'" 
+									: "DbVersion LIKE '"+POut.String(x)+"%'"
+								)))
+							})" 
+						: ""
+					)}
+				";
 				listBugSubs=Crud.BugSubmissionCrud.SelectMany(command);
 			},false);
 			return listBugSubs;

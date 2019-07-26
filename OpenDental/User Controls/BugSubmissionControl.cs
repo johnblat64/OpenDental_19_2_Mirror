@@ -82,12 +82,29 @@ namespace OpenDental.UI {
 		
 		private void FillOfficeInfoGrid(BugSubmission sub){
 			gridOfficeInfo.BeginUpdate();
+			gridOfficeInfo.Rows.Clear();
+			if(sub==null) {
+				gridOfficeInfo.EndUpdate();
+				return;
+			}
 			if(gridOfficeInfo.Columns.Count==0) {
 				gridOfficeInfo.Columns.Add(new ODGridColumn("Field",130));
 				gridOfficeInfo.Columns.Add(new ODGridColumn("Value",125));
 			}
-			gridOfficeInfo.Rows.Clear();
-			if(sub!=null) {
+			if(sub.IsMobileSubmission) {
+				gridOfficeInfo.Rows.Add(new ODGridRow("Mobile Fields","") { ColorBackG=ODColorTheme.GridHeaderBackBrush.Color,Bold=true,Tag=true });
+				gridOfficeInfo.Rows.Add(new ODGridRow("AppTarget",sub.Info.AppTarget));
+				gridOfficeInfo.Rows.Add(new ODGridRow("EConnectorVersion",sub.Info.EConnectorVersion));
+				gridOfficeInfo.Rows.Add(new ODGridRow("AppVersion",sub.Info.AppVersion));
+				gridOfficeInfo.Rows.Add(new ODGridRow("DevicePlatform",sub.Info.DevicePlatform));
+				gridOfficeInfo.Rows.Add(new ODGridRow("DeviceModel",sub.Info.DeviceModel));
+				gridOfficeInfo.Rows.Add(new ODGridRow("DeviceVersion",sub.Info.DeviceVersion));
+				gridOfficeInfo.Rows.Add(new ODGridRow("DeviceManufacturer",sub.Info.DeviceManufacturer));
+				gridOfficeInfo.Rows.Add(new ODGridRow("MWUserIdentifier",sub.Info.MWUserIdentifier.ToString()));
+				gridOfficeInfo.Rows.Add(new ODGridRow("TimeSignalsLastReceived",sub.Info.TimeSignalsLastReceived.ToString()));
+				gridOfficeInfo.Rows.Add(new ODGridRow("DeviceId",sub.Info.DeviceId));
+			}
+			else {
 				gridOfficeInfo.Rows.Add(new ODGridRow("Preferences","") { ColorBackG=ODColorTheme.GridHeaderBackBrush.Color,Bold=true,Tag=true });
 				List<PrefName> listPrefNames=sub.Info.DictPrefValues.Keys.ToList();
 				foreach(PrefName prefName in listPrefNames) {
@@ -114,6 +131,9 @@ namespace OpenDental.UI {
 				gridOfficeInfo.Rows.Add(new ODGridRow("ODBdllVersion",sub.Info.OpenDentBusinessVersion?.ToString()));
 				gridOfficeInfo.Rows.Add(new ODGridRow("ODBdllMTVersion",sub.Info.OpenDentBusinessMiddleTierVersion?.ToString()??"INVALID"));
 			}
+			#region Shared between mobile and proper 
+			gridOfficeInfo.Rows.Add(new ODGridRow("ClinicNumCur",sub.Info.ClinicNumCur.ToString()));
+			#endregion
 			gridOfficeInfo.EndUpdate();
 		}
 

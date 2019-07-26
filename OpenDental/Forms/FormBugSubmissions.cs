@@ -400,6 +400,8 @@ namespace OpenDental {
 			List<string> listStackFilters,List<string> listPatNumFilters,List<string> listSelectedVersions,string grouping95,string msgText,
 			string devNoteFilter,DateTime dateTimeFrom,DateTime dateTimeTo)
 		{
+			bool hasMobileSelected=listSelectedVersions.Count(x => x=="Mobile")!=0;
+			bool hasVersionsSelected=listSelectedVersions.Count(x => x!="Mobile")!=0;
 			if(_viewMode!=FormBugSubmissionMode.ValidationMode
 					&& ((!string.IsNullOrWhiteSpace(msgText)&&!sub.ExceptionMessageText.ToLower().Contains(msgText.ToLower()))
 					||(listSelectedPatNames.Count!=0 && !listSelectedPatNames.Contains(_dictPatients.ContainsKey(sub.RegKey)?_dictPatients[sub.RegKey].GetNameLF():sub.RegKey))
@@ -407,7 +409,9 @@ namespace OpenDental {
 					||(listPatNumFilters.Count!=0 && !listPatNumFilters.Exists(x => x==_dictPatients[sub.RegKey].PatNum.ToString()))
 					||(sub.BugId!=0 && !listShowHideOptions.GetSelected(1))
 					||(!listShowHideOptions.GetSelected(0) && _dictPatients.ContainsKey(sub.RegKey) && (_dictPatients[sub.RegKey].BillingType==436||_dictPatients[sub.RegKey].PatNum==1486))//436 is "Internal Use" def, 1486 is HQ patNum.
-					||(listSelectedVersions.Count!=0 && !listSelectedVersions.Contains(sub.ProgramVersion.SubstringBefore('.',2)))
+					||(hasVersionsSelected && !sub.IsMobileSubmission && !listSelectedVersions.Contains(sub.ProgramVersion.SubstringBefore('.',2)))
+					||(hasMobileSelected && !hasVersionsSelected && !sub.IsMobileSubmission)
+					||(!hasMobileSelected && sub.IsMobileSubmission)
 					||(!sub.SubmissionDateTime.Between(dateTimeFrom,dateTimeTo))
 					||(!string.IsNullOrWhiteSpace(devNoteFilter) && !sub.DevNote.ToLower().Contains(devNoteFilter.ToLower()))
 					||(!string.IsNullOrEmpty(grouping95) && BugSubmissionL.CalculateSimilarity(grouping95,sub.ExceptionStackTrace)<95))
@@ -437,6 +441,7 @@ namespace OpenDental {
 				listVersionsFilter.Items.Add($"{version.MajorNum}.{version.MinorNum}");
 				listVersionsFilter.SetSelected(listVersionsFilter.Items.Count-1,true);
 			}
+			listVersionsFilter.Items.Add("Mobile");//butRefreshMobile_Click(...) assumes this is at the bottom.
 		}
 		
 		private void FillPatNameFilter(List<BugSubmission> listSubmissions) {
@@ -561,6 +566,12 @@ namespace OpenDental {
 				group95Matching=input.textResult.Text;
 			}
 			FillSubGrid(grouping95:group95Matching);
+		}
+		
+		private void butRefreshMobile_Click(object sender,EventArgs e) {
+			listVersionsFilter.ClearSelected();
+			listVersionsFilter.SetSelected(listVersionsFilter.Items.Count-1,true);//Mobile
+			FillSubGrid(true);//Refresh _listAllSubs
 		}
 
 		private void butRefresh_Click(object sender,EventArgs e) {
