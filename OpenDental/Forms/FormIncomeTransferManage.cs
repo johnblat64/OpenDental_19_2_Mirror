@@ -308,8 +308,28 @@ namespace OpenDental {
 
 		///<summary>Creates micro-allocations intelligently based on most to least matching criteria of selected charges.</summary>
 		private void CreateTransfers(List<AccountEntry> listPosCharges,List<AccountEntry> listNegCharges,List<AccountEntry> listAccountEntries) {
+			List<AccountEntry> listPosChargeChanges=CreateUnearnedLoop(listPosCharges,_paymentCur.PayNum,listAccountEntries);
+			foreach(AccountEntry charge in listPosChargeChanges) {
+				if(!charge.AccountEntryNum.In(listPosCharges.Select(x => x.AccountEntryNum).ToList())) {
+					listPosCharges.Add(charge);//money may have been added back to an adj or proc that was previously paid
+				}
+			}
+			listPosCharges=listPosCharges.OrderBy(x => x.Date).ToList();//re-order since we may have just changed it. 
 			CreatePayplanLoop(listPosCharges,listNegCharges,listAccountEntries);
 			CreateTransferLoop(listPosCharges,listNegCharges,listAccountEntries);
+		}
+
+		/// <summary>Pre-transfer unearned so that we have correct data going into the logic for the regular transfers. This is an attempt to fix 
+		/// incorrect unearned allocations (overallocations) that are allowed to exist within the db.</summary>
+		public List<AccountEntry> CreateUnearnedLoop(List<AccountEntry> listPositiveCharges,long paymentNumCur,List<AccountEntry> listEntriesForPat) {
+			List<AccountEntry> listPosUnearend=listPositiveCharges.FindAll(x => x.GetType()==typeof(PaySplit) && ((PaySplit)x.Tag).UnearnedType!=0);
+			List<AccountEntry> listPosChargeAdditions=new List<AccountEntry>();
+			foreach(AccountEntry charge in listPosUnearend) {
+				if(charge.AmountOriginal < 0 && charge.AmountEnd > 0) {//started negative (as payments do) but now the payment 'owes' money i.e. overallocated
+					listPosChargeAdditions.AddRange(TransferUnearnedHelper(charge,paymentNumCur,listEntriesForPat));
+				}
+			}	
+			return listPosChargeAdditions;
 		}
 
 		private void CreatePayplanLoop(List<AccountEntry> listPosCharges,List<AccountEntry> listNegCharges,List<AccountEntry> listAccountEntries) {
@@ -496,36 +516,7 @@ namespace OpenDental {
 		private bool CreateTransferHelper(AccountEntry posCharge,AccountEntry negCharge,List<AccountEntry> listAccountEntriesForPat) {
 			decimal amt=Math.Min(Math.Abs(posCharge.AmountEnd),Math.Abs(negCharge.AmountEnd));
 			if(posCharge.GetType()==typeof(PayPlanCharge)) {//Allocate to payplancharges in a special way
-				negCharge.AmountEnd+=amt;
-				PaySplit negSplit=new PaySplit();
-				negSplit.DatePay=DateTimeOD.Today;
-				negSplit.ClinicNum=negCharge.ClinicNum;
-				negSplit.FSplitNum=negCharge.GetType()==typeof(PaySplit) ? negCharge.PriKey : 0;//Money may be coming from a paysplit 
-				negSplit.PatNum=negCharge.PatNum;
-				negSplit.PayPlanNum=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).PayPlanNum : 0;
-				negSplit.PayNum=_paymentCur.PayNum;
-				negSplit.ProcNum=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).ProcNum : negCharge.GetType()==typeof(Adjustment) ? ((Adjustment)negCharge.Tag).ProcNum : negCharge.GetType()==typeof(ClaimProc) ? ((ClaimProc)negCharge.Tag).ProcNum : 0;
-				negSplit.ProvNum=negCharge.ProvNum;
-				negSplit.AdjNum=negCharge.GetType()==typeof(Adjustment) ? negCharge.PriKey : 0;//Money may be coming from an adjustment.
-				negSplit.SplitAmt=0-(double)amt;
-				//If money is coming from paysplit, use its unearned type (if any)
-				negSplit.UnearnedType=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).UnearnedType : 0;
-				negCharge.SplitCollection.Add(negSplit);
-				decimal amount;
-				List<PayPlanCharge> listCredits=_results.ListPayPlanCharges.FindAll(x => x.ChargeType==PayPlanChargeType.Credit 
-					&& x.PayPlanNum==((PayPlanCharge)posCharge.Tag).PayPlanNum);
-				List<PaySplit> listSplitsForPayPlan=PaySplits.CreateSplitForPayPlan(_paymentCur.PayNum,(double)amt,posCharge,listCredits
-					,listAccountEntriesForPat,amt,false,out amount);
-				if(listSplitsForPayPlan.Count>0) {
-					foreach(PaySplit split in listSplitsForPayPlan) {
-						split.FSplitNum=0;
-						split.PayNum=_paymentCur.PayNum;
-						posCharge.SplitCollection.Add(split);
-						_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(negSplit,split));
-						_listSplitsCur.Add(split);
-					}
-					_listSplitsCur.Add(negSplit);
-				}
+				TransferPayPlanChargeHelper(posCharge,negCharge,listAccountEntriesForPat,amt);
 			}
 			else {
 				PaySplit negSplit=new PaySplit();
@@ -612,6 +603,124 @@ namespace OpenDental {
 				}
 			}
 			return false;
+		}
+
+		private void TransferPayPlanChargeHelper(AccountEntry posCharge,AccountEntry negCharge,List<AccountEntry> listAccountEntriesForPat,decimal amt) {
+			negCharge.AmountEnd+=amt;
+			PaySplit negSplit=new PaySplit();
+			negSplit.DatePay=DateTimeOD.Today;
+			negSplit.ClinicNum=negCharge.ClinicNum;
+			negSplit.FSplitNum=negCharge.GetType()==typeof(PaySplit) ? negCharge.PriKey : 0;//Money may be coming from a paysplit 
+			negSplit.PatNum=negCharge.PatNum;
+			negSplit.PayPlanNum=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).PayPlanNum : 0;
+			negSplit.PayNum=_paymentCur.PayNum;
+			if(negCharge.GetType()==typeof(PaySplit)) {
+				negSplit.ProcNum=((PaySplit)negCharge.Tag).ProcNum;
+			}
+			else if(negCharge.GetType()==typeof(Adjustment)) {
+				negSplit.ProcNum=((Adjustment)negCharge.Tag).ProcNum;
+			}
+			else if(negCharge.GetType()==typeof(ClaimProc)) {
+				negSplit.ProcNum=((ClaimProc)negCharge.Tag).ProcNum;
+			}
+			else {
+				negSplit.ProcNum=0;
+			}
+			negSplit.ProvNum=negCharge.ProvNum;
+			negSplit.AdjNum=negCharge.GetType()==typeof(Adjustment) ? negCharge.PriKey : 0;//Money may be coming from an adjustment.
+			negSplit.SplitAmt=0-(double)amt;
+			//If money is coming from paysplit, use its unearned type (if any)
+			negSplit.UnearnedType=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).UnearnedType : 0;
+			negCharge.SplitCollection.Add(negSplit);
+			decimal amount;
+			List<PayPlanCharge> listCredits=_results.ListPayPlanCharges.FindAll(x => x.ChargeType==PayPlanChargeType.Credit 
+				&& x.PayPlanNum==((PayPlanCharge)posCharge.Tag).PayPlanNum);
+			List<PaySplit> listSplitsForPayPlan=PaySplits.CreateSplitForPayPlan(_paymentCur.PayNum,(double)amt,posCharge,listCredits
+				,listAccountEntriesForPat,amt,false,out amount);
+			if(listSplitsForPayPlan.Count>0) {
+				foreach(PaySplit split in listSplitsForPayPlan) {
+					split.FSplitNum=0;
+					split.PayNum=_paymentCur.PayNum;
+					posCharge.SplitCollection.Add(split);
+					_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(negSplit,split));
+					_listSplitsCur.Add(split);
+				}
+				_listSplitsCur.Add(negSplit);
+			}
+		}
+
+		/// <summary> This is prepayment allocation reversal. Because of this, items may need to be moved back to the list of positive charges. 
+		/// The returned list will be any charges that need to be added back to the list of positive charges. </summary>
+		private List<AccountEntry> TransferUnearnedHelper(AccountEntry positiveCharge,long paymentNumCur,List<AccountEntry> listEntriesForPat) {
+			//Special case where unearned has been over allocated. 
+			//Negative charge (split) masquarading around as a positve split becasuse it was overallocated. 
+			List<AccountEntry> listPositiveChargeAdditions=new List<AccountEntry>();
+			decimal amountOverallocated=Math.Abs(positiveCharge.AmountOriginal+positiveCharge.AmountEnd);
+			PaySplit negSplit=new PaySplit();
+			PaySplit posSplit=new PaySplit();
+			//get what is attached to this original pre-payment
+			List<PaySplit> listAttachedToOverallocated=PaySplits.GetSplitsForPrepay(new List<PaySplit>{((PaySplit)positiveCharge.Tag)})
+				.OrderByDescending(x => x.DatePay)
+				.ToList();//verify this order is correct. We want the most recent first. 
+			List<PaySplit> listAttachedElseWhere=PaySplits.GetAllocatedElseWhere(positiveCharge.PriKey);
+			foreach(PaySplit offset in listAttachedToOverallocated) {
+				if(amountOverallocated.IsEqual(0)) {
+					break;
+				}
+				//attempt to find the most recent split that was allocated from the offset
+				List<PaySplit> listAttachedtoOffset=listAttachedElseWhere.FindAll(x => x.FSplitNum==offset.SplitNum)
+					.OrderByDescending(x => x.DatePay)
+					.ToList();
+				AccountEntry productionEntry=null;
+				foreach(PaySplit allocated in listAttachedtoOffset) {
+					if(amountOverallocated.IsEqual(0)) {
+						break;
+					}
+					if(allocated.ProcNum!=0) {
+						//find charge from list to money can be correctly taken away from the production that previously had been attached to overallocation
+						productionEntry=listEntriesForPat.FirstOrDefault(x => x.PriKey==allocated.ProcNum);
+					}
+					else if(allocated.AdjNum!=0) {
+						productionEntry=listEntriesForPat.FirstOrDefault(x => x.PriKey==allocated.AdjNum);
+					}
+					//reverse the split up to the amount overallocated
+					decimal reverseAmt=Math.Min(amountOverallocated,(decimal)allocated.SplitAmt);
+					//make a positive split to put back to unallocated. Reverse offset. 
+					posSplit.DatePay=DateTimeOD.Today;
+					posSplit.ClinicNum=allocated.ClinicNum;
+					posSplit.FSplitNum=offset.FSplitNum;//Split should be directly attached to the original prepayment positivecharge.PriKey
+					posSplit.PatNum=allocated.PatNum;
+					posSplit.PayPlanNum=0;
+					posSplit.PayNum=paymentNumCur;
+					posSplit.ProcNum=0;
+					posSplit.ProvNum=positiveCharge.ProvNum;
+					posSplit.AdjNum=0;
+					posSplit.SplitAmt=(double)reverseAmt;
+					posSplit.UnearnedType=offset.UnearnedType;
+					//make a negative split to take away from this allocated split (likely taking away from a procedure or other production) Reverse allocation
+					negSplit.DatePay=DateTimeOD.Today;
+					negSplit.ClinicNum=positiveCharge.ClinicNum;
+					negSplit.FSplitNum=0;//Split should be directly attached to the reverse offset we just made. Will be 0 for now since it has not yet been inserted.
+					negSplit.PatNum=allocated.PatNum;
+					negSplit.PayPlanNum=0;
+					negSplit.PayNum=paymentNumCur;
+					negSplit.ProcNum=allocated.ProcNum;
+					negSplit.ProvNum=allocated.ProvNum;
+					negSplit.AdjNum=allocated.AdjNum;
+					negSplit.SplitAmt=-(double)reverseAmt;
+					negSplit.UnearnedType=0;
+					amountOverallocated-=reverseAmt;
+					positiveCharge.AmountEnd-=reverseAmt;
+					_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(posSplit,negSplit));
+					_listSplitsCur.AddRange(new[] { posSplit,negSplit });
+					positiveCharge.SplitCollection.Add(posSplit);
+					if(productionEntry!=null) {
+						productionEntry.AmountEnd+=reverseAmt;
+						listPositiveChargeAdditions.Add(productionEntry);
+					}
+				}
+			}
+			return listPositiveChargeAdditions;
 		}
 
 		///<summary>Deletes selected paysplits from the grid and attributes amounts back to where they originated from.
