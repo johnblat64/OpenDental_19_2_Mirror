@@ -204,6 +204,50 @@ namespace OpenDental {
 						Patient pat=Patients.GetPat(patNum);
 						Patient patOld=pat.Copy();
 						pat.PatStatus=listAutomations[i].PatStatus;
+						//If HQ and this is a patient in a reseller family, do not allow the changing of the patient status.
+						if(PrefC.IsODHQ
+							&& Resellers.IsResellerFamily(pat)
+							&& patOld.PatStatus!=pat.PatStatus)
+						{
+							MsgBox.Show("FormPatientEdit","Cannot change the status of a patient in a reseller family.");
+							continue;
+						}
+						//Don't allow changing status from Archived if this is a merged patient.
+						if(patOld.PatStatus!=pat.PatStatus 
+							&& patOld.PatStatus==PatientStatus.Archived 
+							&& PatientLinks.WasPatientMerged(patOld.PatNum))
+						{
+							MsgBox.Show("FormPatientEdit","Not allowed to change the status of a merged patient.");
+							continue;
+						}
+						switch(pat.PatStatus) {
+							case PatientStatus.Deceased:
+								if(patOld.PatStatus!=PatientStatus.Deceased) {
+									List<Appointment> listFutureAppts=Appointments.GetFutureSchedApts(pat.PatNum);
+									if(listFutureAppts.Count>0) {
+										string apptDates=string.Join("\r\n",listFutureAppts.Take(10).Select(x => x.AptDateTime.ToString()));
+										if(listFutureAppts.Count>10) {
+											apptDates+="(...)";
+										}
+										if(MessageBox.Show(
+											Lan.g("FormPatientEdit","This patient has scheduled appointments in the future")+":\r\n"+apptDates+"\r\n"
+												+Lan.g("FormPatientEdit","Would you like to delete them and set the patient to Deceased?"),
+											Lan.g("FormPatientEdit","Delete future appointments?"),
+											MessageBoxButtons.YesNo)==DialogResult.Yes)
+										{
+											foreach(Appointment appt in listFutureAppts) {
+												Appointments.Delete(appt.AptNum,true);
+											}
+										}
+										else {
+											continue;
+										}
+									}
+								}
+								break;
+						}
+						//Re-activate or disable recalls depending on the the status that the patient is changing to.
+						Patients.UpdateRecalls(pat,patOld,"ChangePatStatus automation");
 						if(Patients.Update(pat,patOld)) {
 							SecurityLogs.MakeLogEntry(Permissions.PatientEdit,patNum,"Patient status changed from "+patOld.PatStatus.GetDescription()+
 								" to "+listAutomations[i].PatStatus.GetDescription()+" through ChangePatStatus automation.");
