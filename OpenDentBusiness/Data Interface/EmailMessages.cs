@@ -636,10 +636,10 @@ namespace OpenDentBusiness {
 
 		///<summary>Performs wiki tag replacements for images and attaches images to email.  Will return the whole correct html text that needs to be sent. 
 		///Downloads the files locally if needed. The out variable is a list of local paths.</summary>
-		private static string FindAndReplaceImageTagsWithAttachedImage(string localHtml,bool areImagesDownloaded,out List<string> listLocalImagePaths) {
+		public static string FindAndReplaceImageTagsWithAttachedImage(string localHtml,bool areImagesDownloaded,out List<string> listLocalImagePaths) {
 			listLocalImagePaths=new List<string>();
 			MatchCollection matches;
-			matches=Regex.Matches(localHtml,@"<img src=""(.*)""/?></img>");
+			matches=Regex.Matches(localHtml,@"<img\s+src\s*=\s*""([^""]*)""/?>(</img>)?");
 			foreach(Match match in matches) {
 				//MarkupEdit.TranslateToXhtml(...) changes "&"  to "&amp;", we need to change it back before we set the image path. 
 				string imagePath=match.Result("$1").Replace("&amp;","&");

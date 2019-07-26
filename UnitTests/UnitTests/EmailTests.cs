@@ -120,5 +120,50 @@ multiple lines
 				Assert.AreEqual(test.Item2,EmailMessages.ProcessMimeSubject(test.Item1));
 			}
 		}
+
+			#region FindAndReplaceImageTagsWithAttachedImage_Tests
+		///<summary>A test to ensure the regex is functional in FindAndReplaceImageTagsWithAttachedImage(...) when there is no image in the email
+		///but there is HTML tags.</summary>
+		[TestMethod]
+		public void EmailMessages_FindAndReplaceImageTagsWithAttachedImage_HtmlBodyNoImage() {
+			string localHtml=@"<html><head><title>Email Stuff</head><body><p><hr><a href=""http://www.google.com"">Google Link</a>Check out my <i>great</i> link!</p></body></html>";
+			bool areImagesDownloaded=false;
+			string actualLocalPath=EmailMessages.FindAndReplaceImageTagsWithAttachedImage(localHtml,areImagesDownloaded,out List<string> listLocalImagePaths);
+			Assert.AreEqual(actualLocalPath,localHtml);
+		}
+
+		///<summary>A test to ensure the regex is functional in FindAndReplaceImageTagsWithAttachedImage(...) when there is only an image in 
+		///the email.</summary>
+		[TestMethod]
+		public void EmailMessages_FindAndReplaceImageTagsWithAttachedImage_OnlyImage() {
+			string localHtml=@"<html><head><title>Email Stuff</head><body><img src=""image""></img></body></html>";
+			bool areImagesDownloaded=false;
+			string actualLocalPath=EmailMessages.FindAndReplaceImageTagsWithAttachedImage(localHtml,areImagesDownloaded,out List<string> listLocalImagePaths);
+			string expectedLocalPath=@"<html><head><title>Email Stuff</head><body><img alt=""image"" src=""cid:image""/></body></html>";
+			Assert.AreEqual(expectedLocalPath,actualLocalPath);
+		}
+
+		///<summary>A test to ensure the regex is functional in FindAndReplaceImageTagsWithAttachedImage(...) when there are multiple images 
+		///and HTML tags in the email. This case previously failed when the Regex within the method was <img src=""(.*)""/?></img>.</summary>
+		[TestMethod]
+		public void EmailMessages_FindAndReplaceImageTagsWithAttachedImage_HtmlBodyWithMultiImages() {
+			string localHtml=@"<html><head><title>Email Stuff</head><body><p>Text Text Text Text<img src=""image""></img><span></span><img src=""image2""></img>Text Text Text Text</p></body></html>";
+			bool areImagesDownloaded=false;
+			string actualLocalPath=EmailMessages.FindAndReplaceImageTagsWithAttachedImage(localHtml,areImagesDownloaded,out List<string> listLocalImagePaths);
+			string expectedLocalPath=@"<html><head><title>Email Stuff</head><body><p>Text Text Text Text<img alt=""image"" src=""cid:image""/><span></span><img alt=""image"" src=""cid:image2""/>Text Text Text Text</p></body></html>";
+			Assert.AreEqual(expectedLocalPath,actualLocalPath);
+		}
+
+		///<summary>A test to ensure the regex is functional in FindAndReplaceImageTagsWithAttachedImage(...) when there is an image that is closed using
+		///only the slash inside the initial image tag instead of a distinct </img> tag.</summary>
+		[TestMethod]
+		public void EmailMessages_FindAndReplaceImageTagsWithAttachedImage_ClosingSlashInsideImg() {
+			string localHtml=@"<html><head><title>Email Stuff</head><body><img src=""image""/></body></html>";
+			bool areImagesDownloaded=false;
+			string actualLocalPath=EmailMessages.FindAndReplaceImageTagsWithAttachedImage(localHtml,areImagesDownloaded,out List<string> listLocalImagePaths);
+			string expectedLocalPath=@"<html><head><title>Email Stuff</head><body><img alt=""image"" src=""cid:image""/></body></html>";
+			Assert.AreEqual(expectedLocalPath,actualLocalPath);
+		}
+		#endregion
 	}
 }

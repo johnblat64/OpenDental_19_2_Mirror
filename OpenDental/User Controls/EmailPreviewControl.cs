@@ -10,6 +10,7 @@ using DataConnectionBase;
 using OpenDentBusiness;
 using System.Linq;
 using OpenDental.UI;
+using Health.Direct.Common.Mime;
 
 namespace OpenDental {
 	public partial class EmailPreviewControl:UserControl {
@@ -25,6 +26,8 @@ namespace OpenDental {
 		private Patient _patCur=null;
 		///<summary>If the message is an html email with images, then this list contains the raw image mime parts.  The user must give permission before converting these to images, for security purposes.  Gmail also does this with images, for example.</summary>
 		private List<Health.Direct.Common.Mime.MimeEntity> _listImageParts=null;
+		///<summary>If the message is an html email with attached applications (can be images also), then this list contains the raw image mime parts.  The user must give permission before converting these to images, for security purposes.  Gmail also does this with images, for example.</summary>
+		private List<MimeEntity> _listAppParts=null;
     ///<summary>The list of email addresses in email setup. Primarly used for matching From address to internal EmailAddress.</summary>
 		private List<EmailAddress> _listEmailAddresses;
 		///<summary>Can be null. Should be set externally before showing this control to the user. Otherwise will attempt to match _emailMessage.FromAddress
@@ -187,11 +190,13 @@ namespace OpenDental {
 			textBodyText.Visible=true;
 			webBrowser.Visible=false;
 			if(EmailMessages.IsReceived(_emailMessage.SentOrReceived)) {
-				List<List<Health.Direct.Common.Mime.MimeEntity>> listMimeParts=
-					EmailMessages.GetMimePartsForMimeTypes(_emailMessage.RawEmailIn,EmailAddressPreview,"text/html","text/plain","image/");
-				List<Health.Direct.Common.Mime.MimeEntity> listHtmlParts=listMimeParts[0];//If RawEmailIn is blank, then this list will also be blank (ex Secure Web Mail messages).
-				List<Health.Direct.Common.Mime.MimeEntity> listTextParts=listMimeParts[1];//If RawEmailIn is blank, then this list will also be blank (ex Secure Web Mail messages).
+				List<List<MimeEntity>> listMimeParts=
+					EmailMessages.GetMimePartsForMimeTypes(_emailMessage.RawEmailIn,EmailAddressPreview,
+					"text/html","text/plain","image/","application/octet-stream");//Adding application/octet-stream as sometimes images are sent in this format
+				List<MimeEntity> listHtmlParts=listMimeParts[0];//If RawEmailIn is blank, then this list will also be blank (ex Secure Web Mail messages).
+				List<MimeEntity> listTextParts=listMimeParts[1];//If RawEmailIn is blank, then this list will also be blank (ex Secure Web Mail messages).
 				_listImageParts=listMimeParts[2];//If RawEmailIn is blank, then this list will also be blank (ex Secure Web Mail messages).
+				_listAppParts=listMimeParts[3];//If RawEmailIn is blank, then this list will also be blank (ex Secure Web Mail messages).
 				if(listHtmlParts.Count>0) {//Html body found.
 					textBodyText.Visible=false;
 					_isLoading=true;
@@ -205,7 +210,7 @@ namespace OpenDental {
 					webBrowser.Size=textBodyText.Size;
 					webBrowser.Anchor=textBodyText.Anchor;
 					webBrowser.Visible=true;
-					if(_listImageParts.Count>0) {
+					if(!_listImageParts.IsNullOrEmpty() || !_listAppParts.IsNullOrEmpty()) {
 						butShowImages.Visible=true;
 					}
 				}
@@ -623,21 +628,42 @@ namespace OpenDental {
 			return Recalls.ReplaceRecall(templateText,pat);
 		}
 
+		///<summary>Accepts a list of MimeEntity and parses it for paths, htmls and other key factors. It will test that the resulting parts
+		///have a valid image extension. If they do, they are saved to a temporary web page for presentation to the user. If they are not
+		///then they are disreguarded an a message is sent to the user warning them of potentially malicious content.</summary>
+		private string ParseAndSaveAttachement(string htmlFolderPath,string html,List<MimeEntity> listParts) {
+				bool hasDangerousAttachment=false;
+				foreach(MimeEntity entity in listParts) {
+					string contentId=EmailMessages.GetMimeImageContentId(entity);
+					string fileName=EmailMessages.GetMimeImageFileName(entity);
+					//Only show image types.  Otherwise, prompt user that potentially dangerous code is attached to the email and will not be shown.
+					if(!ImageStore.HasImageExtension(fileName)) {//Check file format against known image format extensions.
+						hasDangerousAttachment=true;
+						continue;
+					}
+					html=html.Replace("cid:"+contentId,fileName);
+					EmailAttach attachment=_listEmailAttachDisplayed.FirstOrDefault(x => x.DisplayedFileName.ToLower().Trim()==fileName.ToLower().Trim());
+					//The path and filename must be directly accessed from the EmailAttach object in question, otherwise subsequent code would have accessed
+					//an empty bodied message and never shown an image.
+					EmailMessages.SaveMimeImageToFile(entity,htmlFolderPath,attachment?.ActualFileName);
+				}
+				if(hasDangerousAttachment) {
+					//Since the extension is not within the image formats it may contain mallware and we will not parse or present it.
+					MsgBox.Show("This message contains some elements that may not be safe and will not be loaded.");
+				}
+				return html;
+		}
+
 		private void butShowImages_Click(object sender,EventArgs e) {
 			try {
 				//We need a folder in order to place the images beside the html file in order for the relative image paths to work correctly.
 				string htmlFolderPath=ODFileUtils.CreateRandomFolder(PrefC.GetTempFolderPath());//Throws exceptions.
 				string filePathHtml=ODFileUtils.CreateRandomFile(htmlFolderPath,".html");
 				string html=webBrowser.DocumentText;
-				for(int i=0;i<_listImageParts.Count;i++) {
-					string contentId=EmailMessages.GetMimeImageContentId(_listImageParts[i]);
-					string fileName=EmailMessages.GetMimeImageFileName(_listImageParts[i]);
-					html=html.Replace("cid:"+contentId,fileName);
-					EmailAttach attachment=_listEmailAttachDisplayed.FirstOrDefault(x => x.DisplayedFileName.ToLower().Trim()==fileName.ToLower().Trim());
-					//The path and filename must be directly accessed from the EmailAttach object in question, otherwise subsequent code would have accessed
-					//an empty bodied message and never shown an image.
-					EmailMessages.SaveMimeImageToFile(_listImageParts[i],htmlFolderPath,attachment?.ActualFileName);
-				}
+				List<MimeEntity> listMimeEntries=new List<MimeEntity>();
+				listMimeEntries.AddRange(_listAppParts);
+				listMimeEntries.AddRange(_listImageParts);
+				html=ParseAndSaveAttachement(htmlFolderPath,html,listMimeEntries);
 				File.WriteAllText(filePathHtml,html);
 				_isLoading=true;
 				webBrowser.Navigate(filePathHtml);
