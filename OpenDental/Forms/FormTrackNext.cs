@@ -333,6 +333,7 @@ namespace OpenDental{
 			this.Name = "FormTrackNext";
 			this.Text = "Track Planned Appointments";
 			this.Load += new System.EventHandler(this.FormTrackNext_Load);
+			this.Shown += new System.EventHandler(this.FormTrackNext_Shown);
 			this.menuRightClick.ResumeLayout(false);
 			this.menuMain.ResumeLayout(false);
 			this.menuMain.PerformLayout();
@@ -368,8 +369,13 @@ namespace OpenDental{
 			}
 			InitDateRange();
 			RefreshAptList();
-			FillGrid();
 			Cursor=Cursors.Default;
+		}
+
+		///<summary>There is a bug in ODProgress.cs that forces windows that use a progress bar on load to go behind other applications. 
+		///This is a temporary workaround until we decide how to address the issue.</summary>
+		private void FormTrackNext_Shown(object sender,EventArgs e) {
+			FillGrid();
 		}
 
 		private void InitDateRange() {
