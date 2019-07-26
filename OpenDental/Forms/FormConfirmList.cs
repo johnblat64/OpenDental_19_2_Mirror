@@ -492,6 +492,7 @@ namespace OpenDental{
 			this.Name = "FormConfirmList";
 			this.Text = "Confirmation List";
 			this.Load += new System.EventHandler(this.FormConfirmList_Load);
+			this.Shown += new System.EventHandler(this.FormConfirmList_Shown);
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			this.groupBox3.ResumeLayout(false);
@@ -529,10 +530,15 @@ namespace OpenDental{
 			if(!Programs.IsEnabled(ProgramName.CallFire) && !SmsPhones.IsIntegratedTextingEnabled()) {
 				butText.Enabled=false;
 			}
-			FillMain();			
 			FillComboEmail();
 			Cursor=Cursors.Default;
 			Plugins.HookAddCode(this,"FormConfirmList.Load_End",butText);
+		}
+
+		///<summary>There is a bug in ODProgress.cs that forces windows that use a progress bar on load to go behind other applications. 
+		///This is a temporary workaround until we decide how to address the issue.</summary>
+		private void FormConfirmList_Shown(object sender,EventArgs e) {
+			FillMain();
 		}
 
 		private void FillComboEmail() {
