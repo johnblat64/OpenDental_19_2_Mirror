@@ -550,7 +550,12 @@ namespace OpenDental {
 			//The FontSize needs to be specified in DIPs (device-independent pixels) because WPF treats font size differently than WinForms.
 			richTextBox.FontSize=(double)new System.Windows.FontSizeConverter().ConvertFrom(field.FontSize+"pt");
 			System.Windows.Documents.Paragraph para=richTextBox.Document.Blocks.FirstBlock as System.Windows.Documents.Paragraph;
-			if(field.Height < para.LineHeight+2) {
+			//There is a chance that data can get truncated when loading text into a text box that has AcceptsReturn set to false.
+			//E.g. the text "line 1\r\nline 2\r\nline 3" will get truncated to be "line 1"
+			//This causes a nasty bug where the user could have filled out the sheet as a Web Form (which does not truncate the text) and signed the sheet.
+			//The signature would invalidate if the office were to open the downloaded web form within Open Dental proper and simply click OK.
+			//Therefore, only allow InputField text boxes to have AcceptsReturn set to false (which will stop users from making newlines).
+			if(field.FieldType==SheetFieldType.InputField && field.Height < para.LineHeight+2) {
 				richTextBox.AcceptsReturn=false;
 			}
 			richTextBox.IsReadOnly=field.IsLocked;

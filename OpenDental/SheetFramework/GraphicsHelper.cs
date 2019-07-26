@@ -290,10 +290,17 @@ namespace OpenDental {
 				style=FontStyle.Bold;
 			}
 			textbox.Font=new Font(field.FontName,field.FontSize,style);
-			if(field.Height<textbox.Font.Height+2) {
+			//There is a chance that data can get truncated when loading text into a text box that has Multiline set to false.
+			//E.g. the text "line 1\r\nline 2\r\nline 3" will get truncated to be "line 1"
+			//This causes a nasty bug where the user could have filled out the sheet as a Web Form (which does not truncate the text) and signed the sheet.
+			//The signature would invalidate if the office were to open the downloaded web form within Open Dental proper and simply click OK.
+			//Therefore, only allow InputField text boxes to have Multiline set to false (which will stop users from making newlines).
+			if(field.FieldType==SheetFieldType.InputField && field.Height<textbox.Font.Height+2) {
 				textbox.Multiline=false;
 			}
-			else {
+			else {//InputField that is too tall to be considered a "single line" text box or not an InputField.
+				//An office can set up a sheet def with a static text field that has newlines but is only sized (height) for a single line of text.
+				//Always display output to the user in a text box that has the capabilities of preserving anything the user wants to display.
 				textbox.Multiline=true;
 			}
 			textbox.Height=field.Height;
