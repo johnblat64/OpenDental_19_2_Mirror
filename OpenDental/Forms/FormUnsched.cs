@@ -353,6 +353,7 @@ namespace OpenDental{
 			this.Name = "FormUnsched";
 			this.Text = "Unscheduled List";
 			this.Load += new System.EventHandler(this.FormUnsched_Load);
+			this.Shown += new System.EventHandler(this.FormUnsched_Shown);
 			this.menuRightClick.ResumeLayout(false);
 			this.menuMain.ResumeLayout(false);
 			this.menuMain.PerformLayout();
@@ -388,10 +389,15 @@ namespace OpenDental{
 			}
 			_listAptSelected=new List<long>();
 			InitDateRange();
-			FillGrid();
 			Cursor=Cursors.Default;
 		}
-		
+
+		///<summary>There is a bug in ODProgress.cs that forces windows that use a progress bar on load to go behind other applications. 
+		///This is a temporary workaround until we decide how to address the issue.</summary>
+		private void FormUnsched_Shown(object sender,EventArgs e) {
+			FillGrid();
+		}
+
 		private void setupToolStripMenuItem_Click(object sender,EventArgs e) {
 			FormUnschedListSetup formSetup=new FormUnschedListSetup();
 			if(formSetup.ShowDialog()==DialogResult.OK) {
