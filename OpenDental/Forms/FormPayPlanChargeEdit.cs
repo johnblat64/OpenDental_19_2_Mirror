@@ -328,8 +328,22 @@ namespace OpenDental{
 			textInterest.Text=PayPlanChargeCur.Interest.ToString("n");
 			textNote.Text=PayPlanChargeCur.Note;
 			textProv.Text=Providers.GetAbbr(PayPlanChargeCur.ProvNum);
-			textDateEntry.Text=POut.DateT(PayPlanChargeCur.SecDateTEntry,false);
-			textDateEdit.Text=POut.DateT(PayPlanChargeCur.SecDateTEdit,false);
+			if(PayPlanChargeCur.SecDateTEntry==DateTime.MinValue) {
+				//First time form is ever opened and the date isn't saved to the db yet, show the current datetime
+				textDateEntry.Text=POut.DateT(DateTime.Now,false);
+			}
+			else {
+				//Returning to the form, pull the stored datetime
+				textDateEntry.Text=POut.DateT(PayPlanChargeCur.SecDateTEntry,false);
+			}
+			if(PayPlanChargeCur.SecDateTEdit==DateTime.MinValue) {
+				//Until job B15806 is complete, regaurding how MySQL 5.7 handles timestamps, SectDateTEdit will always show as MinValue for the user.
+				textDateEdit.Text="";
+			}
+			else {
+				//Edits exist, show stored datetime
+				textDateEdit.Text=POut.DateT(PayPlanChargeCur.SecDateTEdit,false);
+			}
 			if(!PrefC.HasClinicsEnabled) {
 				labelClinic.Visible=false;
 				textClinic.Visible=false;
