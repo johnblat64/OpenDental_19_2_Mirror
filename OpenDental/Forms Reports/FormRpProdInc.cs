@@ -1210,6 +1210,7 @@ namespace OpenDental {
 			int unearnedPtIncomeWidth=80;
 			int insincomewidth=80;
 			int totincomewidth=80;
+			int summaryOffSetY=15;
 			query.AddColumn("Date",datewidth,FieldValueType.String,font);
 			query.AddColumn("Weekday",weekdaywidth,FieldValueType.String,font);
 			query.AddColumn("Production",productionwidth,FieldValueType.Number,font);
@@ -1253,37 +1254,41 @@ namespace OpenDental {
 				query.AddColumn("Tot Income",totincomewidth,FieldValueType.Number,font);
 				//Column used to align the summary fields.
 				string columnNameAlign =radioWriteoffBoth.Checked ? "Tot Prod": "Writeoff";
-				if(checkUnearned.Checked) {//if unearned check, add summaries.
-					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ",columnNameAlign,"Total Pt Income",
-						SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
-				}
-				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ",columnNameAlign,"Total Income",SummaryOperation.Sum,
-					new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,17);
 				if(radioWriteoffBoth.Checked) {
 					query.AddGroupSummaryField("Total Production (Production + Scheduled + Adjustments - Writeoff Ests - Writeoff Adjs): ",
-						columnNameAlign,"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,15);
+						columnNameAlign,"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
 				else {
 					query.AddGroupSummaryField("Total Production (Production + Scheduled + Adjustments - Writeoffs): ",columnNameAlign,
-						"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,15);
+						"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
+				int summaryIncomeOffSetY=summaryOffSetY-5;
+				if(checkUnearned.Checked) {//if unearned check, add summaries.
+					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ",columnNameAlign,"Total Pt Income",
+						SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
+					summaryIncomeOffSetY-=3;
+				}
+				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ",columnNameAlign,"Total Income",SummaryOperation.Sum,
+					new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
 			}
 			else {
 				string columnNameAlign=radioWriteoffBoth.Checked ? "Tot Prod" : "Writeoff";//column used to align the summary fields
-				if(checkUnearned.Checked) {//if unearned check, add summaries.
-					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ",columnNameAlign,"Total Pt Income",
-						SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
-				}
-				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ",columnNameAlign,"Total Income",SummaryOperation.Sum,
-					new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,17);
 				if(radioWriteoffBoth.Checked) {
 					query.AddGroupSummaryField("Total Production (Production + Scheduled + Adjustments - Writeoff Ests - Writeoff Adjs): ",
-						columnNameAlign,"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,15);
+						columnNameAlign,"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
 				else {
 					query.AddGroupSummaryField("Total Production (Production + Scheduled + Adjustments - Writeoffs): ",columnNameAlign,
-						"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,15);
+						"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
+				int summaryIncomeOffSetY=summaryOffSetY-5;
+				if(checkUnearned.Checked) {//if unearned check, add summaries.
+					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ",columnNameAlign,"Total Pt Income",
+						SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
+					summaryIncomeOffSetY-=3;
+				}
+				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ",columnNameAlign,"Total Income",SummaryOperation.Sum,
+					new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
 			}
 			report.AddPageNum();
 			// execute query
@@ -1412,6 +1417,7 @@ namespace OpenDental {
 			int unearnedPtIncomeWidth=100;//100px width allows the total row to fit values up to 99,999,999.99
 			int insincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99
 			int totincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99
+			int summaryOffSetY=15;
 			query.AddColumn("Month",datewidth,FieldValueType.String);
 			query.AddColumn("Production",productionwidth,FieldValueType.Number);
 			query.AddColumn("Adjustments",adjwidth,FieldValueType.Number);
@@ -1449,36 +1455,40 @@ namespace OpenDental {
 				}
 				query.AddColumn("Ins Income",insincomewidth,FieldValueType.Number);
 				query.AddColumn("Total Income",totincomewidth,FieldValueType.Number);
-				if(checkUnearned.Checked) {//if unearned check, add summaries.
-					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ","Tot Prod","Total Pt Income",
-						SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,35);
-				}
-				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ","Tot Prod","Total Income",SummaryOperation.Sum,
-					new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,25);
 				if(radioWriteoffBoth.Checked) {
 					query.AddGroupSummaryField("Total Production (Production + Adjustments - Writeoff Ests - Writeoff Adjs): ",
-						"Tot Prod","Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
+						"Tot Prod","Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
 				else {
 					query.AddGroupSummaryField("Total Production (Production + Adjustments - Writeoffs): ","Tot Prod",
-						"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
+						"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
+				int summaryIncomeOffSetY=summaryOffSetY-5;
+				if(checkUnearned.Checked) {//if unearned check, add summaries.
+					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ","Tot Prod","Total Pt Income",
+						SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
+					summaryIncomeOffSetY-=3;
+				}
+				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ","Tot Prod","Total Income",SummaryOperation.Sum,
+					new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
 			}
 			else {
-				if(checkUnearned.Checked) {//if unearned check, add summaries.
-					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ","Tot Prod","Total Pt Income",
-						SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,35);
-				}
-				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ","Tot Prod","Total Income",SummaryOperation.Sum,
-					new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,25);
 				if(radioWriteoffBoth.Checked) {
 					query.AddGroupSummaryField("Total Production (Production + Adjustments - Writeoff Ests - Writeoff Adjs): ",
-						"Tot Prod","Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
+						"Tot Prod","Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
 				else {
 					query.AddGroupSummaryField("Total Production (Production + Adjustments - Writeoffs): ","Tot Prod",
-						"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
+						"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
+				int summaryIncomeOffSetY=summaryOffSetY-5;
+				if(checkUnearned.Checked) {//if unearned check, add summaries.
+					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ","Tot Prod","Total Pt Income",
+						SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
+					summaryIncomeOffSetY-=3;
+				}
+				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ","Tot Prod","Total Income",SummaryOperation.Sum,
+					new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
 			}
 			report.AddPageNum();
 			// execute query
