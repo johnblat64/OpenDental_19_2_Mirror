@@ -598,23 +598,23 @@ namespace OpenDental{
 			}
 			//Patient Account Aging Query-----------------------------------------------
 			QueryObject query=report.AddQuery(tableAging,"Date "+DateTime.Today.ToShortDateString());
-			query.AddColumn((radioGroupByFam.Checked ? "Guarantor" : "Patient"),160,FieldValueType.String);
+			query.AddColumn((radioGroupByFam.Checked ? "Guarantor" : "Patient"),150,FieldValueType.String);
 			if(rpo.IsDetailedBreakdown) {
 				query.AddColumn("Carrier",220,FieldValueType.String);
 				query.AddColumn("Group Name",160,FieldValueType.String);
 			}
 			query.AddColumn("Ins Pay\r\nEst 0-30",75,FieldValueType.Number);
 			query.AddColumn("Ins Pay\r\nEst 31-60",75,FieldValueType.Number);
-			query.AddColumn("Ins Pay\r\nEst 61-90",75,FieldValueType.Number);
+			query.AddColumn("Ins Pay\r\nEst 61-90",70,FieldValueType.Number);
 			query.AddColumn("Ins Pay\r\nEst >90",75,FieldValueType.Number);
 			query.AddColumn("Ins Pay\r\nEst Total", 80,FieldValueType.Number);
 			if(!rpo.IsDetailedBreakdown) {
 				query.AddColumn("Pat Est\r\nBal 0-30",75,FieldValueType.Number);
 				query.AddColumn("Pat Est\r\nBal 31-60",75,FieldValueType.Number);
-				query.AddColumn("Pat Est\r\nBal 61-90",75,FieldValueType.Number);
+				query.AddColumn("Pat Est\r\nBal 61-90",70,FieldValueType.Number);
 				query.AddColumn("Pat Est\r\nBal >90",75,FieldValueType.Number);
 				query.AddColumn("Pat Est\r\nBal Total",80,FieldValueType.Number);
-				query.AddColumn("-W/O\r\nChange",75,FieldValueType.Number);
+				query.AddColumn("-W/O\r\nChange",70,FieldValueType.Number);
 				query.AddColumn("=Pat Est\r\nAmt Due",80,FieldValueType.Number);
 			}
 			report.AddPageNum();
