@@ -14,31 +14,6 @@
   <xs:element name="sendCompleteAttachmentResponse" type="tns:sendCompleteAttachmentResponse" />
   <xs:element name="submitAttachment" type="tns:submitAttachment" />
   <xs:element name="submitAttachmentResponse" type="tns:submitAttachmentResponse" />
-  <xs:complexType name="submitAttachment">
-    <xs:sequence>
-      <xs:element minOccurs="0" form="unqualified" name="Credentials" type="ns1:Credentials" />
-      <xs:element minOccurs="0" form="unqualified" name="AttachmentReference" type="tns:AttachmentReference" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="AttachmentReference">
-    <xs:sequence>
-      <xs:element minOccurs="0" form="unqualified" name="AttachmentID" type="xs:string" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="submitAttachmentResponse">
-    <xs:sequence>
-      <xs:element minOccurs="0" form="unqualified" name="return" type="tns:DeaResponse" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="DeaResponse">
-    <xs:complexContent mixed="false">
-      <xs:extension base="ns1:Response">
-        <xs:sequence>
-          <xs:element name="MsgSuccess" type="xs:boolean" />
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
   <xs:complexType name="sendCompleteAttachment">
     <xs:sequence>
       <xs:element minOccurs="0" form="unqualified" name="Credentials" type="ns1:Credentials" />
@@ -108,6 +83,42 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="DeaResponse">
+    <xs:complexContent mixed="false">
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="MsgSuccess" type="xs:boolean" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AttachmentReference">
+    <xs:sequence>
+      <xs:element minOccurs="0" form="unqualified" name="AttachmentID" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="openAttachment">
+    <xs:sequence>
+      <xs:element minOccurs="0" form="unqualified" name="Credentials" type="ns1:Credentials" />
+      <xs:element minOccurs="0" form="unqualified" name="attachment" type="tns:Attachment" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="openAttachmentResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" form="unqualified" name="return" type="tns:AttachmentReferenceResponse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="submitAttachment">
+    <xs:sequence>
+      <xs:element minOccurs="0" form="unqualified" name="Credentials" type="ns1:Credentials" />
+      <xs:element minOccurs="0" form="unqualified" name="AttachmentReference" type="tns:AttachmentReference" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="submitAttachmentResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" form="unqualified" name="return" type="tns:DeaResponse" />
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="addImage">
     <xs:sequence>
       <xs:element minOccurs="0" form="unqualified" name="Credentials" type="ns1:Credentials" />
@@ -140,6 +151,7 @@
       <xs:extension base="tns:DeaResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="ImageReference" type="tns:ImageReference" />
+          <xs:element minOccurs="0" name="NewSecurityToken" type="xs:string" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -150,25 +162,18 @@
       <xs:element minOccurs="0" name="VendorImageId" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
-  <xs:complexType name="openAttachment">
-    <xs:sequence>
-      <xs:element minOccurs="0" form="unqualified" name="Credentials" type="ns1:Credentials" />
-      <xs:element minOccurs="0" form="unqualified" name="attachment" type="tns:Attachment" />
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="openAttachmentResponse">
-    <xs:sequence>
-      <xs:element minOccurs="0" form="unqualified" name="return" type="tns:AttachmentReferenceResponse" />
-    </xs:sequence>
-  </xs:complexType>
   <xs:simpleType name="imageTypeCode">
     <xs:restriction base="xs:string">
+      <xs:enumeration value="B4" />
+      <xs:enumeration value="DA" />
       <xs:enumeration value="DG" />
       <xs:enumeration value="EB" />
-      <xs:enumeration value="P6" />
-      <xs:enumeration value="B4" />
       <xs:enumeration value="OZ" />
+      <xs:enumeration value="P6" />
       <xs:enumeration value="RB" />
+      <xs:enumeration value="RR" />
+      <xs:enumeration value="XP" />
+      <xs:enumeration value="03" />
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="orientationType">

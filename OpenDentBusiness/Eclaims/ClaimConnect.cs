@@ -727,6 +727,18 @@ namespace OpenDentBusiness.Eclaims {
 			///<summary>5</summary>
 			[Description("X-Rays")]
 			XRays,
+			///<summary>6</summary>
+			[Description("Dental Models")]
+			DentalModels,
+			///<summary>7</summary>
+			[Description("Radiology Reports")]
+			RadiologyReports,
+			///<summary>8</summary>
+			[Description("Intra-Oral Photograph")]
+			IntraOralPhotograph,
+			///<summary>9</summary>
+			[Description("Narrative")]
+			Narrative,
 		}
 
 		///<summary>Helper class that parses out the error messages from the API response object</summary>
@@ -791,8 +803,6 @@ namespace OpenDentBusiness.Eclaims {
 			public DentalxchangePartnerService.AttachmentImage ConvertToAttachmentImage() {
 				DentalxchangePartnerService.AttachmentImage attachImage=new DentalxchangePartnerService.AttachmentImage();
 				switch(ImageType) {
-					//For some reason the documentation has Dental Models(DA) and Radiology Reports(RR) but the API does not.
-					//If we add them in the future they need to be added here.
 					case ImageTypeCode.ReferralForm:
 						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.B4;
 						break;
@@ -807,6 +817,18 @@ namespace OpenDentBusiness.Eclaims {
 						break;
 					case ImageTypeCode.XRays:
 						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.RB;
+						break;
+					case ImageTypeCode.DentalModels:
+						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.DA;
+						break;
+					case ImageTypeCode.RadiologyReports:
+						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.RR;
+						break;
+					case ImageTypeCode.IntraOralPhotograph:
+						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.XP;
+						break;
+					case ImageTypeCode.Narrative:
+						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.Item03;
 						break;
 					//If the image type code is somehow mangled just mark the attachment as 'Other'. This ensures there is always an image type code set.
 					default:

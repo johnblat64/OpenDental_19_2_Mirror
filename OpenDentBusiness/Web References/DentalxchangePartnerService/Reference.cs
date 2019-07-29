@@ -455,22 +455,35 @@ namespace OpenDentBusiness.DentalxchangePartnerService {
     public enum imageTypeCode {
         
         /// <remarks/>
+        B4,
+        
+        /// <remarks/>
+        DA,
+        
+        /// <remarks/>
         DG,
         
         /// <remarks/>
         EB,
         
         /// <remarks/>
-        P6,
-        
-        /// <remarks/>
-        B4,
-        
-        /// <remarks/>
         OZ,
         
         /// <remarks/>
+        P6,
+        
+        /// <remarks/>
         RB,
+        
+        /// <remarks/>
+        RR,
+        
+        /// <remarks/>
+        XP,
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("03")]
+        Item03,
     }
     
     /// <remarks/>
@@ -661,6 +674,8 @@ namespace OpenDentBusiness.DentalxchangePartnerService {
         
         private ImageReference imageReferenceField;
         
+        private string newSecurityTokenField;
+        
         /// <remarks/>
         public ImageReference ImageReference {
             get {
@@ -668,6 +683,16 @@ namespace OpenDentBusiness.DentalxchangePartnerService {
             }
             set {
                 this.imageReferenceField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string NewSecurityToken {
+            get {
+                return this.newSecurityTokenField;
+            }
+            set {
+                this.newSecurityTokenField = value;
             }
         }
     }
