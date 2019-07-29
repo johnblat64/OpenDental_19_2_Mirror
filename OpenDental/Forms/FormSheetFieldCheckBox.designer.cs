@@ -65,7 +65,7 @@ namespace OpenDental{
             // 
             this.textXPos.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.textXPos.Location = new System.Drawing.Point(456, 9);
-            this.textXPos.MaxVal = 2000;
+            this.textXPos.MaxVal = 9999999;
             this.textXPos.MinVal = -100;
             this.textXPos.Size = new System.Drawing.Size(69, 20);
             // 
@@ -73,7 +73,7 @@ namespace OpenDental{
             // 
             this.textYPos.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.textYPos.Location = new System.Drawing.Point(592, 9);
-            this.textYPos.MaxVal = 2000;
+            this.textYPos.MaxVal = 9999999;
             this.textYPos.MinVal = -100;
             this.textYPos.Size = new System.Drawing.Size(69, 20);
             this.textYPos.TabIndex = 1;
