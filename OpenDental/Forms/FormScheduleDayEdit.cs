@@ -906,16 +906,17 @@ namespace OpenDental{
 		}
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
+			Schedule selectedSchedule=(Schedule)gridMain.Rows[e.Row].Tag;
+			if(selectedSchedule==null) {
+				return;//nothing to do
+			}
 			FormScheduleEdit FormS=new FormScheduleEdit();
-			FormS.ListScheds=new List<Schedule>();
-			Schedule selectedSchedule=gridMain.SelectedTag<Schedule>();
 			//Remove clicked on date so that it does not cause itself to be blocked if holiday.
 			FormS.ListScheds=_listScheds.FindAll(x => x!=selectedSchedule)
 				.Select(x => x.Copy()).ToList();//Deep copy for safety
 			FormS.SchedCur=selectedSchedule;
 			FormS.SchedCur.IsNew=false;
 			FormS.ClinicNum=_selectedClinicNum;
-			FormS.ListScheds=_listScheds;
 			FormS.ListProvNums=new List<long>();
 			if(selectedSchedule.ProvNum>0) {//Don't look for conflicts against a schedule with no provider.
 				FormS.ListProvNums.Add(selectedSchedule.ProvNum);
