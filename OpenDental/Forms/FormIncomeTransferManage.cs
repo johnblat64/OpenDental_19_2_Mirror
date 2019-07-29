@@ -22,6 +22,7 @@ namespace OpenDental {
 		///<summary>A dictionary or patients that we may need to reference to fill the grids to eliminate unnecessary calls to the DB.
 		///Should contain all patients in the current family along with any patients of payment plans of which a member of this family is the guarantor.</summary>
 		private Dictionary<long,Patient> _dictPatients;
+		private bool _hasInvalidProcWithPayplan;
 
 		public FormIncomeTransferManage(Family famCur,Patient patCur,Payment payCur) {
 			_famCur=famCur;
@@ -508,6 +509,9 @@ namespace OpenDental {
 			if(hasInvalidSplits) {
 				MsgBox.Show(this,"Due to Rigorous Accounting, one or more invalid transactions have been cancelled.  Please fix those manually.");
 			}
+			else if(_hasInvalidProcWithPayplan) {
+				MsgBox.Show(this,"One or more over allocated paysplit was not able to be reversed.");
+			}
 		}
 
 		///<summary>Creates and links paysplits with micro-allocations based on the charges passed in.  
@@ -654,6 +658,7 @@ namespace OpenDental {
 		private List<AccountEntry> TransferUnearnedHelper(AccountEntry positiveCharge,long paymentNumCur,List<AccountEntry> listEntriesForPat) {
 			//Special case where unearned has been over allocated. 
 			//Negative charge (split) masquarading around as a positve split becasuse it was overallocated. 
+			_hasInvalidProcWithPayplan=false;
 			List<AccountEntry> listPositiveChargeAdditions=new List<AccountEntry>();
 			decimal amountOverallocated=Math.Abs(positiveCharge.AmountOriginal+positiveCharge.AmountEnd);
 			PaySplit negSplit=new PaySplit();
@@ -676,12 +681,18 @@ namespace OpenDental {
 					if(amountOverallocated.IsEqual(0)) {
 						break;
 					}
-					if(allocated.ProcNum!=0) {
+					if(allocated.ProcNum!=0 && allocated.PayPlanNum==0) {
 						//find charge from list to money can be correctly taken away from the production that previously had been attached to overallocation
 						productionEntry=listEntriesForPat.FirstOrDefault(x => x.PriKey==allocated.ProcNum);
 					}
 					else if(allocated.AdjNum!=0) {
 						productionEntry=listEntriesForPat.FirstOrDefault(x => x.PriKey==allocated.AdjNum);
+					}
+					else {
+						//if it was not previously explicitly attached to a procedure (that was not on a payment plan) or a positive adjustment, we do
+						//not want to handle it at this point in time. 
+						_hasInvalidProcWithPayplan=true;
+						return listPositiveChargeAdditions;
 					}
 					//reverse the split up to the amount overallocated
 					decimal reverseAmt=Math.Min(amountOverallocated,(decimal)allocated.SplitAmt);
