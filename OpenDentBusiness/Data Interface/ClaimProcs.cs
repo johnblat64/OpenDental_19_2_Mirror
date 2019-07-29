@@ -1171,7 +1171,9 @@ namespace OpenDentBusiness{
 				if(cp.CopayAmt==-1) {
 					cp.CopayAmt=0;
 				}
-				if(InsPlans.UsesUcrFeeForExclusions(plan) && Benefits.IsExcluded(ProcedureCodes.GetStringProcCode(codeNum),benList,plan.PlanNum,patPlanNum)) {
+				if(InsPlans.UsesUcrFeeForExclusions(plan) && (Benefits.IsExcluded(ProcedureCodes.GetStringProcCode(codeNum),benList,plan.PlanNum,patPlanNum)
+					|| Benefits.GetPercent(ProcedureCodes.GetStringProcCode(codeNum),plan.PlanType,plan.PlanNum,patPlanNum,benList)==0)) 
+				{
 					cp.WriteOffEst=0;//Never any writeoff for excluded procedures in this case.
 				}
 				else if(cp.CopayOverride != -1) {//override the copay
@@ -1358,7 +1360,9 @@ namespace OpenDentBusiness{
 			}
 			//procDate;//was already calculated in the deductible section.
 			//Writeoff Estimate------------------------------------------------------------------------------------------
-			if(InsPlans.UsesUcrFeeForExclusions(plan) && Benefits.IsExcluded(ProcedureCodes.GetStringProcCode(codeNum),benList,plan.PlanNum,patPlanNum)) {
+			if(InsPlans.UsesUcrFeeForExclusions(plan) && (Benefits.IsExcluded(ProcedureCodes.GetStringProcCode(codeNum),benList,plan.PlanNum,patPlanNum)
+				|| Benefits.GetPercent(ProcedureCodes.GetStringProcCode(codeNum),plan.PlanType,plan.PlanNum,patPlanNum,benList)==0)) 
+			{
 				switch(plan.PlanType) {
 					case "p":
 						cp.WriteOffEst=0;

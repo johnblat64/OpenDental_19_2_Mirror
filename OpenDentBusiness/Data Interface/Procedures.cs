@@ -1365,7 +1365,10 @@ namespace OpenDentBusiness {
 				if(listBenefits==null) {
 					listBenefits=Benefits.RefreshForPlan(priInsPlan.PlanNum,priPatPlan.PatPlanNum);
 				}
-				if(Benefits.IsExcluded(ProcedureCodes.GetStringProcCode(procCodeNum),listBenefits,priInsPlan.PlanNum,priPatPlan.PatPlanNum)) {
+				if(Benefits.IsExcluded(ProcedureCodes.GetStringProcCode(procCodeNum),listBenefits,priInsPlan.PlanNum,priPatPlan.PatPlanNum)
+					|| Benefits.GetPercent(ProcedureCodes.GetStringProcCode(procCodeNum),priInsPlan.PlanType,priInsPlan.PlanNum,priPatPlan.PatPlanNum,
+							listBenefits)==0) 
+				{
 					//Get the fee from the provider's fee schedule (ucr fee)
 					procFeeRet=Fees.GetAmount0(procCodeNum,Providers.GetProv(Patients.GetProvNum(pat)).FeeSched,procClinicNum,procProvNum,listFees);
 				}
