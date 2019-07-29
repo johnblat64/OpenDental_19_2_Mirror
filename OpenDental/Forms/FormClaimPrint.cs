@@ -1068,6 +1068,9 @@ namespace OpenDental{
 						else if(PatCur.Gender==PatientGender.Female) {
 							displayStrings[i]="Female";
 						}
+						else {//Unknown
+							displayStrings[i]="Unknown";
+						}
 						break;
 					case "PatientGenderLetter":
 						if(PatCur.Gender==PatientGender.Male) {
