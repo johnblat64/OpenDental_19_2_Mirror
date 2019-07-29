@@ -1942,7 +1942,7 @@ namespace OpenDental{
 			if(HasErrors()) {
 				return;
 			}
-			SaveData();
+			SaveData(true);
 			if(PrefC.GetBool(PrefName.PayPlansUseSheets)) {
 				Sheet sheetPP=null;
 				sheetPP=PayPlanToSheet(_payPlanCur);
@@ -2516,7 +2516,7 @@ namespace OpenDental{
 		}
 
 		///<summary></summary>
-		private void SaveData() {
+		private void SaveData(bool isPrinting=false) {
 			if(textAPR.Text=="") {
 				textAPR.Text="0";
 			}
@@ -2568,7 +2568,7 @@ namespace OpenDental{
 				return;
 			}
 			PayPlans.Update(_payPlanCur);//always saved to db before opening this form
-			MakeSecLogEntries();
+			MakeSecLogEntries(isPrinting);
 			foreach(PayPlanCharge charge in _listPayPlanCharges) {
 				charge.ClinicNum=_selectedClinicNum;
 				charge.ProvNum=_selectedProvNum;
@@ -2577,9 +2577,12 @@ namespace OpenDental{
 		}
 
 		///<summary>Changes to the database are all made when the form is closed, so all securitylog entries have been consolidated into this one method.</summary>
-		private void MakeSecLogEntries() {
-			//logs creating, closing out, deleting, signing, and printing of payment plan.
+		private void MakeSecLogEntries(bool isPrinting=false) {
+			//logs creating, closing out, deleting, and signing of payment plan.
 			//deleted logs are in butDelete_click since that method doesn't call SaveData.
+			if(isPrinting) {// Don't make log entry if the print button was clicked.
+				return;
+			}
 			//new
 			if(IsNew) {
 				SecurityLogs.MakeLogEntry(Permissions.PayPlanEdit,PatCur.PatNum,
