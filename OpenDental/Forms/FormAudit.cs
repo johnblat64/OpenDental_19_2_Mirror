@@ -511,7 +511,7 @@ namespace OpenDental{
 				row.Cells.Add(logCur.LogDateTime.ToShortTimeString());
 				row.Cells.Add(logCur.PatientName);
 				//user might be null due to old bugs.
-				row.Cells.Add(Userods.GetUser(logCur.UserNum)?.UserName??"unknown");
+				row.Cells.Add(Userods.GetUser(logCur.UserNum)?.UserName??(Lan.g(this,"Unknown")+"("+POut.Long(logCur.UserNum)+")"));
 				if(logCur.PermType==Permissions.ChartModule) {
 					row.Cells.Add("ChartModuleViewed");
 				}
