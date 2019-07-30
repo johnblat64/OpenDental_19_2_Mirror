@@ -773,28 +773,18 @@ namespace OpenDental{
 			}
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
-			int colW;
-			if(checkWeekend.CheckState==CheckState.Indeterminate) {
-				colW=(gridMain.Width-20);
-			}
-			else if(checkWeekend.Checked){
-				colW=(gridMain.Width-20)/7;
-			}
-			else{
-				colW=(gridMain.Width-20)/5;
-			}
 			if(checkWeekend.Checked && checkWeekend.CheckState!=CheckState.Indeterminate) {
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Sunday"),colW));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Sunday"),0));
 			}
 			if(checkWeekend.CheckState!=CheckState.Indeterminate) {
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Monday"),colW));
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Tuesday"),colW));
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Wednesday"),colW));
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Thursday"),colW));
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Friday"),colW));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Monday"),0));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Tuesday"),0));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Wednesday"),0));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Thursday"),0));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Friday"),0));
 			}
 			if(checkWeekend.Checked){
-				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Saturday"),colW));
+				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableSchedule","Saturday"),0));
 			}
 			gridMain.Rows.Clear();
 			ODGridRow row;
@@ -821,6 +811,10 @@ namespace OpenDental{
 			_fromDateCur=PIn.Date(textDateFrom.Text);
 			_toDateCur=PIn.Date(textDateTo.Text);
 			//Set today red
+			int rowIndexTodaysDate=Schedules.GetRowCal(PIn.Date(textDateFrom.Text),DateTime.Today);
+			if(rowIndexTodaysDate>=gridMain.Rows.Count) {
+				return;//User must have a date range in the UI that extends past todays date but...
+			}
 			if(!checkWeekend.Checked && (DateTime.Today.DayOfWeek==DayOfWeek.Sunday || DateTime.Today.DayOfWeek==DayOfWeek.Saturday)){
 				return;
 			}
@@ -834,7 +828,7 @@ namespace OpenDental{
 			if(!checkWeekend.Checked){
 				colI--;
 			}
-			gridMain.Rows[Schedules.GetRowCal(PIn.Date(textDateFrom.Text),DateTime.Today)].Cells[colI].ColorText=Color.Red;
+			gridMain.Rows[rowIndexTodaysDate].Cells[colI].ColorText=Color.Red;
 			if(_clickedCell!=null //when first opening form
 				&& _clickedCell.Y>-1 
 				&& _clickedCell.Y< gridMain.Rows.Count
