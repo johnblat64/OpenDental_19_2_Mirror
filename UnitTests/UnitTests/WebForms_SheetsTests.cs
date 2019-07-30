@@ -53,7 +53,9 @@ namespace UnitTests.WebForms_Sheets_Tests {
 			//These are currently unsupported cultures.  No customers currently have their webformspreference.CultureName set to these.
 			List<string> listUnsupportedCultureNames=new List<string>() {
 				"ar","ar-SA","fa","fa-IR","ku-Arab-IR","lrc","lrc-IR","mzn","mzn-IR","prs","prs-AF","ps","ps-AF","th","th-TH","uz-Arab","uz-Arab-AF" };
-			foreach(CultureInfo culture in CultureInfo.GetCultures(CultureTypes.AllCultures).Where(x => !x.Name.In(listUnsupportedCultureNames))) {
+			foreach(CultureInfo culture in CultureInfo.GetCultures(CultureTypes.AllCultures)
+				.Where(x => !x.Name.In(listUnsupportedCultureNames) && !string.IsNullOrWhiteSpace(x.Name)))
+			{
 				DateTime dateExpected=new DateTime(2019,12,31);//Use a date that would cause problems if MM and d are mismatched.
 				string format=GetDateFormatLikeWebFormsDb(culture.Name,out string delimiterWeb);//The format WebForms will use, and its delimiter.
 				foreach(string delimiter in new string[] { ".","/","\\"," ","-","random nonsense"}) {
