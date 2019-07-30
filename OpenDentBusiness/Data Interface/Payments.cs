@@ -288,7 +288,8 @@ namespace OpenDentBusiness{
 		#endregion
 
 		#region Delete
-		///<summary>Deletes the payment as well as all splits.  Surround by try catch, because it will throw an exception if trying to delete a payment attached to a deposit.</summary>
+		///<summary>Deletes the payment as well as all splits.
+		///Surround with try catch, throws an exception if trying to delete a payment attached to a deposit.</summary>
 		public static void Delete(Payment pay){
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),pay);
@@ -302,21 +303,15 @@ namespace OpenDentBusiness{
 			if(table.Rows[0]["DepositNum"].ToString()!="0"//if payment is already attached to a deposit
 				&& PIn.Double(table.Rows[0]["PayAmt"].ToString())!=0)//and it's not new
 			{
-				#if !DEBUG
 				throw new ApplicationException(Lans.g("Payments","Not allowed to delete a payment attached to a deposit."));
-				#endif
 			}
-			command= "DELETE from payment WHERE payNum = '"+pay.PayNum.ToString()+"'";
+			command= "DELETE from payment WHERE PayNum = "+POut.Long(pay.PayNum);
  			Db.NonQ(command);
 			//this needs to be improved to handle EstBal
-			command= "DELETE from paysplit WHERE payNum = '"+pay.PayNum.ToString()+"'";
+			command= "DELETE from paysplit WHERE PayNum = "+POut.Long(pay.PayNum);
 			Db.NonQ(command);
-			command="UPDATE recurringcharge SET PayNum=0 WHERE PayNum="+POut.Long(pay.PayNum)+"";
+			command="UPDATE recurringcharge SET PayNum=0 WHERE PayNum="+POut.Long(pay.PayNum);
 			Db.NonQ(command);
-			//PaySplit[] splitList=PaySplits.RefreshPaymentList(PayNum);
-			//for(int i=0;i<splitList.Length;i++){
-			//	splitList[i].Delete();
-			//}
 		}
 		#endregion
 

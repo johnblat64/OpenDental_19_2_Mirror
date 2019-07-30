@@ -4841,7 +4841,14 @@ namespace OpenDental {
 				return;
 			}
 			if(!_wasCreditCardSuccessful) {//new payment that was not a credit card payment that has already been processed
-				Payments.Delete(_paymentCur);
+				try {
+					Payments.Delete(_paymentCur);
+				}
+				catch(ApplicationException ex) {
+					MsgBox.Show(ex.Message);
+					e.Cancel=true;//they must either OK the payment and complete, or go back and detach the deposit that was just made. 
+					return;
+				}
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
