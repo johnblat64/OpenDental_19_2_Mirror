@@ -12,6 +12,7 @@ namespace OpenDental{
 ///<summary></summary>
 	public partial class FormRpHiddenPaySplits : ODForm {
 		private List<Provider> _listProviders;
+		///<summary>List of all clinics the current user has access to, can include Unassigned/0 clinic.</summary>
 		private List<Clinic> _listClinics;
 		private List<Def> _listUnearnedTypes;
 
@@ -30,10 +31,7 @@ namespace OpenDental{
 				checkAllClinics.Checked=true;
 				listBoxClinic.Visible=true;
 				listBoxClinic.SelectedIndices.Clear();
-				_listClinics=Clinics.GetForUserod(Security.CurUser);
-				if(!Security.CurUser.ClinicIsRestricted) {
-					listBoxClinic.Items.Add(new ODBoxItem<Clinic>("Unassigned",new Clinic{ClinicNum=0}));
-				}
+				_listClinics=Clinics.GetForUserod(Security.CurUser,(!Security.CurUser.ClinicIsRestricted),"Unassigned");
 				foreach(Clinic clinic in _listClinics) {
 					ODBoxItem<Clinic> boxClinic=new ODBoxItem<Clinic>(clinic.Abbr,clinic);
 					listBoxClinic.Items.Add(boxClinic);
@@ -114,7 +112,7 @@ namespace OpenDental{
 			}
 			if(PrefC.HasClinicsEnabled && checkAllClinics.Checked) {
 				subtitleClinics="All Clinics";
-				listClinicNums=_listClinics.Select(x => x.ClinicNum).ToList();
+				listClinicNums=listBoxClinic.AllTags<Clinic>().Select(x => x.ClinicNum).ToList();
 			}
 			else if(PrefC.HasClinicsEnabled && !checkAllClinics.Checked) {
 				subtitleClinics=string.Join(", ",listBoxClinic.SelectedTags<Clinic>().Select(x => x.Abbr).ToList());
