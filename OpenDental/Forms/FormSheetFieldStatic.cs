@@ -59,6 +59,8 @@ namespace OpenDental {
 
 		private void FillFields(){
 			string[] fieldArray=Enum.GetValues(typeof(StaticTextField)).Cast<StaticTextField>().Where(x => !x.IsStaticTextFieldObsolete())
+				//Not including patientPortalCredentials because simply viewing the dashboard would create a username and password for the patient
+				.Where(x => !(SheetDefs.IsDashboardType(_sheetDefCur) && x==StaticTextField.patientPortalCredentials))
 				.Select(x => x.GetDescription()).ToArray();
 			listFields.Items.Clear();
 			for(int i=0;i<fieldArray.Length;i++){
@@ -155,6 +157,12 @@ namespace OpenDental {
 			float fontSize=(float)numFontSize.Value;
 			if(fontSize<2){
 				MsgBox.Show(this,"Font size is invalid.");
+				return;
+			}
+			if(SheetDefs.IsDashboardType(_sheetDefCur) 
+				&& textFieldValue.Text.ToLower().Contains($"[{StaticTextField.patientPortalCredentials.ToString().ToLower()}]")) 
+			{
+				MsgBox.Show(this,"The [patientPortalCredentials] tag is not allowed in Dashboards.");
 				return;
 			}
 			SheetFieldDefCur.FieldValue=textFieldValue.Text;
