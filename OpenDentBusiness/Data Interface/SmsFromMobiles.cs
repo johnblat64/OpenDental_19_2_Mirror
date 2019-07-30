@@ -166,7 +166,7 @@ namespace OpenDentBusiness{
 				listCommandFilters.Add($"PatNum = {POut.Long(patNum)}");
 			}
 			if(!string.IsNullOrEmpty(phoneNumber)) {
-				listCommandFilters.Add($"MobilePhoneNumber = {phoneNumber}");
+				listCommandFilters.Add($"MobilePhoneNumber='{POut.String(phoneNumber)}'");
 			}
 			if(!isMessageThread) { //Always show unread in the grid.
 				statusFilters.Add(SmsFromStatus.ReceivedUnread);
