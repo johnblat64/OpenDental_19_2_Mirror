@@ -252,20 +252,24 @@ namespace OpenDentBusiness{
 
 		///<summary>Follows the format of the Recall addrTable, used in the RecallList to duplicate functionality for mailing/emailing patients.</summary>
 		public static DataTable GetAddrTable(List<Patient> listPats,List<Patient> listGuars,bool groupFamilies,ReactivationListSort sortBy) {
-			//Get the addresses for the patients
 			DataTable table=Recalls.GetAddrTableStructure();
-			foreach(Patient patCur in listPats) {
-				Patient guarCur=listGuars.First(x => x.PatNum==patCur.Guarantor);
+			List<Patient> listPatsOrGuars=listPats;//Default to the list of patients passed in.
+			//Utilize listGuars if groupFamilies is true so that family members do not get their own row.
+			if(groupFamilies) {
+				//This makes it so that we only return one family address even if the user has passed in every single member of the family.
+				listPatsOrGuars=listGuars.FindAll(x => x.PatNum.In(listPats.Select(y => y.Guarantor)));
+			}
+			foreach(Patient patCur in listPatsOrGuars) {
 				List<string> listPatNames=Patients.GetFamily(patCur.PatNum).ListPats.Select(pat => pat.FName).ToList();
 				DataRow row=table.NewRow();
 				row["address"]						=patCur.Address+(!string.IsNullOrWhiteSpace(patCur.Address2)?Environment.NewLine+patCur.Address2:"");
 				row["City"]								=patCur.City;
-				row["clinicNum"]					=groupFamilies?guarCur.ClinicNum:patCur.ClinicNum;
+				row["clinicNum"]					=patCur.ClinicNum;
 				row["dateDue"]						=DateTime.MinValue;//This isn't used for reactivations, but it's here keep the table the same as recall addrTable
-				row["email"]							=groupFamilies?guarCur.Email:patCur.Email;
-				row["emailPatNum"]				=groupFamilies?guarCur.PatNum:patCur.PatNum;
+				row["email"]							=patCur.Email;
+				row["emailPatNum"]				=patCur.PatNum;
 				row["famList"]						=listPatNames.Count>1 ? string.Join(",",listPatNames) : "";
-				row["guarLName"]					=groupFamilies?guarCur.LName:patCur.LName;
+				row["guarLName"]					=patCur.LName;
 				row["numberOfReminders"]	=Reactivations.GetNumReminders(patCur.PatNum);
 				row["patientNameF"]				=patCur.GetNameFirstOrPreferred();
 				row["patientNameFL"]			=patCur.GetNameFLnoPref();
