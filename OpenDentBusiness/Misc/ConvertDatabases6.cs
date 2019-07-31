@@ -1423,51 +1423,52 @@ namespace OpenDentBusiness {
 		}//End of 19_2_1() method
 
 		private static void To19_2_1_LargeTableScripts() {
-			string command;
 			//We want it to be the last thing done so that if it fails for a large customer and we have to manually finish the update script we will only
 			//have to verify that these large table scripts have run.
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - claimproc table structure");//No translation in convert script.
 			//If adding an index with the same name as an existing index, but with different column(s), the existing index will be dropped before adding the
 			//new one.  If an index exists that has the same column(s) as an index being added, the index won't be added again regardless of the index names
 			LargeTableHelper.AlterLargeTable("claimproc","ClaimProcNum",null,
-				new List<Tuple<string,string>> { Tuple.Create("ClaimNum,ClaimPaymentNum,InsPayAmt,DateCP","indexOutClaimCovering"),
-					Tuple.Create("Status,PatNum,DateCP,PayPlanNum,InsPayAmt,WriteOff,InsPayEst,ProcDate,ProcNum","indexAgingCovering") });
+				new List<Tuple<string,string>> {
+					Tuple.Create("ClaimNum,ClaimPaymentNum,InsPayAmt,DateCP","indexOutClaimCovering"),
+					Tuple.Create("Status,PatNum,DateCP,PayPlanNum,InsPayAmt,WriteOff,InsPayEst,ProcDate,ProcNum","indexAgingCovering")
+				});
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - securitylog table structure");//No translation in convert script.
 			LargeTableHelper.AlterLargeTable("securitylog","SecurityLogNum",null,
 				new List<Tuple<string, string>> { Tuple.Create("PermType","") });//no need to send index name. only adds index if not exists
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - benefit table structure");//No translation in convert script.
-			LargeTableHelper.AlterLargeTable("benefit","BenefitNum",new List<Tuple<string,string>> { Tuple.Create("SecDateTEntry","datetime NOT NULL DEFAULT '0001-01-01 00:00:00'"),
-				Tuple.Create("SecDateTEdit","timestamp") },new List<Tuple<string,string>> { Tuple.Create("SecDateTEntry",""),Tuple.Create("SecDateTEdit","") });//no need to send index name
+			LargeTableHelper.AlterLargeTable("benefit","BenefitNum",
+				new List<Tuple<string,string>> {
+					Tuple.Create("SecDateTEntry","datetime NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+					Tuple.Create("SecDateTEdit","timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+				},
+				new List<Tuple<string,string>> { Tuple.Create("SecDateTEntry",""),Tuple.Create("SecDateTEdit","") });//no need to send index name
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - insverify table structure");//No translation in convert script.
-			LargeTableHelper.AlterLargeTable("insverify","InsVerifyNum",new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp") },
+			LargeTableHelper.AlterLargeTable("insverify","InsVerifyNum",
+				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") },
 				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","") });//no need to send index name
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - insverifyhist table structure");//No translation in convert script.
-			LargeTableHelper.AlterLargeTable("insverifyhist","InsVerifyHistNum",new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp") },
+			LargeTableHelper.AlterLargeTable("insverifyhist","InsVerifyHistNum",
+				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") },
 				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","") });//no need to send index name
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - patientnote table structure");//No translation in convert script.
-			LargeTableHelper.AlterLargeTable("patientnote","PatNum",new List<Tuple<string,string>> { Tuple.Create("SecDateTEntry","datetime NOT NULL DEFAULT '0001-01-01 00:00:00'"),
-				Tuple.Create("SecDateTEdit","timestamp") },new List<Tuple<string,string>> { Tuple.Create("SecDateTEntry",""),Tuple.Create("SecDateTEdit","") });//no need to send index name
+			LargeTableHelper.AlterLargeTable("patientnote","PatNum",
+				new List<Tuple<string,string>> {
+					Tuple.Create("SecDateTEntry","datetime NOT NULL DEFAULT '0001-01-01 00:00:00'"),
+					Tuple.Create("SecDateTEdit","timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+				},
+				new List<Tuple<string,string>> { Tuple.Create("SecDateTEntry",""),Tuple.Create("SecDateTEdit","") });//no need to send index name
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - task table structure");//No translation in convert script.
-			LargeTableHelper.AlterLargeTable("task","TaskNum",new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp") },
+			LargeTableHelper.AlterLargeTable("task","TaskNum",
+				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") },
 				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","") });//no need to send index name
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - taskhist table structure");//No translation in convert script.
-			LargeTableHelper.AlterLargeTable("taskhist","TaskHistNum",new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp") },
+			LargeTableHelper.AlterLargeTable("taskhist","TaskHistNum",
+				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") },
 				new List<Tuple<string,string>> { Tuple.Create("SecDateTEdit","") });//no need to send index name
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - procedurelog table structure");//No translation in convert script.
 			LargeTableHelper.AlterLargeTable("procedurelog","ProcNum",new List<Tuple<string,string>>{ Tuple.Create("Urgency","tinyint NOT NULL") });
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1");//No translation in convert script.
-			command="UPDATE benefit SET SecDateTEdit = NOW()";
-			Db.NonQ(command);
-			command="UPDATE insverify SET SecDateTEdit = NOW()";
-			Db.NonQ(command);
-			command="UPDATE insverifyhist SET SecDateTEdit = NOW()";
-			Db.NonQ(command);
-			command="UPDATE patientnote SET SecDateTEdit = NOW()";
-			Db.NonQ(command);
-			command="UPDATE task SET SecDateTEdit = NOW()";
-			Db.NonQ(command);
-			command="UPDATE taskhist SET SecDateTEdit = NOW()";
-			Db.NonQ(command);
 		}
 
 		private static void To19_2_2() {

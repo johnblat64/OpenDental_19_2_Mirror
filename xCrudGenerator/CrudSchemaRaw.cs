@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace xCrudGenerator {
@@ -32,19 +33,15 @@ namespace xCrudGenerator {
 			strb.Append(rn+tb+"command=@\"");
 			sbCommand.Append("CREATE TABLE "+tableName+" (");
 			for(int i=0;i<cols.Count;i++) {
-				sbCommand.Append(rn+tb+t1+cols[i].ColumnName+" "+GetMySqlType(cols[i]));
-				if(GetMySqlType(cols[i]) != "timestamp"){
-					sbCommand.Append(" NOT NULL");
-				}
-				if(GetMySqlBlankData(cols[i])!="\"\"" && GetMySqlBlankData(cols[i])!="0" && GetMySqlType(cols[i])!="timestamp"){
-					sbCommand.Append(" DEFAULT "+GetMySqlBlankData(cols[i]));
+				sbCommand.Append(rn+tb+t1+cols[i].ColumnName+" "+GetMySqlType(cols[i])+" NOT NULL");
+				if(!GetMySqlBlankData(cols[i]).In("\"\"","0")){
+					sbCommand.Append(" DEFAULT "+GetMySqlBlankData(cols[i])+(GetMySqlType(cols[i])=="timestamp"?" ON UPDATE CURRENT_TIMESTAMP":""));
 				}
 				if(i==0 && !isMobile){
 					sbCommand.Append(" auto_increment PRIMARY KEY");
-					//indexes.Add(cols[i]);//oracle needs to be changed to handle the primary key
 				}
 				else if(cols[i].DataType==OdDbType.Long) {//All bigints are assumed to be either keys or foreign keys.
-					indexes.Add(cols[i]);//for oracle
+					indexes.Add(cols[i]);
 				}
 				if(i<cols.Count-1) {
 					sbCommand.Append(",");
@@ -60,54 +57,6 @@ namespace xCrudGenerator {
 			}
 			strb.Append(sbCommand+"\";");
 			strb.Append(rn+tb+"Db.NonQ(command);");
-			//for(int i=0;i<indexes.Count;i++) {
-			//	strb.Append(rn+tb+t1+"command=@\"ALTER TABLE "+tableName+" ADD INDEX ("+indexes[i].ColumnName+")\";");
-			//	strb.Append(rn+tb+t1+"Db.NonQ(command);");
-			//}
-			//strb.Append(rn+tb+"}");
-			//if(isMobile) {
-			//	return strb.ToString();//no oracle
-			//}
-			#endregion
-			#region Oracle Removed
-//			strb.Append(rn+tb+"else {//oracle");
-//			strb.Append(rn+tb+t1+"command=\"BEGIN EXECUTE IMMEDIATE 'DROP TABLE "+tableName+"'; EXCEPTION WHEN OTHERS THEN NULL; END;\";");//Equivalent to "drop table if exists <table>"
-//			strb.Append(rn+tb+t1+"Db.NonQ(command);");
-//			strb.Append(rn+tb+t1+"command=@\"CREATE TABLE "+tableName+" (");
-//			for(int i=0;i<cols.Count;i++) {
-//				string tempData = GetOracleBlankData(cols[i]);//to save calls to the function, and shorten the following line of code.
-//				strb.Append(rn+tb+t2+cols[i].ColumnName+" "+GetOracleType(cols[i])+(tempData==null?"":(tempData=="0"?" NOT NULL":" DEFAULT "+tempData+" NOT NULL"))+",");
-////        Columns are added to index from the MySQL section above. Technically the same columns should have indexes in MySql and Oracle.
-////				if(cols[i].DataType==OdDbType.Long) {//all OdDbType.Long columns are assumed to be either keys or foreign keys.
-////					indexes.Add(cols[i]);
-////				}
-//			}
-//			string constraint=tableName+"_"+cols[0].ColumnName;
-//			strb.Append(rn+tb+t2+"CONSTRAINT "+constraint.Substring(0,Math.Min(30,constraint.Length))+" PRIMARY KEY ("+cols[0].ColumnName+")");
-//			strb.Append(rn+tb+t2+")\";");
-//			strb.Append(rn+tb+t1+"Db.NonQ(command);");
-//			////Generate timestamp triggers if they need to be created.
-//			//for(int i=0;i<cols.Count;i++) {//check for timestamp columns
-//			//  if(cols[i].DataType == OdDbType.DateTimeStamp) {
-//			//    strb.Append(rn+tb+t1+"command=@\"CREATE OR REPLACE TRIGGER "+tableName+"_timestamp");
-//			//    strb.Append(rn+tb+t1+"           BEFORE UPDATE ON "+tableName);
-//			//    strb.Append(rn+tb+t1+"           FOR EACH ROW");
-//			//    strb.Append(rn+tb+t1+"           BEGIN");
-//			//    for(int j=0;j<cols.Count;j++) {//Each column in the table must be set up to change timestamp when changed
-//			//      strb.Append(rn+tb+t2+"           IF :OLD."+cols[j].ColumnName+" <> :NEW."+cols[j].ColumnName+" THEN");
-//			//      strb.Append(rn+tb+t2+"           :NEW."+cols[i].ColumnName+" := SYSDATE;");
-//			//      strb.Append(rn+tb+t2+"           END IF");
-//			//    }
-//			//    strb.Append(rn+tb+t1+"           END "+tableName+"_timestamp;\";");
-//			//    strb.Append(rn+tb+t1+"Db.NonQ(command);");
-//			//  }
-//			//}
-//			for(int i=0;i<indexes.Count;i++) {//Generate Triggers if need be
-//				string indexName=tableName+"_"+indexes[i].ColumnName;
-//				strb.Append(rn+tb+t1+"command=@\"CREATE INDEX "+indexName.Substring(0,Math.Min(30,indexName.Length))+" ON "+tableName+" ("+indexes[i].ColumnName+")\";");
-//				strb.Append(rn+tb+t1+"Db.NonQ(command);");
-//			}
-//			strb.Append(rn+tb+"}");
 			#endregion
 			return strb.ToString();
 		}
@@ -120,21 +69,14 @@ namespace xCrudGenerator {
 		///<param name="tableType">The type of the C# table object.</param>
 		public static string AddColumnEnd(string tableName,DbSchemaCol col,int tabInset,bool doRunQuery,Type tableType) {
 			StringBuilder strb=new StringBuilder();
-			string command;
 			tb=new string('\t',tabInset);//Reset this variable everytime as it is static.
-			string defaultVal="";
-			switch(col.DataType) {
-				case OdDbType.Date:
-					defaultVal=" DEFAULT '0001-01-01'";
-					break;
-				case OdDbType.DateTime:
-					defaultVal=" DEFAULT '0001-01-01 00:00:00'";
-					break;
-			}
-			//columnDefs specifies the type of the column, if it is null or not, and its default value. E.g. "tinyint NOT NULL 1"
-			string columnDefs=GetMySqlType(col)+(col.DataType==OdDbType.DateTimeStamp ? "" : " NOT NULL")+defaultVal;
 			//Generate the MySQL query and run it if necessary.
-			command="ALTER TABLE "+tableName+" ADD "+col.ColumnName+" "+columnDefs;
+			string command="ALTER TABLE "+tableName+" ADD "+col.ColumnName+" ";
+			string columnDef=GetMySqlType(col)+" NOT NULL";
+			if(!GetMySqlBlankData(col).In("\"\"","0")) {
+				columnDef+=" DEFAULT "+GetMySqlBlankData(col)+(GetMySqlType(col)=="timestamp"?" ON UPDATE CURRENT_TIMESTAMP":"");
+			}
+			command+=columnDef;
 			if(doRunQuery) {
 				DataCore.NonQ(command);
 			}
@@ -142,18 +84,18 @@ namespace xCrudGenerator {
 			if(col.DataType==OdDbType.Long) {//Generate and run index regardless of large table status
 				commandAddIndex="ALTER TABLE "+tableName+" ADD INDEX ("+col.ColumnName+")";
 				if(doRunQuery) {
-					DataCore.NonQ(command);
+					DataCore.NonQ(commandAddIndex);
 				}
 			}
 			//If there is a large table property set to true, we will use the the large table helper in the convert script.
 			if(tableType.GetCustomAttributes<CrudTableAttribute>().Any(x => x.IsLargeTable)) {
 				//With the AlterLargeTable method, we can add columns and new indexes at the same time.
 				string primaryKeyColName=tableType.GetFields().First(x => x.GetCustomAttribute<CrudColumnAttribute>().IsPriKey).Name;
-				strb.Append(rn+tb+"LargeTableHelper.AlterLargeTable(\""+tableName+"\",\""+primaryKeyColName+"\",new List<Tuple<string,string>>{"
-					+"Tuple.Create(\""+col.ColumnName+"\",\""+columnDefs+"\")}");
+				strb.Append(rn+tb+"LargeTableHelper.AlterLargeTable(\""+tableName+"\",\""+primaryKeyColName+"\","
+					+rn+tb+"\tnew List<Tuple<string,string>> { Tuple.Create(\""+col.ColumnName+"\",\""+columnDef+"\") }");
 				//Add the parameter to LargeTableHelper to specify a new index. Index name will be the same as the column name.
 				if(col.DataType==OdDbType.Long) {
-					strb.Append(",new List<Tuple<string,string>>{Tuple.Create(\""+col.ColumnName+"\",\"\")}");
+					strb.Append(","+rn+tb+"\tnew List<Tuple<string,string>> { Tuple.Create(\""+col.ColumnName+"\",\"\") }");
 				}
 				strb.Append(");");
 			}
@@ -164,15 +106,6 @@ namespace xCrudGenerator {
 					strb.Append(rn+tb+"command=\""+commandAddIndex+"\";");
 					strb.Append(rn+tb+"Db.NonQ(command);");
 				}
-			}
-			//Regardless of large table settings, the following query should be generated/ran for all columns with a datetimestamp.
-			if(col.DataType==OdDbType.DateTimeStamp) {//set value of new timestamp column to now()
-				command="UPDATE "+tableName+" SET "+col.ColumnName+" = NOW()";
-				strb.Append(rn+tb+"command=\""+command+"\";");
-				if(doRunQuery) {
-					DataCore.NonQ(command);
-				}
-				strb.Append(rn+tb+"Db.NonQ(command);");
 			}
 			return strb.ToString();
 		}
@@ -278,7 +211,7 @@ namespace xCrudGenerator {
 				case OdDbType.Date:
 					return "'0001-01-01'";//sets date to 01 JAN 2001, 00:00:00
 				case OdDbType.DateTimeStamp:
-					return "NOW()";
+					return "CURRENT_TIMESTAMP";
 				case OdDbType.DateTime:
 					return "'0001-01-01 00:00:00'";
 				case OdDbType.TimeOfDay:
