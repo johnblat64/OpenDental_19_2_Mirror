@@ -731,7 +731,7 @@ namespace OpenDental{
 			}
 		}
 
-		private void FillGrid(bool isFromDb=true){
+		private void FillGrid(bool doRefreshData=true){
 			_dateCopyStart=DateTime.MinValue;
 			_dateCopyEnd=DateTime.MinValue;
 			textClipboard.Text="";
@@ -761,13 +761,15 @@ namespace OpenDental{
 				}
 				clinicNum=comboClinic.SelectedTag<Clinic>()?.ClinicNum??-1;
 			}
-			if(isFromDb || this._tableScheds==null) {
+			if(doRefreshData || this._tableScheds==null) {
 				bool canViewNotes=true;
 				if(PrefC.IsODHQ) {
 					canViewNotes=Security.IsAuthorized(Permissions.Schedules,true);
 				}
+				_fromDateCur=PIn.Date(textDateFrom.Text);
+				_toDateCur=PIn.Date(textDateTo.Text);
 				Logger.LogToPath("Schedules.GetPeriod",LogPath.Signals,LogPhase.Start);
-				_tableScheds=Schedules.GetPeriod(PIn.Date(textDateFrom.Text),PIn.Date(textDateTo.Text),provNums,empNums,checkPracticeNotes.Checked,
+				_tableScheds=Schedules.GetPeriod(_fromDateCur,_toDateCur,provNums,empNums,checkPracticeNotes.Checked,
 					checkClinicNotes.Checked,clinicNum,checkShowClinicSchedules.Checked,canViewNotes);
 				Logger.LogToPath("Schedules.GetPeriod",LogPath.Signals,LogPhase.End);
 			}
@@ -806,19 +808,11 @@ namespace OpenDental{
 				gridMain.Rows.Add(row);
 			}
 			gridMain.EndUpdate();
-			//We need to set these dates here before any returns can force us out of this method early. Otherwise, if it is for example the weekend 
-			//We will never be able to click on a schedule. 
-			_fromDateCur=PIn.Date(textDateFrom.Text);
-			_toDateCur=PIn.Date(textDateTo.Text);
 			//Set today red
-			int rowIndexTodaysDate=Schedules.GetRowCal(PIn.Date(textDateFrom.Text),DateTime.Today);
-			if(rowIndexTodaysDate>=gridMain.Rows.Count) {
-				return;//User must have a date range in the UI that extends past todays date but...
-			}
 			if(!checkWeekend.Checked && (DateTime.Today.DayOfWeek==DayOfWeek.Sunday || DateTime.Today.DayOfWeek==DayOfWeek.Saturday)){
 				return;
 			}
-			if(DateTime.Today>PIn.Date(textDateTo.Text) || DateTime.Today<PIn.Date(textDateFrom.Text)){
+			if(DateTime.Today>_toDateCur || DateTime.Today<_fromDateCur) {
 				return;
 			}
 			if(checkWeekend.CheckState==CheckState.Indeterminate) {
@@ -828,7 +822,7 @@ namespace OpenDental{
 			if(!checkWeekend.Checked){
 				colI--;
 			}
-			gridMain.Rows[rowIndexTodaysDate].Cells[colI].ColorText=Color.Red;
+			gridMain.Rows[Schedules.GetRowCal(_fromDateCur,DateTime.Today)].Cells[colI].ColorText=Color.Red;
 			if(_clickedCell!=null //when first opening form
 				&& _clickedCell.Y>-1 
 				&& _clickedCell.Y< gridMain.Rows.Count
@@ -893,16 +887,6 @@ namespace OpenDental{
 			if(PrefC.HasClinicsEnabled) {
 				clinicNum=comboClinic.SelectedTag<Clinic>().ClinicNum;
 			}
-		}
-
-		/// <summary>Returns true if the To Date or From Date text boxes have changed since the grid was last refreshed.
-		/// Also shows a warning message to the user that they must refresh before performing the desired action.  Otherwise; returns false.</summary>
-		private bool HasDateChanged() {
-			if(_fromDateCur==PIn.Date(textDateFrom.Text) && _toDateCur==PIn.Date(textDateTo.Text)) {
-				return false;
-			}
-			MsgBox.Show(this,"Date range has changed, you must refresh before doing this action.");
-			return true;
 		}
 
 		private void listProv_SelectedIndexChanged(object sender,EventArgs e) {
@@ -979,9 +963,6 @@ namespace OpenDental{
 			if(!ValidateInputs()) {
 				return;
 			}
-			if(HasDateChanged()) {
-				return;
-			}
 			if(checkShowClinicSchedules.Checked) {
 				MsgBox.Show(this,"Schedules cannot be edited in clinic view mode");
 				return;
@@ -994,8 +975,8 @@ namespace OpenDental{
 				clickedCol=6;//used to calculate correct day to edit.
 			}
 			//the "clickedCell" is in terms of the entire 7 col layout.
-			DateTime selectedDate=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),e.Row,clickedCol);
-			if(selectedDate<PIn.Date(textDateFrom.Text) || selectedDate>PIn.Date(textDateTo.Text)){
+			DateTime selectedDate=Schedules.GetDateCal(_fromDateCur,e.Row,clickedCol);
+			if(selectedDate<_fromDateCur || selectedDate>_toDateCur){
 				return;
 			}
 			//MessageBox.Show(selectedDate.ToShortDateString());
@@ -1057,14 +1038,11 @@ namespace OpenDental{
 				MsgBox.Show(this,"Provider or Employee selection has been changed.  Please refresh first.");
 				return;
 			}
-			if(HasDateChanged()) {
-				return;
-			}
 			int startI=1;
 			if(checkWeekend.Checked) {
 				startI=0;
 			}
-			DateTime dateSelectedStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,startI);
+			DateTime dateSelectedStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,startI);
 			DateTime dateSelectedEnd;
 			if(checkWeekend.Checked) {
 				dateSelectedEnd=dateSelectedStart.AddDays(6);
@@ -1092,9 +1070,6 @@ namespace OpenDental{
 			if(!ValidateInputs()) {
 				return;
 			}
-			if(HasDateChanged()) {
-				return;
-			}
 			if(gridMain.SelectedCell.X==-1){
 				MsgBox.Show(this,"Please select a date first.");
 				return;
@@ -1111,7 +1086,7 @@ namespace OpenDental{
 			if(!checkWeekend.Checked) {
 				selectedCol++;
 			}
-			_dateCopyStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,selectedCol);
+			_dateCopyStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,selectedCol);
 			_dateCopyEnd=_dateCopyStart;
 			textClipboard.Text=_dateCopyStart.ToShortDateString();
 		}
@@ -1132,14 +1107,11 @@ namespace OpenDental{
 				MsgBox.Show(this,"No providers or employees have been selected.");
 				return;
 			}
-			if(HasDateChanged()) {
-				return;
-			}
 			int startI=1;
 			if(checkWeekend.Checked){
 				startI=0;
 			}
-			_dateCopyStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,startI);
+			_dateCopyStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,startI);
 			if(checkWeekend.Checked){
 				_dateCopyEnd=_dateCopyStart.AddDays(6);
 			}
@@ -1165,9 +1137,6 @@ namespace OpenDental{
 				MsgBox.Show(this,"Provider or Employee selection has been changed.  Please refresh first.");
 				return;
 			}
-			if(HasDateChanged()) {
-				return;
-			}
 			//calculate which day or week is currently selected.
 			DateTime dateSelectedStart;
 			DateTime dateSelectedEnd;
@@ -1177,7 +1146,7 @@ namespace OpenDental{
 				if(checkWeekend.Checked) {
 					startI=0;
 				}
-				dateSelectedStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,startI);
+				dateSelectedStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,startI);
 				if(checkWeekend.Checked) {
 					dateSelectedEnd=dateSelectedStart.AddDays(6);
 				}
@@ -1190,7 +1159,7 @@ namespace OpenDental{
 				if(!checkWeekend.Checked) {
 					selectedCol++;
 				}
-				dateSelectedStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,selectedCol);
+				dateSelectedStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,selectedCol);
 				dateSelectedEnd=dateSelectedStart;
 			}
 			//it's not allowed to paste back over the same day or week.
@@ -1308,9 +1277,6 @@ namespace OpenDental{
 			if(!ValidateInputs()) {
 				return;
 			}
-			if(HasDateChanged()) {
-				return;
-			}
 			int repeatCount;
 			try{
 				repeatCount=PIn.Int(textRepeat.Text);
@@ -1349,7 +1315,7 @@ namespace OpenDental{
 				if(checkWeekend.Checked) {
 					startI=0;
 				}
-				dateSelectedStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,startI);
+				dateSelectedStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,startI);
 				if(checkWeekend.Checked) {
 					dateSelectedEnd=dateSelectedStart.AddDays(6);
 				}
@@ -1362,7 +1328,7 @@ namespace OpenDental{
 				if(!checkWeekend.Checked) {
 					selectedCol++;
 				}
-				dateSelectedStart=Schedules.GetDateCal(PIn.Date(textDateFrom.Text),gridMain.SelectedCell.Y,selectedCol);
+				dateSelectedStart=Schedules.GetDateCal(_fromDateCur,gridMain.SelectedCell.Y,selectedCol);
 				dateSelectedEnd=dateSelectedStart;
 			}
 			List<long> listProvNums;
