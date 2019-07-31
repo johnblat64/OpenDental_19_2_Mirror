@@ -2181,6 +2181,7 @@ namespace OpenDental {
 			}
 			try {
 				SheetDefs.DeleteObject(_sheetDefCur.SheetDefNum);
+				SecurityLogs.MakeLogEntry(Permissions.Setup,0,Lan.g(this,"SheetDef")+" "+_sheetDefCur.Description+" "+Lan.g(this,"was deleted."));
 				DialogResult=DialogResult.OK;
 			}
 			catch(Exception ex) {
