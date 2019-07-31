@@ -587,7 +587,19 @@ namespace OpenDental{
 			if(Plugins.HookMethod(this,"FormLabCaseEdit.Load_start",CaseCur,IsNew)) {
 				return;
 			}
-			textPatient.Text=Patients.GetPat(CaseCur.PatNum).GetNameFL();
+			if(CaseCur==null) {
+				MsgBox.Show(this,"Lab case no longer exists.");
+				DialogResult=DialogResult.Abort;//Results in form closing logic
+				return;
+			}
+			Patient pat=Patients.GetPat(CaseCur.PatNum);
+			//If pat is null, this can trickle down and allow the user to create a lab sheet with a FK to an invalid Patient.
+			if(pat==null) {
+				MsgBox.Show(this,"There is no valid Patient attached to this Labcase.");
+				DialogResult=DialogResult.Abort;//Results in form closing logic
+				return;
+			}
+			textPatient.Text=pat.GetNameFL();
 			ListLabs=Laboratories.Refresh();
 			//Include the current lab, even if it is hidden.
 			ListLabs=ListLabs.Where(x => x.LaboratoryNum==CaseCur.LaboratoryNum || !x.IsHidden).ToList();

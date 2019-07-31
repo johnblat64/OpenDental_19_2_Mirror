@@ -361,14 +361,17 @@ namespace OpenDental{
 			long selectedLabCase=PIn.Long(row["LabCaseNum"].ToString());
 			FormLabCaseEdit FormL=new FormLabCaseEdit();
 			FormL.CaseCur=LabCases.GetOne(selectedLabCase);
-			if(FormL.CaseCur==null) {
-				MsgBox.Show(this,"Lab case no longer exists.");
-				FillGrid();
-				return;
-			}
 			FormL.ShowDialog();
-			if(FormL.DialogResult!=DialogResult.OK) {
-				return;//don't refresh unless we have to.  It messes up the user's ordering.
+			switch(FormL.DialogResult) {
+				default:
+				case DialogResult.Cancel://==Jordan don't refresh unless we have to.  It messes up the user's ordering.
+					return;
+				case DialogResult.Abort://User was forced out of window due to a null object, refresh grid to remove missing row.
+					FillGrid();
+					return;
+				case DialogResult.OK:
+					//Intentionally blank
+					break;
 			}
 			FillGrid();
 			for(int i=0;i<table.Rows.Count;i++){
