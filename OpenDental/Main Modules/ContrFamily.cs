@@ -2872,20 +2872,22 @@ namespace OpenDental{
 			row.ColorLborder=Color.Black;
 			gridIns.Rows.Add(row);
 			//InsHist
+			Dictionary<long,InsProcHist> dictInsProcHist=PatPlanList.Select(x => x.InsSubNum).Distinct()
+				.ToDictionary(x => x,x => new InsProcHist(Procedures.GetDictInsHistProcs(PatCur.PatNum,x,out List<ClaimProc> listClaimProcs),listClaimProcs));
 			foreach(PrefName prefName in Prefs.GetInsHistPrefNames()) {
 				row=new ODGridRow();
 				row.Cells.Add(Lan.g("TableCoverage",prefName.GetDescription()));
-				for(int i=0;i<PatPlanList.Count;i++) {
-					cell=new ODGridCell();
-					List<ClaimProc> listEoClaimProcs;
-					Procedure proc=Procedures.GetDictInsHistProcs(PatCur.PatNum,PatPlanList[i].InsSubNum,out listEoClaimProcs)[prefName];
-					ClaimProc claimProc=null;
-					if(proc!=null) {
-						claimProc=listEoClaimProcs.Find(x => x.InsSubNum==PatPlanList[i].InsSubNum && x.Status.In(ClaimProcStatus.InsHist,ClaimProcStatus.Received)
-							&& x.ProcNum==proc.ProcNum);
+				foreach(PatPlan patPlan in PatPlanList) {
+					DateTime procDate=DateTime.MinValue;
+					if(dictInsProcHist.TryGetValue(patPlan.InsSubNum,out InsProcHist insProcHist)
+						&& insProcHist.DictInsHistProcs.TryGetValue(prefName,out Procedure proc)
+						&& proc!=null
+						&& insProcHist.ListClaimProcs
+							.Exists(x => x.InsSubNum==patPlan.InsSubNum && x.Status.In(ClaimProcStatus.InsHist,ClaimProcStatus.Received) && x.ProcNum==proc.ProcNum))
+					{
+						procDate=proc.ProcDate;
 					}
-					cell.Text=((claimProc!=null && proc!=null && proc.ProcDate.Year>1880) ? proc.ProcDate.ToShortDateString() : Lan.g("TableCoverage","No History"));
-					row.Cells.Add(cell);
+					row.Cells.Add(new ODGridCell(procDate.Year>1880?procDate.ToShortDateString():Lan.g("TableCoverage","No History")));
 				}
 				row.Tag=prefName.ToString();//Tag with prefname
 				gridIns.Rows.Add(row);
@@ -2946,5 +2948,18 @@ namespace OpenDental{
 		}
 
 		#endregion gridIns
+
+		///<summary>Object to hold a dictionary of the most recent completed or EO procedure for each of the ins hist prefs as well as the list of
+		///claimprocs for the procedures.  Used to fill gridIns.</summary>
+		private class InsProcHist : Tuple<Dictionary<PrefName,Procedure>,List<ClaimProc>> {
+
+			public Dictionary<PrefName,Procedure> DictInsHistProcs => Item1;
+
+			public List<ClaimProc> ListClaimProcs => Item2;
+
+			public InsProcHist(Dictionary<PrefName,Procedure> dictInsHistProcs,List<ClaimProc> listClaimProcs) : base(dictInsHistProcs,listClaimProcs) {
+			}
+		}
+
 	}
 }
