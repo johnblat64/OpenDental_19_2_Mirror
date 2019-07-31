@@ -55,15 +55,33 @@ namespace OpenDental{
 			}
 		}
 
+		private void ListBoxProv_Click(object sender,EventArgs e) {
+			if(listBoxProv.SelectedIndices.Count>0) {
+				checkAllProv.Checked=false;
+			}
+		}
+
 		private void CheckAllUnearnedTypes_Click(object sender,EventArgs e) {
 			if(checkAllUnearnedTypes.Checked) {
 				listBoxUnearnedTypes.SelectedIndices.Clear();
 			}
 		}
 
+		private void ListBoxUnearnedTypes_Click(object sender,EventArgs e) {
+			if(listBoxUnearnedTypes.SelectedIndices.Count>0) {
+				checkAllUnearnedTypes.Checked=false;
+			}
+		}
+
 		private void CheckAllClinics_Click(object sender,EventArgs e) {
 			if(checkAllClinics.Checked) {
 				listBoxClinic.SelectedIndices.Clear();
+			}
+		}
+
+		private void ListBoxClinic_Click(object sender,EventArgs e) {
+			if(listBoxClinic.SelectedIndices.Count>0) {
+				checkAllClinics.Checked=false;
 			}
 		}
 

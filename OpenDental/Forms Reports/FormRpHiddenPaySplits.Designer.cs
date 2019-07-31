@@ -100,6 +100,7 @@ namespace OpenDental {
 			this.listBoxProv.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBoxProv.Size = new System.Drawing.Size(160, 199);
 			this.listBoxProv.TabIndex = 61;
+			this.listBoxProv.Click += new System.EventHandler(this.ListBoxProv_Click);
 			// 
 			// label1
 			// 
@@ -118,6 +119,7 @@ namespace OpenDental {
 			this.listBoxClinic.Size = new System.Drawing.Size(160, 199);
 			this.listBoxClinic.TabIndex = 53;
 			this.listBoxClinic.Visible = false;
+			this.listBoxClinic.Click += new System.EventHandler(this.ListBoxClinic_Click);
 			// 
 			// labelClinic
 			// 
@@ -159,6 +161,7 @@ namespace OpenDental {
 			this.listBoxUnearnedTypes.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBoxUnearnedTypes.Size = new System.Drawing.Size(163, 199);
 			this.listBoxUnearnedTypes.TabIndex = 63;
+			this.listBoxUnearnedTypes.Click += new System.EventHandler(this.ListBoxUnearnedTypes_Click);
 			// 
 			// label3
 			// 
