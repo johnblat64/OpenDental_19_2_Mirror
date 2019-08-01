@@ -4941,7 +4941,7 @@ namespace OpenDental {
 						DisplayOtherDlg(true);
 					}
 					else {
-						FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum);//doesn't actually get shown
+						FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum,pinBoard.ApptList.Select(x => x.AptNum).ToList());//not shown
 						CheckStatus();
 						FormAO.IsInitialClick=true;
 						FormAO.MakeAppointment();
@@ -4997,7 +4997,7 @@ namespace OpenDental {
 			if(PatCur==null) {
 				return;
 			}
-			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum);
+			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum,pinBoard.ApptList.Select(x => x.AptNum).ToList());
 			FormAO.IsInitialClick=initialClick;
 			FormAO.ShowDialog();
 			ProcessOtherDlg(FormAO.OResult,FormAO.SelectedPatNum,FormAO.DateJumpToString,FormAO.AptNumsSelected.ToArray());
@@ -5941,7 +5941,7 @@ namespace OpenDental {
 				DisplayOtherDlg(false);
 				return;
 			}
-			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum);//doesn't actually get shown
+			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum,pinBoard.ApptList.Select(x => x.AptNum).ToList());//not shown
 			CheckStatus();
 			FormAO.IsInitialClick=false;
 			FormAO.MakeAppointment();
@@ -5970,7 +5970,7 @@ namespace OpenDental {
 				DisplayOtherDlg(false);
 				return;
 			}
-			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum);//doesn't actually get shown
+			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum,pinBoard.ApptList.Select(x => x.AptNum).ToList());//not shown
 			FormAO.IsInitialClick=false;
 			FormAO.MakeRecallAppointment();
 			if(FormAO.DialogResult!=DialogResult.OK) {
@@ -5998,7 +5998,7 @@ namespace OpenDental {
 				DisplayOtherDlg(false);
 				return;
 			}
-			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum);//doesn't actually get shown
+			FormApptsOther FormAO=new FormApptsOther(PatCur.PatNum,pinBoard.ApptList.Select(x => x.AptNum).ToList());//not shown
 			FormAO.IsInitialClick=false;
 			FormAO.MakeRecallFamily();
 			if(FormAO.DialogResult!=DialogResult.OK) {

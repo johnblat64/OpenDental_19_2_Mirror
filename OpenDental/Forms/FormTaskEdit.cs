@@ -1999,7 +1999,7 @@ namespace OpenDental {
 				_taskCur.KeyNum=FormPS.SelectedPatNum;
 			}
 			if(_taskCur.ObjectType==TaskObjectType.Appointment) {
-				FormApptsOther FormA=new FormApptsOther(FormPS.SelectedPatNum);
+				FormApptsOther FormA=new FormApptsOther(FormPS.SelectedPatNum,null);//Select only, can't create new appt so don't need pinboard appointments.
 				FormA.SelectOnly=true;
 				FormA.ShowDialog();
 				if(FormA.DialogResult==DialogResult.Cancel) {

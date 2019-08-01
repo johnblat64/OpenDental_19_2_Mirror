@@ -2624,7 +2624,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			if(_jobCur==null) {
 				return false;//should never happen
 			}
-			FormApptsOther FormAO=new FormApptsOther(patNum);
+			FormApptsOther FormAO=new FormApptsOther(patNum,null);//Select only, can't create new appt so don't need pinboard appointments.
 			FormAO.SelectOnly=true;
 			if(FormAO.ShowDialog()!=DialogResult.OK) {
 				return false;

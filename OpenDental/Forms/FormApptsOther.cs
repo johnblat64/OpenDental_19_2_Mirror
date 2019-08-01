@@ -19,6 +19,8 @@ namespace OpenDental {
 		private List<Recall> _listRecalls;
 		private Patient _patCur;
 		private Family _famCur;
+		///<summary>List of Appointment.AptNum that are on the pinboard when FormApptsOther was loaded.</summary>
+		private List<long> _listPinboardApptNums;
 		///<summary>Set to true to allow selecting appointments.</summary>
 		public bool SelectOnly;
 		///<summary>After closing, this may contain aptNums of appointments that should be placed on the pinboard.
@@ -33,8 +35,8 @@ namespace OpenDental {
 		public DateTime DateTNew;
 		public long OpNumNew;
 
-		///<summary></summary>
-		public FormApptsOther(long patNum) {
+		///<summary>Pass in list of Appointment.AptNum for appointments that are currently on the pinboard if not in AllowSelectOnly mode.</summary>
+		public FormApptsOther(long patNum,List<long> listPinboardApptNums) {
 			InitializeComponent();
 			_famCur=Patients.GetFamily(patNum);
 			_patCur=_famCur.GetPatient(patNum);
@@ -45,6 +47,7 @@ namespace OpenDental {
 			AptNumsSelected=new List<long>();
 			odApptGrid.PatCur=_patCur;
 			odApptGrid.SetFillFamilyAction(() => FillFamily());
+			_listPinboardApptNums=listPinboardApptNums??new List<long>();
 		}
 
 		///<summary></summary>
@@ -429,6 +432,8 @@ namespace OpenDental {
 		public void MakeAppointment() {
 			//Check to see if the patient has any unscheduled appointments and inform the user.
 			List<Appointment> listUnschedAppts=Appointments.GetUnschedApptsForPat(_patCur.PatNum);
+			//Per Nathan, pinboard appointments will not be considered unscheduled for this logic.
+			listUnschedAppts.RemoveAll(x => x.AptNum.In(_listPinboardApptNums));
 			FormApptEdit formApptEdit=null;
 			long aptNum=0;
 			bool isSchedulingUnscheduled=false;

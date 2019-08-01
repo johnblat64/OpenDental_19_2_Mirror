@@ -179,7 +179,7 @@ namespace OpenDental {
 					DisplayOtherDlg(true,e.DateT,e.OpNum);
 				}
 				else {
-					FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
+					FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum,pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());//not shown
 					CheckStatus();
 					//formApptsOther.IsInitialDoubleClick=true;
 					formApptsOther.DateTNew=e.DateT;
@@ -1052,7 +1052,7 @@ namespace OpenDental {
 				DisplayOtherDlg(false);
 				return;
 			}
-			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
+			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum,pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());//not shown
 			CheckStatus();
 			//formApptsOther.IsInitialDoubleClick=false;
 			formApptsOther.MakeAppointment();
@@ -1081,7 +1081,7 @@ namespace OpenDental {
 				DisplayOtherDlg(false);
 				return;
 			}
-			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
+			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum,pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());//not shown
 			//formApptsOther.IsInitialDoubleClick=false;
 			formApptsOther.MakeRecallAppointment();
 			if(formApptsOther.DialogResult!=DialogResult.OK) {
@@ -1109,7 +1109,7 @@ namespace OpenDental {
 				DisplayOtherDlg(false);
 				return;
 			}
-			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);//doesn't actually get shown
+			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum,pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());//not shown
 			//formApptsOther.IsInitialDoubleClick=false;
 			formApptsOther.MakeRecallFamily();
 			if(formApptsOther.DialogResult!=DialogResult.OK) {
@@ -2516,7 +2516,7 @@ namespace OpenDental {
 			if(_patCur==null) {
 				return;
 			}
-			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum);
+			FormApptsOther formApptsOther=new FormApptsOther(_patCur.PatNum,pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());
 			//formApptsOther.IsInitialDoubleClick=initialClick;
 			formApptsOther.DateTNew=dateTime;
 			formApptsOther.OpNumNew=opNum;
@@ -2530,7 +2530,7 @@ namespace OpenDental {
 			if(_patCur==null) {
 				return;
 			}
-			FormApptsOther FormAO=new FormApptsOther(_patCur.PatNum);
+			FormApptsOther FormAO=new FormApptsOther(_patCur.PatNum,pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());
 			//FormAO.IsInitialDoubleClick=initialClick;
 			FormAO.ShowDialog();
 			ProcessOtherDlg(FormAO.OResult,FormAO.SelectedPatNum,FormAO.DateJumpToString,FormAO.AptNumsSelected.ToArray());
