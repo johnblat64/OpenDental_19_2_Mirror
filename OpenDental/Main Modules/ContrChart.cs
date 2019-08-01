@@ -8019,8 +8019,8 @@ namespace OpenDental {
 			int selectedButtonCat=listButtonCats.SelectedIndex;
 			listButtonCats.Items.Clear();
 			listButtonCats.Items.Add(Lan.g(this,"Quick Buttons"));
-			for(int i=0;i<listProcButtonCatDefs.Count;i++){
-				listButtonCats.Items.Add(listProcButtonCatDefs[i].ItemName);
+			foreach(Def procButtonCatDef in listProcButtonCatDefs) {
+				listButtonCats.Items.Add(new ODBoxItem<Def>(procButtonCatDef.ItemName,procButtonCatDef));
 			}
 			if(selectedButtonCat < listButtonCats.Items.Count){
 				listButtonCats.SelectedIndex=selectedButtonCat;
@@ -8082,7 +8082,14 @@ namespace OpenDental {
 			if(doRefreshData) {
 				ProcButtons.RefreshCache();
 			}
-			ProcButtonList=ProcButtons.GetForCat(Defs.GetDefsForCategory(DefCat.ProcButtonCats,true)[listButtonCats.SelectedIndex-1].DefNum);
+			Def selectedButtonCat=listButtonCats.SelectedTag<Def>();//Will not be null if 'Quick Buttons' is selected due to above if statement
+			List<long> listProcButtonCatDefNums = Defs.GetDefsForCategory(DefCat.ProcButtonCats,true).Select(x => x.DefNum).ToList();
+			if(!listProcButtonCatDefNums.Contains(selectedButtonCat.DefNum)) {
+				MsgBox.Show(this,"The Procedue Button Category has been hidden.");
+				ModuleSelected(PatCur.PatNum);
+				return;
+			}
+			ProcButtonList=ProcButtons.GetForCat(selectedButtonCat.DefNum);
 			ListViewItem item;
 			for(int i=0;i<ProcButtonList.Length;i++){
 				if(ProcButtonList[i].ButtonImage!="") {
