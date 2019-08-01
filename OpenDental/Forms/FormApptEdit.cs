@@ -2505,6 +2505,11 @@ namespace OpenDental{
 			FormApptBreak formAB=new FormApptBreak(AptCur);
 			if(formAB.ShowDialog()!=DialogResult.OK) {
 				SetAptCurComboStatusSelection();//Sets status back to on load selection.
+				if(formAB.FormApptBreakSelection==ApptBreakSelection.Delete) {
+					//User wants to delete the appointment.
+					OnDelete_Click(true);//Skip the standard "Delete Appointment?" prompt since we have already prompted in FormApptBreak.
+					return;
+				}
 				_formApptBreakSelection=ApptBreakSelection.None;
 				_procCodeBroken=null;
 				return;

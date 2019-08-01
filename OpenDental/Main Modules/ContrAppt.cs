@@ -6090,6 +6090,10 @@ namespace OpenDental {
 			if(hasBrokenProcs) {//If true, user can not get here from right click 'Break Appointment' directly.
 				FormApptBreak formAB=new FormApptBreak(apt);
 				if(formAB.ShowDialog()!=DialogResult.OK) {
+					if(formAB.FormApptBreakSelection==ApptBreakSelection.Delete) {
+						//User wants to delete the appointment.
+						OnDelete_Click(true);//Skip the standard "Delete Appointment?" prompt.
+					}
 					return;
 				}
 				procCodeBroke=formAB.SelectedProcCode;

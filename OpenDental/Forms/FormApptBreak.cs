@@ -66,8 +66,15 @@ namespace OpenDental {
 			formASAP.ShowDialog();
 		}
 
-		private void butUnsched_Click(object sender,EventArgs e) {;
+		private void butUnsched_Click(object sender,EventArgs e) {
 			if(!ValidateSelection()) {
+				return;
+			}
+			if(PrefC.GetBool(PrefName.UnscheduledListNoRecalls) && Appointments.IsRecallAppointment(_appt)) {
+				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Recall appointments cannot be sent to the Unscheduled List.\r\nDelete appointment instead?")) {
+					FormApptBreakSelection=ApptBreakSelection.Delete;//Set to delete so the parent form can handle the delete. 
+					DialogResult=DialogResult.Cancel;
+				}
 				return;
 			}
 			PromptTextASAPList();
@@ -113,7 +120,9 @@ namespace OpenDental {
 		///<summary>2</summary>
 		Pinboard,
 		///<summary>3</summary>
-		ApptBook
+		ApptBook,
+		///<summary>4</summary>
+		Delete,
 	}
 
 }
