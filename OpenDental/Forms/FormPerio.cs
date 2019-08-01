@@ -1471,14 +1471,22 @@ namespace OpenDental{
 
 		///<summary>Moves the cursor to the mobility row for the current tooth.</summary>
 		private void GoToMobility() {
-			int yVal;
-			int xVal;
 			PerioCell curLoc=gridP.GetCurrentCell();
 			int toothNum=curLoc.ToothNum;
 			bool isFacial=_curLocation.Surface==PerioSurface.Facial;
 			if(gridP.IsCellTextEmpty(GetPointForTooth(toothNum,isFacial))) {
 				toothNum=GetToothNumFromPoint(GetPreviousToothPoint(toothNum,isFacial));
 			}
+			Point point=GetPointForMobility(toothNum);
+			if(!gridP.IsCellTextEmpty(point)) {
+				point=GetPointForMobility(curLoc.ToothNum);
+			}
+			gridP.SetNewCell(point.X,point.Y);
+		}
+
+		private Point GetPointForMobility(int toothNum) {
+			int yVal;
+			int xVal;
 			if(toothNum <= 16) {
 				xVal=(toothNum-1)*3+2;//Middle cell
 				yVal=10;
@@ -1487,7 +1495,7 @@ namespace OpenDental{
 				xVal=47-(toothNum-17)*3;
 				yVal=32;
 			}
-			gridP.SetNewCell(xVal,yVal);
+			return new Point(xVal,yVal);
 		}
 
 		///<summary>Moves the cursor to the gingival margin row for the current tooth.</summary>
@@ -1557,7 +1565,7 @@ namespace OpenDental{
 			}
 			else {
 				//The new point for the sequence was changed. Set the new xPos.
-				xPos=nextAvailablePoint.X;
+				xPos=FirstEmptyPositionX(toothNum,yPos);
 			}
 			//Set the cursor with the new points for the sequence.
 			gridP.SetNewCell(xPos,yPos);
