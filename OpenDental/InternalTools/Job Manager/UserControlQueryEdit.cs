@@ -1210,11 +1210,11 @@ namespace OpenDental.InternalTools.Job_Manager {
 				return false;//should never happen
 			}
 			FormApptsOther FormAO=new FormApptsOther(patNum,null);//Select only, can't create new appt so don't need pinboard appointments.
-			FormAO.AllowSelectOnly=true;
+			FormAO.SelectOnly=true;
 			if(FormAO.ShowDialog()!=DialogResult.OK) {
 				return false;
 			}
-			foreach(long aptNum in FormAO.ListAptNumsSelected) {
+			foreach(long aptNum in FormAO.AptNumsSelected) {
 				JobLink jobLink = new JobLink();
 				jobLink.JobNum=_jobCur.JobNum;
 				jobLink.FKey=aptNum;
