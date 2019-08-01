@@ -770,6 +770,34 @@ namespace UnitTests.Procedures_Test {
 			Assert.AreEqual(120,insInfo.ListAllClaimProcs.Where(x=>x.ProcNum.In(listProcs.Select(y=>y.ProcNum).ToList())).Sum(x => x.InsPayEst));
 		}
 
+		///<summary>Charts a completed procedure for prov2 (with insurance coverage and frequency limited to 1/year) and creates a claim.  Creates an
+		///appointment, with a different provider, with this procedure attached and recompletes it.  Asserts estimates do not change and are not 
+		///frequency limited.</summary>
+		[TestMethod]
+		public void Procedures_SetCompleteInApptInList_FrequencyLimitationOnProvChange() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(suffix,priProvNum:1);
+			InsuranceInfo insInfo=InsuranceT.AddInsurance(pat,suffix);
+			insInfo.ListBenefits.Add(BenefitT.CreatePercentForProc(insInfo.PriInsPlan.PlanNum,ProcedureCodes.GetCodeNum("D4341"),50));
+			insInfo.ListBenefits.Add(BenefitT.CreateFrequencyProc(insInfo.PriInsPlan.PlanNum,"D4341",BenefitQuantity.Months,12,BenefitTimePeriod.None));
+			//Complete a procedure that is frequency limited to once per year, using a different provider than pat's priprov.
+			Procedure proc1=ProcedureT.CreateProcedure(pat,"D4341",ProcStat.C,"",100,DateTime.Today,provNum:2);
+			//Create a claim for that procedure.
+			Claim claim=ClaimT.CreateClaim(new List<Procedure> { proc1 },insInfo);
+			insInfo.ListAllClaimProcs=ClaimProcs.Refresh(pat.PatNum);
+			Assert.AreEqual(50,insInfo.ListAllClaimProcs.First(x => x.ProcNum==proc1.ProcNum).InsPayEst);//Correct ins est.
+			Assert.AreEqual("",insInfo.ListAllClaimProcs.First(x => x.ProcNum==proc1.ProcNum).EstimateNote);//No frequency limitation reached.
+			//Create a scheduled appointment using pat's priprov.
+			Appointment apt=AppointmentT.CreateAppointment(pat.PatNum,DateTime.Today.AddHours(9),0,pat.PriProv,aptStatus: ApptStatus.Scheduled);
+			//Attach already completed and claim attached procedure to this appointment.
+			proc1.AptNum=apt.AptNum;
+			Procedures.SetCompleteInApptInList(apt,insInfo.ListInsPlans,insInfo.ListPatPlans,pat,new List<Procedure>() {proc1},insInfo.ListInsSubs
+				,Security.CurUser);
+			insInfo.ListAllClaimProcs=ClaimProcs.Refresh(pat.PatNum);
+			Assert.AreEqual(50,insInfo.ListAllClaimProcs.First(x => x.ProcNum==proc1.ProcNum).InsPayEst);//Correct ins est.
+			Assert.AreEqual("",insInfo.ListAllClaimProcs.First(x => x.ProcNum==proc1.ProcNum).EstimateNote);//No frequency limitation reached.
+		}
+
 		#region Proc_ProviderMismatch
 		///<summary>Appt is completed, testing to see if any providers are changed when using procs
 		///with a diffrent status but same provider as appt.</summary>

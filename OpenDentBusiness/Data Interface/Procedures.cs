@@ -3014,6 +3014,9 @@ namespace OpenDentBusiness {
 			if(histList==null || benefitList==null || !PrefC.GetBool(PrefName.InsChecksFrequency) || proc.ProcDate.Year<1880) {
 				return false;
 			}
+			//In case we are recalculating the estimate for a procedure already attached to a claim, we need to make sure the histList does not include
+			//the claim proc we are currently recalculating.
+			histList=histList.FindAll(x => x.ProcNum!=claimProc.ProcNum || x.ClaimNum!=claimProc.ClaimNum);
 			//The frequency will be compared to the histList of ClaimProcs. Use it to check if any procedures have been completed for the patient within 
 			//the frequency period. If this would put them over the limit then continue past the zero out the claimproc and continue. 
 			//If no frequency information has been set then skip this logic for the current claimproc.
