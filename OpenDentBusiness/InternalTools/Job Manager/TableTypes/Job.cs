@@ -223,6 +223,14 @@ namespace OpenDentBusiness {
 			get {
 				return Math.Round(ListJobTimeLogs.Sum(x => x.TimeReview.TotalHours)+(2*ListJobReviews.Sum(x => x.TimeReview.TotalHours)),2);
 			}
+		}		
+		
+		[XmlIgnore,JsonIgnore]
+		///<summary>The actual hours a job has taken so far. Only counts review time once.</summary>
+		public double HoursActualSingleReviewTime {
+			get {
+				return Math.Round(ListJobTimeLogs.Sum(x => x.TimeReview.TotalHours)+(ListJobReviews.Sum(x => x.TimeReview.TotalHours)),2);
+			}
 		}
 		
 		[XmlIgnore,JsonIgnore]
@@ -274,6 +282,14 @@ namespace OpenDentBusiness {
 		public double HoursEstimate {
 			get {
 				return Math.Round((TimeEstimateConcept+TimeEstimateWriteup+TimeEstimateDevelopment).TotalHours+(TimeEstimateReview.TotalHours*2),2);
+			}
+		}
+		
+		[XmlIgnore,JsonIgnore]
+		///<summary>The estimated hours a job will take. Only counts review time once.</summary>
+		public double HoursEstimateSingleReviewTime {
+			get {
+				return Math.Round((TimeEstimateConcept+TimeEstimateWriteup+TimeEstimateDevelopment).TotalHours+(TimeEstimateReview.TotalHours),2);
 			}
 		}
 		

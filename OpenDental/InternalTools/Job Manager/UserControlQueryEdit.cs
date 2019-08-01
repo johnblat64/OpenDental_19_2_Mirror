@@ -159,8 +159,8 @@ namespace OpenDental.InternalTools.Job_Manager {
 			checkApproved.Checked=quote.IsCustomerApproved;
 			textQuoteDate.Text=_jobCur.DateTimeCustContact.Year<1880?"":_jobCur.DateTimeCustContact.ToShortDateString();
 			textSchedDate.Text=_jobCur.AckDateTime.Year<1880?"":_jobCur.AckDateTime.ToString();
-			textEstHours.Text=_jobCur.HoursEstimate.ToString();
-			textActualHours.Text=_jobCur.HoursActual.ToString();
+			textEstHours.Text=_jobCur.HoursEstimateSingleReviewTime.ToString();
+			textActualHours.Text=_jobCur.HoursActualSingleReviewTime.ToString();
 			SetHoursLeft();
 			FillAllGrids();
 			IsChanged=false;
@@ -982,7 +982,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			if(FormJE.ShowDialog()!=DialogResult.OK) {
 				return;
 			}
-			textEstHours.Text=_jobCur.HoursEstimate.ToString();
+			textEstHours.Text=_jobCur.HoursEstimateSingleReviewTime.ToString();
 			Job jobFromDB = Jobs.GetOne(_jobCur.JobNum);//Get from DB to ensure freshest copy (Lists not filled)
 			jobFromDB.HoursEstimateConcept=_jobCur.HoursEstimateConcept;
 			jobFromDB.HoursEstimateWriteup=_jobCur.HoursEstimateWriteup;
@@ -1017,18 +1017,18 @@ namespace OpenDental.InternalTools.Job_Manager {
 			JobReviews.Insert(FormJTA.TimeLogCur);
 			Signalods.SetInvalid(InvalidType.Jobs,KeyType.Job,_jobCur.JobNum);
 			_jobCur.ListJobTimeLogs.Add(FormJTA.TimeLogCur);
-			textActualHours.Text=_jobCur.HoursActual.ToString();
+			textActualHours.Text=_jobCur.HoursActualSingleReviewTime.ToString();
 			SetHoursLeft();
 			return true;
 		}	
 		
 		private void SetHoursLeft() {
-			double hoursLeft=_jobCur.HoursEstimate-_jobCur.HoursActual;
+			double hoursLeft=_jobCur.HoursEstimateSingleReviewTime-_jobCur.HoursActualSingleReviewTime;
 			textHoursLeft.BackColor=SystemColors.Control;
 			if(hoursLeft<0) {
 				textHoursLeft.BackColor=Color.Salmon;
 			}
-			textHoursLeft.Text=(_jobCur.HoursEstimate-_jobCur.HoursActual).ToString();
+			textHoursLeft.Text=(_jobCur.HoursEstimateSingleReviewTime-_jobCur.HoursActualSingleReviewTime).ToString();
 		}
 
 		private void butTimeLog_Click(object sender,EventArgs e) {
@@ -1210,11 +1210,11 @@ namespace OpenDental.InternalTools.Job_Manager {
 				return false;//should never happen
 			}
 			FormApptsOther FormAO=new FormApptsOther(patNum,null);//Select only, can't create new appt so don't need pinboard appointments.
-			FormAO.SelectOnly=true;
+			FormAO.AllowSelectOnly=true;
 			if(FormAO.ShowDialog()!=DialogResult.OK) {
 				return false;
 			}
-			foreach(long aptNum in FormAO.AptNumsSelected) {
+			foreach(long aptNum in FormAO.ListAptNumsSelected) {
 				JobLink jobLink = new JobLink();
 				jobLink.JobNum=_jobCur.JobNum;
 				jobLink.FKey=aptNum;
