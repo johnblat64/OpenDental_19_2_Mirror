@@ -288,8 +288,10 @@ namespace OpenDental{
 			listUserClinics.ForEach(x => _listClinics.Add(x));//do not re-organize from cache. They could either be alphabetizeded or sorted by item order.
 			//If current user is restricted to specific clinics, we need to make sure and add the claim clinic to our list.
 			if(_listClinics.All(x =>x.ClinicNum!=ClaimCur.ClinicNum)) {//Does not contain ClaimCur clinic.
-				_listClinics.Add(Clinics.GetClinic(ClaimCur.ClinicNum));
-				//_listClinics.OrderBy(x => x.ItemOrder);//Currently comboClinics is never enabled, so we do not care about order.
+				Clinic clinicClaim=Clinics.GetClinic(ClaimCur.ClinicNum);
+				if(clinicClaim!=null) {//Only add to list if found.
+					_listClinics.Add(clinicClaim);
+				}
 			}
 			//Set selected Nums
 			_selectedClinicNum=ClaimCur.ClinicNum;
@@ -313,7 +315,7 @@ namespace OpenDental{
 			//Set combo SelectedIndex to -1 so that fillComboBillTreatOrder works properly.
 			comboProvBill.SelectedIndex=-1;
 			comboProvTreat.SelectedIndex=-1;
-			comboClinic.IndexSelectOrSetText(_listClinics.FindIndex(x => x.ClinicNum==_selectedClinicNum),() => { return Clinics.GetAbbr(_selectedClinicNum); });
+			RefreshComboClinicFromClaim();
 			FillComboBillTreatOrder();
 			if(Clinics.IsMedicalPracticeOrClinic(_selectedClinicNum)) {
 				groupProsth.Visible=false;
@@ -513,6 +515,21 @@ namespace OpenDental{
 		}
 		#endregion Provider Controls
 
+		///<summary>Clears and refills comboClinic from _listClinics, attempting to select ClaimCur.ClinicNum.  Defaults to "None" if not found.  Results
+		///in SelectedIndexChanged event being fired, which updates _selectedClinicNum.</summary>
+		private void RefreshComboClinicFromClaim() {
+			comboClinic.Items.Clear();
+			for(int i=0;i<_listClinics.Count;i++){//_listClinics contains None as first item.
+				comboClinic.Items.Add(_listClinics[i].Abbr);
+				if(_listClinics[i].ClinicNum==ClaimCur.ClinicNum) {
+					comboClinic.SelectedIndex=i;
+				}
+			}
+			if(comboClinic.SelectedIndex<0) {
+				comboClinic.SelectedIndex=0;//Default to None.
+			}
+		}
+
 		///<summary></summary>
 		public void FillForm(){
 			if(ClaimCur.ClaimType=="PreAuth") {
@@ -591,16 +608,7 @@ namespace OpenDental{
 					comboClaimForm.SelectedIndex=i+1;
 				}
 			}
-			comboClinic.Items.Clear();
-			for(int i=0;i<_listClinics.Count;i++){//_listClinics contains None as first item.
-				comboClinic.Items.Add(_listClinics[i].Abbr);
-				if(_listClinics[i].ClinicNum==ClaimCur.ClinicNum) {
-					comboClinic.SelectedIndex=i;
-				}
-			}
-			if(comboClinic.SelectedIndex<0) {
-				comboClinic.SelectedIndex=0;//Default to None.
-			}
+			RefreshComboClinicFromClaim();
 			if(Defs.GetDefsForCategory(DefCat.ClaimCustomTracking).Count==0) {
 				butAdd.Visible=false;
 			}
