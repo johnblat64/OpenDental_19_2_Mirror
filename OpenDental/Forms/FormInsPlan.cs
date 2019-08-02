@@ -4444,6 +4444,10 @@ namespace OpenDental{
 		}
 
 		private void butGetElectronic_Click(object sender,EventArgs e) {
+			if(IsPatPlanRemoved()) {
+				DialogResult=DialogResult.Cancel;
+				return;
+			}
 			//button not visible if SubCur is null
 			if(PrefC.GetBool(PrefName.CustomizedForPracticeWeb)) {
 				EligibilityCheckDentalXchange();
@@ -5416,6 +5420,10 @@ namespace OpenDental{
 		}
 
 		private void butAudit_Click(object sender,EventArgs e) {
+			if(IsPatPlanRemoved()) {
+				DialogResult=DialogResult.Cancel;
+				return;
+			}
 			GetEmployerNum();
 			FormInsEditLogs FormIEL = new FormInsEditLogs(_planCur,benefitList);
 			FormIEL.ShowDialog();
@@ -5458,13 +5466,9 @@ namespace OpenDental{
 		private void butOK_Click(object sender,System.EventArgs e) {
 			bool removeLogs=false;
 			#region Validation
-			if(PatPlanCur!=null) {
-				PatPlan ppExists=PatPlans.GetByPatPlanNum(PatPlanCur.PatPlanNum);
-				if(ppExists==null) {
-					MsgBox.Show(this,"This plan was removed by another user and no longer exists.");
-					DialogResult=DialogResult.Cancel;
-					return;
-				}
+			if(IsPatPlanRemoved()) {
+				DialogResult=DialogResult.Cancel;
+				return;
 			}
 			if((radioChangeAll.Checked || (radioCreateNew.Checked && textLinkedNum.Text=="0")) //These are the two scenarios in which InsPlans.Update will be called instead of Insert.
 				&& (_planCur==null || InsPlans.GetPlan(_planCur.PlanNum,new List<InsPlan>())==null)) 
@@ -5976,6 +5980,18 @@ namespace OpenDental{
 			if(IsNewPatPlan){
 				PatPlans.Delete(PatPlanCur.PatPlanNum);//no need to check dependencies.  Maintains ordinals and recomputes estimates.
 			}
+		}
+
+		///<summary>Check if PatPlan was dropped since window was opened.</summary>
+		private bool IsPatPlanRemoved() {
+			if(PatPlanCur!=null) {
+				PatPlan ppExists=PatPlans.GetByPatPlanNum(PatPlanCur.PatPlanNum);
+				if(ppExists==null) {
+					MsgBox.Show(this,"This plan was removed by another user and no longer exists.");
+					return true;
+				}
+			}
+			return false;
 		}
 
 		///<summary>This is related to insplan.PlanType, but that column is a string.
