@@ -414,7 +414,9 @@ namespace OpenDental {
 			this.Calendar2.Name = "Calendar2";
 			this.Calendar2.ScrollChange = 1;
 			this.Calendar2.TabIndex = 23;
-			this.Calendar2.DateChanged += new System.Windows.Forms.DateRangeEventHandler(this.Calendar2_DateSelected);
+			/* The following event handler causes several bugs but fixes one rare bug.  See jobs #16000, #15750, and #13527
+			 * this.Calendar2.DateChanged += new System.Windows.Forms.DateRangeEventHandler(this.Calendar2_DateSelected);
+			 */
 			this.Calendar2.DateSelected += new System.Windows.Forms.DateRangeEventHandler(this.Calendar2_DateSelected);
 			// 
 			// labelDate
