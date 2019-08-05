@@ -259,6 +259,11 @@ namespace OpenDental {
 			//Add this control once. We will use ResetData() and Visible=true/false to control its visibility and layout.
 			Controls.Add(TempApptSingle);
 			pinBoard.OverlapOrdering=ContrApptSheet2.OverlapOrdering;
+			//The MonthCalendar control has a default context menu with a signle menu item option called "Go to today".
+			//This default menu item does not fire a DateSelected event and handling the DateChanged event specifically for this one control is tricky.
+			//Therefore, simply override the default context menu with a custom "Go to today" menu item that is compatible with the Appts module.
+			Calendar2.ContextMenu=new ContextMenu();
+			Calendar2.ContextMenu.MenuItems.Add(Lan.g(this,"Go to today"),butToday_Click);
 		}
 
 		///<summary></summary>
