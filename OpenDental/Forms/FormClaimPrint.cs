@@ -732,14 +732,16 @@ namespace OpenDental{
 						}
 						break;
 					case "OtherInsSubscrGender":
-						if(otherSubsc.Gender==PatientGender.Male) {
-							displayStrings[i]="M";
-						}
-						else if(otherSubsc.Gender==PatientGender.Female) {
-							displayStrings[i]="F";
-						}
-						else {//Unknown
-							displayStrings[i]="U";
+						if(otherPlan.PlanNum!=0) {
+							if(otherSubsc.Gender==PatientGender.Male) {
+								displayStrings[i]="M";
+							}
+							else if(otherSubsc.Gender==PatientGender.Female) {
+								displayStrings[i]="F";
+							}
+							else {//Unknown
+								displayStrings[i]="U";
+							}
 						}
 						break;
 					case "OtherInsSubscrID":
