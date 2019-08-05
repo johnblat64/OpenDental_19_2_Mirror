@@ -41,16 +41,16 @@ namespace OpenDental.InternalTools.Phones {
 				odPictureBoxEmployee.Image=image;
 			}
 			labelUserName.Text=employeeName;
-			labelExtension.Text=extension;
-			labelStatus.Text=status;
-			labelTime.Text=timer;
+			labelExtensionDesc.Text=extension+"   "+clickedPhone.MapAreaItem.Description;
+			labelStatusTime.Text=status+"   "+timer;
+			labelCustomer.Text=clickedPhone.PhoneCur.CustomerNumber;
 		}
 
 		///<summary>Should be called from FormMapHQ.SetPhoneList to refresh the currently displayed employeee on signal.</summary>
 		public void UpdateControl(MapAreaRoomControl clickedPhone) {
 			//Only need to worry about timer and status changing on signal.
-			labelTime.Text=clickedPhone.Elapsed.ToStringHmmss();
-			labelStatus.Text=clickedPhone.Status;
+			labelCustomer.Text=clickedPhone.PhoneCur.CustomerNumber;
+			labelStatusTime.Text=clickedPhone.Status+"   "+clickedPhone.Elapsed.ToStringHmmss();
 		}
 	}
 }

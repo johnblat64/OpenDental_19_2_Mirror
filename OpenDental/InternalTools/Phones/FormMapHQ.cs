@@ -352,17 +352,12 @@ namespace OpenDental {
 			}
 		}
 
-		///<summary>Will flip between showing details control and office down list based on isCubicle.  phoneClicked should only be null if we are showing the office down list.</summary>
+		///<summary>Sets the detail control to the clicked on cubicle as long as there is an associated phone.</summary>
 		private void FillDetails(MapAreaRoomControl cubeClicked=null) {
-			if(cubeClicked==null) {
-				userControlMapDetails1.Visible=false;
-				officesDownView.Visible=true;
-			}
-			else if(cubeClicked.PhoneCur!=null){
+			if(cubeClicked.PhoneCur!=null){
 				Image empImage=GetEmployeePicture(cubeClicked.PhoneCur);
 				userControlMapDetails1.SetEmployee(cubeClicked,empImage);
 				userControlMapDetails1.Visible=true;
-				officesDownView.Visible=false;
 			}
 		}
 

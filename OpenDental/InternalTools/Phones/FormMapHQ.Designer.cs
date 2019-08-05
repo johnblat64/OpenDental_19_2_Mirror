@@ -280,11 +280,10 @@
 			// userControlMapDetails1
 			// 
 			this.userControlMapDetails1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.userControlMapDetails1.Location = new System.Drawing.Point(4, 621);
+			this.userControlMapDetails1.Location = new System.Drawing.Point(4, 577);
 			this.userControlMapDetails1.Name = "userControlMapDetails1";
-			this.userControlMapDetails1.Size = new System.Drawing.Size(358, 161);
+			this.userControlMapDetails1.Size = new System.Drawing.Size(358, 130);
 			this.userControlMapDetails1.TabIndex = 1;
-			this.userControlMapDetails1.Visible = false;
 			// 
 			// labelCustDownTime
 			// 
@@ -300,7 +299,7 @@
 			this.labelCustDownTime.Font = new System.Drawing.Font("Calibri", 40F);
 			this.labelCustDownTime.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelCustDownTime.InnerColor = System.Drawing.Color.LightCyan;
-			this.labelCustDownTime.Location = new System.Drawing.Point(305, 578);
+			this.labelCustDownTime.Location = new System.Drawing.Point(305, 839);
 			this.labelCustDownTime.Name = "labelCustDownTime";
 			this.labelCustDownTime.OuterColor = System.Drawing.Color.Blue;
 			this.labelCustDownTime.PhoneCur = null;
@@ -311,7 +310,6 @@
 			this.labelCustDownTime.TabIndex = 94;
 			this.labelCustDownTime.Text = "0";
 			this.labelCustDownTime.WebChatImage = null;
-			this.labelCustDownTime.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// labelCustDownCount
 			// 
@@ -327,7 +325,7 @@
 			this.labelCustDownCount.Font = new System.Drawing.Font("Calibri", 40F);
 			this.labelCustDownCount.FontHeader = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelCustDownCount.InnerColor = System.Drawing.Color.LightCyan;
-			this.labelCustDownCount.Location = new System.Drawing.Point(184, 578);
+			this.labelCustDownCount.Location = new System.Drawing.Point(184, 839);
 			this.labelCustDownCount.Name = "labelCustDownCount";
 			this.labelCustDownCount.OuterColor = System.Drawing.Color.Blue;
 			this.labelCustDownCount.PhoneCur = null;
@@ -338,7 +336,6 @@
 			this.labelCustDownCount.TabIndex = 93;
 			this.labelCustDownCount.Text = "0";
 			this.labelCustDownCount.WebChatImage = null;
-			this.labelCustDownCount.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// labelTriageOpsCountTotal
 			// 
@@ -395,11 +392,11 @@
 			// label3
 			// 
 			this.label3.Font = new System.Drawing.Font("Calibri", 16F);
-			this.label3.Location = new System.Drawing.Point(1, 584);
+			this.label3.Location = new System.Drawing.Point(1, 845);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(116, 30);
 			this.label3.TabIndex = 86;
-			this.label3.Text = "Cust down";
+			this.label3.Text = "Cust Down";
 			this.label3.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// labelTriageOpsCountLocal
@@ -727,9 +724,9 @@
 			this.label14.Font = new System.Drawing.Font("Calibri", 16F);
 			this.label14.Location = new System.Drawing.Point(1, 543);
 			this.label14.Name = "label14";
-			this.label14.Size = new System.Drawing.Size(101, 32);
+			this.label14.Size = new System.Drawing.Size(116, 32);
 			this.label14.TabIndex = 81;
-			this.label14.Text = "TrOp#";
+			this.label14.Text = "Triage Op#";
 			// 
 			// tabMain
 			// 
@@ -792,13 +789,12 @@
 			// label7
 			// 
 			this.label7.Font = new System.Drawing.Font("Calibri", 16F);
-			this.label7.Location = new System.Drawing.Point(247, 584);
+			this.label7.Location = new System.Drawing.Point(247, 845);
 			this.label7.Name = "label7";
 			this.label7.Size = new System.Drawing.Size(62, 30);
 			this.label7.TabIndex = 96;
 			this.label7.Text = "Time";
 			this.label7.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.label7.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// officesDownView
 			// 
@@ -808,11 +804,11 @@
 			this.officesDownView.Font = new System.Drawing.Font("Calibri", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.officesDownView.Items = ((System.ComponentModel.BindingList<string>)(resources.GetObject("officesDownView.Items")));
 			this.officesDownView.LinePadding = -6;
-			this.officesDownView.Location = new System.Drawing.Point(4, 619);
+			this.officesDownView.Location = new System.Drawing.Point(4, 710);
 			this.officesDownView.MinAlpha = 60;
 			this.officesDownView.Name = "officesDownView";
 			this.officesDownView.OuterColor = System.Drawing.Color.Black;
-			this.officesDownView.Size = new System.Drawing.Size(358, 255);
+			this.officesDownView.Size = new System.Drawing.Size(358, 127);
 			this.officesDownView.StartFadeIndex = 0;
 			this.officesDownView.TabIndex = 88;
 			// 
@@ -829,9 +825,9 @@
 			// labelTirageOpLocal
 			// 
 			this.labelTirageOpLocal.Font = new System.Drawing.Font("Calibri", 16F);
-			this.labelTirageOpLocal.Location = new System.Drawing.Point(108, 543);
+			this.labelTirageOpLocal.Location = new System.Drawing.Point(123, 543);
 			this.labelTirageOpLocal.Name = "labelTirageOpLocal";
-			this.labelTirageOpLocal.Size = new System.Drawing.Size(81, 32);
+			this.labelTirageOpLocal.Size = new System.Drawing.Size(66, 32);
 			this.labelTirageOpLocal.TabIndex = 91;
 			this.labelTirageOpLocal.Text = "Local";
 			this.labelTirageOpLocal.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -839,13 +835,12 @@
 			// label5
 			// 
 			this.label5.Font = new System.Drawing.Font("Calibri", 16F);
-			this.label5.Location = new System.Drawing.Point(112, 584);
+			this.label5.Location = new System.Drawing.Point(112, 845);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(77, 30);
 			this.label5.TabIndex = 95;
 			this.label5.Text = "Count";
 			this.label5.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.label5.Click += new System.EventHandler(this.OfficeDownControls_Click);
 			// 
 			// mapAreaPanelHQ
 			// 
