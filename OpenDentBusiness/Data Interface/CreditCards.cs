@@ -497,7 +497,7 @@ namespace OpenDentBusiness{
 					//Make sure the day being looked at was after the start date. This prevents cards from being charged for weeks that 
 					//were before the recurring charge was created
 					if(recentDateToCharge.AddDays(-j*7)>=dateStart) {
-						if(latestPayment < recentDateToCharge.AddDays(-j*7)) {
+						if(latestPayment.Date < recentDateToCharge.Date.AddDays(-j*7)) {
 							chargeCount++;
 							//keep checking to see when the latestpayment was. For practices running their report frequently, this will
 							//almost never make it past the first loop.
