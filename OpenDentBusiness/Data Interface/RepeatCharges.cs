@@ -270,36 +270,36 @@ namespace OpenDentBusiness {
 			List<Benefit> benefitList=Benefits.Refresh(patPlanList,subList);
 			List<Claim> retVal=new List<Claim>();
 			Claim claimCur;
+			Patient pat=Patients.GetPat(proc.PatNum);
 			if(patPlanList.Count==0) {//no current insurance, do not create a claim
 				return retVal;
 			}
 			//create the claimprocs
-			Procedures.ComputeEstimates(proc,proc.PatNum,new List<ClaimProc>(),true,insPlanList,patPlanList,benefitList,
-				Patients.GetPat(proc.PatNum).Age,subList);
+			Procedures.ComputeEstimates(proc,proc.PatNum,new List<ClaimProc>(),true,insPlanList,patPlanList,benefitList,pat.Age,subList);
 			//get claimprocs for this proc, may be more than one
 			List<ClaimProc> claimProcList=ClaimProcs.GetForProc(ClaimProcs.Refresh(proc.PatNum),proc.ProcNum);
 			string claimType="P";
 			if(patPlanList.Count==1 && PatPlans.GetOrdinal(PriSecMed.Medical,patPlanList,insPlanList,subList)>0) {//if there's exactly one medical plan
 				claimType="Med";
 			}
-			claimCur=Claims.CreateClaimForRepeatCharge(claimType,patPlanList,insPlanList,claimProcList,proc,subList);
+			claimCur=Claims.CreateClaimForRepeatCharge(claimType,patPlanList,insPlanList,claimProcList,proc,subList,pat);
 			claimProcList=ClaimProcs.Refresh(proc.PatNum);
 			if(claimCur.ClaimNum==0) {
 				return retVal;
 			}
 			retVal.Add(claimCur);
-			Claims.CalculateAndUpdate(new List<Procedure> { proc },insPlanList,claimCur,patPlanList,benefitList,Patients.GetPat(proc.PatNum),subList);
+			Claims.CalculateAndUpdate(new List<Procedure> { proc },insPlanList,claimCur,patPlanList,benefitList,pat,subList);
 			if(PatPlans.GetOrdinal(PriSecMed.Secondary,patPlanList,insPlanList,subList)>0 //if there exists a secondary plan
 				 && !CultureInfo.CurrentCulture.Name.EndsWith("CA")) //and not canada (don't create secondary claim for canada)
 			{
-				claimCur=Claims.CreateClaimForRepeatCharge("S",patPlanList,insPlanList,claimProcList,proc,subList);
+				claimCur=Claims.CreateClaimForRepeatCharge("S",patPlanList,insPlanList,claimProcList,proc,subList,pat);
 				if(claimCur.ClaimNum==0) {
 					return retVal;
 				}
 				retVal.Add(claimCur);
 				ClaimProcs.Refresh(proc.PatNum);
 				claimCur.ClaimStatus="H";
-				Claims.CalculateAndUpdate(new List<Procedure> { proc },insPlanList,claimCur,patPlanList,benefitList,Patients.GetPat(proc.PatNum),subList);
+				Claims.CalculateAndUpdate(new List<Procedure> { proc },insPlanList,claimCur,patPlanList,benefitList,pat,subList);
 			}
 			return retVal;
 		}

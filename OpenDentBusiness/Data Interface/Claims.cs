@@ -1091,7 +1091,7 @@ namespace OpenDentBusiness{
 
 		///<summary>Creates a claim for a newly created repeat charge procedure.</summary>
 		public static Claim CreateClaimForRepeatCharge(string claimType,List<PatPlan> patPlanList,List<InsPlan> planList,List<ClaimProc> claimProcList,
-			Procedure proc,List<InsSub> subList) {
+			Procedure proc,List<InsSub> subList,Patient pat) {
 			//No remoting role check; no call to db
 			long claimFormNum=0;
 			InsPlan planCur=new InsPlan();
@@ -1181,7 +1181,7 @@ namespace OpenDentBusiness{
 			}
 			claimCur.ProvTreat=proc.ProvNum;
 			if(Providers.GetIsSec(proc.ProvNum)) {
-				claimCur.ProvTreat=Patients.GetPat(proc.PatNum).PriProv;
+				claimCur.ProvTreat=pat.PriProv;
 				//OK if zero, because auto select first in list when open claim
 			}
 			claimCur.IsProsthesis="N";
@@ -1190,6 +1190,8 @@ namespace OpenDentBusiness{
 			claimCur.ClaimForm=planCur.ClaimFormNum;
 			claimCur.AttachedFlags="Mail";
 			Claims.Insert(claimCur);
+			claimCur.ClaimIdentifier=ConvertClaimId(claimCur,pat);
+			Update(claimCur);
 			//attach procedure
 			claimProcCur.ClaimNum=claimCur.ClaimNum;
 			if(planCur.PlanType=="c") {//if capitation
