@@ -1325,6 +1325,11 @@ namespace OpenDental{
 			if(gridPay.GetSelectedIndex()!=-1) {
 				gridPay.SetSelected(false);
 			}
+			SelectLabProcs();
+		}
+
+		///<summary>Selects any lab procedures that go along with the currently selected procedures.</summary>
+		private void SelectLabProcs() {
 			if(!CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 				return;
 			}
@@ -1661,6 +1666,7 @@ namespace OpenDental{
 					return;
 				}
 			}
+			SelectLabProcs();
 			#region OrthoInsPayConsolidated
 			if(PrefC.GetBool(PrefName.OrthoInsPayConsolidated)) {
 				List<int> listOrthoAutoGridRows = new List<int>();
