@@ -175,6 +175,7 @@ namespace OpenDentBusiness {
 		DepositSlip,
 		Statement,
 		///<summary>Users are NEVER allowed to use this sheet type. It is for internal use only. It should be hidden in all lists and unselectable.</summary>
+		[SheetInternal(DoShowInInternalList=false)]
 		MedLabResults,
 		TreatmentPlan,
 		Screening,
@@ -183,9 +184,12 @@ namespace OpenDentBusiness {
 		ERA,
 		ERAGridHeader,
 		RxInstruction,
+		[SheetInternal(DoShowInInternalList=false)]
 		PatientTransferCEMT,
 		ChartModule,
+		[SheetInternal(DoShowInInternalList=false,DoShowInDashboardSetup=true)]
 		PatientDashboard,
+		[SheetInternal(DoShowInInternalList=false,DoShowInDashboardSetup=true)]
 		PatientDashboardToothChart,
 	}
 
@@ -224,7 +228,16 @@ namespace OpenDentBusiness {
 		[DescriptionAttribute("Medical practice treatment plan view")]
 		MedicalPracticeTreatPlan,
 	}
-		
+	
+	public class SheetInternalAttribute:Attribute {
+		public bool DoShowInInternalList=true;
+		public bool DoShowInDashboardSetup=false;
+
+		public SheetInternalAttribute() {
+			//Empty constructor needed, default values used.
+		}
+	}
+
 	///<summary>Used when we want to link a SheetTypeEnum to a set of SheetFieldLayoutModes.  Ex: ChartModule link to ECW, Medical, Orion, etc.
 	///SheetTypeEnums which are not dynamic will have IsDynamic=false and ArraySheetFieldLayoutModes will only contain SheetFieldLayoutMode.Default.</summary>
 	public class SheetLayoutAttribute:Attribute {

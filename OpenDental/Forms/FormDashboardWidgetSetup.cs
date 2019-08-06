@@ -42,8 +42,12 @@ namespace OpenDental {
 		}
 
 		private void FillGridInternal() {
-			FillGrid(gridInternal,true,SheetsInternal.GetSheetDef(SheetInternalType.PatientDashboard)
-				,SheetsInternal.GetSheetDef(SheetInternalType.PatientDashboardToothChart));
+			//Get the list of SheetDefs that are for Dashboards.
+			SheetDef[] sheetDefs=Enum.GetValues(typeof(SheetInternalType)).OfType<SheetInternalType>()
+				.Where(x => x.GetAttributeOrDefault<SheetInternalAttribute>().DoShowInDashboardSetup)
+				.Select(x => SheetsInternal.GetSheetDef(x))
+				.ToArray();
+			FillGrid(gridInternal,true,sheetDefs);
 		}
 
 		private void FillGridCustom(bool isSelectionMaintained=true,bool doRefreshCache=true) {

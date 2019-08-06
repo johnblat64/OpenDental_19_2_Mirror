@@ -116,15 +116,11 @@ namespace OpenDentBusiness{
 			return sheetDef;
 		}
 
-		public static List<SheetDef> GetAllInternal(){
-			List<SheetDef> list=new List<SheetDef>();
-			for(int i=0;i<Enum.GetValues(typeof(SheetInternalType)).Length;i++){
-				if(((SheetInternalType)i).In(SheetInternalType.MedLabResults,SheetInternalType.PatientTransferCEMT,SheetInternalType.PatientDashboard)) {
-					continue;
-				}
-				list.Add(GetSheetDef((SheetInternalType)i));
-			}
-			return list;
+		public static List<SheetDef> GetAllInternal() {
+			return Enum.GetValues(typeof(SheetInternalType)).OfType<SheetInternalType>()
+				.Where(x => x.GetAttributeOrDefault<SheetInternalAttribute>().DoShowInInternalList)
+				.Select(x => GetSheetDef(x))
+				.ToList();
 		}
 		
 		private static SheetDef LabelPatientMail(){
