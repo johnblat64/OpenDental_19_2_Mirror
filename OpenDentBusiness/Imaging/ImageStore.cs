@@ -38,17 +38,17 @@ namespace OpenDentBusiness {
 				}
 				//Override path.  Because it overrides all other paths, we evaluate it first.
 				if(!string.IsNullOrEmpty(LocalAtoZpath)) {
-					return LocalAtoZpath;
+					return LocalAtoZpath.Trim();
 				}
 				string replicationAtoZ=ReplicationServers.GetAtoZpath();
 				if(!string.IsNullOrEmpty(replicationAtoZ)) {
-					return replicationAtoZ;
+					return replicationAtoZ.Trim();
 				}
 				//use this to handle possible multiple paths separated by semicolons.
-				return GetValidPathFromString(PrefC.GetString(PrefName.DocPath));
+				return GetValidPathFromString(PrefC.GetString(PrefName.DocPath)).Trim();
 			}
 			//If you got here you are using a cloud storage method.
-			return CloudStorage.AtoZPath;
+			return CloudStorage.AtoZPath.Trim();
 		}
 
 		public static string GetValidPathFromString(string documentPaths) {
