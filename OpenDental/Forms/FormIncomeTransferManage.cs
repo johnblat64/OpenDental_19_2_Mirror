@@ -492,7 +492,7 @@ namespace OpenDental {
 				PaySplit posSplit=new PaySplit();
 				posSplit.DatePay=DateTimeOD.Today;
 				posSplit.ClinicNum=negSplit.ClinicNum;
-				posSplit.FSplitNum=0;//Can't set FSplitNum just yet, the neg split isn't inserted so there is no FK yet.
+				posSplit.FSplitNum=0;//Original pre-payments need to have an FSplitNum of 0 so we can identify them
 				posSplit.PatNum=negSplit.PatNum;
 				posSplit.PayPlanNum=0;
 				posSplit.PayNum=_paymentCur.PayNum;
@@ -501,7 +501,6 @@ namespace OpenDental {
 				posSplit.AdjNum=0;
 				posSplit.SplitAmt=(double)amt;
 				posSplit.UnearnedType=negSplit.UnearnedType==0 ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : negSplit.UnearnedType;
-				_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(negSplit,posSplit));
 				_listSplitsCur.AddRange(new[] { posSplit,negSplit });
 				negCharge.SplitCollection.Add(negSplit);
 				negCharge.AmountEnd+=amt;
