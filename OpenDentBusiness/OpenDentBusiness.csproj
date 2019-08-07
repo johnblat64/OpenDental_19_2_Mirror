@@ -2313,6 +2313,7 @@
     <Content Include="Resources\ClaimForms\ClaimFormADA 2012.xml" />
     <Content Include="Resources\ClaimForms\ClaimFormADA 2012_J430D.xml" />
     <None Include="Resources\ClaimForms\ClaimFormADA 2018.xml" />
+    <Content Include="Resources\ClaimForms\ClaimFormADA 2019.xml" />
     <Content Include="Resources\ClaimForms\ClaimFormDenti-Cal.xml" />
     <Content Include="Resources\ClaimForms\ClaimFormHCFA-1500 preprinted.xml" />
     <Content Include="Resources\ClaimForms\ClaimFormHCFA-1500.xml" />

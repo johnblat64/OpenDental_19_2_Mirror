@@ -785,6 +785,10 @@ namespace OpenDental{
 				img=CDT.Class1.GetADA2018_J432();
 				extension=".gif";
 			}
+			else if(claimFormItem.ImageFileName=="ADA2019_J430.gif") {
+				img=CDT.Class1.GetADA2019_J430();
+				extension=".gif";
+			}
 			else if(claimFormItem.ImageFileName=="1500_02_12.gif") {
 				img=Properties.Resources._1500_02_12;
 				extension=".gif";
@@ -841,12 +845,14 @@ namespace OpenDental{
 					case "OtherInsExistsMed":
 					case "OtherInsSubscrIsMale":
 					case "OtherInsSubscrIsFemale":
+					case "OtherInsSubscrIsGenderUnknown":
 					case "OtherInsRelatIsSelf":
 					case "OtherInsRelatIsSpouse":
 					case "OtherInsRelatIsChild":
 					case "OtherInsRelatIsOther":
 					case "SubscrIsMale":
 					case "SubscrIsFemale":
+					case "SubscrIsGenderUnknown":
 					case "SubscrIsMarried":
 					case "SubscrIsSingle":
 					case "SubscrIsFTStudent":
@@ -860,6 +866,7 @@ namespace OpenDental{
 					case "IsStudent":
 					case "PatientIsMale":
 					case "PatientIsFemale":
+					case "PatientIsGenderUnknown":
 					case "PatientIsMarried":
 					case "PatientIsSingle":
 					case "Miss1":
@@ -1415,6 +1422,9 @@ namespace OpenDental{
 							break;
 						case "ADA2018_J432.gif":
 							thisImage=CDT.Class1.GetADA2018_J432();
+							break;
+						case "ADA2019_J430.gif":
+							thisImage=CDT.Class1.GetADA2019_J430();
 							break;
 						case "1500_02_12.gif":
 							thisImage=Properties.Resources._1500_02_12;

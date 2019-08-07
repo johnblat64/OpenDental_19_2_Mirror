@@ -303,6 +303,29 @@ namespace OpenDentBusiness.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;ClaimForm xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
         ///  &lt;IsNew&gt;false&lt;/IsNew&gt;
+        ///  &lt;ClaimFormNum&gt;15&lt;/ClaimFormNum&gt;
+        ///  &lt;Description&gt;ADA 2019&lt;/Description&gt;
+        ///  &lt;IsHidden&gt;false&lt;/IsHidden&gt;
+        ///  &lt;FontName&gt;Arial&lt;/FontName&gt;
+        ///  &lt;FontSize&gt;9&lt;/FontSize&gt;
+        ///  &lt;UniqueID&gt;OD11&lt;/UniqueID&gt;
+        ///  &lt;PrintImages&gt;true&lt;/PrintImages&gt;
+        ///  &lt;OffsetX&gt;0&lt;/OffsetX&gt;
+        ///  &lt;OffsetY&gt;0&lt;/OffsetY&gt;
+        ///  &lt;Width&gt;850&lt;/Width&gt;
+        ///  &lt;Height&gt;1100&lt;/Height&gt;
+        ///  &lt;IsInternal&gt;fal [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string ClaimFormADA_2019 {
+            get {
+                return ResourceManager.GetString("ClaimFormADA_2019", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+        ///&lt;ClaimForm xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+        ///  &lt;IsNew&gt;false&lt;/IsNew&gt;
         ///  &lt;ClaimFormNum&gt;0&lt;/ClaimFormNum&gt;
         ///  &lt;Description&gt;Denti-Cal&lt;/Description&gt;
         ///  &lt;IsHidden&gt;false&lt;/IsHidden&gt;

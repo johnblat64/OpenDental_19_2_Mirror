@@ -372,6 +372,10 @@ namespace OpenDental{
 							thisImage=CDT.Class1.GetADA2018_J432();
 							extension=".gif";
 							break;
+						case "ADA2019_J430.gif":
+							thisImage=CDT.Class1.GetADA2019_J430();
+							extension=".gif";
+							break;
 						case "1500_02_12.gif":
 							thisImage=Properties.Resources._1500_02_12;
 							extension=".gif";
@@ -731,6 +735,11 @@ namespace OpenDental{
 							displayStrings[i]="X";
 						}
 						break;
+					case "OtherInsSubscrIsGenderUnknown":
+						if(otherPlan.PlanNum!=0 && otherSubsc.Gender==PatientGender.Unknown) {
+							displayStrings[i]="X";
+						}
+						break;
 					case "OtherInsSubscrGender":
 						if(otherPlan.PlanNum!=0) {
 							if(otherSubsc.Gender==PatientGender.Male) {
@@ -862,6 +871,11 @@ namespace OpenDental{
 						break;
 					case "SubscrIsFemale":
 						if(subsc.Gender==PatientGender.Female) {
+							displayStrings[i]="X";
+						}
+						break;
+					case "SubscrIsGenderUnknown":
+						if(subsc.Gender==PatientGender.Unknown) {
 							displayStrings[i]="X";
 						}
 						break;
@@ -1060,6 +1074,11 @@ namespace OpenDental{
 						break;
 					case "PatientIsFemale":
 						if(PatCur.Gender==PatientGender.Female) {
+							displayStrings[i]="X";
+						}
+						break;
+					case "PatientIsGenderUnknown":
+						if(PatCur.Gender==PatientGender.Unknown) {
 							displayStrings[i]="X";
 						}
 						break;
