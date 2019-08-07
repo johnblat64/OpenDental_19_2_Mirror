@@ -93,11 +93,7 @@ namespace OpenDental {
 			this.checkApptsRequireProcs = new System.Windows.Forms.CheckBox();
 			this.tabFamily = new System.Windows.Forms.TabPage();
 			this.checkPatClone = new System.Windows.Forms.CheckBox();
-			this.label31 = new System.Windows.Forms.Label();
-			this.label30 = new System.Windows.Forms.Label();
-			this.textClaimSnapshotRunTime = new System.Windows.Forms.TextBox();
 			this.checkSuperFam = new System.Windows.Forms.CheckBox();
-			this.comboClaimSnapshotTrigger = new System.Windows.Forms.ComboBox();
 			this.checkClaimSnapshotEnabled = new System.Windows.Forms.CheckBox();
 			this.checkSuperFamCloneCreate = new System.Windows.Forms.CheckBox();
 			this.tabReport = new System.Windows.Forms.TabPage();
@@ -118,6 +114,11 @@ namespace OpenDental {
 			this.label11 = new System.Windows.Forms.Label();
 			this.label9 = new System.Windows.Forms.Label();
 			this.butOK = new OpenDental.UI.Button();
+			this.groupClaimSnapshot = new System.Windows.Forms.GroupBox();
+			this.textClaimSnapshotRunTime = new System.Windows.Forms.TextBox();
+			this.comboClaimSnapshotTrigger = new System.Windows.Forms.ComboBox();
+			this.labelClaimSnapshotTrigger = new System.Windows.Forms.Label();
+			this.labelClaimSnapshotRunTime = new System.Windows.Forms.Label();
 			this.tabControlMain.SuspendLayout();
 			this.tabAccount.SuspendLayout();
 			this.groupBoxClaimIdPrefix.SuspendLayout();
@@ -129,6 +130,7 @@ namespace OpenDental {
 			this.tabReport.SuspendLayout();
 			this.groupConnectionSettings.SuspendLayout();
 			this.groupMiddleTier.SuspendLayout();
+			this.groupClaimSnapshot.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// butCancel
@@ -898,12 +900,9 @@ namespace OpenDental {
 			// tabFamily
 			// 
 			this.tabFamily.BackColor = System.Drawing.SystemColors.Window;
+			this.tabFamily.Controls.Add(this.groupClaimSnapshot);
 			this.tabFamily.Controls.Add(this.checkPatClone);
-			this.tabFamily.Controls.Add(this.label31);
-			this.tabFamily.Controls.Add(this.label30);
-			this.tabFamily.Controls.Add(this.textClaimSnapshotRunTime);
 			this.tabFamily.Controls.Add(this.checkSuperFam);
-			this.tabFamily.Controls.Add(this.comboClaimSnapshotTrigger);
 			this.tabFamily.Controls.Add(this.checkClaimSnapshotEnabled);
 			this.tabFamily.Controls.Add(this.checkSuperFamCloneCreate);
 			this.tabFamily.Location = new System.Drawing.Point(4, 22);
@@ -924,31 +923,6 @@ namespace OpenDental {
 			this.checkPatClone.Text = "Patient Clone";
 			this.checkPatClone.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
-			// label31
-			// 
-			this.label31.Location = new System.Drawing.Point(201, 87);
-			this.label31.Name = "label31";
-			this.label31.Size = new System.Drawing.Size(100, 18);
-			this.label31.TabIndex = 272;
-			this.label31.Text = "Snapshot Trigger";
-			this.label31.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// label30
-			// 
-			this.label30.Location = new System.Drawing.Point(277, 112);
-			this.label30.Name = "label30";
-			this.label30.Size = new System.Drawing.Size(100, 18);
-			this.label30.TabIndex = 271;
-			this.label30.Text = "Service Run Time";
-			this.label30.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// textClaimSnapshotRunTime
-			// 
-			this.textClaimSnapshotRunTime.Location = new System.Drawing.Point(378, 111);
-			this.textClaimSnapshotRunTime.Name = "textClaimSnapshotRunTime";
-			this.textClaimSnapshotRunTime.Size = new System.Drawing.Size(96, 20);
-			this.textClaimSnapshotRunTime.TabIndex = 270;
-			// 
 			// checkSuperFam
 			// 
 			this.checkSuperFam.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -959,16 +933,6 @@ namespace OpenDental {
 			this.checkSuperFam.TabIndex = 271;
 			this.checkSuperFam.Text = "Super Families";
 			this.checkSuperFam.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// comboClaimSnapshotTrigger
-			// 
-			this.comboClaimSnapshotTrigger.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboClaimSnapshotTrigger.FormattingEnabled = true;
-			this.comboClaimSnapshotTrigger.Location = new System.Drawing.Point(302, 86);
-			this.comboClaimSnapshotTrigger.MaxDropDownItems = 30;
-			this.comboClaimSnapshotTrigger.Name = "comboClaimSnapshotTrigger";
-			this.comboClaimSnapshotTrigger.Size = new System.Drawing.Size(172, 21);
-			this.comboClaimSnapshotTrigger.TabIndex = 269;
 			// 
 			// checkClaimSnapshotEnabled
 			// 
@@ -1180,6 +1144,54 @@ namespace OpenDental {
 			this.butOK.Text = "&OK";
 			this.butOK.Click += new System.EventHandler(this.butOK_Click);
 			// 
+			// groupClaimSnapshot
+			// 
+			this.groupClaimSnapshot.Controls.Add(this.textClaimSnapshotRunTime);
+			this.groupClaimSnapshot.Controls.Add(this.comboClaimSnapshotTrigger);
+			this.groupClaimSnapshot.Controls.Add(this.labelClaimSnapshotTrigger);
+			this.groupClaimSnapshot.Controls.Add(this.labelClaimSnapshotRunTime);
+			this.groupClaimSnapshot.Location = new System.Drawing.Point(177, 85);
+			this.groupClaimSnapshot.Name = "groupClaimSnapshot";
+			this.groupClaimSnapshot.Size = new System.Drawing.Size(296, 73);
+			this.groupClaimSnapshot.TabIndex = 281;
+			this.groupClaimSnapshot.TabStop = false;
+			this.groupClaimSnapshot.Text = "Claim Snapshot";
+			// 
+			// textClaimSnapshotRunTime
+			// 
+			this.textClaimSnapshotRunTime.Location = new System.Drawing.Point(194, 42);
+			this.textClaimSnapshotRunTime.Name = "textClaimSnapshotRunTime";
+			this.textClaimSnapshotRunTime.Size = new System.Drawing.Size(96, 20);
+			this.textClaimSnapshotRunTime.TabIndex = 270;
+			// 
+			// comboClaimSnapshotTrigger
+			// 
+			this.comboClaimSnapshotTrigger.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboClaimSnapshotTrigger.FormattingEnabled = true;
+			this.comboClaimSnapshotTrigger.Location = new System.Drawing.Point(118, 17);
+			this.comboClaimSnapshotTrigger.MaxDropDownItems = 30;
+			this.comboClaimSnapshotTrigger.Name = "comboClaimSnapshotTrigger";
+			this.comboClaimSnapshotTrigger.Size = new System.Drawing.Size(172, 21);
+			this.comboClaimSnapshotTrigger.TabIndex = 269;
+			// 
+			// labelClaimSnapshotTrigger
+			// 
+			this.labelClaimSnapshotTrigger.Location = new System.Drawing.Point(17, 18);
+			this.labelClaimSnapshotTrigger.Name = "labelClaimSnapshotTrigger";
+			this.labelClaimSnapshotTrigger.Size = new System.Drawing.Size(100, 18);
+			this.labelClaimSnapshotTrigger.TabIndex = 272;
+			this.labelClaimSnapshotTrigger.Text = "Snapshot Trigger";
+			this.labelClaimSnapshotTrigger.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// labelClaimSnapshotRunTime
+			// 
+			this.labelClaimSnapshotRunTime.Location = new System.Drawing.Point(93, 43);
+			this.labelClaimSnapshotRunTime.Name = "labelClaimSnapshotRunTime";
+			this.labelClaimSnapshotRunTime.Size = new System.Drawing.Size(100, 18);
+			this.labelClaimSnapshotRunTime.TabIndex = 271;
+			this.labelClaimSnapshotRunTime.Text = "Service Run Time";
+			this.labelClaimSnapshotRunTime.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// FormEnterpriseSetup
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
@@ -1205,12 +1217,13 @@ namespace OpenDental {
 			this.groupBox2.PerformLayout();
 			this.tabAppts.ResumeLayout(false);
 			this.tabFamily.ResumeLayout(false);
-			this.tabFamily.PerformLayout();
 			this.tabReport.ResumeLayout(false);
 			this.groupConnectionSettings.ResumeLayout(false);
 			this.groupConnectionSettings.PerformLayout();
 			this.groupMiddleTier.ResumeLayout(false);
 			this.groupMiddleTier.PerformLayout();
+			this.groupClaimSnapshot.ResumeLayout(false);
+			this.groupClaimSnapshot.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -1244,10 +1257,6 @@ namespace OpenDental {
 		private System.Windows.Forms.RadioButton radioTime;
 		private ValidTime textReportCheckTime;
 		private System.Windows.Forms.CheckBox checkBillShowTransSinceZero;
-		private System.Windows.Forms.Label label31;
-		private System.Windows.Forms.Label label30;
-		private System.Windows.Forms.ComboBox comboClaimSnapshotTrigger;
-		private System.Windows.Forms.TextBox textClaimSnapshotRunTime;
 		private System.Windows.Forms.TextBox textReportCheckInterval;
 		private System.Windows.Forms.Label labelReportheckUnits;
 		private System.Windows.Forms.CheckBox checkSuperFamCloneCreate;
@@ -1311,5 +1320,10 @@ namespace OpenDental {
 		private ValidNum textPatSelectMinChars;
 		private System.Windows.Forms.CheckBox checkPatSearchEmptyParams;
 		private System.Windows.Forms.CheckBox checkEnableNoneView;
+		private System.Windows.Forms.GroupBox groupClaimSnapshot;
+		private System.Windows.Forms.TextBox textClaimSnapshotRunTime;
+		private System.Windows.Forms.ComboBox comboClaimSnapshotTrigger;
+		private System.Windows.Forms.Label labelClaimSnapshotTrigger;
+		private System.Windows.Forms.Label labelClaimSnapshotRunTime;
 	}
 }

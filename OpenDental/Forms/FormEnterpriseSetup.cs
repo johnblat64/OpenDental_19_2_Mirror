@@ -105,6 +105,12 @@ namespace OpenDental {
 			checkSuperFam.Checked=PrefC.GetBool(PrefName.ShowFeatureSuperfamilies);
 			checkPatClone.Checked=PrefC.GetBool(PrefName.ShowFeaturePatientClone);
 			checkSuperFamCloneCreate.Checked=PrefC.GetBool(PrefName.CloneCreateSuperFamily);
+			//users should only see the snapshot trigger and service runtime if they have it set to something other than ClaimCreate.
+			//if a user wants to be able to change claimsnapshot settings, the following MySQL statement should be run:
+			//UPDATE preference SET ValueString = 'Service'	 WHERE PrefName = 'ClaimSnapshotTriggerType'
+			if(PIn.Enum<ClaimSnapshotTrigger>(PrefC.GetString(PrefName.ClaimSnapshotTriggerType),true)==ClaimSnapshotTrigger.ClaimCreate) {
+				groupClaimSnapshot.Visible=false;
+			}
 			foreach(ClaimSnapshotTrigger trigger in Enum.GetValues(typeof(ClaimSnapshotTrigger))) {
 				comboClaimSnapshotTrigger.Items.Add(trigger.GetDescription());
 			}
