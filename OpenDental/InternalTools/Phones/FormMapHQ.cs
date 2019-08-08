@@ -739,10 +739,6 @@ namespace OpenDental {
 			splitContainer2.Panel1Collapsed=!splitContainer2.Panel1Collapsed;
 		}
 
-		private void OfficeDownControls_Click(object sender,EventArgs e) {
-			FillDetails();
-		}
-
 		private void openNewMapToolStripMenuItem_Click(object sender,EventArgs e) {
 			//Open the map from FormOpenDental so that it can register for the click events.
 			ExtraMapClicked?.Invoke(this,e);
