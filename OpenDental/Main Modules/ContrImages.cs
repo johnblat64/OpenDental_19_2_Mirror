@@ -2182,7 +2182,9 @@ namespace OpenDental {
 					FillDocList(false);
 					SelectTreeNode(GetNodeById(MakeIdEob(eob.EobAttachNum)));
 				}
-				File.Delete(tempFile);
+				ImageStore.TryDeleteFile(tempFile
+					,actInUseException:(msg) => MsgBox.Show(msg)//Informs user when a 'file is in use' exception occurs.
+				);
 			}
 			else if(EhrAmendmentCur!=null) {//amendment
 				string fileNameOld=EhrAmendmentCur.FileName;
@@ -2199,7 +2201,9 @@ namespace OpenDental {
 					FillDocList(false);
 					SelectTreeNode(GetNodeById(MakeIdAmd(EhrAmendmentCur.EhrAmendmentNum)));
 				}
-				File.Delete(tempFile);
+				ImageStore.TryDeleteFile(tempFile
+					,actInUseException:(msg) => MsgBox.Show(msg)//Informs user when a 'file is in use' exception occurs.
+				);
 			}
 			else {//regular Images module
 				Document doc=null;
@@ -2225,7 +2229,9 @@ namespace OpenDental {
 						DocSelected=doc.Copy();
 					}
 				}
-				File.Delete(tempFile);
+				ImageStore.TryDeleteFile(tempFile
+					,actInUseException:(msg) => MsgBox.Show(msg)//Informs user when a 'file is in use' exception occurs.
+				);
 				//Reselect the last successfully added node when necessary. js This code seems to be copied from import multi.  Simplify it.
 				if(doc!=null && !MakeIdDoc(doc.DocNum).Equals(nodeId)) {
 					SelectTreeNode(GetNodeById(MakeIdDoc(doc.DocNum)));

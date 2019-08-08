@@ -1042,6 +1042,22 @@ namespace OpenDentBusiness {
 			EhrAmendments.Update(amendment);
 		}
 
+		///<summary>Attempts to delete the file for the given filePath, return true if no exception occured (doesnt mean a file was deleted necessarily).
+		///actInUseException is invoked with an exception message. Up to developer on if/what they would like to do anything with it.</summary>
+		public static bool TryDeleteFile(string filePath,Action<string> actInUseException=null) {
+			try {
+				File.Delete(filePath);
+			}
+			catch(Exception ex) {
+				if(!ex.Message.ToLower().Contains("being used by another process")) {
+					throw ex;//Currently we only care about the above exception. Other exceptions should be brought to our attention still.
+				}
+				actInUseException?.Invoke(ex.Message);
+				return false;
+			}
+			return true;
+		}
+
 		///<summary>Cleans up unreferenced Amendments</summary>
 		public static void CleanAmdAttach(string amdFileName) {
 			if(PrefC.AtoZfolderUsed==DataStorageType.LocalAtoZ) {
