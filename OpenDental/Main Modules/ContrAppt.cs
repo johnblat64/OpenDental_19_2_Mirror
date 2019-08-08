@@ -1712,15 +1712,21 @@ namespace OpenDental {
 			}
 			long apptViewNum=-1;
 			if(listOpNums==null) {
-				apptViewNum=GetApptViewNumForUser();
+				apptViewNum=GetApptViewNumFromCombo();
 				listOpNums=ApptViewItems.GetOpsForView(apptViewNum);
 			}
 			if(listProvNums==null) {
 				if(apptViewNum<0) {
-					apptViewNum=GetApptViewNumForUser();//Only run this query if we have to (haven't run it yet from this method).
+					apptViewNum=GetApptViewNumFromCombo();//Only run this query if we have to (haven't run it yet from this method).
 				}
 				listProvNums=ApptViewItems.GetProvsForView(apptViewNum);
 			}
+			//If the appointment view has changed (which may happen if a signal/timed Appointment Module refresh executes while comboView is dropped down,
+			//and a different row is highlighted/selected),since we are about to update the displayed ApptView, we will need to query for the newly 
+			//selected ApptView's appt data.
+			bool isApptViewChanging=(apptViewNum!=(ApptViewItemL.ApptViewCur?.ApptViewNum??0));
+			isRefreshAppointments|=isApptViewChanging;
+			isRefreshSchedules|=isApptViewChanging;
 			RefreshAppointmentsIfNeeded(startDate,endDate,listPinApptNums,listOpNums,listProvNums,isRefreshAppointments);
 			RefreshSchedulesIfNeeded(startDate,endDate,listOpNums,isRefreshSchedules);
 			RefreshWaitingRoomTable();
@@ -1731,6 +1737,20 @@ namespace OpenDental {
 				viewCur=_listApptViews[comboView.SelectedIndex-1];
 			}
 			ApptViewItemL.GetForCurView(viewCur,ApptDrawing.IsWeeklyView,SchedListPeriod);
+		}
+
+		///<summary>Gets the currently selected ApptViewNum from comboView, or determines which ApptView should be selected for the user if comboView has
+		///not been set/initialized yet.</summary>
+		private long GetApptViewNumFromCombo() {
+			if(comboView.SelectedIndex==-1) {//comboView not set yet.
+				return GetApptViewNumForUser();
+			}
+			else if(!_listApptViews.IsNullOrEmpty() && comboView.SelectedIndex>0) {
+				return _listApptViews[comboView.SelectedIndex-1].ApptViewNum;//The selected ApptView.
+			}
+			else {
+				return 0;//None view
+			}
 		}
 
 		///<summary>Sets WeekStartDate and WeekEndDate if week format is selected in the Appointment Module.</summary>
@@ -2673,6 +2693,7 @@ namespace OpenDental {
 		/// <summary>Sets the index of comboView for the specified ApptViewNum.  Then, does a ModuleSelected().  If saveToDb, then it will remember the ApptViewNum and currently selected ClinicNum for this workstation.</summary>
 		private void SetView(long apptViewNum,bool saveToDb) {
 			comboView.SelectedIndex=0;
+			ApptViewItemL.ApptViewCur=null;
 			for(int i=0;i<_listApptViews.Count;i++) {
 				if(apptViewNum==_listApptViews[i].ApptViewNum) {
 					comboView.SelectedIndex=i+1;//+1 for 'none'
