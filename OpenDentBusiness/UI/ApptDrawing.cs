@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -8,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using CodeBase;
 
 namespace OpenDentBusiness.UI {
 	public class ApptDrawing {
@@ -663,7 +665,21 @@ namespace OpenDentBusiness.UI {
 			if(!IsWeeklyView) {
 				return 0;
 			}
-			int retVal=(int)Math.Floor((double)(xPos-TimeWidth)/WeekDayWidth);
+			int retVal;
+			if(xPos<0 || WeekDayWidth<1) {
+				retVal=0;//Don't even do the math if either of these are zero.
+			}
+			else {
+				try {
+					retVal=(int)Math.Floor((double)(xPos-TimeWidth)/WeekDayWidth);
+				}
+				catch(OverflowException ex) {
+					ex.DoNothing();
+					//We know, thanks to line~669, that line~674 cannot fail in the negative. If it fails in the positive, assume the largest value we allow
+					//for retVal instead.
+					retVal=NumOfWeekDaysToDisplay-1;
+				}
+			}
 			if(retVal>NumOfWeekDaysToDisplay-1)
 				retVal=NumOfWeekDaysToDisplay-1;
 			if(retVal<0)
