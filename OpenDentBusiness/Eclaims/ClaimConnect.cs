@@ -238,7 +238,7 @@ namespace OpenDentBusiness.Eclaims {
 			return pair[1];
 		}
 
-		///<summary>Might be able to use newer Dentalxchange2016 web reference instead of using com.dentalexchange.webservices.</summary>
+		///<summary>Uses the DwsService() endpoint per DentalXChange's request.</summary>
 		public static string Benefits270(Clearinghouse clearinghouseClin,string x12message) {
 			Dentalxchange2016.Credentials cred=DxcCredentials.GetDentalxchangeCredentials(null,clearinghouseClin);//Null claim because we have a clearinghouse
 			cred.version=Application.ProductVersion;
