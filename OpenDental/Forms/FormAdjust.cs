@@ -14,12 +14,8 @@ namespace OpenDental {
 	public partial class FormAdjust : ODForm {
 		///<summary></summary>
 		public bool IsNew;
-		private ArrayList PosIndex=new ArrayList();
-		private ArrayList NegIndex=new ArrayList();
 		private Patient _patCur;
 		private Adjustment _adjustmentCur;
-		///<summary></summary>
-		private DateTime dateLimit=DateTime.MinValue;
 		///<summary>When true, the OK click will not let the user leave the window unless the check amount is 0.</summary>
 		private bool _checkZeroAmount;
 		///<summary>All positive adjustment defs.</summary>
@@ -37,6 +33,7 @@ namespace OpenDental {
 		private decimal _adjRemAmt;
 		private bool _isTsiAdj;
 		private bool _isEditAnyway;
+		private List<PaySplit> _listSplitsForAdjustment;
 
 		///<summary></summary>
 		public FormAdjust(Patient patCur,Adjustment adjustmentCur,bool isTsiAdj=false){
@@ -80,8 +77,8 @@ namespace OpenDental {
 						butDelete.Enabled=true;
 					}
 				}
-				List<PaySplit> listSplits=PaySplits.GetForAdjustments(new List<long>() {_adjustmentCur.AdjNum});
-				if(listSplits.Count>0) {
+				_listSplitsForAdjustment=PaySplits.GetForAdjustments(new List<long>() {_adjustmentCur.AdjNum});
+				if(_listSplitsForAdjustment.Count>0) {
 					butAttachProc.Enabled=false;
 					butDetachProc.Enabled=false;
 					labelProcDisabled.Visible=true;//Do we want to somehow give info on which payments are on this adjustment?
@@ -426,7 +423,11 @@ namespace OpenDental {
 				DialogResult=DialogResult.Cancel;
 			}
 			else{
-				if(labelProcDisabled.Visible 
+				if(_listSplitsForAdjustment.Count>0 && PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully) {
+					MsgBox.Show(this,"Cannot delete adjustment while a payment split is attached due to preference to Enfore Valid Paysplits.");
+					return;
+				}
+				if(_listSplitsForAdjustment.Count > 0
 					&& !MsgBox.Show(this,MsgBoxButtons.YesNo,"There are payment splits associated to this adjustment.  Do you want to continue deleting?")) 
 				{//There are splits for this adjustment
 					return;
