@@ -130,6 +130,7 @@
     <Compile Include="TableTypes\OperatoryT.cs" />
     <Compile Include="TableTypes\PatientPortalInviteT.cs" />
     <Compile Include="TableTypes\DiscountPlanT.cs" />
+    <Compile Include="TableTypes\PayPlanChargeT.cs" />
     <Compile Include="TableTypes\ReactivationT.cs" />
     <Compile Include="TableTypes\ReferralT.cs" />
     <Compile Include="TableTypes\RepeatChargeT.cs" />

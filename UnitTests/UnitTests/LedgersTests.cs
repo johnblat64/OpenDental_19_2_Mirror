@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenDentBusiness;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Reflection;
 using UnitTestsCore;
 
 namespace UnitTests.Ledgers_Tests {
@@ -18,16 +17,16 @@ namespace UnitTests.Ledgers_Tests {
 			Patient patDad=PatientT.CreatePatient(fName:"Father",suffix:suffix);//Father-guarantor
 			Patient patChild=PatientT.CreatePatient(fName:"Child",suffix:suffix);//Child
 			PatientT.SetGuarantor(patChild,patDad.PatNum);
-			Procedure proc1=ProcedureT.CreateProcedure(patChild,"D1110",ProcStat.C,"",50,DateTime.Now.AddDays(-45));
-			Procedure proc2=ProcedureT.CreateProcedure(patChild,"D0120",ProcStat.C,"",40,DateTime.Now.AddDays(-45));
+			Procedure proc1=ProcedureT.CreateProcedure(patChild,"D1110",ProcStat.C,"",50,DateTime.Today.AddDays(-45));
+			Procedure proc2=ProcedureT.CreateProcedure(patChild,"D0120",ProcStat.C,"",40,DateTime.Today.AddDays(-45));
 			Ledgers.ComputeAging(patDad.PatNum,DateTime.Today);
 			patDad=Patients.GetPat(patDad.PatNum);
 			Assert.AreEqual(90,patDad.Bal_31_60);
 			Patient patMom=PatientT.CreatePatient(fName:"Mom",suffix:suffix);//Mom is not associated to the father and childs account
 			long patNum=patMom.PatNum;
 			//complete procedures for patMom.
-			Procedure proc3=ProcedureT.CreateProcedure(patMom,"D1110",ProcStat.C,"",50,DateTime.Now.AddDays(-1));
-			Procedure proc4=ProcedureT.CreateProcedure(patMom,"D0120",ProcStat.C,"",40,DateTime.Now.AddDays(-1));
+			Procedure proc3=ProcedureT.CreateProcedure(patMom,"D1110",ProcStat.C,"",50,DateTime.Today.AddDays(-1));
+			Procedure proc4=ProcedureT.CreateProcedure(patMom,"D0120",ProcStat.C,"",40,DateTime.Today.AddDays(-1));
 			//Compute aging. Check that the aging is correct before we continue
 			Ledgers.ComputeAging(patNum,DateTime.Today);
 			patMom=Patients.GetPat(patNum);
@@ -48,5 +47,350 @@ namespace UnitTests.Ledgers_Tests {
 			patMom=Patients.GetPat(patNum);
 			Assert.AreEqual(40,patMom.Bal_0_30);
 		}
+
+		private void AssertMoney(double expectedAmt,double actualAmt) {
+			Assert.AreEqual(Math.Round(expectedAmt,2),Math.Round(actualAmt,2));
+		}
+
+		private void PatAssertBalances(long patNum,double bal_0_30,double bal_31_60,double bal_61_90,double balOver90,double payPlanDue) {
+			Patient pat=Patients.GetPat(patNum);//Refresh the patient from the database to get the calculated balances.
+			AssertMoney(bal_0_30,pat.Bal_0_30);
+			AssertMoney(bal_31_60,pat.Bal_31_60);
+			AssertMoney(bal_61_90,pat.Bal_61_90);
+			AssertMoney(balOver90,pat.BalOver90);
+			AssertMoney(bal_0_30+bal_31_60+bal_61_90+balOver90,pat.BalTotal);
+			AssertMoney(payPlanDue,pat.PayPlanDue);
+		}
+
+		private void CheckAgingProcLifo(long patNum,double bal_0_30,double bal_31_60,double bal_61_90,double balOver90,double payPlanDue,YN prefVal) {
+			int agingProcLifoPrev=PrefC.GetInt(PrefName.AgingProcLifo);
+			try {
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)prefVal);
+				Ledgers.ComputeAging(patNum,DateTime.Today);
+				PatAssertBalances(patNum,bal_0_30,bal_31_60,bal_61_90,balOver90,payPlanDue);
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.AgingProcLifo,agingProcLifoPrev);
+			}
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case1() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case1",suffix:suffix);
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Adjustment adj55=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-55),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-8,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,2,100,0,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,10,92,0,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,0,10,92,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case2() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case2",suffix:suffix);
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Procedure proc55=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",150,DateTime.Today.AddDays(-55));
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-100,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case3() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case3",suffix:suffix);
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Procedure proc55=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",150,DateTime.Today.AddDays(-55));
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-100,DateTime.Today.AddDays(-2));
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case4() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case4",suffix:suffix);
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Procedure proc55=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",150,DateTime.Today.AddDays(-55));
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-100,DateTime.Today.AddDays(-2),proc55.ProcDate,proc55.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,50,100,0,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case5() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case5",suffix:suffix);
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",1000,DateTime.Today.AddDays(-95));
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Adjustment adj40=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-800,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,0,0,310,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case5B() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case5B",suffix:suffix);
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",1000,DateTime.Today.AddDays(-95));
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Adjustment adj40_1=AdjustmentT.MakeAdjustment(pat.PatNum,4,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj40_2=AdjustmentT.MakeAdjustment(pat.PatNum,6,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2_1=AdjustmentT.MakeAdjustment(pat.PatNum,-200,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2_2=AdjustmentT.MakeAdjustment(pat.PatNum,-250,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2_3=AdjustmentT.MakeAdjustment(pat.PatNum,-350,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,0,0,310,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case5C() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case5C",suffix:suffix);
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",1000,DateTime.Today.AddDays(-95));
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Adjustment adj40=AdjustmentT.MakeAdjustment(pat.PatNum,-800,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,0,0,310,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,10,0,100,200,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,10,0,100,200,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_DateLastPay() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_DateLastPay",suffix:suffix);
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",1000,DateTime.Today.AddDays(-95));
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Payment pay50=PaymentT.MakePayment(pat.PatNum,50,DateTime.Today.AddDays(-50));
+			Adjustment adj40_1=AdjustmentT.MakeAdjustment(pat.PatNum,4,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj40_2=AdjustmentT.MakeAdjustment(pat.PatNum,6,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
+			Payment pay2=PaymentT.MakePayment(pat.PatNum,50,DateTime.Today.AddDays(-2));
+			int agingProcLifoPrev=PrefC.GetInt(PrefName.AgingProcLifo);
+			try {
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.No);
+				Dictionary <long,DataRow> dictAging=Ledgers.GetAgingGuarTransTable(DateTime.Today,new List <long> { pat.Guarantor },hasDateLastPay:true);
+				Assert.AreEqual(PIn.Date(dictAging[pat.Guarantor]["DateLastPay"].ToString()),pay2.PayDate);
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.Yes);
+				dictAging=Ledgers.GetAgingGuarTransTable(DateTime.Today,new List <long> { pat.Guarantor },hasDateLastPay:true);
+				Assert.AreEqual(PIn.Date(dictAging[pat.Guarantor]["DateLastPay"].ToString()),pay2.PayDate);
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.AgingProcLifo,agingProcLifoPrev);
+			}
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_InsWoEst_And_InsPayEst() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_InsEst",suffix:suffix);
+			InsuranceInfo insInfo=InsuranceT.AddInsurance(pat,"AgingInsEst");
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",1000,DateTime.Today.AddDays(-95));
+			ClaimProc cp95=new ClaimProc();
+			ClaimProcs.CreateEst(cp95,proc95,insInfo.PriInsPlan,insInfo.PriInsSub);
+			cp95.Status=ClaimProcStatus.NotReceived;
+			cp95.InsEstTotal=800;
+			cp95.InsPayEst=800;
+			cp95.WriteOffEst=200;
+			cp95.WriteOff=200;
+			ClaimProcs.Update(cp95);
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			ClaimProc cp85=new ClaimProc();
+			ClaimProcs.CreateEst(cp85,proc85,insInfo.PriInsPlan,insInfo.PriInsSub);
+			cp85.Status=ClaimProcStatus.NotReceived;
+			cp85.InsEstTotal=60;
+			cp85.InsPayEst=60;
+			cp85.WriteOffEst=40;
+			cp85.WriteOff=40;
+			ClaimProcs.Update(cp85);
+			int agingProcLifoPrev=PrefC.GetInt(PrefName.AgingProcLifo);
+			try {
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.No);
+				Dictionary <long,DataRow> dictAging=Ledgers.GetAgingGuarTransTable(DateTime.Today,new List <long> { pat.Guarantor });
+				Assert.AreEqual(PIn.Double(dictAging[pat.Guarantor]["InsPayEst"].ToString()),860);
+				Assert.AreEqual(PIn.Double(dictAging[pat.Guarantor]["InsWoEst"].ToString()),240);
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.Yes);
+				dictAging=Ledgers.GetAgingGuarTransTable(DateTime.Today,new List <long> { pat.Guarantor });
+				Assert.AreEqual(PIn.Double(dictAging[pat.Guarantor]["InsPayEst"].ToString()),860);
+				Assert.AreEqual(PIn.Double(dictAging[pat.Guarantor]["InsWoEst"].ToString()),240);
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.AgingProcLifo,agingProcLifoPrev);
+			}
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_PayPlan1() {
+			Patient pat=PatientT.CreatePatient(fName:"Schedule Based",lName:"UDP Ortho");
+			Def defNeg=DefT.CreateDefinition(DefCat.AdjTypes,"Ortho Revenue","-");
+			Def defPos=DefT.CreateDefinition(DefCat.AdjTypes,"Ortho Revenue","+");
+			Def defPay=DefT.CreateDefinition(DefCat.PaymentTypes,"Check");
+			Procedure proc=ProcedureT.CreateProcedure(pat,"D8090",ProcStat.C,"",4000,DateTime.Today.AddMonths(-6).AddDays(-1));
+			PayPlan payPlan=PayPlanT.CreatePayPlan(pat.PatNum,4000,166.67,DateTime.Today.AddMonths(-6).AddDays(-1),proc.ProvNum);
+			Adjustment adj6=AdjustmentT.MakeAdjustment(pat.PatNum,-2800,DateTime.Today.AddMonths(-6).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defNeg.DefNum);
+			Payment pay6=PaymentT.MakePayment(pat.PatNum,166.67,DateTime.Today.AddMonths(-6).AddDays(-1),payPlanNum:payPlan.PayPlanNum,provNum:proc.ProvNum,procNum:proc.ProcNum,payType:defPay.DefNum);
+			PayPlanCharge ppc6=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-6).AddDays(-1),1200,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+			Adjustment adj5=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-5).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+			Payment pay5=PaymentT.MakePayment(pat.PatNum,166.67,DateTime.Today.AddMonths(-5).AddDays(-1),payPlanNum:payPlan.PayPlanNum,provNum:proc.ProvNum,procNum:proc.ProcNum,payType:defPay.DefNum);
+			PayPlanCharge ppc5=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-5).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+			Adjustment adj4=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-4).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+			PayPlanCharge ppc4=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-4).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+			Adjustment adj3=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-3).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+			PayPlanCharge ppc3=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-3).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-2).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+			PayPlanCharge ppc2=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-2).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+			Adjustment adj1=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-1).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+			PayPlanCharge ppc1=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-1).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+			int payPlansVersionPrev=PrefC.GetInt(PrefName.PayPlansVersion);
+			try {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,(int)PayPlanVersions.AgeCreditsAndDebits);
+				CheckAgingProcLifo(pat.PatNum,166.67,166.67,166.67,333.34,833.35,YN.Yes);
+				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.No);
+				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,payPlansVersionPrev);
+			}
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_PayPlan2() {
+			Patient pat=PatientT.CreatePatient(fName:"Visit Based",lName:"UDP Ortho");
+			Def defPay=DefT.CreateDefinition(DefCat.PaymentTypes,"Check");
+			Procedure proc6=ProcedureT.CreateProcedure(pat,"D8090",ProcStat.C,"",1200,DateTime.Today.AddMonths(-6).AddDays(-1));
+			PayPlan payPlan=PayPlanT.CreatePayPlan(pat.PatNum,4000,166.67,DateTime.Today.AddMonths(-6).AddDays(-1),proc6.ProvNum);
+			Payment pay6=PaymentT.MakePayment(pat.PatNum,166.67,DateTime.Today.AddMonths(-6).AddDays(-1),payPlanNum:payPlan.PayPlanNum,provNum:proc6.ProvNum,procNum:proc6.ProcNum,payType:defPay.DefNum);
+			PayPlanCharge ppc6=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-6).AddDays(-1),1200,0,"D8090:  CompOrthoAdlt",proc6.ProvNum,0,PayPlanChargeType.Credit,proc6.ProcNum);
+			Procedure proc5=ProcedureT.CreateProcedure(pat,"D8670",ProcStat.C,"",121.74,DateTime.Today.AddMonths(-5).AddDays(-1));
+			Payment pay5=PaymentT.MakePayment(pat.PatNum,166.67,DateTime.Today.AddMonths(-5).AddDays(-1),payPlanNum:payPlan.PayPlanNum,provNum:proc5.ProvNum,procNum:proc5.ProcNum,payType:defPay.DefNum);
+			PayPlanCharge ppc5=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-5).AddDays(-1),121.74,0,"D8670:  OrthoAdj",proc5.ProvNum,0,PayPlanChargeType.Credit,proc5.ProcNum);
+			Procedure proc4=ProcedureT.CreateProcedure(pat,"D8670",ProcStat.C,"",121.74,DateTime.Today.AddMonths(-4).AddDays(-1));
+			PayPlanCharge ppc4=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-4).AddDays(-1),121.74,0,"D8670:  OrthoAdj",proc4.ProvNum,0,PayPlanChargeType.Credit,proc4.ProcNum);
+			Procedure proc3=ProcedureT.CreateProcedure(pat,"D8670",ProcStat.C,"",121.74,DateTime.Today.AddMonths(-3).AddDays(-1));
+			PayPlanCharge ppc3=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-3).AddDays(-1),121.74,0,"D8670:  OrthoAdj",proc3.ProvNum,0,PayPlanChargeType.Credit,proc3.ProcNum);
+			Procedure proc2=ProcedureT.CreateProcedure(pat,"D8670",ProcStat.C,"",121.74,DateTime.Today.AddMonths(-2).AddDays(-1));
+			PayPlanCharge ppc2=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-2).AddDays(-1),121.74,0,"D8670:  OrthoAdj",proc2.ProvNum,0,PayPlanChargeType.Credit,proc2.ProcNum);
+			Procedure proc1=ProcedureT.CreateProcedure(pat,"D8670",ProcStat.C,"",121.74,DateTime.Today.AddMonths(-1).AddDays(-1));
+			PayPlanCharge ppc1=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-1).AddDays(-1),121.74,0,"D8670:  OrthoAdj",proc1.ProvNum,0,PayPlanChargeType.Credit,proc1.ProcNum);
+			int payPlansVersionPrev=PrefC.GetInt(PrefName.PayPlansVersion);
+			try {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,(int)PayPlanVersions.AgeCreditsAndDebits);
+				CheckAgingProcLifo(pat.PatNum,166.67,166.67,166.67,333.34,833.35,YN.Yes);
+				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.No);
+				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,payPlansVersionPrev);
+			}
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_LargeDb() {
+			Def defNeg=DefT.CreateDefinition(DefCat.AdjTypes,"Ortho Revenue","-");
+			Def defPos=DefT.CreateDefinition(DefCat.AdjTypes,"Ortho Revenue","+");
+			Def defPay=DefT.CreateDefinition(DefCat.PaymentTypes,"Check");
+			List <Patient> listPats=new List<Patient>();
+			for(int i=0;i<1000;i++) {
+				Patient pat=PatientT.CreatePatient(fName:"Schedule Based",lName:"UDP Ortho LargeDb");
+				Procedure proc=ProcedureT.CreateProcedure(pat,"D8090",ProcStat.C,"",4000,DateTime.Today.AddMonths(-6).AddDays(-1));
+				PayPlan payPlan=PayPlanT.CreatePayPlan(pat.PatNum,4000,166.67,DateTime.Today.AddMonths(-6).AddDays(-1),proc.ProvNum);
+				Adjustment adj6=AdjustmentT.MakeAdjustment(pat.PatNum,-2800,DateTime.Today.AddMonths(-6).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defNeg.DefNum);
+				Payment pay6=PaymentT.MakePayment(pat.PatNum,166.67,DateTime.Today.AddMonths(-6).AddDays(-1),payPlanNum:payPlan.PayPlanNum,provNum:proc.ProvNum,procNum:proc.ProcNum,payType:defPay.DefNum);
+				PayPlanCharge ppc6=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-6).AddDays(-1),1200,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+				Adjustment adj5=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-5).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+				Payment pay5=PaymentT.MakePayment(pat.PatNum,166.67,DateTime.Today.AddMonths(-5).AddDays(-1),payPlanNum:payPlan.PayPlanNum,provNum:proc.ProvNum,procNum:proc.ProcNum,payType:defPay.DefNum);
+				PayPlanCharge ppc5=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-5).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+				Adjustment adj4=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-4).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+				PayPlanCharge ppc4=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-4).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+				Adjustment adj3=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-3).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+				PayPlanCharge ppc3=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-3).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+				Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-2).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+				PayPlanCharge ppc2=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-2).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+				Adjustment adj1=AdjustmentT.MakeAdjustment(pat.PatNum,121.74,DateTime.Today.AddMonths(-1).AddDays(-1),proc.ProcDate,proc.ProcNum,provNum:proc.ProvNum,adjType:defPos.DefNum);
+				PayPlanCharge ppc1=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddMonths(-1).AddDays(-1),121.74,0,"D8090:  CompOrthoAdlt",proc.ProvNum,0,PayPlanChargeType.Credit,proc.ProcNum);
+				listPats.Add(pat);
+			}
+			int payPlansVersionPrev=PrefC.GetInt(PrefName.PayPlansVersion);
+			int agingProcLifoPrev=PrefC.GetInt(PrefName.AgingProcLifo);
+			Stopwatch swOn=new Stopwatch();
+			Stopwatch swOff=new Stopwatch();
+			Stopwatch swUnset=new Stopwatch();
+			try {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,(int)PayPlanVersions.AgeCreditsAndDebits);
+				swOn.Start();
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.Yes);
+				Ledgers.ComputeAging(0,DateTime.Today);//Compute aging for all patients.
+				foreach(Patient pat in listPats) {
+					PatAssertBalances(pat.PatNum,166.67,166.67,166.67,333.34,833.35);
+				}
+				swOn.Stop();
+				swOff.Start();
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.No);
+				Ledgers.ComputeAging(0,DateTime.Today);//Compute aging for all patients.
+				foreach(Patient pat in listPats) {
+					PatAssertBalances(pat.PatNum,166.67,288.41,288.41,89.86,833.35);
+				}
+				swOff.Stop();
+				swUnset.Start();
+				PrefT.UpdateInt(PrefName.AgingProcLifo,(int)YN.Unknown);
+				Ledgers.ComputeAging(0,DateTime.Today);//Compute aging for all patients.
+				foreach(Patient pat in listPats) {
+					PatAssertBalances(pat.PatNum,166.67,288.41,288.41,89.86,833.35);
+				}
+				swUnset.Stop();
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,payPlansVersionPrev);
+				PrefT.UpdateInt(PrefName.AgingProcLifo,agingProcLifoPrev);
+			}
+			//Fails if swOn run time is at least 10 times as large as the average of the runtimes for swUnset and swOff.
+			Assert.IsTrue(swOn.Elapsed.TotalMilliseconds < (swUnset.Elapsed.TotalMilliseconds+swOff.Elapsed.TotalMilliseconds)*5,
+				"Pref On: "+swOn.Elapsed+"\r\n"
+				+"Pref Off: "+swOff.Elapsed+"\r\n"
+				+"Pref Unset: "+swUnset.Elapsed);
+		}
+
 	}
 }
+
+//====================================================================================================
+//Some unit test ideas from Cameron 08/07/2019
+//====================================================================================================
+//Aging Unit Tests
+//1. Procedures
+//	a. With procs in each bucket, i.e. Over90, 61-90, 31-60, and 0-30 days old.
+//	b. With UnitQty and BaseUnits
+//2. Adjustments
+//	a. Positive and negative adjustments.
+//	b. With and without negative adj's aged.
+//3. Claimprocs:
+//	a. NotRcvd, Rcvd, Supplemental, CapClaim, CapComplete claims for all insurance types i.e. PPO, Cat %, Capitation, etc.
+//	b. Include Supplemental, by proc, and total payments.
+//	c. With and without W/O's aged and with and without a claimsnapshot (behavior will be different if no snapshot).
+//	d. Rcvd and NotRcvd and also for Rcvd after the asOfDate.
+//4. Paysplits
+//	a. With splits to/from other family members and to/from another family.
+//	b. Prepayments to/from other family members/another family, allocated and unallocated.
+//5. Payment plans:
+//	a. Patient payments and tracking ins payments.
+//	b. Guar in same family and guar in different family.
+//	c. With paysplits from pp patient, other family member, other family.
+//	d. For each logic type (not aged (legacy), age credits and debits, age credits only, and no charges to account).
+//	e. With "Age patient payments to payment plans" checked/unchecked.
+//	f. With a closed payment plan.
+//	g. With debits and credits on pp.
+//6. Date last pay column.
+//7. All Tests
+//	a. With future dates procs/payments/adjustments etc (with pref to allow them set).
+//	b. With asOfDate=today and asOfDate in the past.
+//	c. For all patients and for a specific pat in the family.
+//	d. Using enterprise aging and regular aging.
+//	e. InsAging too!

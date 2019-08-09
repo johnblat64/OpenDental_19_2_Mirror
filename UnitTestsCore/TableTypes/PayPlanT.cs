@@ -13,7 +13,7 @@ namespace UnitTestsCore {
 			payPlan.Guarantor=patNum;
 			payPlan.PatNum=patNum;
 			payPlan.PayAmt=totalAmt;
-			payPlan.PayPlanDate=DateTime.Today;
+			payPlan.PayPlanDate=datePayStart;
 			payPlan.PayAmt=totalAmt;
 			PayPlans.Insert(payPlan);
 			PayPlanCharge charge=new PayPlanCharge();

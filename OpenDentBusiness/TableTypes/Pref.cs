@@ -73,6 +73,9 @@ namespace OpenDentBusiness {
 		///<summary>If true, negative adjustments will be aged by AdjDate.  Otherwise (legacy behavior), negative adjustments are summed with all other
 		///credits and applied to oldest charge first.</summary>
 		AgingNegativeAdjsByAdjDate,
+		///<summary>This is a 3 state flag.  Value values are: 0=Unset, 1=On, 2=Off.  These values align well with the YN enum.
+		///For job 14902 - "Aging of AR change:  LIFO negative adjustments to (within) attached procedure and positive adjustments."</summary>
+		AgingProcLifo,
 		///<summary>This pref is hidden, so no UI to enable this feature.  If this is true, there will be a checkbox in the aging report window to age
 		///patient payments to payment plans.  Aging patient payments to payment plans will only work if the completed amounts on the payment plans are 0.
 		///Otherwise the payments and the completed amounts will essentially double the amounts of the payment plans in the aging calculation.  This is

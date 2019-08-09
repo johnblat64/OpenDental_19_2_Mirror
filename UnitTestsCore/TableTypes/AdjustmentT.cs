@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenDentBusiness;
+﻿using OpenDentBusiness;
+using System;
 
 namespace UnitTestsCore {
 	public class AdjustmentT {
 		public static Adjustment MakeAdjustment(long patNum,double adjAmt,DateTime adjDate=default(DateTime),DateTime procDate=default(DateTime)
-			,long procNum=0,long provNum=0) 
+			,long procNum=0,long provNum=0,long adjType=0) 
 		{
 			Adjustment adjustment=new Adjustment();
 			if(adjDate==default(DateTime)) {
@@ -23,6 +19,7 @@ namespace UnitTestsCore {
 			adjustment.ProvNum=provNum;
 			adjustment.AdjDate=adjDate;
 			adjustment.ProcDate=procDate;
+			adjustment.AdjType=adjType;
 			Adjustments.Insert(adjustment);
 			return adjustment;
 		}

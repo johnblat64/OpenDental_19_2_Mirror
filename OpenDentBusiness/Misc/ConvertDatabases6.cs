@@ -1586,5 +1586,10 @@ namespace OpenDentBusiness {
 			Db.NonQ(command);
 		}
 
+		private static void To19_2_15() {
+			string command="INSERT INTO preference(PrefName,ValueString) VALUES('AgingProcLifo','0')";
+			Db.NonQ(command);//Unset by default (same effect as Off for now, for backwards compatibility).
+		}
+
 	}
 }
