@@ -346,7 +346,7 @@ namespace OpenDentBusiness.Eclaims {
 			int batchNum=Clearinghouses.GetNextBatchNumber(clearingHouse);
 			List<ClaimSendQueueItem> listQueueItems=Claims.GetQueueList(claim.ClaimNum,claim.ClinicNum,0).ToList();
 			textRequest.Content=x837Controller.GenerateBatch(clearingHouse,listQueueItems,batchNum,claim.MedType);
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsDebugURL,"https://webservices.dentalxchange.com/dws/DwsService");
+			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
 #if DEBUG
 			service.Url="https://prelive2.dentalxchange.com/dws/DwsService";
 			//This code will output the XML into the console.  This may be needed for ClaimConnect when troubleshooting issues.
@@ -392,7 +392,7 @@ namespace OpenDentBusiness.Eclaims {
 		///Callers of this method should handle this scenario.</summary>
 		public static string CreateAttachment(List<ImageAttachment> listImages,string narrative,Claim claim) {
 			DentalxchangePartnerService.DeaPartnerService service=new DentalxchangePartnerService.DeaPartnerService();
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaDebugURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
+			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
 #if DEBUG
 			service.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 #endif
@@ -436,7 +436,7 @@ namespace OpenDentBusiness.Eclaims {
 		///If this method is not used then validation will fail.</summary>
 		public static void AddAttachment(Claim claim,List<ImageAttachment> listImages) {
 			DentalxchangePartnerService.DeaPartnerService service=new DentalxchangePartnerService.DeaPartnerService();
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaDebugURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
+			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
 #if DEBUG
 			service.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 #endif
@@ -640,7 +640,7 @@ namespace OpenDentBusiness.Eclaims {
 			cred.Password=clearinghouse.Password;
 			Dentalxchange2016.unProcessedEraRequest request=new Dentalxchange2016.unProcessedEraRequest();
 			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsDebugURL,"https://webservices.dentalxchange.com/dws/DwsService");
+			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
 #if DEBUG
 			service.Url="https://prelive2.dentalxchange.com/dws/DwsService";
 #endif

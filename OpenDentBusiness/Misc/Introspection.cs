@@ -69,15 +69,17 @@ namespace OpenDentBusiness {
 		///<summary>Holds 3rd party API information. IF AN ENTRY IS ADDED TO THIS ENUM PLEASE UPDATE THE QUERY BELOW.</summary>
 		public enum IntrospectionEntity {
 			///<summary></summary>
-			DentalXChangeDwsDebugURL,
+			DentalXChangeDwsURL,
 			///<summary></summary>
-			DentalXChangeDeaDebugURL,
+			DentalXChangeDeaURL,
 			///<summary></summary>
-			DoseSpotDebugURL,
+			DoseSpotURL,
 			///<summary></summary>
-			PayConnectRestDebugURL,
+			PayConnectRestURL,
 			///<summary></summary>
-			PDMPDebugURL,
+			PDMPURL,
+			///<summary></summary>
+			PaySimpleApiURL,
 		}
 	}
 }
@@ -88,11 +90,12 @@ namespace OpenDentBusiness {
  INSERT INTO preference (PrefName,ValueString)
  VALUES('IntrospectionItems',
 	'{
-		"DentalXChangeDwsDebugURL":"https://prelive2.dentalxchange.com/dws/DwsService",
-		"DentalXChangeDeaDebugURL":"https://prelive2.dentalxchange.com/dea/DeaPartnerService",
-		"DoseSpotDebugURL":"https://my.staging.dosespot.com/webapi",
-		"PayConnectRestDebugURL":"https://https://prelive2.dentalxchange.com/pay/rest/PayService",
-		"PDMPDebugURL":"https://openid.logicoy.com/ilpdmp/test/getReport",
+		"DentalXChangeDwsURL":"https://prelive2.dentalxchange.com/dws/DwsService",
+		"DentalXChangeDeaURL":"https://prelive2.dentalxchange.com/dea/DeaPartnerService",
+		"DoseSpotURL":"https://my.staging.dosespot.com/webapi",
+		"PayConnectRestURL":"https://https://prelive2.dentalxchange.com/pay/rest/PayService",
+		"PDMPURL":"https://openid.logicoy.com/ilpdmp/test/getReport",
+		"PaySimpleURL":"https://sandbox-api.paysimple.com",
 	}'
  );
 

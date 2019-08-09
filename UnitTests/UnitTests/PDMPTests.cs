@@ -19,7 +19,7 @@ namespace UnitTests {
 		[ClassInitialize]
 		public static void SetupClass(TestContext testContext) {
 			IntrospectionT.UpsertPref(new Dictionary<Introspection.IntrospectionEntity,string>() {
-				{ Introspection.IntrospectionEntity.PDMPDebugURL,"https://openid.logicoy.com/ilpdmp/test/getReport" },
+				{ Introspection.IntrospectionEntity.PDMPURL,"https://openid.logicoy.com/ilpdmp/test/getReport" },
 			});
 		}
 

@@ -1374,7 +1374,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns the full URL according to the route/route id given.</summary>
 		private static string GetApiUrl(ApiRoute route,string routeId="") {
-			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.DoseSpotDebugURL,"https://my.dosespot.com/webapi");
+			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.DoseSpotURL,"https://my.dosespot.com/webapi");
 #if DEBUG
 			apiUrl="https://my.staging.dosespot.com/webapi";
 #endif

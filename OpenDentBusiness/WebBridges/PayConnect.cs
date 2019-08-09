@@ -576,7 +576,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns the full URL according to the route/route id given.</summary>
 		private static string GetApiUrl(ApiRoute route) {
-			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PayConnectRestDebugURL,"https://webservices.dentalxchange.com/pay/rest/PayService");
+			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PayConnectRestURL,"https://webservices.dentalxchange.com/pay/rest/PayService");
 #if DEBUG
 			apiUrl="https://prelive2.dentalxchange.com/pay/rest/PayService";
 #endif
