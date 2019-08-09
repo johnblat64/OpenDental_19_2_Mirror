@@ -240,31 +240,21 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Might be able to use newer Dentalxchange2016 web reference instead of using com.dentalexchange.webservices.</summary>
 		public static string Benefits270(Clearinghouse clearinghouseClin,string x12message) {
-			com.dentalxchange.webservices.Credentials cred = new com.dentalxchange.webservices.Credentials();
-			if(PrefC.GetBool(PrefName.CustomizedForPracticeWeb)) {//even though they currently use code from a different part of the program.
-				cred.client="Practice-Web";
-				cred.serviceID="DCI Web Service ID: 001513";
-			}
-			else {
-				cred.client="OpenDental";
-				cred.serviceID="DCI Web Service ID: 002778";
-			}
+			Dentalxchange2016.Credentials cred=DxcCredentials.GetDentalxchangeCredentials(null,clearinghouseClin);//Null claim because we have a clearinghouse
 			cred.version=Application.ProductVersion;
-			cred.username=clearinghouseClin.LoginID;
-			cred.password=clearinghouseClin.Password;
-			com.dentalxchange.webservices.Request request=new com.dentalxchange.webservices.Request();
-			request.content=HttpUtility.HtmlEncode(x12message);//get rid of ampersands, etc.
-			com.dentalxchange.webservices.WebServiceService service = new com.dentalxchange.webservices.WebServiceService();
+			Dentalxchange2016.textRequest request=new Dentalxchange2016.textRequest();
+			request.Content=HttpUtility.HtmlEncode(x12message);//get rid of ampersands, etc.
+			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
 #if DEBUG
-			//service.Url = "https://prelive2.dentalxchange.com/dws/services/dciservice.svl"; // testing
-			service.Url = "https://webservices.dentalxchange.com/dws/services/dciservice.svl"; // production
+			//service.Url = "https://prelive2.dentalxchange.com/dws/DwsService"; // testing
+			service.Url = "https://webservices.dentalxchange.com/dws/DwsService"; // production
 #else
-			service.Url = "https://webservices.dentalxchange.com/dws/services/dciservice.svl"; //always use production. So I don't forget
+			service.Url = "https://webservices.dentalxchange.com/dws/DwsService"; //always use production. So I don't forget
 #endif
 			string strResponse="";
 			try {
-				com.dentalxchange.webservices.Response response = service.lookupEligibility(cred,request);
-				strResponse=response.content;
+				Dentalxchange2016.textResponse response = service.lookupEligibility(cred,request);
+				strResponse=response.Content;
 			}
 			catch(SoapException ex) {
 				strResponse="If this is a new customer, this error might be due to an invalid Username or Password.  Servers may need a few hours before ready to accept new user information.\r\n"
