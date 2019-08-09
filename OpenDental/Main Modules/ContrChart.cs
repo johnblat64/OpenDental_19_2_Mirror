@@ -5223,7 +5223,7 @@ namespace OpenDental {
 				dateLastAccessMonth=PrefC.GetDate(PrefName.DoseSpotDateLastAccessCheck);
 			}
 			dateLastAccessMonth=new DateTime(dateLastAccessMonth.Year,dateLastAccessMonth.Month,1);
-			if(isDistributorCustomer && isOdUpdateAddress) {
+			if(erxOption==ErxOption.Legacy && isDistributorCustomer && isOdUpdateAddress) {
 				//The distributor forgot to change the "Server Address for Updates" inside of the Update Setup window for this customer.
 				//Do not contact the OD web service.
 			}
