@@ -672,6 +672,48 @@ namespace OpenDentBusiness {
 			return log;
 		}
 
+		[DbmMethodAttr]
+		public static string TablesWithClinicNumNegative(bool verbose,DbmMode modeCur) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);
+			}
+			List<string> listTablesToCheck=new List<string> {
+				//"alertitem",//Not including this because we intentionally set ClinicNum to -1 to indicate the alert's for all clinics.
+				"appointment",
+				"claim",
+				"claimproc",
+				"histappointment",
+				"patient",
+				"procedurelog",
+				"smstomobile",
+			};
+			string command="SELECT CountInvalid,TableName FROM (\r\n"+string.Join("\r\nUNION ALL\r\n",listTablesToCheck.Select(x => 
+					$"SELECT COUNT(*) CountInvalid,'{x}' TableName FROM {x} WHERE ClinicNum < 0"))+"\r\n"+
+				") invalid WHERE CountInvalid > 0";
+			DataTable table=Db.GetTable(command);
+			string log="";
+			switch(modeCur) {
+				case DbmMode.Check:
+					if(table.Rows.Count > 0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Total rows found with invalid ClinicNums: ")+table.Select().Sum(x => x.GetLong("CountInvalid"))
+							+"\r\n  "+string.Join("\r\n  ",table.Select().Select(x => x.GetString("TableName")+": "+x.GetString("CountInvalid")));
+					}
+					break;
+				case DbmMode.Fix:
+					if(table.Rows.Count > 0) {
+						command=string.Join(";\r\n",listTablesToCheck.Select(x => $"UPDATE {x} SET ClinicNum=0 WHERE ClinicNum < 0"));
+						Db.NonQ(command);
+					}
+					int numberFixed=table.Rows.Count;
+					if(numberFixed!=0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Total rows fixed with invalid ClinicNums: ")+table.Select().Sum(x => x.GetLong("CountInvalid"))
+							+"\r\n  "+string.Join("\r\n  ",table.Select().Select(x => x.GetString("TableName")+": "+x.GetString("CountInvalid")));
+					}
+					break;
+			}
+			return log;
+		}
+
 		[DbmMethodAttr(HasBreakDown=true)]
 		public static string TransactionsWithFutureDates(bool verbose,DbmMode modeCur) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
