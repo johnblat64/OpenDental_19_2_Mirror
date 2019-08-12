@@ -53,16 +53,6 @@ namespace OpenDental{
 		///<summary>Each tab should have an ODGrid set as the tag, returns the grid attached to the currently selected tab.</summary>
 		private ODGrid _gridCur { get { return (ODGrid)tabControl.SelectedTab.Tag; } }
 
-		///<summary>Gets the DefNum for the Mailed Status of the corresponding grid (recall or reactivation).</summary>
-		private long _statusMailed {
-			get { return PrefC.GetLong(IsRecallGridSelected()?PrefName.RecallStatusMailed:PrefName.ReactivationStatusMailed); }
-		}
-
-		///<summary>Gets the DefNum for the Emailed Status of the corresponding grid (recall or reactivation).</summary>
-		private long _statusEmailed {
-			get { return PrefC.GetLong(IsRecallGridSelected()?PrefName.RecallStatusEmailed:PrefName.ReactivationStatusEmailed); }
-		}
-
 		///<summary>Returns the PatNum of the first selected row in the corresponding grid.  Can return 0.</summary>
 		private long _patNumCur {
 			get {
@@ -881,7 +871,7 @@ namespace OpenDental{
 					totalPages:(int)Math.Ceiling((double)addrTable.Rows.Count/30)
 				);
 				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Change statuses and make commlog entries for all of the selected patients?")) {
-					ProcessComms(commType);
+					ProcessComms(commType,IsRecallGridSelected());
 				}
 				_gridCur.FillGrid();
 				Cursor=Cursors.Default;
@@ -911,7 +901,7 @@ namespace OpenDental{
 					patientsPrinted++;
 				}
 				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Did all the labels finish printing correctly?  Statuses will be changed and commlog entries made for all of the selected patients.  Click Yes only if labels printed successfully.")) {
-					ProcessComms(commType);
+					ProcessComms(commType,IsRecallGridSelected());
 				}
 				_gridCur.FillGrid();
 				Cursor=Cursors.Default;
@@ -951,7 +941,7 @@ namespace OpenDental{
 					totalPages
 				);
 				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Did all the postcards finish printing correctly?  Statuses will be changed and commlog entries made for all of the selected patients.  Click Yes only if postcards printed successfully.")) {
-					ProcessComms(commType);
+					ProcessComms(commType,IsRecallGridSelected());
 				}
 				_gridCur.FillGrid();
 				Cursor=Cursors.Default;
@@ -1111,7 +1101,7 @@ namespace OpenDental{
 			MsgBox.Show(this,"Return Messages: "+returnMessage.Message+"\r\n"+messages);
 			if(returnMessage.MessageCode==DivvyConnect.MessageCode.CompletedSucessfully) {
 				Cursor=Cursors.WaitCursor;
-				ProcessComms((IsRecallGridSelected()?CommItemTypeAuto.RECALL:CommItemTypeAuto.REACT),CommItemMode.Mail);
+				ProcessComms((IsRecallGridSelected()?CommItemTypeAuto.RECALL:CommItemTypeAuto.REACT),IsRecallGridSelected(),CommItemMode.Mail);
 			}
 			else if(returnMessage.MessageCode==DivvyConnect.MessageCode.CompletedWithErrors) {
 				for(int i=0;i<returnMessage.PostcardMessages.Length;i++) {
@@ -1167,20 +1157,24 @@ namespace OpenDental{
 			string str="";
 			EmailAddress emailAddress;
 			int sentEmailCount=0;
+			//Capturing these variables now because SendEmailUnsecure can call Application.DoEvents which means the user can change the selected grid.
+			bool isRecallGridSelected=IsRecallGridSelected();
+			ODGrid gridCur=_gridCur;
+			bool doGroupFamilies=DoGroupFamilies();
 			List<PatRowTag> listRowsSent=new List<PatRowTag>();
 			for(int i=0;i<addrTable.Rows.Count;i++){
 				message=new EmailMessage();
 				message.PatNum=PIn.Long(addrTable.Rows[i]["emailPatNum"].ToString());
 				message.ToAddress=PIn.String(addrTable.Rows[i]["email"].ToString());//might be guarantor email
 				Clinic clinicCur;
-				if(IsRecallGridSelected()) {
+				if(isRecallGridSelected) {
 					clinicCur=Clinics.GetClinicForRecall(PIn.Long(addrTable.Rows[i]["recallNums"].ToString().Split(',').FirstOrDefault()));
 				}
 				else {
 					clinicCur=Clinics.GetClinic(PIn.Long(addrTable.Rows[i]["ClinicNum"].ToString()));
 				}
 				long clinicNumEmail=clinicCur?.ClinicNum??Clinics.ClinicNum;
-				ComboBox cbEmail=IsRecallGridSelected()?comboEmailFrom:comboReactEmailFrom;
+				ComboBox cbEmail=isRecallGridSelected?comboEmailFrom:comboReactEmailFrom;
 				if(cbEmail.SelectedIndex==0) { //clinic/practice default
 					clinicNumEmail=PIn.Long(addrTable.Rows[i]["ClinicNum"].ToString());
 					emailAddress=EmailAddresses.GetByClinic(clinicNumEmail);
@@ -1190,37 +1184,37 @@ namespace OpenDental{
 				}
 				message.FromAddress=emailAddress.GetFrom();
 				if(addrTable.Rows[i]["numberOfReminders"].ToString()=="0") {
-					message.Subject=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailSubject:PrefName.ReactivationEmailSubject);
+					message.Subject=PrefC.GetString(isRecallGridSelected? PrefName.RecallEmailSubject:PrefName.ReactivationEmailSubject);
 				}
 				else if(addrTable.Rows[i]["numberOfReminders"].ToString()=="1") {
-					message.Subject=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailSubject2:PrefName.ReactivationEmailSubject);
+					message.Subject=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailSubject2:PrefName.ReactivationEmailSubject);
 				}
 				else {
-					message.Subject=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailSubject3:PrefName.ReactivationEmailSubject);
+					message.Subject=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailSubject3:PrefName.ReactivationEmailSubject);
 				}
 				//family
-				if(DoGroupFamilies() && addrTable.Rows[i]["famList"].ToString()!="") {
+				if(doGroupFamilies && addrTable.Rows[i]["famList"].ToString()!="") {
 					if(addrTable.Rows[i]["numberOfReminders"].ToString()=="0") {
-						str=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailFamMsg:PrefName.ReactivationEmailFamMsg);
+						str=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailFamMsg:PrefName.ReactivationEmailFamMsg);
 					}
 					else if(addrTable.Rows[i]["numberOfReminders"].ToString()=="1") {
-						str=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailFamMsg2:PrefName.ReactivationEmailFamMsg);
+						str=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailFamMsg2:PrefName.ReactivationEmailFamMsg);
 					}
 					else {
-						str=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailFamMsg3:PrefName.ReactivationEmailFamMsg);
+						str=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailFamMsg3:PrefName.ReactivationEmailFamMsg);
 					}
 					str=str.Replace("[FamilyList]",addrTable.Rows[i]["famList"].ToString());
 				}
 				//single
 				else {
 					if(addrTable.Rows[i]["numberOfReminders"].ToString()=="0") {
-						str=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailMessage:PrefName.ReactivationEmailMessage);
+						str=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailMessage:PrefName.ReactivationEmailMessage);
 					}
 					else if(addrTable.Rows[i]["numberOfReminders"].ToString()=="1") {
-						str=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailMessage2:PrefName.ReactivationEmailMessage);
+						str=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailMessage2:PrefName.ReactivationEmailMessage);
 					}
 					else {
-						str=PrefC.GetString(IsRecallGridSelected()?PrefName.RecallEmailMessage3:PrefName.ReactivationEmailMessage);
+						str=PrefC.GetString(isRecallGridSelected ? PrefName.RecallEmailMessage3:PrefName.ReactivationEmailMessage);
 					}
 					str=str.Replace("[DueDate]",PIn.Date(addrTable.Rows[i]["dateDue"].ToString()).ToShortDateString());
 					str=str.Replace("[NameF]",addrTable.Rows[i]["patientNameF"].ToString());
@@ -1250,7 +1244,7 @@ namespace OpenDental{
 					Cursor=Cursors.Default;
 					str=ex.Message+"\r\n";
 					if(ex.GetType()==typeof(System.ArgumentException)){
-						str+=$"Go to Setup, {(IsRecallGridSelected()?"Recall":"Reactivation")}.  The subject for an email may not be multiple lines.\r\n";
+						str+=$"Go to Setup, {(isRecallGridSelected ? "Recall":"Reactivation")}.  The subject for an email may not be multiple lines.\r\n";
 					}
 					MessageBox.Show(str+"Patient:"+addrTable.Rows[i]["patientNameFL"].ToString());
 					break;
@@ -1259,36 +1253,54 @@ namespace OpenDental{
 				message.SentOrReceived=EmailSentOrReceived.Sent;
 				EmailMessages.Insert(message);
 				//Add current row to the list of rows sent.
-				if(IsRecallGridSelected()) {
+				if(isRecallGridSelected) {
 					List<long> listRecallNums=addrTable.Rows[i]["recallNums"].ToString().Split(',').Select(x => PIn.Long(x)).ToList();
-					for(int j=0;j<_gridCur.Rows.Count;j++) {
-						if(((PatRowTag)_gridCur.Rows[j].Tag).PriKeyNum.In(listRecallNums)) {
-							listRowsSent.Add((PatRowTag)_gridCur.Rows[j].Tag);
+					for(int j=0;j<gridCur.Rows.Count;j++) {
+						if(((PatRowTag)gridCur.Rows[j].Tag).PriKeyNum.In(listRecallNums)) {
+							listRowsSent.Add((PatRowTag)gridCur.Rows[j].Tag);
 						}
 					}
 				}
 				else {//Reactivation
 					List<long> listPatNums=addrTable.Rows[i]["patNums"].ToString().Split(',').Select(x => PIn.Long(x)).ToList();
-					for(int j=0;j<_gridCur.Rows.Count;j++) {
-						if(((PatRowTag)_gridCur.Rows[j].Tag).PatNum.In(listPatNums)) {
-							listRowsSent.Add((PatRowTag)_gridCur.Rows[j].Tag);
+					for(int j=0;j<gridCur.Rows.Count;j++) {
+						if(((PatRowTag)gridCur.Rows[j].Tag).PatNum.In(listPatNums)) {
+							listRowsSent.Add((PatRowTag)gridCur.Rows[j].Tag);
 						}
 					}
 				}
 			}
-			ProcessComms(IsRecallGridSelected() ? CommItemTypeAuto.RECALL : CommItemTypeAuto.REACT,CommItemMode.Email,listRowsSent);
-			_gridCur.FillGrid();
+			ProcessComms(isRecallGridSelected ? CommItemTypeAuto.RECALL : CommItemTypeAuto.REACT,isRecallGridSelected,CommItemMode.Email,listRowsSent);
+			gridCur.FillGrid();
 			if(sentEmailCount>0) {
-				SecurityLogs.MakeLogEntry(Permissions.EmailSend,0,$"{(IsRecallGridSelected()?"Recall":"Reactivation")} Emails Sent: "+sentEmailCount);
+				SecurityLogs.MakeLogEntry(Permissions.EmailSend,0,$"{(isRecallGridSelected? "Recall":"Reactivation")} Emails Sent: "+sentEmailCount);
 			}
 			Cursor=Cursors.Default;
 		}
 
 		///<summary>Shared functionality with Recalls and Reactivations, be careful when making changes. If gridRows is null, will make commlogs for
 		///the selected rows.</summary>
-		private void ProcessComms(CommItemTypeAuto commType,CommItemMode mode=CommItemMode.Mail,List<PatRowTag> listSentRows=null) {
+		private void ProcessComms(CommItemTypeAuto commType,bool isRecallGridSelected,CommItemMode mode=CommItemMode.Mail,
+			List<PatRowTag> listSentRows=null) 
+		{
 			Cursor=Cursors.WaitCursor;
-			long status=mode==CommItemMode.Mail?_statusMailed:_statusEmailed;
+			long status;
+			if(mode==CommItemMode.Mail) {
+				if(isRecallGridSelected) {
+					status=PrefC.GetLong(PrefName.RecallStatusMailed);
+				}
+				else {
+					status=PrefC.GetLong(PrefName.ReactivationStatusMailed);
+				}
+			}
+			else {//Email
+				if(isRecallGridSelected) {
+					status=PrefC.GetLong(PrefName.RecallStatusEmailed);
+				}
+				else {
+					status=PrefC.GetLong(PrefName.ReactivationStatusEmailed);
+				}
+			}
 			listSentRows=listSentRows??_gridCur.SelectedTags<PatRowTag>();
 			foreach(PatRowTag tag in listSentRows) {
 				Commlogs.InsertForRecallOrReactivation(tag.PatNum,mode,tag.NumReminders,status,commType);
