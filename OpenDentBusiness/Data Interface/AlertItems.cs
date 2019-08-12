@@ -161,6 +161,22 @@ namespace OpenDentBusiness{
 			AlertReads.DeleteForAlertItems(listChangedAlertItemNums);
 		}
 
+		///<summary>Returns true if the two alerts match all fields other than AlertItemNum.</summary>
+		public static bool AreDuplicates(AlertItem alert1,AlertItem alert2) {
+			if(alert1==null || alert2==null) {
+				return false;
+			}
+			return alert1.Actions==alert2.Actions
+				&& alert1.ClinicNum==alert2.ClinicNum
+				&& alert1.Description==alert2.Description
+				&& alert1.FKey==alert2.FKey
+				&& alert1.FormToOpen==alert2.FormToOpen
+				&& alert1.ItemValue==alert2.ItemValue
+				&& alert1.Severity==alert2.Severity
+				&& alert1.Type==alert2.Type
+				&& alert1.UserNum==alert2.UserNum;
+		}
+
 		#endregion
 
 		///<summary>Returns a list of AlertItems for the given clinicNum.  Doesn't include alerts that are assigned to other users.</summary>
@@ -263,12 +279,21 @@ namespace OpenDentBusiness{
 
 		///<summary>Also deletes any AlertRead objects for this AlertItem.</summary>
 		public static void Delete(long alertItemNum) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),alertItemNum);
+			Delete(new List<long> { alertItemNum });
+		}
+
+		///<summary>Also deletes any AlertRead objects for these AlertItems.</summary>
+		public static void Delete(List<long> listAlertItemNums) {
+			if(listAlertItemNums.IsNullOrEmpty()) {
 				return;
 			}
-			AlertReads.DeleteForAlertItem(alertItemNum);
-			Crud.AlertItemCrud.Delete(alertItemNum);
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),listAlertItemNums);
+				return;
+			}
+			AlertReads.DeleteForAlertItems(listAlertItemNums);
+			string command="DELETE FROM alertitem WHERE AlertItemNum IN("+string.Join(",",listAlertItemNums.Select(POut.Long))+")";
+			Db.NonQ(command);
 		}
 
 		///<summary>Inserts, updates, or deletes db rows to match listNew.  No need to pass in userNum, it's set before remoting role check and passed to

@@ -189,7 +189,22 @@ namespace OpenDental {
 				//AlertTypes current user is subscribed to.
 				List<AlertType> listUserAlertLinks=AlertCategoryLinks.GetWhere(x => listAlertCatNums.Contains(x.AlertCategoryNum))
 				.Select(x => x.AlertType).ToList();
-				List<AlertItem> listAlertItems=AlertItems.RefreshForClinicAndTypes(clinicNumCur,listUserAlertLinks);
+				//Each inner list is a group of alerts that are duplicates of each other.
+				List<List<AlertItem>> listUniqueAlerts=new List<List<AlertItem>>();
+				AlertItems.RefreshForClinicAndTypes(clinicNumCur,listUserAlertLinks)
+					.ForEach(x => {
+						foreach(List<AlertItem> listDuplicates in listUniqueAlerts) {
+							if(AlertItems.AreDuplicates(listDuplicates.First(),x)) {
+								listDuplicates.Add(x);
+								return;
+							}
+						}
+						listUniqueAlerts.Add(new List<AlertItem> { x });
+					}
+				);
+				//We will set the alert's tag to all the items in its list so that all can be marked read/deleted later.
+				listUniqueAlerts.ForEach(x => x.First().TagOD=x.Select(y => y.AlertItemNum).ToList());
+				List<AlertItem> listAlertItems=listUniqueAlerts.Select(x => x.First()).ToList();
 				//Update listUserAlertTypes to only those with active AlertItems.
 				listUserAlertLinks=listAlertItems.Select(x => x.Type).ToList();
 				List<AlertRead> listAlertItemReads=AlertReads.RefreshForAlertNums(userNumCur,listAlertItems.Select(x => x.AlertItemNum).ToList());

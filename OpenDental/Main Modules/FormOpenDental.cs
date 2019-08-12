@@ -8196,6 +8196,8 @@ namespace OpenDental{
 		private void menuItemAlerts_DrawItem(object sender,DrawItemEventArgs e) {
 			MenuItem menuItem=(MenuItem)sender;
 			AlertItem alertItem=((AlertItem)menuItem.Tag);//Can be Null
+			//The TagOD on the alert is the list of AlertItemNums for all alerts that are its duplicate.
+			List<long> listThisAlertItemNums=(List<long>)alertItem?.TagOD??new List<long>();
 			Color colorText=SystemColors.MenuText;
 			Color backGroundColor=SystemColors.Control;
 			if(menuItem==menuItemAlerts) {
@@ -8308,8 +8310,10 @@ namespace OpenDental{
 		private void menuItemAlerts_Click(object sender,EventArgs e) {
 			MenuItem menuItem=(MenuItem)sender;
 			AlertItem alertItem=(AlertItem)menuItem.Tag;
+			//The TagOD on the alert is the list of AlertItemNums for all alerts that are its duplicate.
+			List<long> listAlertItemNums=(List<long>)alertItem.TagOD;
 			if(menuItem.Name==ActionType.MarkAsRead.ToString()) {
-				alertReadsHelper(alertItem);
+				AlertReadsHelper(listAlertItemNums);
 				BeginCheckAlertsThread(false);
 				return;
 			}
@@ -8317,12 +8321,12 @@ namespace OpenDental{
 				if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"This will delete the alert for all users. Are you sure you want to delete it?")) {
 					return;
 				}
-				AlertItems.Delete(alertItem.AlertItemNum);
+				AlertItems.Delete(listAlertItemNums);
 				BeginCheckAlertsThread(false);
 				return;
 			}
 			if(menuItem.Name==ActionType.OpenForm.ToString()) {
-				alertReadsHelper(alertItem);
+				AlertReadsHelper(listAlertItemNums);
 				switch(alertItem.FormToOpen) {
 					case FormType.FormPendingPayments:
 						FormPendingPayments FormPP=new FormPendingPayments();
@@ -8395,7 +8399,7 @@ namespace OpenDental{
 				}
 			}
 			if(menuItem.Name==ActionType.ShowItemValue.ToString()) {
-				alertReadsHelper(alertItem);
+				AlertReadsHelper(listAlertItemNums);
 				MsgBoxCopyPaste msgBCP=new MsgBoxCopyPaste($"{alertItem.Description}\r\n\r\n{alertItem.ItemValue}");
 				msgBCP.Show();
 			}
@@ -8409,11 +8413,9 @@ namespace OpenDental{
 		}
 
 		///<summary>Refreshes AlertReads for current user and creates a new one if one does not exist for given alertItem.</summary>
-		private void alertReadsHelper(AlertItem alertItem) {
-			if(_listAlertReads.Exists(x => x.AlertItemNum==alertItem.AlertItemNum)) {//User has already read this alertitem.
-				return;
-			}
-			AlertReads.Insert(new AlertRead(alertItem.AlertItemNum,Security.CurUser.UserNum));
+		private void AlertReadsHelper(List<long> listAlertItemNums) {			
+			listAlertItemNums.RemoveAll(x => _listAlertReads.Exists(y => y.AlertItemNum==x));//Remove all the ones the user has already read.
+			listAlertItemNums.ForEach(x => AlertReads.Insert(new AlertRead(x,Security.CurUser.UserNum)));
 		}
 		#endregion Alerts
 
