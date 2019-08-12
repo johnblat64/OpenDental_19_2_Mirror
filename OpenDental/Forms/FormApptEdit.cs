@@ -731,6 +731,9 @@ namespace OpenDental{
 				totalEstPatientPortion+=ClaimProcs.GetPatPortion(proc,_listClaimProcs,_listAdjustments);
 			}
 			ODGridRow row=gridPatient.Rows.ToList().Find(x => x.Cells[0].Text==Lans.g("FormApptEdit","Est. Patient Portion"));
+			if(row==null) {
+				return;//Probably some weird translation issue
+			}
 			row.Cells[1].Text=totalEstPatientPortion.ToString("F");
 		}
 
