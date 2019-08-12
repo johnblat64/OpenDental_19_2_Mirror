@@ -102,9 +102,6 @@ namespace OpenDentBusiness {
 				return Meth.GetObject<ConstructChargesData>(MethodBase.GetCurrentMethod(),listPatNums,patNum,listSplitsCur,payCurNum,isIncomeTransfer);
 			}
 			ConstructChargesData data=new ConstructChargesData();
-			//listPayments should be empty (or should contain the current payment we are making since pre-insert), there isn't a way to make payments 
-			//without at least one split. During research however we found there were sometimes payments with no splits, so erred on the side of caution.
-			data.ListPayments=Payments.GetNonSplitForPats(listPatNums);
 			data.ListAdjustments=Adjustments.GetAdjustForPats(listPatNums);
 			data.ListPaySplits=PaySplits.GetForPats(listPatNums);//Might contain payplan payments.
 			//will also contain TP procs if pref is set to ON
@@ -1569,7 +1566,6 @@ namespace OpenDentBusiness {
 		public class ConstructChargesData {
 			///<summary>Will also contain TP procs if pref is set to ON.</summary>
 			public List<Procedure> ListProcsCompleted=new List<Procedure>();//list from the db, completed for pat. Not list of pre-selected procs from acct.
-			public List<Payment> ListPayments=new List<Payment>();
 			public List<Adjustment> ListAdjustments=new List<Adjustment>();
 			public List<PaySplit> ListPaySplits=new List<PaySplit>();//current list of all splits from database
 			public List<ClaimProc> ListInsPayAsTotal=new List<ClaimProc>();

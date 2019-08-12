@@ -246,9 +246,6 @@ namespace OpenDental {
 		private List<PaySplit> AutoSplitForPayment(long payNum,DateTime date,bool isTest) {
 			//Get the lists of items we'll be using to calculate with.
 			List<Procedure> listProcs=Procedures.GetCompleteForPats(listPatNums);
-			//listPayments should be empty, there isn't currently a way to make payments without at least one split.
-			//During research however we found there were sometimes payments with no splits, so erred on the side of caution.
-			List<Payment> listPayments=Payments.GetNonSplitForPats(listPatNums);
 			List<Adjustment> listAdjustments=Adjustments.GetAdjustForPats(listPatNums);
 			List<PaySplit> listPaySplits=PaySplits.GetForPats(listPatNums);//Might contain payplan payments.
 			//Fix the memory locations of the existing pay splits for this payment within the list of pay splits for the entire family.
@@ -333,9 +330,6 @@ namespace OpenDental {
 					//If they created new splits on an old payment we need to add those to the credits list since they won't be over-written unlike a new payment.
 					creditTotal+=(decimal)ListSplitsCur[i].SplitAmt;//Adding splits that haven't been entered into DB yet (re-opened split manager)
 				}
-			}
-			for(int i=0;i<listPayments.Count;i++) {
-				creditTotal+=(decimal)listPayments[i].PayAmt;
 			}
 			for(int i=0;i<listInsPayAsTotal.Count;i++) {			
 				creditTotal+=(decimal)listInsPayAsTotal[i].InsPayAmt;
