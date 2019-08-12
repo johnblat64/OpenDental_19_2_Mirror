@@ -343,7 +343,8 @@ namespace OpenDentBusiness {
 				DataTable rawNotes=dcon.GetTable(command);
 				Dictionary<string,List<DataRow>> dictNotes=rawNotes.Select().GroupBy(x => x["ProcNum"].ToString())
 					.ToDictionary(x => x.Key,x => x.OrderByDescending(y => PIn.DateT(y["EntryDateTime"].ToString())).ToList());
-				Dictionary<string,ProcedureCode> dictProcCodes=ProcedureCodes.GetAllCodes().ToDictionary(x => x.CodeNum.ToString());
+				Dictionary<string,ProcedureCode> dictProcCodes=ProcedureCodes.GetAllCodes().GroupBy(x => x.CodeNum)
+					.ToDictionary(x => x.Key.ToString(),x => x.First());
 				foreach(DataRow rowProc in rawProcs.Rows) {
 					ProcedureCode procCode;
 					if(!dictProcCodes.TryGetValue(rowProc["CodeNum"].ToString(),out procCode)) {
