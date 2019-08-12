@@ -115,13 +115,12 @@ namespace OpenDentBusiness {
 		#region Calculate metrics
 
 		///<summary>Get metrics from serviceshq.</summary>
-		public static EServiceMetrics CalculateMetrics(float accountBalanceEuro,string nexmoStatus) {
+		public static EServiceMetrics CalculateMetrics(float accountBalanceEuro) {
 			//No remoting role check, No call to database.
 			DateTime dateTimeStart=DateTime.Today;
 			DateTime dateTimeEnd=dateTimeStart.AddDays(1);
 			List<string> websitesDown=PrefC.GetRaw("BroadcasterWebsitesToMonitor").Split(',')
 				.Select(x => WebSiteIsAvailable(x)).ToList();
-			websitesDown.Add(nexmoStatus);
 			websitesDown.RemoveAll(x => string.IsNullOrEmpty(x.Trim()));
 			EServiceMetrics ret=new EServiceMetrics() {
 				Timestamp=DateTime.Now,
