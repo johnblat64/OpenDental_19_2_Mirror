@@ -993,7 +993,13 @@ namespace OpenDental {
 				bool isExportable=pictureBoxMain.Visible;
 				if(ImagesCur[0]==null) {
 					if(Path.GetExtension(eob.FileName).ToLower()==".pdf") {//Adobe acrobat file.
-						LoadPdf(ImageStore.GetEobFolder(),eob.FileName,localPath,ref isExportable,"Downloading EOB...");
+						try {
+							LoadPdf(ImageStore.GetEobFolder(),eob.FileName,localPath,ref isExportable,"Downloading EOB...");
+						}
+						catch(ApplicationException ex) {
+							actionCloseDownloadProgress?.Invoke();
+							FriendlyException.Show(ex.Message,ex);
+						}
 					}
 				}
 				EnableTreeItemTools(pictureBoxMain.Visible,true,true,pictureBoxMain.Visible,true,pictureBoxMain.Visible,pictureBoxMain.Visible,pictureBoxMain.Visible,
