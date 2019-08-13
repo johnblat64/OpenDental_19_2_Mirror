@@ -290,12 +290,13 @@ namespace OpenDental {
 				style=FontStyle.Bold;
 			}
 			textbox.Font=new Font(field.FontName,field.FontSize,style);
+			bool isSingleLineTextBox=(field.Height < textbox.Font.Height+2);
 			//There is a chance that data can get truncated when loading text into a text box that has Multiline set to false.
 			//E.g. the text "line 1\r\nline 2\r\nline 3" will get truncated to be "line 1"
 			//This causes a nasty bug where the user could have filled out the sheet as a Web Form (which does not truncate the text) and signed the sheet.
 			//The signature would invalidate if the office were to open the downloaded web form within Open Dental proper and simply click OK.
 			//Therefore, only allow InputField text boxes to have Multiline set to false (which will stop users from making newlines).
-			if(field.FieldType==SheetFieldType.InputField && field.Height<textbox.Font.Height+2) {
+			if(field.FieldType==SheetFieldType.InputField && isSingleLineTextBox) {
 				textbox.Multiline=false;
 			}
 			else {//InputField that is too tall to be considered a "single line" text box or not an InputField.
@@ -308,7 +309,7 @@ namespace OpenDental {
 			textbox.Tag=field;
 			#region Text Clipping
 			//For multi-line textboxes, clip vertically to remove lines which extend beyond the bottom of the field.
-			if(isClipText && textbox.Text.Length > 0 && textbox.Multiline) {
+			if(isClipText && textbox.Text.Length > 0 && !isSingleLineTextBox) {
 				List <RichTextLineInfo> listLines=GetTextSheetDisplayLines(textbox);
 				int fitLineIndex=listLines.Count-1;//Line numbers are zero-based.
 				while(fitLineIndex >= 0	&& listLines[fitLineIndex].Top+textbox.Font.Height-1 > textbox.Height) {//if bottom of line is past bottom of textbox
@@ -319,7 +320,7 @@ namespace OpenDental {
 				}
 			}
 			//For single-line textboxes, clip the text to the width of the textbox.  This forces the display to look the same on screen as when printed.
-			if(isClipText && textbox.Text.Length > 0 && !textbox.Multiline) {
+			if(isClipText && textbox.Text.Length > 0 && isSingleLineTextBox) {
 				int indexRight=textbox.GetCharIndexFromPosition(new Point(textbox.Width,0));
 				if(indexRight < textbox.Text.Length-1) {//If the string is too wide for the textbox.
 					textbox.Text=textbox.Text.Substring(0,indexRight+1);//Truncate the text to fit the textbox width.
