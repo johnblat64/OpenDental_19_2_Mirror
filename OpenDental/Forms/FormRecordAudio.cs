@@ -68,7 +68,7 @@ namespace OpenDental {
 			if(saveDlg.ShowDialog()!=DialogResult.OK) {
 				return;
 			}
-			File.Copy(_tempPath,saveDlg.FileName);
+			File.Copy(_tempPath,saveDlg.FileName,true);
 		}
 
 		private void butOK_Click(object sender,EventArgs e) {
