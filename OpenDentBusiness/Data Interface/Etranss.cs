@@ -166,6 +166,11 @@ namespace OpenDentBusiness{
 
 		///<summary>Gets all X12 835 etrans entries relating to a specific claim.</summary>
 		public static List<Etrans> GetErasOneClaim(string claimIdentifier,DateTime dateClaimService) {
+			//The main goal of this check is to prevent null claimIdentifiers from causing an exception.
+			//However, an empty claim identifier should also return an empty list because that is a terrible identifier IMO.
+			if(string.IsNullOrEmpty(claimIdentifier)) {
+				return new List<Etrans>();
+			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<Etrans>>(MethodBase.GetCurrentMethod(),claimIdentifier,dateClaimService);
 			}
