@@ -937,6 +937,9 @@ namespace OpenDentBusiness {
 					if(accountEntry.GetType()==typeof(PayPlanCharge)) {//B12401
 						continue;
 					}
+					if(accountEntry.GetType()==typeof(Procedure) && ((Procedure)accountEntry.Tag).ProcStatus==ProcStat.TP) {
+						continue;//we do not implicitly link to TP procedures
+					}
 					double amt=Math.Min((double)accountEntry.AmountEnd,split.SplitAmt);
 					accountEntry.AmountStart-=(decimal)amt;
 					accountEntry.AmountEnd-=(decimal)amt;
