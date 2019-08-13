@@ -851,20 +851,23 @@ namespace OpenDentBusiness {
 
 		///<summary>If usingAtoZfoler, then patFolder must be fully qualified and valid.  If not usingAtoZ folder, this uploads to Cloud or fills the doc.RawBase64 which must then be updated to db.</summary>
 		public static void SaveDocument(Document doc,Bitmap image,ImageCodecInfo codec,EncoderParameters encoderParameters,string patFolder) {
-			if(PrefC.AtoZfolderUsed==DataStorageType.LocalAtoZ) {//if saving to AtoZ folder
-				image.Save(ODFileUtils.CombinePaths(patFolder,doc.FileName),codec,encoderParameters);
-			}
-			else if(CloudStorage.IsCloudStorage) {
-				using(MemoryStream stream=new MemoryStream()) {
-					image.Save(stream,codec,encoderParameters);
-					CloudStorage.Upload(patFolder,doc.FileName,stream.ToArray());
+			//Had to reassign image to new bitmap due to a possible C# bug. Would sometimes cause UE: "A generic error occurred in GDI+."
+			using(Bitmap bitmap=new Bitmap(image)) {
+				if(PrefC.AtoZfolderUsed==DataStorageType.LocalAtoZ) {//if saving to AtoZ folder
+					bitmap.Save(ODFileUtils.CombinePaths(patFolder,doc.FileName),codec,encoderParameters);
 				}
-			}
-			else {//if saving to db
-				using(MemoryStream stream=new MemoryStream()) {
-					image.Save(stream,codec,encoderParameters);
-					byte[] rawData=stream.ToArray();
-					doc.RawBase64=Convert.ToBase64String(rawData);
+				else if(CloudStorage.IsCloudStorage) {
+					using(MemoryStream stream=new MemoryStream()) {
+						bitmap.Save(stream,codec,encoderParameters);
+						CloudStorage.Upload(patFolder,doc.FileName,stream.ToArray());
+					}
+				}
+				else {//if saving to db
+					using(MemoryStream stream=new MemoryStream()) {
+						bitmap.Save(stream,codec,encoderParameters);
+						byte[] rawData=stream.ToArray();
+						doc.RawBase64=Convert.ToBase64String(rawData);
+					}
 				}
 			}
 			LogDocument(Lans.g("ContrImages","Document Created")+": ",Permissions.ImageEdit,doc,DateTime.MinValue); //a brand new document is always passed-in
