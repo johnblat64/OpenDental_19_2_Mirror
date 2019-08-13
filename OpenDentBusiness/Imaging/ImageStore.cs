@@ -45,10 +45,10 @@ namespace OpenDentBusiness {
 					return replicationAtoZ.Trim();
 				}
 				//use this to handle possible multiple paths separated by semicolons.
-				return GetValidPathFromString(PrefC.GetString(PrefName.DocPath)).Trim();
+				return GetValidPathFromString(PrefC.GetString(PrefName.DocPath))?.Trim();
 			}
 			//If you got here you are using a cloud storage method.
-			return CloudStorage.AtoZPath.Trim();
+			return CloudStorage.AtoZPath?.Trim();
 		}
 
 		public static string GetValidPathFromString(string documentPaths) {
