@@ -14,6 +14,56 @@ using System.IO;
 namespace OpenDentBusiness {
 	public partial class ConvertDatabases {
 
+		#region Helper Functions/Variables
+		///<summary>These two lists are for To19_2_15 and are meant to be static lists of table names as of that version.</summary>
+		private static List<string> _listTableNames=new List<string> {
+			"account","accountingautopay","adjustment","alertcategory","alertcategorylink","alertitem","alertread","alertsub","allergy","allergydef",
+			"anestheticdata","anestheticrecord","anesthmedsgiven","anesthmedsintake","anesthmedsinventory","anesthmedsinventoryadj","anesthmedsuppliers",
+			"anesthscore","anesthvsdata","appointmentrule","appointmenttype","apptfield","apptfielddef","apptreminderrule","apptremindersent","apptview",
+			"apptviewitem","asapcomm","autocode","autocodecond","autocodeitem","automation","automationcondition","autonote","autonotecontrol","benefit",
+			"bugsubmission","canadiannetwork","carrier","cdcrec","cdspermission","centralconnection","chartview","chatuser","claim","claimattach",
+			"claimcondcodelog","claimform","claimformitem","claimpayment","claimsnapshot","claimtracking","claimvalcodelog","clearinghouse","clinic",
+			"clinicerx","clinicpref","clockevent","codesystem","commoptout","computer","computerpref","confirmationrequest","connectiongroup",
+			"conngroupattach","contact","county","covcat","covspan","cpt","creditcard","custrefentry","custreference","cvx","dashboardar","dashboardcell",
+			"dashboardlayout","databasemaintenance","dbmlog","definition","deflink","deletedobject","deposit","dictcustom","discountplan","disease",
+			"diseasedef","displayfield","displayreport","dispsupply","documentmisc","drugmanufacturer","drugunit","dunning","ebill","eclipboardsheetdef",
+			"eduresource","ehramendment","ehraptobs","ehrcareplan","ehrlab","ehrlabclinicalinfo","ehrlabimage","ehrlabnote","ehrlabresult",
+			"ehrlabresultscopyto","ehrlabspecimen","ehrlabspecimencondition","ehrlabspecimenrejectreason","ehrmeasure","ehrmeasureevent","ehrnotperformed",
+			"ehrpatient","ehrprovkey","ehrquarterlykey","ehrsummaryccd","ehrtrigger","electid","emailaddress","emailattach","emailautograph",
+			"emailmessage","emailmessageuid","emailtemplate","employee","employer","encounter","entrylog","eobattach","equipment","erxlog",
+			"eservicebilling","eservicecodelink","eservicesignal","etrans","etrans835attach","evaluation","evaluationcriterion","evaluationcriteriondef",
+			"evaluationdef","famaging","familyhealth","faq","fee","feesched","fhircontactpoint","fhirsubscription","fielddeflink","files","formpat",
+			"gradingscale","gradingscaleitem","grouppermission","guardian","hcpcs","hl7def","hl7deffield","hl7defmessage","hl7defsegment","hl7msg",
+			"hl7procattach","icd10","icd9","insfilingcode","insfilingcodesubtype","insplan","installmentplan","instructor","insverify","insverifyhist",
+			"intervention","job","jobcontrol","joblink","joblog","jobnote","jobnotification","jobpermission","jobproject","jobquote","jobreview",
+			"jobsprint","jobsprintlink","journalentry","labcase","laboratory","labpanel","labresult","labturnaround","language","languageforeign","letter",
+			"lettermerge","lettermergefield","loginattempt","loinc","maparea","medicalorder","medication","medicationpat","medlab","medlabfacattach",
+			"medlabfacility","medlabresult","medlabspecimen","mobileappdevice","mount","mountdef","mountitem","mountitemdef","oidexternal","oidinternal",
+			"operatory","orionproc","orthochart","orthocharttab","orthocharttablink","patfield","patfielddef","patientlink","patientnote",
+			"patientportalinvite","patientrace","patplan","patrestriction","payconnectresponseweb","payment","payortype","payperiod","payplan",
+			"payplancharge","paysplit","perioexam","pharmacy","pharmclinic","phone","phonecomp","phoneconf","phoneempdefault","phoneempsubgroup",
+			"phonegraph","phonemetric","phonenumber","plannedappt","popup","preference","printer","procapptcolor","procbutton","procbuttonitem",
+			"procbuttonquick","proccodenote","procedurecode","procgroupitem","procmultivisit","proctp","program","programproperty","provider",
+			"providerclinic","providercliniclink","providererx","providerident","question","questiondef","quickpastecat","quickpastenote","reactivation",
+			"recalltrigger","recalltype","reconcile","recurringcharge","refattach","referral","registrationkey","reminderrule","repeatcharge",
+			"replicationserver","reqneeded","reqstudent","requiredfield","requiredfieldcondition","reseller","resellerservice","rxalert","rxdef","rxnorm",
+			"rxpat","scheduledprocess","schoolclass","schoolcourse","screen","screengroup","screenpat","sheet","sheetdef","sheetfielddef","sigbutdef",
+			"sigelementdef","sigmessage","signalod","site","sitelink","smsbilling","smsblockphone","smsfrommobile","smsphone","smstomobile","snomed","sop",
+			"stateabbr","statement","stmtlink","substitutionlink","supplier","supply","supplyneeded","supplyorder","supplyorderitem","task","taskancestor",
+			"taskhist","tasklist","tasknote","tasksubscription","tasktaken","taskunread","terminalactive","timeadjust","timecardrule","toolbutitem",
+			"toothgridcell","toothgridcol","toothgriddef","transaction","treatplanattach","triagemetric","tsitranslog","ucum","updatehistory","userclinic",
+			"usergroup","usergroupattach","userod","userodapptview","userodpref","userquery","userweb","vaccinedef","vaccineobs","vaccinepat","vitalsign",
+			"voicemail","webchatmessage","webchatpref","webchatsession","webchatsurvey","webforms_log","webforms_preference","webforms_sheet",
+			"webforms_sheetdef","webforms_sheetfield","webforms_sheetfielddef","webschedrecall","wikilistheaderwidth","wikilisthist","wikipage",
+			"wikipagehist","xchargetransaction","xwebresponse","zipcode"
+		};
+		///<summary>These two lists are for To19_2_15 and are meant to be static lists of table names as of that version.</summary>
+		private static List<string> _listLargeTableNames=new List<string> {
+			"appointment","claimproc","commlog","document","etransmessagetext","histappointment","inseditlog","inssub","patient","periomeasure",
+			"procedurelog","procnote","recall","schedule","scheduleop","securitylog","securityloghash","sheetfield","toothinitial","treatplan"
+		};
+		#endregion Helper Functions/Variables
+
 		private static void To18_3_1() {
 			string command;
 			DataTable table;
@@ -1589,6 +1639,39 @@ namespace OpenDentBusiness {
 		private static void To19_2_15() {
 			string command="INSERT INTO preference(PrefName,ValueString) VALUES('AgingProcLifo','0')";
 			Db.NonQ(command);//Unset by default (same effect as Off for now, for backwards compatibility).
+			command=$@"SELECT c.TABLE_NAME tableName,c.COLUMN_NAME colName,c1.priKey
+				FROM information_schema.COLUMNS c
+				INNER JOIN (
+					SELECT TABLE_NAME,MAX(COLUMN_NAME) priKey
+					FROM information_schema.COLUMNS
+					WHERE TABLE_SCHEMA=DATABASE()
+					AND TABLE_NAME IN ({string.Join(",",_listTableNames.Concat(_listLargeTableNames).Select(x => "'"+POut.String(x)+"'"))})
+					AND COLUMN_KEY='PRI'
+					GROUP BY TABLE_NAME
+				) c1 ON c1.TABLE_NAME=c.TABLE_NAME
+				WHERE c.TABLE_SCHEMA=DATABASE()
+				AND c.DATA_TYPE='timestamp'
+				AND c.TABLE_NAME IN ({string.Join(",",_listTableNames.Concat(_listLargeTableNames).Select(x => "'"+POut.String(x)+"'"))})
+				AND (
+					c.IS_NULLABLE='YES'
+					OR c.COLUMN_DEFAULT!='CURRENT_TIMESTAMP'
+					OR c.EXTRA!='ON UPDATE CURRENT_TIMESTAMP'
+				)";
+			DataTable table=Db.GetTable(command);
+			string tableName;
+			string columnName;
+			foreach(DataRow row in table.Rows) {
+				tableName=PIn.String(row["tableName"].ToString()).ToLower();
+				columnName=PIn.String(row["colName"].ToString());
+				if(_listLargeTableNames.Contains(tableName)) {
+					LargeTableHelper.AlterLargeTable(tableName,PIn.String(row["priKey"].ToString()),
+						new List<Tuple<string,string>> { Tuple.Create(columnName,"timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP") });
+				}
+				else if(_listTableNames.Contains(tableName)) {
+					command=$@"ALTER TABLE `{tableName}` MODIFY `{columnName}` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+					Db.NonQ(command);
+				}
+			}
 		}
 
 	}
