@@ -444,7 +444,13 @@ namespace OpenDental {
 			if(_textFocused.ReadOnly) {
 				return;
 			}
-			_textFocused.SelectionBackColor=_highlightColor;
+			if(_textFocused.SelectionBackColor==_highlightColor) {
+				_textFocused.SelectionColor=_textFocused.ForeColor;
+				_textFocused.SelectionBackColor=_textFocused.BackColor;
+			}
+			else {
+				_textFocused.SelectionBackColor=_highlightColor;
+			}
 			_textFocused.Focus();
 		}
 
