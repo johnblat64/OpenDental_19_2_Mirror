@@ -106,12 +106,12 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Used from FormPaySplitEdit.  Returns total payments for a procedure for all paysplits other than the supplied excluded paysplit.</summary>
-		public static double GetTotForProc(long procNum,PaySplit[] List,long excludeSplitNum,out int countSplitsAttached) {
+		public static double GetTotForProc(long procNum,PaySplit[] List,PaySplit paySplitToExclude,out int countSplitsAttached) {
 			//No need to check RemotingRole; no call to db.
 			double retVal=0;
 			countSplitsAttached=0;
 			for(int i=0;i<List.Length;i++){
-				if(List[i].SplitNum==excludeSplitNum){
+				if(List[i].IsSame(paySplitToExclude)) {
 					continue;
 				}
 				if(List[i].ProcNum==procNum){

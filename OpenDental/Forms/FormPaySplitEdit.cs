@@ -325,7 +325,13 @@ namespace OpenDental {
 			}
 			List<ClaimProc> listClaimProcs=ClaimProcs.Refresh(ProcCur.PatNum);
 			Adjustment[] arrAdjustments=Adjustments.Refresh(ProcCur.PatNum);
-			PaySplit[] arrPaySplits=PaySplits.Refresh(ProcCur.PatNum);
+			List<PaySplit> listPaySplitsForProc=PaySplits.Refresh(ProcCur.PatNum).Where(x => x.ProcNum==ProcCur.ProcNum).ToList();
+			List<PaySplit> listPaySplitsForProcPaymentWindow=ListSplitsCur.Where(x => x.ProcNum==ProcCur.ProcNum && x.PayNum==PaySplitCur.PayNum).ToList();
+			//Add new paysplits created for the current paysplits payment.
+			listPaySplitsForProc.AddRange(listPaySplitsForProcPaymentWindow.Where(x => x.SplitNum==0));
+			//Remove paysplits that have been deleted in the payment window but have not been saved to db. We don't want to use these paysplits 
+			//when calculating procPrevPaid.
+			listPaySplitsForProc.RemoveAll(x => !listPaySplitsForProcPaymentWindow.Any(y => y.IsSame(x)));
 			textProcDate.Text=ProcCur.ProcDate.ToShortDateString();
 			textProcProv.Text=Providers.GetAbbr(ProcCur.ProvNum);
 			textProcTooth.Text=Tooth.ToInternat(ProcCur.ToothNum);
@@ -340,7 +346,7 @@ namespace OpenDental {
 			double procAdj=Adjustments.GetTotForProc(ProcCur.ProcNum,arrAdjustments);
 			//next line will still work even if IsNew
 			int countSplitsAttached;
-			double procPrevPaid=-PaySplits.GetTotForProc(ProcCur.ProcNum,arrPaySplits,PaySplitCur.SplitNum,out countSplitsAttached);
+			double procPrevPaid=-PaySplits.GetTotForProc(ProcCur.ProcNum,listPaySplitsForProc.ToArray(),PaySplitCur,out countSplitsAttached);
 			//Intelligently sum the values associated to the procedure, claim procs, and adjustments via status instead of blindly adding them together.
 			_patPort=ClaimProcs.GetPatPortion(ProcCur,listClaimProcs,arrAdjustments.ToList());
 			textProcFee.Text=ProcCur.ProcFeeTotal.ToString("F");
