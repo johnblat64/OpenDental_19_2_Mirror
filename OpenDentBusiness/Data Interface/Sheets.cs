@@ -181,7 +181,7 @@ namespace OpenDentBusiness{
 		/// <summary>Gets the maximum Terminal Num for the selected patient.  Returns 0 if there's no sheets marked to show in terminal.</summary>
 		public static int GetMaxTerminalNum(long patNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<byte>(MethodBase.GetCurrentMethod(),patNum);
+				return Meth.GetInt(MethodBase.GetCurrentMethod(),patNum);
 			}
 			string command="SELECT MAX(ShowInTerminal) FROM sheet WHERE PatNum="+POut.Long(patNum)
 				+" AND IsDeleted=0";
