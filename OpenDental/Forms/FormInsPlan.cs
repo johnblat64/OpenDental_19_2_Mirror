@@ -2536,6 +2536,9 @@ namespace OpenDental{
 			//FillPatData------------------------------
 			if(PatPlanCur==null) {
 				panelPat.Visible=false;
+				//PatPlanCur is sometimes null
+				butGetElectronic.Visible=false;
+				butHistoryElect.Visible=false;
 			}
 			else {
 				comboRelationship.Items.Clear();
