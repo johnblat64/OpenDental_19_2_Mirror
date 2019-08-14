@@ -705,6 +705,15 @@ namespace OpenDentBusiness{
 			public PaySplitAssociated Copy() {
 				return (PaySplitAssociated)this.MemberwiseClone();
 			}
+			
+			///<summary>Checks TagOD to see if a given PaySplit is in a PaySplitAssociated object.</summary>
+			public bool ContainsSplit(PaySplit split) {
+				//Null check first as it is valid to have null PaySplits in a PaySplitAssociated object.
+				if((PaySplitOrig!=null && PaySplitOrig.IsSame(split)) || (PaySplitLinked!=null && PaySplitLinked.IsSame(split))) {
+					return true;
+				}
+				return false;
+			}
 		}
 
 	}

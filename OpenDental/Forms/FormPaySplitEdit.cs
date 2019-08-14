@@ -796,6 +796,11 @@ namespace OpenDental {
 			if(PaySplitCur!=null) {
 				SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,PaySplitCur.PatNum,"Payment deleted for "+PaySplitCur.SplitAmt,0,_paySplitCopy.SecDateTEdit);
 			}
+			//If there are objects in the list and the current paysplit is associated to another paysplit.
+			if(!ListPaySplitAssociated.IsNullOrEmpty() && ListPaySplitAssociated.Exists(x => x.ContainsSplit(PaySplitCur))) {
+				MsgBox.Show(this,"Attached splits have been allocated elsewhere.  Please delete those first.");
+				return;
+			}
 			PaySplitCur=null;
 			DialogResult=DialogResult.OK;
 		}

@@ -3962,6 +3962,12 @@ namespace OpenDental {
 					_listSplitsCur.Add(paySplit);
 					PaymentEdit.UpdateForManualSplit(paySplit,_listAccountCharges,payPlanChargeNum,isAllCharges:checkShowAll.Checked);
 					FillGridSplits();
+					//Null Empty check to guard against .Any throwing an exception. If the PaySplit we doubleclicked is in the grid set it selected and highlight 
+					//associated splits.
+					if(!gridSplits.Rows.IsNullOrEmpty() && gridSplits.Rows.Any(x => ((PaySplit)x.Tag).IsSame(paySplitOld))) {
+						gridSplits.SetSelected((int)gridSplits.Rows.First(x => ((PaySplit)x.Tag).IsSame(paySplitOld)).RowNum-1,true);
+						HighlightChargesForSplits();
+					}
 					_paymentCur.PayAmt-=paySplit.SplitAmt;
 				}		
 			}
