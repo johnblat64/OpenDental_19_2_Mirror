@@ -519,6 +519,7 @@ namespace OpenDental {
 				if(!listCreditsForPat.Any()) {
 					continue;
 				}
+				bool doInsertSplits=false;
 				//One large paysplit into unallocated
 				PaySplit splitUnallocated=new PaySplit();
 				splitUnallocated.DatePay=datePicker.Value;
@@ -527,10 +528,13 @@ namespace OpenDental {
 				splitUnallocated.ProvNum=0;
 				splitUnallocated.ClinicNum=0;
 				splitUnallocated.UnearnedType=PrefC.GetLong(PrefName.PrepaymentUnearnedType);
-				listPaySplitsCreated.Add(splitUnallocated);
 				//create offsetting paysplits for each credit
 				double totalCreditAmount=0;
 				foreach(AccountEntry credit in listCreditsForPat) {
+					//Prevents us from spliting unearned into unearned, which would be a major problem.
+					if(credit.GetType()==typeof(PaySplit) && ((PaySplit)credit.Tag).UnearnedType!=0) {
+						continue;
+					}
 					PaySplit splitCredit=new PaySplit();
 					splitCredit.DatePay=datePicker.Value;
 					splitCredit.PatNum=credit.PatNum;
@@ -545,10 +549,15 @@ namespace OpenDental {
 					totalCreditAmount+=splitCredit.SplitAmt;
 					credit.SplitCollection.Add(splitCredit);
 					listPaySplitsCreated.Add(splitCredit);
+					//A split for a credit was added, flag that we want to split to unearned.
+					doInsertSplits=true;
 					credit.AmountEnd=0;
 				}
-				splitUnallocated.SplitAmt=-totalCreditAmount;//Split is the opposite amount of the total of the other splits.
-				retVal+=$"Total credits of {splitUnallocated.SplitAmt.ToString("f")} moved to unallocated for PatNum: {patCur.PatNum}\r\n";
+				if(doInsertSplits) {
+					splitUnallocated.SplitAmt=-totalCreditAmount;//Split is the opposite amount of the total of the other splits.
+					retVal+=$"Total credits of {splitUnallocated.SplitAmt.ToString("f")} moved to unallocated for PatNum: {patCur.PatNum}\r\n";
+					listPaySplitsCreated.Add(splitUnallocated);
+				}
 			}
 			famAccount.ListSplits.AddRange(listPaySplitsCreated);
 			return retVal;
