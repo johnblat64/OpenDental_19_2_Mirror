@@ -698,6 +698,8 @@ namespace OpenDental{
 					butPick.Enabled=false;
 					comboSendStatus.Enabled=false;
 					butDelete.Enabled=false;
+					comboClinic.Enabled=false;
+					butOK.Enabled=false;
 				}
 			}
 			//security is handled on the Rx button click in the Chart module
