@@ -3761,10 +3761,10 @@ namespace OpenDentBusiness {
 			}
 			string log="";
 			List<long> listIssueEtrans835Attaches=Db.GetListLong(
-				@"SELECT Etrans835Attach.Etrans835AttachNum
-				FROM Etrans835Attach
-				LEFT JOIN claim ON claim.ClaimNum=Etrans835Attach.ClaimNum
-				WHERE Etrans835Attach.ClaimNum!=0
+				@"SELECT etrans835attach.Etrans835AttachNum
+				FROM etrans835attach
+				LEFT JOIN claim ON claim.ClaimNum=etrans835attach.ClaimNum
+				WHERE etrans835attach.ClaimNum!=0
 				AND claim.ClaimNum IS NULL"
 			);
 			switch(modeCur) {
