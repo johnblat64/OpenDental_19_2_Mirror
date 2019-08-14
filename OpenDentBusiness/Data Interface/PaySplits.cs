@@ -316,25 +316,10 @@ namespace OpenDentBusiness{
 			return (decimal)listPrePayments.Sum(x => x.SplitAmt);
 		}
 
-		///<summary>This will only get the actual reserved prepayments for TP procedures, meaning a procedure has to be attached for it to show
-		///in this list. </summary>
-		public static List<PaySplit> GetHiddenUnearnedForPats(List<long> listPatNums) {
-			//some pre-payments can be excluded from accound data, so we specificially have to grab them.
-			List<long> listHiddenUnearnedDefs=Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType)
-				.FindAll(x => !string.IsNullOrEmpty(x.ItemValue))
-				.Select(x => x.DefNum)
-				.ToList();
-			if(listPatNums.IsNullOrEmpty() || listHiddenUnearnedDefs.Count==0) {
-				return new List<PaySplit>();
-			}
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<PaySplit>>(MethodBase.GetCurrentMethod(),listPatNums);
-			}
-			string command=$@"SELECT * FROM paysplit 
-										WHERE paysplit.UnearnedType IN ({string.Join(",",listHiddenUnearnedDefs)}) 
-										AND paysplit.PatNum IN ({string.Join(",",listPatNums)})
-										ORDER BY paysplit.DatePay";
-			return Crud.PaySplitCrud.SelectMany(command);
+		/// <summary>Gets a list of all unearned types that are marked as hidden on account.</summary>
+		public static List<long> GetHiddenUnearnedDefNums() {
+			//No need to check RemotingRole; no call to db.
+			return Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 		}
 
 		///<summary>Returns the total amount of prepayments for the entire family.  To ignore a specific payment provide the payNumExcluded param.</summary>

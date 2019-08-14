@@ -106,6 +106,11 @@ namespace OpenDentBusiness {
 			data.ListPaySplits=PaySplits.GetForPats(listPatNums);//Might contain payplan payments.
 			//will also contain TP procs if pref is set to ON
 			data.ListProcsCompleted=Procedures.GetCompleteForPats(listPatNums);
+			if(isIncomeTransfer) {
+				//do not show pre-payment splits that are attached to TP procedures, they should not be transferred since they are already reserved money
+				//only TP unearned should have an unearned type and a procNum. 
+				data.ListPaySplits.RemoveAll(x => x.UnearnedType!=0 && x.ProcNum!=0 && !x.ProcNum.In(data.ListProcsCompleted.Select(y => y.ProcNum)));
+			}
 			if(PrefC.IsPrePayAllowedForTpProcs && !isIncomeTransfer) {
 				data.ListProcsCompleted.AddRange(Procedures.GetTpForPats(listPatNums));
 			}
@@ -1010,7 +1015,9 @@ namespace OpenDentBusiness {
 			if(unearnedAmt.IsLessThan(0) || listAccountEntries==null) {
 				return retVal;
 			}
-			List<PaySplit> listFamPrePaySplits=PaySplits.GetPrepayForFam(fam);
+			//don't allocate prepayments that are attached to TP procedures or that are flagged as hidden on account. 
+			List<PaySplit> listFamPrePaySplits=PaySplits.GetPrepayForFam(fam).FindAll(x => x.ProcNum==0 
+				&& !x.UnearnedType.In(PaySplits.GetHiddenUnearnedDefNums()));
 			//Manipulate the original prepayments SplitAmt by subtracting counteracting SplitAmt.
 			foreach(PaySplit prePaySplit in listFamPrePaySplits.FindAll(x => x.SplitAmt.IsGreaterThan(0))) {
 				List<PaySplit> listSplitsForPrePay=PaySplits.GetSplitsForPrepay(new List<PaySplit>() { prePaySplit });//Find all splits for the pre-payment.
