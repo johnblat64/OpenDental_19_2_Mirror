@@ -509,7 +509,20 @@ namespace OpenDental {
 			string keyData;
 			//Get the "translated" name for the signature column.
 			string sigColumnName=_listOrthDisplayFields.FirstOrDefault(x => x.InternalName=="Signature").Description;
-			List<OrthoChart> listCharts=_dictOrthoCharts[orthoDate].FindAll(x => x.DateService==orthoDate && x.FieldValue!="" && x.FieldName!=sigColumnName);
+			List<OrthoChart> listCharts;
+			try {
+				listCharts=_dictOrthoCharts[orthoDate].FindAll(x => x.DateService==orthoDate && x.FieldValue!="" && x.FieldName!=sigColumnName);
+			}
+			catch(KeyNotFoundException ex) {//Multiple previous bug fixes attempted here.
+				FriendlyException.Show("There was an issue attempting to save the signature. If this issue persists please contact support.",
+					new ApplicationException("FormOrthoChart.SaveSignatureToDict(...):"
+						+"\r\nThe following date can not be found in _dictOrthoCharts: '"+orthoDate.ToString()+"'"
+						+"\r\nThe following are key values from _dictOrthoCharts:"
+						+"\r\n"+string.Join("\r\n",_dictOrthoCharts.Select(x => "Key: '"+x.Key+"'"))
+						,ex)
+				);
+				return;
+			}
 			keyData=OrthoCharts.GetKeyDataForSignatureSaving(listCharts,orthoDate);
 			OrthoSignature sig=new OrthoSignature();
 			sig.IsTopaz=signatureBoxWrapper.GetSigIsTopaz();
