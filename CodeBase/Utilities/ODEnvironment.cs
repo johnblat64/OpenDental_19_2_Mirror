@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -152,6 +153,64 @@ namespace CodeBase{
 				}
 			}
 			return "";
+		}
+
+		///<summary>This method checks the product version of the kernel32.dll to determine if the current OS is running Windows 7 or not.
+		///Throws exceptions by default.  Pass false to swallow all exceptions.</summary>
+		public static bool IsWindows7(bool hasExceptions=true) {
+			//For more information see https://www.geoffchappell.com/studies/windows/win32/kernel32/history/index.htm
+			/*****************************************************************************************************************
+			File Version		File Header		Date Stamp				File Size		Package
+			3.51.1048.1			2FC3AE99		(25th May 1995)			336,224			Windows NT 3.51
+			3.51.1057.6			3214F49D		(17th August 1996)		337,696			Windows NT 3.51 SP5
+			4.0.0.950			2FF48837		(1st July 1995)			411,136			Windows 95
+			4.0.0.1111			320C1CA0		(10th August 1996)		414,208			Windows 95 OSR2
+			4.0.1380.1			31F7EBAB		(26th July 1996)		363,280			Windows NT 4.0
+			4.0.1381.4			3361070B		(26th April 1997)		372,496			Windows NT 4.0 SP3
+			4.0.1381.133		36232523		(13th October 1998)		375,056			Windows NT 4.0 SP4
+			4.0.1381.178		36D9D5F3		(1st March 1999)		374,544			Windows NT 4.0 SP5
+			4.0.1381.300		3794F60F		(21st July 1999)		375,056			Windows NT 4.0 SP6
+			4.10.0.1998			3546ABB0		(29th April 1998)		471,040			Windows 98
+			4.10.0.2222			371FC2B3		(23rd April 1999)		471,040			Windows 98 SE
+			4.90.0.3000			393F3C0E		(8th June 2000)			536,576			Windows Me
+			5.0.2191.1			3844D034		(1st December 1999)		732,432			Windows 2000
+			5.0.2195.1600		394193D2		(10th June 2000)		730,384			Windows 2000 SP1
+			5.0.2195.4272		3C1FE60F		(19th December 2001)	731,920			Windows 2000 SP2
+			5.0.2195.5400		3D3D0209		(23rd July 2002)		733,968			Windows 2000 SP3
+			5.0.2195.6688		3EF274DC		(20th June 2003)		743,184			Windows 2000 SP4
+			5.1.2600.0			3B7DFE0E		(18th August 2001)		926,720			Windows XP
+			5.1.2600.1106		3D6DFA28		(29th August 2002)		930,304			Windows XP SP1
+			5.1.2600.2180		411096B4		(4th August 2004)		983,552			Windows XP SP2
+			5.1.2600.5512		4802A12C		(14th April 2008)		989,696			Windows XP SP3
+			5.2.3790.0			3E802494		(25th March 2003)		988,160			Windows Server 2003
+			5.2.3790.1830		424377D2		(25th March 2005)		1,038,336		Windows Server 2003 SP1
+			5.2.3790.3959		45D70AD8		(18th February 2007)	1,037,312		Windows Server 2003 SP2
+			6.0.6000.16386		4549BD80		(2nd November 2006)		874,496			Windows Vista
+			6.0.6001.18000		4791A76D		(19th January 2008)		888,320			Windows Vista SP1 & Windows Server 2008
+			6.0.6002.18005		49E037DD		(11th April 2009)		891,392			Windows Vista SP2
+			6.1.7600.16385		4A5BDAAD		(14th July 2009)		857,088			Windows 7
+			6.1.7601.17514		4CE7B8EF		(20th November 2010)	857,600			Windows 7 SP1
+			6.2.9200.16384		5010A99B		(25th July 2012)		1,011,712		Windows 8
+			6.3.9600.16384		52158E47		(22nd August 2013)		1,037,504		Windows 8.1
+			6.3.9600.17031		530886EB		(22nd February 2014)	1,037,504		Windows 8.1 Update
+			10.0.10240.16384	559F3B86		(9th July 2015)			624,312			Windows 10
+			******************************************************************************************************************/
+			Version version;
+			try {
+				string pathToKernel32Dll=ODFileUtils.CombinePaths(Environment.GetFolderPath(Environment.SpecialFolder.System),"kernel32.dll");
+				FileVersionInfo versionInfo=FileVersionInfo.GetVersionInfo(pathToKernel32Dll);
+				version=new Version(versionInfo.ProductVersion);
+			}
+			catch(Exception ex) {
+				if(hasExceptions) {
+					throw ex;
+				}
+				return false;
+			}
+			//Windows 7 editions will always start with 6.1:
+			//6.1.7600.16385 - Windows 7
+			//6.1.7601.17514 - Windows 7 SP1
+			return (version.Major==6&&version.Minor==1);//Build and Revision do not matter at this time.
 		}
 	}
 }

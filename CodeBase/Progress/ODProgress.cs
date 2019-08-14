@@ -157,7 +157,7 @@ namespace CodeBase {
 		///Finally returning a close action for the calling method to invoke whenever long computations are finished.
 		///Two critical portions of the closing method are 1 - it closes progress gracefully and 2 - FormProgressCurS gets set to null.</summary>
 		public static Action ShowProgressBase(Func<FormProgressBase> funcGetNewProgress,string threadName="Thread_ODProgress_ShowProgressBase") {
-			if(ODBuild.IsWeb() || ODInitialize.IsRunningInUnitTest) {
+			if(ODEnvironment.IsWindows7(false) || ODBuild.IsWeb() || ODInitialize.IsRunningInUnitTest) {
 				return new Action(() => {
 					//Do nothing.
 				});
