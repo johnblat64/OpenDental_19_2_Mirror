@@ -1451,7 +1451,7 @@ namespace OpenDentBusiness {
 			command="SELECT MAX(ItemOrder)+1 FROM definition WHERE Category=29";//29 is PaySplitUnearnedType
 			int order=PIn.Int(Db.GetCount(command));
 			command="INSERT INTO definition (Category,ItemName,ItemOrder,ItemValue) "
-				+"VALUES (29,'Treat Plan Pre-Payment',"+POut.Int(order)+",'X')";//29 is PaySplitUnearnedType
+				+"VALUES (29,'Treat Plan Prepayment',"+POut.Int(order)+",'X')";//29 is PaySplitUnearnedType
 			defNum=Db.NonQ(command,true);
 			command="INSERT INTO preference(PrefName,ValueString) VALUES('TpUnearnedType','"+POut.Long(defNum)+"')";
 			Db.NonQ(command);

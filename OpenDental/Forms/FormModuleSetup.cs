@@ -1911,7 +1911,7 @@ namespace OpenDental{
 			this.groupBox5.Size = new System.Drawing.Size(440, 93);
 			this.groupBox5.TabIndex = 246;
 			this.groupBox5.TabStop = false;
-			this.groupBox5.Text = "Treatment Planned Pre-payments";
+			this.groupBox5.Text = "Treatment Planned Prepayments";
 			// 
 			// checkAllowPrePayToTpProcs
 			// 
@@ -1920,7 +1920,7 @@ namespace OpenDental{
 			this.checkAllowPrePayToTpProcs.Name = "checkAllowPrePayToTpProcs";
 			this.checkAllowPrePayToTpProcs.Size = new System.Drawing.Size(430, 18);
 			this.checkAllowPrePayToTpProcs.TabIndex = 5;
-			this.checkAllowPrePayToTpProcs.Text = "Allow pre-payments to allocate to treatment planned procedures";
+			this.checkAllowPrePayToTpProcs.Text = "Allow prepayments to allocate to treatment planned procedures";
 			this.checkAllowPrePayToTpProcs.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAllowPrePayToTpProcs.UseVisualStyleBackColor = true;
 			this.checkAllowPrePayToTpProcs.Click += new System.EventHandler(this.CheckAllowPrePayToTpProcs_Click);
@@ -1932,7 +1932,7 @@ namespace OpenDental{
 			this.checkIsRefundable.Name = "checkIsRefundable";
 			this.checkIsRefundable.Size = new System.Drawing.Size(430, 18);
 			this.checkIsRefundable.TabIndex = 10;
-			this.checkIsRefundable.Text = "TP pre-payments are non-refundable";
+			this.checkIsRefundable.Text = "TP prepayments are non-refundable";
 			this.checkIsRefundable.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkIsRefundable.UseVisualStyleBackColor = true;
 			this.checkIsRefundable.Visible = false;
