@@ -27,8 +27,6 @@ namespace OpenDental {
 			this.butCancel = new OpenDental.UI.Button();
 			this.tabControlMain = new System.Windows.Forms.TabControl();
 			this.tabAccount = new System.Windows.Forms.TabPage();
-			this.label58 = new System.Windows.Forms.Label();
-			this.comboAgingProcLifo = new System.Windows.Forms.ComboBox();
 			this.label13 = new System.Windows.Forms.Label();
 			this.checkBillingShowProgress = new System.Windows.Forms.CheckBox();
 			this.label27 = new System.Windows.Forms.Label();
@@ -167,8 +165,6 @@ namespace OpenDental {
 			// tabAccount
 			// 
 			this.tabAccount.BackColor = System.Drawing.SystemColors.Window;
-			this.tabAccount.Controls.Add(this.label58);
-			this.tabAccount.Controls.Add(this.comboAgingProcLifo);
 			this.tabAccount.Controls.Add(this.label13);
 			this.tabAccount.Controls.Add(this.checkBillingShowProgress);
 			this.tabAccount.Controls.Add(this.label27);
@@ -203,25 +199,6 @@ namespace OpenDental {
 			this.tabAccount.Size = new System.Drawing.Size(494, 593);
 			this.tabAccount.TabIndex = 2;
 			this.tabAccount.Text = "Account";
-			// 
-			// label58
-			// 
-			this.label58.BackColor = System.Drawing.SystemColors.Window;
-			this.label58.Location = new System.Drawing.Point(35, 471);
-			this.label58.Name = "label58";
-			this.label58.Size = new System.Drawing.Size(378, 21);
-			this.label58.TabIndex = 279;
-			this.label58.Text = "Aging LIFO procedures:";
-			this.label58.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// comboAgingProcLifo
-			// 
-			this.comboAgingProcLifo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboAgingProcLifo.FormattingEnabled = true;
-			this.comboAgingProcLifo.Location = new System.Drawing.Point(414, 471);
-			this.comboAgingProcLifo.Name = "comboAgingProcLifo";
-			this.comboAgingProcLifo.Size = new System.Drawing.Size(60, 21);
-			this.comboAgingProcLifo.TabIndex = 278;
 			// 
 			// label13
 			// 
@@ -1348,7 +1325,5 @@ namespace OpenDental {
 		private System.Windows.Forms.ComboBox comboClaimSnapshotTrigger;
 		private System.Windows.Forms.Label labelClaimSnapshotTrigger;
 		private System.Windows.Forms.Label labelClaimSnapshotRunTime;
-		private System.Windows.Forms.Label label58;
-		private System.Windows.Forms.ComboBox comboAgingProcLifo;
 	}
 }

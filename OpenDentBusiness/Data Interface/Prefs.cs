@@ -214,6 +214,23 @@ namespace OpenDentBusiness{
 			return UpdateLong(prefName,newValue);
 		}
 
+		///<summary>Updates a pref of type YN.  Returns true if a change was required, or false if no change needed.</summary>
+		public static bool UpdateYN(PrefName prefName,YN newValue) {
+			return UpdateLong(prefName,(int)newValue);
+		}
+
+		///<summary>Updates a pref of type YN.  Returns true if a change was required, or false if no change needed.</summary>
+		public static bool UpdateYN(PrefName prefName,System.Windows.Forms.CheckState checkState) {
+			YN yn=YN.Unknown;
+			if(checkState==System.Windows.Forms.CheckState.Checked){
+				yn=YN.Yes;
+			}
+			if(checkState==System.Windows.Forms.CheckState.Unchecked){
+				yn=YN.No;
+			}
+			return UpdateYN(prefName,yn);
+		}
+
 		///<summary>Updates a pref of type byte.  Returns true if a change was required, or false if no change needed.</summary>
 		public static bool UpdateByte(PrefName prefName,byte newValue) {
 			return UpdateLong(prefName,newValue);

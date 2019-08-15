@@ -14,11 +14,6 @@ namespace OpenDental {
 		public FormEnterpriseSetup() {
 			InitializeComponent();
 			Lan.F(this);
-			comboAgingProcLifo.Items.AddRange(new string[] { 
-				Lan.g(this,"Unset"),																 
-				Lan.g(this,"Yes"),
-				Lan.g(this,"No"),
-			});
 		}
 
 		private void FormEnterpriseSetup_Load(object sender,EventArgs e) {
@@ -76,7 +71,6 @@ namespace OpenDental {
 			comboPayPlansVersion.SelectedIndex=PrefC.GetInt(PrefName.PayPlansVersion)-1;
 			textBillingElectBatchMax.Text=PrefC.GetInt(PrefName.BillingElectBatchMax).ToString();
 			checkBillingShowProgress.Checked=PrefC.GetBool(PrefName.BillingShowSendProgress);
-			comboAgingProcLifo.SelectedIndex=PrefC.GetInt(PrefName.AgingProcLifo);
 			#endregion Account Tab
 			#region Advanced Tab
 			checkPasswordsMustBeStrong.Checked=PrefC.GetBool(PrefName.PasswordsMustBeStrong);
@@ -242,7 +236,6 @@ namespace OpenDental {
 				| Prefs.UpdateBool(PrefName.ApptSecondaryProviderConsiderOpOnly,checkUseOpHygProv.Checked)
 				| Prefs.UpdateBool(PrefName.ApptsRequireProc,checkApptsRequireProcs.Checked)
 				| Prefs.UpdateBool(PrefName.BillingShowSendProgress,checkBillingShowProgress.Checked)
-				| Prefs.UpdateInt(PrefName.AgingProcLifo,comboAgingProcLifo.SelectedIndex)
 				| Prefs.UpdateBool(PrefName.BillingShowTransSinceBalZero,checkBillShowTransSinceZero.Checked)
 				| Prefs.UpdateBool(PrefName.ClaimReportReceivedByService,checkReceiveReportsService.Checked)
 				| Prefs.UpdateBool(PrefName.CloneCreateSuperFamily,checkSuperFamCloneCreate.Checked)

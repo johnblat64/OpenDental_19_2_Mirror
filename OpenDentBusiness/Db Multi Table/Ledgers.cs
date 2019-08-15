@@ -322,7 +322,7 @@ namespace OpenDentBusiness{
 					+(hasDateLastPay?",transSums.DateLastPay ":" ")
 					+"FROM (";
 			}
-			bool isFifo=((YN)PrefC.GetInt(PrefName.AgingProcLifo)).In(YN.Unknown,YN.No);
+			bool isFifo=(!PrefC.GetYN(PrefName.AgingProcLifo));
 			if(isFifo) {
 				command+="SELECT "+(isGroupByGuar?"p.Guarantor PatNum,":"trans.PatNum,")
 					+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig'"+(isNegAdjAged?",'Adj'":"")+")) "

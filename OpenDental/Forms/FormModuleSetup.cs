@@ -364,6 +364,7 @@ namespace OpenDental{
 		private CheckBox checkIsRefundable;
 		private CheckBox checkAllowPrePayToTpProcs;
 		private CheckBox checkFeesUseCache;
+		private CheckBox checkAgingProcLifo;
 		private YN _prePayAllowedForTpProcs;
 
 		///<summary>Default constructor.  Opens the form with the Appts tab selected.</summary>
@@ -738,6 +739,7 @@ namespace OpenDental{
 			this.checkRxSendNewToQueue = new System.Windows.Forms.CheckBox();
 			this.butCancel = new OpenDental.UI.Button();
 			this.butOK = new OpenDental.UI.Button();
+			this.checkAgingProcLifo = new System.Windows.Forms.CheckBox();
 			this.tabControlMain.SuspendLayout();
 			this.tabAppts.SuspendLayout();
 			this.tabControlAppts.SuspendLayout();
@@ -2556,6 +2558,7 @@ namespace OpenDental{
 			// 
 			// tabPageMisc
 			// 
+			this.tabPageMisc.Controls.Add(this.checkAgingProcLifo);
 			this.tabPageMisc.Controls.Add(this.groupRepeatingCharges);
 			this.tabPageMisc.Controls.Add(this.groupRecurringCharges);
 			this.tabPageMisc.Controls.Add(this.checkAllowFutureTrans);
@@ -2643,7 +2646,7 @@ namespace OpenDental{
 			this.groupRecurringCharges.Controls.Add(this.checkRecurringChargesAutomated);
 			this.groupRecurringCharges.Controls.Add(this.checkRecurringChargesUseTransDate);
 			this.groupRecurringCharges.Controls.Add(this.checkRecurChargPriProv);
-			this.groupRecurringCharges.Location = new System.Drawing.Point(6, 313);
+			this.groupRecurringCharges.Location = new System.Drawing.Point(6, 318);
 			this.groupRecurringCharges.Name = "groupRecurringCharges";
 			this.groupRecurringCharges.Size = new System.Drawing.Size(445, 143);
 			this.groupRecurringCharges.TabIndex = 244;
@@ -2740,7 +2743,7 @@ namespace OpenDental{
 			// 
 			this.checkAllowFutureTrans.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAllowFutureTrans.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkAllowFutureTrans.Location = new System.Drawing.Point(6, 132);
+			this.checkAllowFutureTrans.Location = new System.Drawing.Point(6, 130);
 			this.checkAllowFutureTrans.Name = "checkAllowFutureTrans";
 			this.checkAllowFutureTrans.Size = new System.Drawing.Size(439, 17);
 			this.checkAllowFutureTrans.TabIndex = 244;
@@ -2751,7 +2754,7 @@ namespace OpenDental{
 			// 
 			this.groupCommLogs.Controls.Add(this.checkCommLogAutoSave);
 			this.groupCommLogs.Controls.Add(this.checkShowFamilyCommByDefault);
-			this.groupCommLogs.Location = new System.Drawing.Point(6, 253);
+			this.groupCommLogs.Location = new System.Drawing.Point(6, 263);
 			this.groupCommLogs.Name = "groupCommLogs";
 			this.groupCommLogs.Size = new System.Drawing.Size(445, 54);
 			this.groupCommLogs.TabIndex = 243;
@@ -2785,7 +2788,7 @@ namespace OpenDental{
 			// 
 			this.checkShowAllocateUnearnedPaymentPrompt.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkShowAllocateUnearnedPaymentPrompt.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkShowAllocateUnearnedPaymentPrompt.Location = new System.Drawing.Point(6, 114);
+			this.checkShowAllocateUnearnedPaymentPrompt.Location = new System.Drawing.Point(6, 112);
 			this.checkShowAllocateUnearnedPaymentPrompt.Name = "checkShowAllocateUnearnedPaymentPrompt";
 			this.checkShowAllocateUnearnedPaymentPrompt.Size = new System.Drawing.Size(439, 17);
 			this.checkShowAllocateUnearnedPaymentPrompt.TabIndex = 242;
@@ -2796,7 +2799,7 @@ namespace OpenDental{
 			// 
 			this.checkAgeNegAdjsByAdjDate.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAgeNegAdjsByAdjDate.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkAgeNegAdjsByAdjDate.Location = new System.Drawing.Point(6, 96);
+			this.checkAgeNegAdjsByAdjDate.Location = new System.Drawing.Point(6, 94);
 			this.checkAgeNegAdjsByAdjDate.Name = "checkAgeNegAdjsByAdjDate";
 			this.checkAgeNegAdjsByAdjDate.Size = new System.Drawing.Size(439, 17);
 			this.checkAgeNegAdjsByAdjDate.TabIndex = 241;
@@ -2811,7 +2814,7 @@ namespace OpenDental{
 			this.groupPayPlans.Controls.Add(this.checkHideDueNow);
 			this.groupPayPlans.Controls.Add(this.checkPayPlansUseSheets);
 			this.groupPayPlans.Controls.Add(this.checkPayPlansExcludePastActivity);
-			this.groupPayPlans.Location = new System.Drawing.Point(6, 150);
+			this.groupPayPlans.Location = new System.Drawing.Point(6, 162);
 			this.groupPayPlans.Name = "groupPayPlans";
 			this.groupPayPlans.Size = new System.Drawing.Size(445, 100);
 			this.groupPayPlans.TabIndex = 240;
@@ -2875,7 +2878,7 @@ namespace OpenDental{
 			// 
 			this.checkStatementInvoiceGridShowWriteoffs.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkStatementInvoiceGridShowWriteoffs.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkStatementInvoiceGridShowWriteoffs.Location = new System.Drawing.Point(6, 78);
+			this.checkStatementInvoiceGridShowWriteoffs.Location = new System.Drawing.Point(6, 76);
 			this.checkStatementInvoiceGridShowWriteoffs.Name = "checkStatementInvoiceGridShowWriteoffs";
 			this.checkStatementInvoiceGridShowWriteoffs.Size = new System.Drawing.Size(439, 17);
 			this.checkStatementInvoiceGridShowWriteoffs.TabIndex = 238;
@@ -2886,7 +2889,7 @@ namespace OpenDental{
 			// 
 			this.checkBalancesDontSubtractIns.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkBalancesDontSubtractIns.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkBalancesDontSubtractIns.Location = new System.Drawing.Point(6, 6);
+			this.checkBalancesDontSubtractIns.Location = new System.Drawing.Point(6, 5);
 			this.checkBalancesDontSubtractIns.Name = "checkBalancesDontSubtractIns";
 			this.checkBalancesDontSubtractIns.Size = new System.Drawing.Size(439, 17);
 			this.checkBalancesDontSubtractIns.TabIndex = 55;
@@ -2897,7 +2900,7 @@ namespace OpenDental{
 			// 
 			this.checkAgingMonthly.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAgingMonthly.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkAgingMonthly.Location = new System.Drawing.Point(6, 24);
+			this.checkAgingMonthly.Location = new System.Drawing.Point(6, 22);
 			this.checkAgingMonthly.Name = "checkAgingMonthly";
 			this.checkAgingMonthly.Size = new System.Drawing.Size(439, 17);
 			this.checkAgingMonthly.TabIndex = 57;
@@ -2908,7 +2911,7 @@ namespace OpenDental{
 			// 
 			this.checkAccountShowPaymentNums.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAccountShowPaymentNums.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkAccountShowPaymentNums.Location = new System.Drawing.Point(6, 42);
+			this.checkAccountShowPaymentNums.Location = new System.Drawing.Point(6, 40);
 			this.checkAccountShowPaymentNums.Name = "checkAccountShowPaymentNums";
 			this.checkAccountShowPaymentNums.Size = new System.Drawing.Size(439, 17);
 			this.checkAccountShowPaymentNums.TabIndex = 194;
@@ -2919,7 +2922,7 @@ namespace OpenDental{
 			// 
 			this.checkPpoUseUcr.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkPpoUseUcr.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkPpoUseUcr.Location = new System.Drawing.Point(6, 60);
+			this.checkPpoUseUcr.Location = new System.Drawing.Point(6, 58);
 			this.checkPpoUseUcr.Name = "checkPpoUseUcr";
 			this.checkPpoUseUcr.Size = new System.Drawing.Size(439, 17);
 			this.checkPpoUseUcr.TabIndex = 228;
@@ -4602,6 +4605,18 @@ namespace OpenDental{
 			this.butOK.Text = "&OK";
 			this.butOK.Click += new System.EventHandler(this.butOK_Click);
 			// 
+			// checkAgingProcLifo
+			// 
+			this.checkAgingProcLifo.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkAgingProcLifo.FlatStyle = System.Windows.Forms.FlatStyle.System;
+			this.checkAgingProcLifo.Location = new System.Drawing.Point(94, 148);
+			this.checkAgingProcLifo.Name = "checkAgingProcLifo";
+			this.checkAgingProcLifo.Size = new System.Drawing.Size(351, 17);
+			this.checkAgingProcLifo.TabIndex = 306;
+			this.checkAgingProcLifo.Text = "Transactions attached to procedure offset each other before aging";
+			this.checkAgingProcLifo.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkAgingProcLifo.ThreeState = true;
+			// 
 			// FormModuleSetup
 			// 
 			this.ClientSize = new System.Drawing.Size(538, 659);
@@ -4980,6 +4995,7 @@ namespace OpenDental{
 			checkPayPlansExcludePastActivity.Checked=PrefC.GetBool(PrefName.PayPlansExcludePastActivity);
 			checkPayPlansUseSheets.Checked=PrefC.GetBool(PrefName.PayPlansUseSheets);
 			checkAllowFutureTrans.Checked=PrefC.GetBool(PrefName.FutureTransDatesAllowed);
+			checkAgingProcLifo.CheckState=PrefC.GetYNCheckState(PrefName.AgingProcLifo);
 			foreach(PayPlanVersions version in Enum.GetValues(typeof(PayPlanVersions))) {
 				comboPayPlansVersion.Items.Add(Lan.g("enumPayPlanVersions",version.GetDescription()));
 			}
@@ -5689,6 +5705,7 @@ namespace OpenDental{
 				| Prefs.UpdateBool(PrefName.PaymentWindowDefaultHideSplits,checkHidePaysplits.Checked)
 				| Prefs.UpdateBool(PrefName.ShowAllocateUnearnedPaymentPrompt,checkShowAllocateUnearnedPaymentPrompt.Checked)
 				| Prefs.UpdateBool(PrefName.FutureTransDatesAllowed,checkAllowFutureTrans.Checked)
+				| Prefs.UpdateYN(PrefName.AgingProcLifo,checkAgingProcLifo.CheckState)
 				| Prefs.UpdateBool(PrefName.AllowPrepayProvider,checkAllowPrepayProvider.Checked)
 				| Prefs.UpdateBool(PrefName.RecurringChargesAutomatedEnabled,checkRecurringChargesAutomated.Checked)
 				| Prefs.UpdateDateT(PrefName.RecurringChargesAutomatedTime,PIn.DateT(textRecurringChargesTime.Text))

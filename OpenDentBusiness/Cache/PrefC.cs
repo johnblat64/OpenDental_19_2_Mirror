@@ -196,6 +196,38 @@ namespace OpenDentBusiness {
 			}
 		}
 
+		///<summary>Gets the bool value for a YN pref.  If Unknown, then returns the default.  If you want the 3 state version, then use PrefC.GetEnum&lt;YN&gt; or PrefC.GetCheckState.</summary>
+		public static bool GetYN(PrefName prefName) {
+			YN yn=(YN)PIn.Int(Prefs.GetOne(prefName).ValueString);
+			if(yn==YN.Yes) {
+				return true;
+			}
+			if(yn==YN.No) {
+				return false;
+			}
+			//unknown, so use the default
+			PrefValueType prefValueType=prefName.GetValueType();
+			if(prefValueType==PrefValueType.YN_DEFAULT_FALSE){
+				return false;
+			}
+			if(prefValueType==PrefValueType.YN_DEFAULT_TRUE){
+				return true;
+			}
+			throw new ArgumentException("Invalid type");
+		}
+
+		///<summary>Gets YN value for use in pref setup windows with a 3 state checkbox.</summary>
+		public static System.Windows.Forms.CheckState GetYNCheckState(PrefName prefName){
+			YN yn=(YN)PIn.Int(Prefs.GetOne(prefName).ValueString);
+			if(yn==YN.Yes) {
+				return System.Windows.Forms.CheckState.Checked;
+			}
+			if(yn==YN.No) {
+				return System.Windows.Forms.CheckState.Unchecked;
+			}
+			return System.Windows.Forms.CheckState.Indeterminate;
+		}
+
 		///<summary>Gets a pref of the specified enum type.</summary>
 		public static T GetEnum<T>(PrefName prefName) where T:struct,IConvertible {
 			return PIn.Enum<T>(GetInt(prefName));
