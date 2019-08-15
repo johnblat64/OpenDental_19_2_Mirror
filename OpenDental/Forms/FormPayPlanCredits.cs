@@ -279,6 +279,9 @@ namespace OpenDental {
 		private void butClear_Click(object sender,EventArgs e) {
 			gridMain.SetSelected(false);
 			SetTextBoxes();
+			//txtAmt does not need this because validation is done on text changed, textDate validation logic is not linked to text change so we will 
+			//manually clear error since there is no text and current control logic would result in the error being cleared when empty.
+			textDate.errorProvider1.Clear();
 		}
 
 		private void butAddOrUpdate_Click(object sender,EventArgs e) {
