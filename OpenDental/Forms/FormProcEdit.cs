@@ -752,9 +752,8 @@ namespace OpenDental {
 				comboStatus.SelectedIndex=0;
 				ProcedureCode pc=ProcedureCodes.GetProcCodeFromDb(_procCur.CodeNum);
 				checkIsRepair.Visible=pc.IsProsth;
-				//DateTP doesn't get set sometimes and calculations are made based on the DateTP. So set it to the current date as fail-safe.
 				if(_procCur.DateTP.Year<1880) {
-					textDateTP.Text=MiscData.GetNowDateTime().ToShortDateString();
+					textDateTP.Text="";
 				}
 				else {
 					textDateTP.Text=_procCur.DateTP.ToShortDateString();
@@ -888,7 +887,7 @@ namespace OpenDental {
 					}
 					UpdateFinalMin();			
 					if(_procCur.DateTP.Year<1880) {
-						textDateTP.Text=MiscData.GetNowDateTime().ToShortDateString();
+						textDateTP.Text="";
 					}
 				}
 			}
@@ -2053,7 +2052,10 @@ namespace OpenDental {
 		}*/
 
 		private void comboDPC_SelectionChangeCommitted(object sender,EventArgs e) {
-			DateTime tempDate=PIn.Date(textDateTP.Text);
+			DateTime tempDate=DateTime.Today;
+			if(textDateTP.Text!="") {
+				tempDate=PIn.Date(textDateTP.Text);
+			}
 			switch(comboDPC.SelectedIndex) {
 				case 2:
 					tempDate=tempDate.Date.AddDays(1);
@@ -2921,7 +2923,10 @@ namespace OpenDental {
 					_procCur.DiagnosticCode=PrefC.GetString(PrefName.ICD9DefaultForNewProcs);
 				}
 			}
-			_procCur.DateTP=PIn.Date(this.textDateTP.Text);
+			// textDateTP.Text is blank upon load if date in DB is before 1/1/1880. We don't want to update this if the DateTP box is left blank.
+			if(_procCur.DateTP.Year>1880 || this.textDateTP.Text!="") {
+				_procCur.DateTP=PIn.Date(this.textDateTP.Text);
+			}
 			_procCur.ProcDate=PIn.Date(this.textDate.Text);
 			DateTime dateT=PIn.DateT(this.textTimeStart.Text);
 			_procCur.ProcTime=new TimeSpan(dateT.Hour,dateT.Minute,0);
