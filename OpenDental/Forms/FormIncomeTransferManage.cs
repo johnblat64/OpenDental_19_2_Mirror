@@ -470,26 +470,34 @@ namespace OpenDental {
 			}
 			//9. Transfer all remaining excess to unearned (but keep the same pat/prov/clinic, unless they're on rigorous accounting in which case go to 0 prov)
 			foreach(AccountEntry negCharge in listNegCharges) {
-				if(negCharge.AmountEnd>=0 || negCharge.GetType()!=typeof(PaySplit)) {//Only do this with paysplits
+				if(negCharge.AmountEnd>=0 || !negCharge.GetType().In(typeof(PaySplit),typeof(Procedure),typeof(Adjustment))) {
 					continue;
 				}
-				if(((PaySplit)negCharge.Tag).UnearnedType!=0) {//Only perform transfer with non-unearned splits.
+				if(negCharge.GetType()==typeof(PaySplit) && ((PaySplit)negCharge.Tag).UnearnedType!=0) {//Only perform transfer with non-unearned splits.
 					continue;
 				}
 				decimal amt=Math.Abs(negCharge.AmountEnd);
 				PaySplit negSplit=new PaySplit();
+				if(negCharge.GetType()==typeof(PaySplit)) {
+					negSplit.ProcNum=((PaySplit)negCharge.Tag).ProcNum;
+					negSplit.UnearnedType=((PaySplit)negCharge.Tag).UnearnedType;
+				}
+				else if(negCharge.GetType()==typeof(Procedure)) {
+					negSplit.ProcNum=((Procedure)negCharge.Tag).ProcNum;
+				}
+				else if(negCharge.GetType()==typeof(Adjustment)) {
+					negSplit.AdjNum=((Adjustment)negCharge.Tag).AdjNum;
+				}
+				//we may also need to handle claimspaybytotal and payplancharges in the future.
 				negSplit.DatePay=DateTimeOD.Today;
 				negSplit.ClinicNum=negCharge.ClinicNum;
 				negSplit.FSplitNum=negCharge.PriKey;
 				negSplit.PatNum=negCharge.PatNum;
 				negSplit.PayPlanNum=0;
 				negSplit.PayNum=_paymentCur.PayNum;
-				negSplit.ProcNum=((PaySplit)negCharge.Tag).ProcNum;
 				negSplit.ProvNum=negCharge.ProvNum;
-				negSplit.AdjNum=0;
 				negSplit.SplitAmt=0-(double)amt;
-				negSplit.UnearnedType=((PaySplit)negCharge.Tag).UnearnedType;
-				PaySplit posSplit=new PaySplit();
+				PaySplit posSplit=new PaySplit();//the split that's going to unearned
 				posSplit.DatePay=DateTimeOD.Today;
 				posSplit.ClinicNum=negSplit.ClinicNum;
 				posSplit.FSplitNum=0;//Original pre-payments need to have an FSplitNum of 0 so we can identify them
