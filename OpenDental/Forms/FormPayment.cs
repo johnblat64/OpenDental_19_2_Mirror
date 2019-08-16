@@ -121,7 +121,7 @@ namespace OpenDental {
 		public long InitialPaySplitNum;
 		private Patient _patCur;
 		private Payment _paymentCur;
-		///<summary>A current list of splits showing on the left grid.  Public for unit tests.</summary> // Getting Rid of this. Shouldn't need to be public. 
+		///<summary>A current list of splits showing on the left grid.</summary> 
 		private List<PaySplit> _listSplitsCur=new List<PaySplit>();
 		///<summary>The original splits that existed when this window was opened.  Empty for new payments.</summary>
 		private List<PaySplit> _listPaySplitsOld;
@@ -2090,11 +2090,11 @@ namespace OpenDental {
 					listCompletedEntries.AddRange(listEntriesForProvAndPatientAll.FindAll(x => x.GetType()!=typeof(Procedure)));
 					List<AccountEntry> listTpEntries=listEntriesForProvAndPatientAll
 						.FindAll(x => x.GetType()==typeof(Procedure) && ((Procedure)x.Tag).ProcStatus==ProcStat.TP);
-					if(Math.Round(listCompletedEntries.Sum(x => x.AmountStart),3)>0) {
+					if(Math.Round(listCompletedEntries.Sum(x => x.AmountStart),3)!=0) {
 						gridCharges.Rows.Add(FillChargesHelper(listCompletedEntries,entryCharge,false));
 						chargeTotal+=listCompletedEntries.Sum(x => x.AmountEnd);
 					}
-					if(listTpEntries.Count>0 && Math.Round(listTpEntries.Sum(x => x.AmountStart),3)>0) {
+					if(listTpEntries.Count>0 && Math.Round(listTpEntries.Sum(x => x.AmountStart),3)!=0) {
 						gridCharges.Rows.Add(FillChargesHelper(listTpEntries,entryCharge,false));
 						chargeTotal+=listTpEntries.Sum(x => x.AmountEnd);
 					}
@@ -2133,16 +2133,19 @@ namespace OpenDental {
 						continue;
 					}
 					listAddedProvNums.Add(Tuple.Create(entryCharge.ProvNum,entryCharge.ClinicNum,entryCharge.PatNum));
+					//we do this in this way so we can ensure that any TP procedures that we may have will show AFTER the completed ones. 
 					List<AccountEntry> listEntriesForProvAndClinicAndPatientAll=_listAccountCharges.FindAll(x => x.ProvNum==entryCharge.ProvNum 
 						&& x.ClinicNum==entryCharge.ClinicNum && x.PatNum==entryCharge.PatNum);
-					List<AccountEntry> listCompletedEntries=listEntriesForProvAndClinicAndPatientAll.FindAll(x => x.GetType()==typeof(Procedure) && ((Procedure)x.Tag).ProcStatus==ProcStat.C);
+					List<AccountEntry> listCompletedEntries=listEntriesForProvAndClinicAndPatientAll.FindAll(x => x.GetType()==typeof(Procedure) 
+						&& ((Procedure)x.Tag).ProcStatus==ProcStat.C);
 					listCompletedEntries.AddRange(listEntriesForProvAndClinicAndPatientAll.FindAll(x => x.GetType()!=typeof(Procedure)));
-					List<AccountEntry> listTpEntries=listEntriesForProvAndClinicAndPatientAll.FindAll(x => x.GetType()==typeof(Procedure) && ((Procedure)x.Tag).ProcStatus==ProcStat.TP);
-					if(Math.Round(listCompletedEntries.Sum(x => x.AmountStart),3)>0) {
+					List<AccountEntry> listTpEntries=listEntriesForProvAndClinicAndPatientAll.FindAll(x => x.GetType()==typeof(Procedure) 
+						&& ((Procedure)x.Tag).ProcStatus==ProcStat.TP);
+					if(Math.Round(listCompletedEntries.Sum(x => x.AmountStart),3)!=0) {
 						gridCharges.Rows.Add(FillChargesHelper(listCompletedEntries,entryCharge,true));
 						chargeTotal+=listCompletedEntries.Sum(x => x.AmountEnd);
 					}
-					if(listTpEntries.Count>0 && Math.Round(listTpEntries.Sum(x => x.AmountStart),3)>0) {
+					if(listTpEntries.Count>0 && Math.Round(listTpEntries.Sum(x => x.AmountStart),3)!=0) {
 						gridCharges.Rows.Add(FillChargesHelper(listTpEntries,entryCharge,true));
 						chargeTotal+=listTpEntries.Sum(x => x.AmountEnd);
 					}
