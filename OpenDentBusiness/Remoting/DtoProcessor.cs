@@ -64,7 +64,7 @@ namespace OpenDentBusiness {
 				}
 				//Set Security.CurUser so that queries can be run against the db as if it were this user.
 				Security.CurUser=Userods.CheckUserAndPassword(dto.Credentials.Username,dto.Credentials.Password
-					,Programs.IsEnabled(ProgramName.eClinicalWorks));
+					,Programs.UsingEcwTightOrFullMode());
 				Security.PasswordTyped=dto.Credentials.Password;
 				//Set the computer name so securitylog entries use the client's computer name instead of the middle tier server name
 				//Older clients might not include ComputerName in the dto, so we need to make sure it's not null.
