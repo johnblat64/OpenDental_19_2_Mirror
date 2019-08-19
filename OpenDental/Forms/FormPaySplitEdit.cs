@@ -23,7 +23,7 @@ namespace OpenDental {
 		public PaySplit PaySplitCur;
 		///<summary>PaySplit associations for PaySplitCur</summary>
 		public PaySplits.PaySplitAssociated SplitAssociated;
-		///<summary>List of PaySplitAssociated for the current payment.</summary>
+		///<summary>List of PaySplitAssociated for the current payment. Intended to be read only. DO NOT MANIPULATE ITEMS IN LIST.</summary>
 		public List<PaySplits.PaySplitAssociated> ListPaySplitAssociated=new List<PaySplits.PaySplitAssociated>();
 		#endregion
 		#region _private variables
@@ -710,7 +710,6 @@ namespace OpenDental {
 				splitCur.FSplitNum=0;//list and object are same but different. List is from copy so need to modify both.
 			}
 			PaySplitCur.FSplitNum=0;
-			ListPaySplitAssociated.Remove(SplitAssociated);
 			SplitAssociated=null;
 			if(_isEditAnyway || (ProcCur==null && _adjCur==null)) {
 				comboProvider.Enabled=true;
