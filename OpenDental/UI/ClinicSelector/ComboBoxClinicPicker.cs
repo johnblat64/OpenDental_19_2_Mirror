@@ -25,7 +25,7 @@ namespace OpenDental.UI {
 	//FormEServiceSetup has 4 comboBoxes.  I understand clinicPickerEClipboard, but not the other 3, so I can't police those 3.
 	//FormPatientAddAll has 5 comboBoxes.  They don't include All or Unassigned, and they are all totally harmless, without potential for bugs.
 	//FormPharmacyEdit: Includes All and Unassigned. It's multiselect. Does not test "All".  Because it uses a synch mechanism, clinics that aren't showing aren't affected either way.
-	//FormRxEdit: Does not include All or Unassigned.  Single select. On save, if no selection, then it doesn't change the existing clinicNum.  I assume, but have not thoroughly verified, that the user must have permission for the clinic of this patient in order to get into their Rx.  So, we shouldn't have to worry about the clinic for this Rx not showing in the combobox, or at least it would be extremely rare and not worth addressing because an immediate OK would not change the value.
+	//FormRxEdit: Does not include All.  Includes Unassigned.  Single select. On save, if no selection, then it doesn't change the existing clinicNum.  I assume, but have not thoroughly verified, that the user must have permission for the clinic of this patient in order to get into their Rx.  So, we shouldn't have to worry about the clinic for this Rx not showing in the combobox, or at least it would be extremely rare and not worth addressing because an immediate OK would not change the value.
 
 		//Should be ready now for implementation in any of the following 56 locations (and others I missed):
 	//FormAdjMulti(picker), FormAdjust, FormApptEdit, FormApptViewEdit, FormApptViews, FormAsapSetup, FormBilling, FormBillingDefaults, 

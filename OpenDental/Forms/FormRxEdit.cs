@@ -591,6 +591,7 @@ namespace OpenDental{
 			// 
 			// comboClinic
 			// 
+			this.comboClinic.DoIncludeUnassigned = true;
 			this.comboClinic.Location = new System.Drawing.Point(103, 554);
 			this.comboClinic.Name = "comboClinic";
 			this.comboClinic.Size = new System.Drawing.Size(233, 21);

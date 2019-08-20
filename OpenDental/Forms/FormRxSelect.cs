@@ -358,6 +358,7 @@ namespace OpenDental{
 			RxPat RxPatCur=new RxPat();
 			RxPatCur.RxDate=DateTime.Today;
 			RxPatCur.PatNum=PatCur.PatNum;
+			RxPatCur.ClinicNum=PatCur.ClinicNum;
 			RxPatCur.Drug=RxDefCur.Drug;
 			RxPatCur.IsControlled=RxDefCur.IsControlled;
 			if(PrefC.GetBool(PrefName.RxHasProc) && (Clinics.ClinicNum==0 || Clinics.GetClinic(Clinics.ClinicNum).HasProcOnRx)) {
@@ -399,6 +400,7 @@ namespace OpenDental{
 			RxPat RxPatCur=new RxPat();
 			RxPatCur.RxDate=DateTime.Today;
 			RxPatCur.PatNum=PatCur.PatNum;
+			RxPatCur.ClinicNum=PatCur.ClinicNum;
 			if(PrefC.GetBool(PrefName.RxSendNewToQueue)) {
 				RxPatCur.SendStatus=RxSendStatus.InElectQueue;
 			}
