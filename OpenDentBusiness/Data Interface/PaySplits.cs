@@ -244,15 +244,21 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Gets all paysplits that have are designated as prepayments for the patient's family.</summary>
-		public static List<PaySplit> GetPrepayForFam(Family fam,bool onlyUnallocated=true) {
+		public static List<PaySplit> GetPrepayForFam(Family fam,bool onlyUnallocated=true,bool doExcludeTpPrepay=false) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<PaySplit>>(MethodBase.GetCurrentMethod(),fam,onlyUnallocated);
+				return Meth.GetObject<List<PaySplit>>(MethodBase.GetCurrentMethod(),fam,onlyUnallocated,doExcludeTpPrepay);
 			}
 			List<long> listFamPatNums=fam.ListPats.Select(x => x.PatNum).Distinct().ToList();
 			string command="SELECT * FROM paysplit "
 				+"WHERE UnearnedType!=0 ";
 			if(onlyUnallocated) {
 				command+="AND FSplitNum=0 ";
+			}
+			if(doExcludeTpPrepay) {//do not retrieve prepayments that have been set aside for a tp procedure
+				command+=$"AND ProcNum=0 ";
+				if(GetHiddenUnearnedDefNums().Count > 0){
+					command+=$"AND UnearnedType NOT IN ({string.Join(",",GetHiddenUnearnedDefNums())}) ";
+				}
 			}
 			command+="AND PatNum IN ("+String.Join(",",listFamPatNums)+") "
 				+"ORDER BY DatePay";

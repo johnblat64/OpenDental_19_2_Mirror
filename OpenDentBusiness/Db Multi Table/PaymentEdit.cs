@@ -1016,8 +1016,7 @@ namespace OpenDentBusiness {
 				return retVal;
 			}
 			//don't allocate prepayments that are attached to TP procedures or that are flagged as hidden on account. 
-			List<PaySplit> listFamPrePaySplits=PaySplits.GetPrepayForFam(fam).FindAll(x => x.ProcNum==0 
-				&& !x.UnearnedType.In(PaySplits.GetHiddenUnearnedDefNums()));
+			List<PaySplit> listFamPrePaySplits=PaySplits.GetPrepayForFam(fam,doExcludeTpPrepay:true);
 			//Manipulate the original prepayments SplitAmt by subtracting counteracting SplitAmt.
 			foreach(PaySplit prePaySplit in listFamPrePaySplits.FindAll(x => x.SplitAmt.IsGreaterThan(0))) {
 				List<PaySplit> listSplitsForPrePay=PaySplits.GetSplitsForPrepay(new List<PaySplit>() { prePaySplit });//Find all splits for the pre-payment.

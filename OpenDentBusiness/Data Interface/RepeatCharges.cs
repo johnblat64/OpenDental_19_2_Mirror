@@ -428,7 +428,7 @@ namespace OpenDentBusiness {
 			}			
 			//Using Prepayments for this Procedure
 			//NOTE: ProvNum=0 on these splits, so I'm pretty sure they aren't allocated to anything.
-			List<PaySplit> prePaySplits=PaySplits.GetPrepayForFam(Patients.GetFamily(repeatCharge.PatNum));
+			List<PaySplit> prePaySplits=PaySplits.GetPrepayForFam(Patients.GetFamily(repeatCharge.PatNum),doExcludeTpPrepay:true);
 			if(!string.IsNullOrEmpty(repeatCharge.UnearnedTypes)) {
 				//This repeat charge is limited to certain unearned types. If repeatCharge.UnearnedTypes is empty, it is for all unearned types.
 				List<long> listDefNumsUnearnedTypeCur=repeatCharge.UnearnedTypes.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries)
