@@ -1683,6 +1683,8 @@ namespace OpenDentBusiness{
 		ManualPublisher,
 		///<summary>The database behind the chat system at HQ.</summary>
 		WebChat,
+		///<summary>Database containing information regarding offices hosted by OD.</summary>
+		Hosting,
 	}
 
 	///<summary>Only used by the Signup Portal</summary>
