@@ -242,6 +242,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			catch {
 				textJobEditor.WriteupText=_jobCur.Implementation;
 			}
+			textTestingHours.Text=_jobCur.HoursTesting.ToString();
 			textJobEditor.ConceptTitle=_jobCur.Title;
 			textEstHours.Text=_jobCur.HoursEstimate.ToString();
 			textActualHours.Text=_jobCur.HoursActual.ToString();
@@ -3028,6 +3029,22 @@ namespace OpenDental.InternalTools.Job_Manager {
 					Jobs.Update(jobFromDB);//update the checkout num.
 					Signalods.SetInvalid(InvalidType.Jobs,KeyType.Job,_jobCur.JobNum);//send signal that the job has been checked out.
 				}
+			}
+		}
+
+		private void textTestingHours_TextChanged(object sender,EventArgs e) {
+			if(_isLoading) {
+				return;
+			}
+			if(IsNew) {
+				//do nothing
+			}
+			else {
+					_jobCur.HoursTesting=PIn.Double(textTestingHours.Text);
+					Job jobFromDB = Jobs.GetOne(_jobCur.JobNum);//Get from DB to ensure freshest copy (Lists not filled)
+					jobFromDB.HoursTesting=PIn.Double(textTestingHours.Text);
+					Jobs.Update(jobFromDB);
+					Signalods.SetInvalid(InvalidType.Jobs,KeyType.Job,_jobCur.JobNum);
 			}
 		}
 

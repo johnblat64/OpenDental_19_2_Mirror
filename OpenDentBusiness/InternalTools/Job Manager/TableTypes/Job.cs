@@ -117,6 +117,9 @@ namespace OpenDentBusiness {
 		///<summary>Used to mark the date and time the development was implemented.</summary>
 		[CrudColumn(SpecialType = CrudSpecialColType.DateT)]
 		public DateTime DateTimeImplemented;
+		///<summary>The time it took to test the job.</summary>
+		[CrudColumn(SpecialType=CrudSpecialColType.TimeSpanLong),XmlIgnore]
+		public TimeSpan TimeTesting;
 
 		//The following variables should be filled by the class that uses them, not filled from an S class.
 		//Just a convenient way to package a job for passing around in the job manager.
@@ -291,6 +294,17 @@ namespace OpenDentBusiness {
 			get {
 				return Math.Round((TimeEstimateConcept+TimeEstimateWriteup+TimeEstimateDevelopment).TotalHours+(TimeEstimateReview.TotalHours),2);
 			}
+		}		
+
+		[XmlIgnore,JsonIgnore]
+		///<summary>The testing hours a spent on a job.</summary>
+		public double HoursTesting {
+				get {
+					return TimeTesting.TotalHours;
+				}
+				set {
+					TimeTesting=TimeSpan.FromHours(value);
+				}
 		}
 		
 		[XmlIgnore,JsonIgnore]

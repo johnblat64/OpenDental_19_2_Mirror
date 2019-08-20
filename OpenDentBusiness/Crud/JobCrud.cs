@@ -106,6 +106,7 @@ namespace OpenDentBusiness.Crud{
 				job.DateTimeConceptApproval= PIn.DateT (row["DateTimeConceptApproval"].ToString());
 				job.DateTimeJobApproval    = PIn.DateT (row["DateTimeJobApproval"].ToString());
 				job.DateTimeImplemented    = PIn.DateT (row["DateTimeImplemented"].ToString());
+				job.TimeTesting            = TimeSpan.FromTicks(PIn.Long(row["TimeTesting"].ToString()));
 				retVal.Add(job);
 			}
 			return retVal;
@@ -159,6 +160,7 @@ namespace OpenDentBusiness.Crud{
 			table.Columns.Add("DateTimeConceptApproval");
 			table.Columns.Add("DateTimeJobApproval");
 			table.Columns.Add("DateTimeImplemented");
+			table.Columns.Add("TimeTesting");
 			foreach(Job job in listJobs) {
 				table.Rows.Add(new object[] {
 					POut.Long  (job.JobNum),
@@ -203,6 +205,7 @@ namespace OpenDentBusiness.Crud{
 					POut.DateT (job.DateTimeConceptApproval,false),
 					POut.DateT (job.DateTimeJobApproval,false),
 					POut.DateT (job.DateTimeImplemented,false),
+					POut.Long (job.TimeTesting.Ticks),
 				});
 			}
 			return table;
@@ -222,7 +225,7 @@ namespace OpenDentBusiness.Crud{
 			if(useExistingPK || PrefC.RandomKeys) {
 				command+="JobNum,";
 			}
-			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion,DateTimeConceptApproval,DateTimeJobApproval,DateTimeImplemented) VALUES(";
+			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion,DateTimeConceptApproval,DateTimeJobApproval,DateTimeImplemented,TimeTesting) VALUES(";
 			if(useExistingPK || PrefC.RandomKeys) {
 				command+=POut.Long(job.JobNum)+",";
 			}
@@ -267,7 +270,8 @@ namespace OpenDentBusiness.Crud{
 				+    POut.Int   ((int)job.ProposedVersion)+","
 				+    POut.DateT (job.DateTimeConceptApproval)+","
 				+    POut.DateT (job.DateTimeJobApproval)+","
-				+    POut.DateT (job.DateTimeImplemented)+")";
+				+    POut.DateT (job.DateTimeImplemented)+","
+				+"'"+POut.Long  (job.TimeTesting.Ticks)+"')";
 			if(job.Implementation==null) {
 				job.Implementation="";
 			}
@@ -308,7 +312,7 @@ namespace OpenDentBusiness.Crud{
 			if(isRandomKeys || useExistingPK) {
 				command+="JobNum,";
 			}
-			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion,DateTimeConceptApproval,DateTimeJobApproval,DateTimeImplemented) VALUES(";
+			command+="UserNumConcept,UserNumExpert,UserNumEngineer,UserNumApproverConcept,UserNumApproverJob,UserNumApproverChange,UserNumDocumenter,UserNumCustContact,UserNumCheckout,UserNumInfo,ParentNum,DateTimeCustContact,Priority,Category,JobVersion,TimeEstimateDevelopment,TimeActual,DateTimeEntry,Implementation,Documentation,Title,PhaseCur,IsApprovalNeeded,AckDateTime,UserNumQuoter,UserNumApproverQuote,UserNumCustQuote,Requirements,UserNumTester,PriorityTesting,DateTimeTested,TimeEstimateConcept,TimeEstimateWriteup,TimeEstimateReview,RequirementsJSON,PatternReviewProject,PatternReviewStatus,ProposedVersion,DateTimeConceptApproval,DateTimeJobApproval,DateTimeImplemented,TimeTesting) VALUES(";
 			if(isRandomKeys || useExistingPK) {
 				command+=POut.Long(job.JobNum)+",";
 			}
@@ -353,7 +357,8 @@ namespace OpenDentBusiness.Crud{
 				+    POut.Int   ((int)job.ProposedVersion)+","
 				+    POut.DateT (job.DateTimeConceptApproval)+","
 				+    POut.DateT (job.DateTimeJobApproval)+","
-				+    POut.DateT (job.DateTimeImplemented)+")";
+				+    POut.DateT (job.DateTimeImplemented)+","
+				+"'"+POut.Long(job.TimeTesting.Ticks)+"')";
 			if(job.Implementation==null) {
 				job.Implementation="";
 			}
@@ -422,7 +427,8 @@ namespace OpenDentBusiness.Crud{
 				+"ProposedVersion        =  "+POut.Int   ((int)job.ProposedVersion)+", "
 				+"DateTimeConceptApproval=  "+POut.DateT (job.DateTimeConceptApproval)+", "
 				+"DateTimeJobApproval    =  "+POut.DateT (job.DateTimeJobApproval)+", "
-				+"DateTimeImplemented    =  "+POut.DateT (job.DateTimeImplemented)+" "
+				+"DateTimeImplemented    =  "+POut.DateT (job.DateTimeImplemented)+", "
+				+"TimeTesting            =  "+POut.Long  (job.TimeTesting.Ticks)+" "
 				+"WHERE JobNum = "+POut.Long(job.JobNum);
 			if(job.Implementation==null) {
 				job.Implementation="";
@@ -607,6 +613,10 @@ namespace OpenDentBusiness.Crud{
 				if(command!="") { command+=",";}
 				command+="DateTimeImplemented = "+POut.DateT(job.DateTimeImplemented)+"";
 			}
+			if(job.TimeTesting != oldJob.TimeTesting) {
+				if(command!="") { command+=",";}
+				command+="TimeTesting = '"+POut.Long  (job.TimeTesting.Ticks)+"'";
+			}
 			if(command=="") {
 				return false;
 			}
@@ -754,6 +764,9 @@ namespace OpenDentBusiness.Crud{
 				return true;
 			}
 			if(job.DateTimeImplemented != oldJob.DateTimeImplemented) {
+				return true;
+			}
+			if(job.TimeTesting != oldJob.TimeTesting) {
 				return true;
 			}
 			return false;
