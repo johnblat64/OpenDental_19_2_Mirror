@@ -454,22 +454,32 @@ namespace OpenDentBusiness {
 			foreach(PaySplit prePaySplit in prePaySplits) {
 				prePaySplit.SplitAmt+=paySplitsForPrePaySplits.Where(x => x.FSplitNum==prePaySplit.SplitNum).Sum(y => y.SplitAmt);//Reduce prepay split amount.
 				PaySplit split=new PaySplit();
-				PaySplit split2=new PaySplit();
+				PaySplit splitNeg=new PaySplit();
 				if(prePaySplit.SplitAmt>procedure.ProcFee-(double)payAmt) {
 					//Split amount is more than the remainder of the procfee requires, use partial from split
 					split.SplitAmt=procedure.ProcFee-(double)payAmt;
-					split2.SplitAmt=0-(procedure.ProcFee-(double)payAmt);
+					splitNeg.SplitAmt=0-(procedure.ProcFee-(double)payAmt);
 					payAmt=(decimal)procedure.ProcFee;
 				}
 				else {
 					//Split amount is less than or equal to the remainder of the procfee
 					split.SplitAmt=prePaySplit.SplitAmt;
-					split2.SplitAmt=0-prePaySplit.SplitAmt;
+					splitNeg.SplitAmt=0-prePaySplit.SplitAmt;
 					payAmt+=(decimal)prePaySplit.SplitAmt;
 				}
 				if(split.SplitAmt==0) {
 					continue;//Don't make splits for 0 amount.
 				}
+				//Negative split, attached to prepay's prov and clinic, but not proc
+				splitNeg.DateEntry=billingDate;
+				splitNeg.DatePay=billingDate;
+				splitNeg.PatNum=procedure.PatNum;
+				splitNeg.PayNum=payCur.PayNum;
+				splitNeg.FSplitNum=prePaySplit.SplitNum;
+				splitNeg.ProvNum=prePaySplit.ProvNum;
+				splitNeg.ClinicNum=prePaySplit.ClinicNum;
+				splitNeg.UnearnedType=prePaySplit.UnearnedType;
+				PaySplits.Insert(splitNeg);
 				//Positive split, attached to proc and for proc's prov and clinic
 				split.DateEntry=billingDate;
 				split.DatePay=billingDate;
@@ -478,21 +488,12 @@ namespace OpenDentBusiness {
 				split.ProcNum=procedure.ProcNum;
 				split.ProvNum=procedure.ProvNum;
 				split.ClinicNum=procedure.ClinicNum;
+				split.FSplitNum=splitNeg.SplitNum;
 				if(noteText!="") {
 					noteText+=", ";
 				}
 				noteText+=split.SplitAmt.ToString("c");
 				PaySplits.Insert(split);
-				//Negative split, attached to prepay's prov and clinic, but not proc
-				split2.DateEntry=billingDate;
-				split2.DatePay=billingDate;
-				split2.PatNum=procedure.PatNum;
-				split2.PayNum=payCur.PayNum;
-				split2.FSplitNum=prePaySplit.SplitNum;
-				split2.ProvNum=prePaySplit.ProvNum;
-				split2.ClinicNum=prePaySplit.ClinicNum;
-				split2.UnearnedType=prePaySplit.UnearnedType;
-				PaySplits.Insert(split2);
 				if(payAmt>=(decimal)procedure.ProcFee) {
 					//Break out of loop
 					break;
