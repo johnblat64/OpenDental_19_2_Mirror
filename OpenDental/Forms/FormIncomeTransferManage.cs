@@ -483,6 +483,9 @@ namespace OpenDental {
 					negSplit.UnearnedType=((PaySplit)negCharge.Tag).UnearnedType;
 				}
 				else if(negCharge.GetType()==typeof(Procedure)) {
+					if(((Procedure)negCharge.Tag).ProcFee < 0) {
+						continue;//don't use money from negative procedures as a souce of income. 
+					}
 					negSplit.ProcNum=((Procedure)negCharge.Tag).ProcNum;
 				}
 				else if(negCharge.GetType()==typeof(Adjustment)) {
@@ -525,6 +528,9 @@ namespace OpenDental {
 		///Constructs the paysplits with all necessary information depending on the type of the charges.
 		///Returns true if attempting to create invalid splits and rigorous accounting is enabled.</summary>
 		private bool CreateTransferHelper(AccountEntry posCharge,AccountEntry negCharge,List<AccountEntry> listAccountEntriesForPat) {
+			if(negCharge.GetType()==typeof(Procedure) && ((Procedure)negCharge.Tag).ProcFee < 0) {
+				return false;//do not use negative procedures as sources of income. 
+			}
 			decimal amt=Math.Min(Math.Abs(posCharge.AmountEnd),Math.Abs(negCharge.AmountEnd));
 			if(posCharge.GetType()==typeof(PayPlanCharge)) {//Allocate to payplancharges in a special way
 				TransferPayPlanChargeHelper(posCharge,negCharge,listAccountEntriesForPat,amt);
