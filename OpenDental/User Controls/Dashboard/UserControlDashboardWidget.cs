@@ -247,9 +247,11 @@ namespace OpenDental {
 			Controls.Remove(ctr);
 			if((ctr as PictureBox)!=null) {
 				((PictureBox)ctr).Image?.Dispose();
+				((PictureBox)ctr).Image=null;
 			}
 			if((ctr as ODPictureBox)!=null) {
 				((ODPictureBox)ctr).Image?.Dispose();
+				((ODPictureBox)ctr).Image=null;
 			}
 			ctr.Dispose();
 		}

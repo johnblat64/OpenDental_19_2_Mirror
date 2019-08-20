@@ -28,9 +28,7 @@ namespace OpenDental {
 				return;
 			}
 			if(sheetField!=null && data.ListDocuments.Any(x => x.DocNum==_docPatPicture.DocNum)) {
-				Bitmap patPicture=ImageHelper.GetThumbnail(data.BitmapImagesModule,Math.Min(sheetField.Width,sheetField.Height));
-				_patPicture?.Dispose();
-				_patPicture=patPicture;
+				SwapPatPicture(() => ImageHelper.GetThumbnail(data.BitmapImagesModule,Math.Min(sheetField.Width,sheetField.Height)));
 			}
 		}
 
@@ -53,8 +51,7 @@ namespace OpenDental {
 					_docPatPicture=Documents.GetByNum(newDocNum,true);
 					Bitmap fullImage=ImageHelper.GetFullImage(_docPatPicture,ImageStore.GetPatientFolder(pat,ImageStore.GetPreferredAtoZpath()));
 					Bitmap patPicture=ImageHelper.GetThumbnail(fullImage,Math.Min(sheetField.Width,sheetField.Height));
-					_patPicture?.Dispose();
-					_patPicture=patPicture;
+					SwapPatPicture(() => ImageHelper.GetThumbnail(fullImage,Math.Min(sheetField.Width,sheetField.Height)));
 					fullImage.Dispose();
 				}
 			}
@@ -69,6 +66,13 @@ namespace OpenDental {
 			Image=_patPicture;
 			HasBorder=true;
 			TextNullImage="Patient Picture Unavailable";
+		}
+
+		private void SwapPatPicture(Func<Bitmap> funcGet) {
+			Image imgOld=_patPicture;
+			_patPicture=funcGet();
+			imgOld?.Dispose();
+			imgOld=null;
 		}
 	}
 }
