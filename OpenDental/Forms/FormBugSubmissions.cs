@@ -32,6 +32,8 @@ namespace OpenDental {
 		private BugSubmission _subCur;
 		///<summary></summary>
 		private List<JobLink> _listJobLinks;
+		///<summary>The number of minimum submission for a group to show when 'Min Count' is selected.</summary>
+		private long _minGroupingCount=-1;
 
 		///<summary>Set job if you would like to create a bug with (Enhancement) in the bug text.
 		///When isViewOnlyMode is true, you will not be able to create a bug.
@@ -273,6 +275,9 @@ namespace OpenDental {
 					foreach(BugSubmission bugSubmission in listFilteredSubs) {
 						AddGroupedSubsToGridSubs(listGridSubmissions,new List<BugSubmission>() { bugSubmission });
 					}
+					listShowHideOptions.SetSelected(3,false);//Deselect 'None'
+					_minGroupingCount=-1;
+					butAddJob.Enabled=true;
 					#endregion
 					break;
 				case 1:
@@ -286,6 +291,7 @@ namespace OpenDental {
 						})
 						.ToDictionary(x => x.Key,x => x.ToList())
 						.ForEach(x => AddGroupedSubsToGridSubs(listGridSubmissions,x.Value));
+					butAddJob.Enabled=true;
 					#endregion
 					break;
 				case 2:
@@ -297,12 +303,14 @@ namespace OpenDental {
 						})
 						.ToDictionary(x => x.Key,x => x.ToList())
 						.ForEach(x => AddGroupedSubsToGridSubs(listGridSubmissions,x.Value));
+					butAddJob.Enabled=true;
 					#endregion
 					break;
 				case 3:
 					#region 95%
 					//At this point all bugSubmissions in listFilteredSubs is at least a 95% match. Group them all together in a single row.
 					AddGroupedSubsToGridSubs(listGridSubmissions,listFilteredSubs);
+					butAddJob.Enabled=true;
 					#endregion
 					break;
 				case 4:
@@ -329,6 +337,9 @@ namespace OpenDental {
 					butAddJob.Enabled=false;//Can not add jobs in this mode.
 					#endregion
 					break;
+			}
+			if(_minGroupingCount>0) {
+				listGridSubmissions.RemoveAll(x => (x.TagCustom as List<BugSubmission>).Count<_minGroupingCount);
 			}
 			#endregion
 			#region Sorting Logic
@@ -566,6 +577,30 @@ namespace OpenDental {
 				group95Matching=input.textResult.Text;
 			}
 			FillSubGrid(grouping95:group95Matching);
+		}
+
+		private void ListShowHideOptions_SelectedIndexChanged(object sender,EventArgs e) {
+			if(listShowHideOptions.GetSelected(3) && _minGroupingCount>=0) {//Already Set and still selected, another item was clicked.
+				return;
+			}
+			else if(!listShowHideOptions.GetSelected(3)) {
+				_minGroupingCount=-1;
+				return;
+			}
+			else if(comboGrouping.SelectedIndex<=0) {//Do not allow when 'None' selected.
+				MsgBox.Show("Min Count only applies when subissions are grouped together, can not be used with 'None'.");
+				listShowHideOptions.SetSelected(3,false);//Deselect 'None'
+				_minGroupingCount=-1;
+				return;
+			}
+			InputBox input=new InputBox("Minimum number of submissions:");
+			if(input.ShowDialog()!=DialogResult.OK || input.textResult.Text.IsNullOrEmpty()){
+				listShowHideOptions.SetSelected(3,false);//Deselect 'None'
+				_minGroupingCount=-1;
+				return;
+			}
+			_minGroupingCount=PIn.Int(input.textResult.Text,false);
+			FillSubGrid();
 		}
 		
 		private void butRefreshMobile_Click(object sender,EventArgs e) {

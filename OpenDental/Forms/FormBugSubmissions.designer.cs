@@ -237,12 +237,14 @@ namespace OpenDental{
 			this.listShowHideOptions.Items.AddRange(new object[] {
             "Show HQ",
             "Show Attached",
-            "Show Hidden"});
+            "Show Hidden",
+            "Min Count"});
 			this.listShowHideOptions.Location = new System.Drawing.Point(1011, 12);
 			this.listShowHideOptions.Name = "listShowHideOptions";
 			this.listShowHideOptions.SelectionMode = System.Windows.Forms.SelectionMode.MultiSimple;
 			this.listShowHideOptions.Size = new System.Drawing.Size(92, 56);
 			this.listShowHideOptions.TabIndex = 43;
+			this.listShowHideOptions.SelectedIndexChanged += new System.EventHandler(this.ListShowHideOptions_SelectedIndexChanged);
 			// 
 			// textDevNoteFilter
 			// 
