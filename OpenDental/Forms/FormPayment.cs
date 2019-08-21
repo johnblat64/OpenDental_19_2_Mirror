@@ -3969,11 +3969,11 @@ namespace OpenDental {
 					//associated splits.
 					if(!gridSplits.Rows.IsNullOrEmpty() && gridSplits.Rows.Any(x => ((PaySplit)x.Tag).IsSame(paySplitOld))) {
 						gridSplits.SetSelected((int)gridSplits.Rows.First(x => ((PaySplit)x.Tag).IsSame(paySplitOld)).RowNum-1,true);
-						HighlightChargesForSplits();
 					}
 					_paymentCur.PayAmt-=paySplit.SplitAmt;
 				}		
 			}
+			HighlightChargesForSplits();
 		}
 		
 		///<summary>When a paysplit is selected this method highlights all charges associated with it.</summary>
