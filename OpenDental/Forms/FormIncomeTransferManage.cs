@@ -601,7 +601,12 @@ namespace OpenDental {
 					negSplit.ProvNum=negCharge.ProvNum;
 					negSplit.AdjNum=negCharge.GetType()==typeof(Adjustment) ? (((Adjustment)negCharge.Tag).ProcNum==0 ? ((Adjustment)negCharge.Tag).AdjNum : 0) : 0;
 					negSplit.SplitAmt=0-(double)amt;
-					negSplit.UnearnedType=negSplit.ProvNum==0 ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : (negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).UnearnedType : 0);//If money is coming from paysplit, use its unearned type (if any)
+					if(negCharge.GetType()==typeof(PaySplit)) {//If money is coming from paysplit, use its unearned type (if any)
+						negSplit.UnearnedType=((PaySplit)negCharge.Tag).UnearnedType;
+					}
+					else {
+						negSplit.UnearnedType=0;
+					}
 					if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully) {
 						if(Math.Sign(posSplit.ProcNum)!=Math.Sign(posSplit.ProvNum)
 							|| Math.Sign(posSplit.UnearnedType)==Math.Sign(posSplit.ProvNum)
