@@ -1168,7 +1168,12 @@ namespace UnitTests.Payments_Tests {
 			ProcedureT.SetComplete(treatPlanProc,pat,new InsuranceInfo());
 			//setting proceudre complete should have made a transfer taking the unearned on the proc, and making it allocated.
 			List<PaySplit> listSplitsOnProc=PaySplits.GetPaySplitsFromProc(treatPlanProc.ProcNum);
-			Assert.AreEqual(3,listSplitsOnProc.Count);
+			Assert.AreEqual(1,listSplitsOnProc.Count);//In the end only one split ends up being attached to the procedure.
+			//check to make sure the original prepayment got the procedure disassociated from it. 
+			Assert.AreEqual(0,PaySplits.GetForPayment(paidTpPreAllocation.PayNum).First().ProcNum);
+			//the negative split (attached to original prepay) should also be the FSplitNum of the final allocating split that has the procedure.
+			Assert.AreEqual(listSplitsOnProc.First().FSplitNum
+				,PaySplits.GetSplitsForPrepay(PaySplits.GetForPayment(paidTpPreAllocation.PayNum)).First().SplitNum);
 			Assert.AreEqual(50,listSplitsOnProc.Sum(x => x.SplitAmt));
 		}
 

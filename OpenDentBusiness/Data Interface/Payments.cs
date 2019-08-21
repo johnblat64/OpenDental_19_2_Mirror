@@ -690,8 +690,8 @@ namespace OpenDentBusiness{
 			return (newVal!=oldVal ? $"\r\n {textInLog} changed from '{oldVal}' to '{newVal}'" : "");
 		}
 
-		///<summary>Creates a transfer originating from the split on the procedure, back to the procedure. Used to transfer money from unearned back onto
-		///the procedure as an allocated non pre-pay split. 
+		///<summary>Creates a transfer originating from the prepayment containing the procOriginal, back to the procOriginal. 
+		///Used to transfer money from TP unearned back onto the procedure as an allocated non pre-pay split. 
 		///Optionally pass in procNumAttaching when wanting to attach to a procedure other than the procOriginal. </summary>
 		public static void CreateTransferForTpProcs(Procedure procOriginal,List<PaySplit> listSplitsForProc,Procedure procAttaching=null) 
 		{
@@ -709,7 +709,9 @@ namespace OpenDentBusiness{
 					ClinicNum=procOriginal.ClinicNum,
 					DatePay=DateTime.Today,
 					FSplitNum=prepaySplit.SplitNum,
-					ProcNum=procOriginal.ProcNum,
+					ProcNum=0,//either the procedure is being set complete, or pref for Non-Refundable TP prepay is set and transferring to procAttaching.
+					//If non-refundable the procedure needs to be disassociated as well as we will not have a way to determine when procOriginal eventually
+					//gets set complete and unearned cannot exist with a completed procedure attached. 
 					PatNum=procOriginal.PatNum,
 					PayNum=transferPayment.PayNum,
 					SplitAmt=(-prepaySplit.SplitAmt),
@@ -718,6 +720,9 @@ namespace OpenDentBusiness{
 					ProvNum=prepaySplit.ProvNum,
 				};
 				PaySplits.Insert(negSplitForTxfr);
+				//Update original pre-payment split to disassociate the procedure now that the procedure is complete (Splits cannot have unaerned and C proc)
+				prepaySplit.ProcNum=0;
+				PaySplits.Update(prepaySplit);
 				//procAttaching will be null when transferring from unearned to same procedure.
 				procAttaching=procAttaching??procOriginal;
 				PaySplit positiveSplit=new PaySplit{
