@@ -249,9 +249,7 @@ namespace OpenDental{
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridMain.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridMain.HasAddButton = false;
 			this.gridMain.HasDropDowns = false;
-			this.gridMain.HasMultilineHeaders = false;
 			this.gridMain.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridMain.HeaderHeight = 15;
 			this.gridMain.HScrollVisible = false;
@@ -379,7 +377,7 @@ namespace OpenDental{
 			this.MinimumSize = new System.Drawing.Size(850, 500);
 			this.Name = "FormClearinghouses";
 			this.ShowInTaskbar = false;
-			this.Text = "E-Claims";
+			this.Text = "Clearinghouses";
 			this.Closing += new System.ComponentModel.CancelEventHandler(this.FormClearinghouses_Closing);
 			this.Load += new System.EventHandler(this.FormClearinghouses_Load);
 			this.groupBox1.ResumeLayout(false);
