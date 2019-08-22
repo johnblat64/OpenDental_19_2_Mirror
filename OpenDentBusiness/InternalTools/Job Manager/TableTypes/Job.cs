@@ -200,6 +200,17 @@ namespace OpenDentBusiness {
 			}
 		}
 
+		///<summary>Used only for serialization purposes.</summary>
+		[XmlElement(nameof(TimeTesting),typeof(long))]
+		public long TimeTestingXml {
+			get {
+				return TimeTesting.Ticks;
+			}
+			set {
+				TimeTesting=TimeSpan.FromTicks(value);
+			}
+		}
+
 		public Job() {
 			JobVersion="";
 			Requirements="";
