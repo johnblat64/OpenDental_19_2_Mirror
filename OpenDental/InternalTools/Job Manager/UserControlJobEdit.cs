@@ -3036,10 +3036,22 @@ namespace OpenDental.InternalTools.Job_Manager {
 			if(_isLoading) {
 				return;
 			}
+			textTestingHours.BackColor=Color.FromArgb(255,255,230);//light yellow
+			timerTesting.Stop();
+			timerTesting.Start();
+		}
+		
+
+		private void timerTesting_Tick(object sender,EventArgs e) {
+			if(_isLoading) {
+				return;
+			}
 			if(IsNew) {
 				//do nothing
 			}
 			else {
+					timerTesting.Stop();
+					textTestingHours.BackColor=Color.White;
 					_jobCur.HoursTesting=PIn.Double(textTestingHours.Text);
 					Job jobFromDB = Jobs.GetOne(_jobCur.JobNum);//Get from DB to ensure freshest copy (Lists not filled)
 					jobFromDB.HoursTesting=PIn.Double(textTestingHours.Text);

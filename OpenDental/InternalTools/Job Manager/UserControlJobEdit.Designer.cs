@@ -95,6 +95,8 @@
 			this.panel1 = new System.Windows.Forms.Panel();
 			this.checkShowHistoryText = new System.Windows.Forms.CheckBox();
 			this.tabTesting = new System.Windows.Forms.TabPage();
+			this.textTestingHours = new OpenDental.ValidDouble();
+			this.labelTestingHours = new System.Windows.Forms.Label();
 			this.butTested = new OpenDental.UI.Button();
 			this.textDateTested = new System.Windows.Forms.TextBox();
 			this.label14 = new System.Windows.Forms.Label();
@@ -102,8 +104,7 @@
 			this.comboPriorityTesting = new System.Windows.Forms.ComboBox();
 			this.gridTestingNotes = new OpenDental.UI.ODGrid();
 			this.textTitle = new OpenDental.ODtextBox();
-			this.textTestingHours = new OpenDental.ValidDouble();
-			this.labelTestingHours = new System.Windows.Forms.Label();
+			this.timerTesting = new System.Windows.Forms.Timer(this.components);
 			this.tablePanelLinks.SuspendLayout();
 			this.tablePanelMain.SuspendLayout();
 			this.tablePanelRight.SuspendLayout();
@@ -545,6 +546,10 @@
 			// butActions
 			// 
 			this.butActions.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butActions.Autosize = true;
+			this.butActions.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butActions.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butActions.CornerRadius = 4F;
 			this.butActions.Image = global::OpenDental.Properties.Resources.downArrowWinForm;
 			this.butActions.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.butActions.Location = new System.Drawing.Point(3, 3);
@@ -558,6 +563,10 @@
 			// 
 			this.butPopout.AdjustImageLocation = new System.Drawing.Point(0, 0);
 			this.butPopout.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butPopout.Autosize = true;
+			this.butPopout.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butPopout.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butPopout.CornerRadius = 4F;
 			this.butPopout.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.butPopout.Location = new System.Drawing.Point(221, 3);
 			this.butPopout.Name = "butPopout";
@@ -677,6 +686,10 @@
 			// butAddTime
 			// 
 			this.butAddTime.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butAddTime.Autosize = true;
+			this.butAddTime.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butAddTime.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butAddTime.CornerRadius = 4F;
 			this.butAddTime.Location = new System.Drawing.Point(139, 153);
 			this.butAddTime.Name = "butAddTime";
 			this.butAddTime.Size = new System.Drawing.Size(71, 20);
@@ -687,6 +700,10 @@
 			// butVersionPrompt
 			// 
 			this.butVersionPrompt.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butVersionPrompt.Autosize = true;
+			this.butVersionPrompt.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butVersionPrompt.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butVersionPrompt.CornerRadius = 4F;
 			this.butVersionPrompt.Location = new System.Drawing.Point(187, 195);
 			this.butVersionPrompt.Name = "butVersionPrompt";
 			this.butVersionPrompt.Size = new System.Drawing.Size(23, 20);
@@ -706,6 +723,10 @@
 			// butTimeLog
 			// 
 			this.butTimeLog.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butTimeLog.Autosize = true;
+			this.butTimeLog.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butTimeLog.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butTimeLog.CornerRadius = 4F;
 			this.butTimeLog.Location = new System.Drawing.Point(139, 174);
 			this.butTimeLog.Name = "butTimeLog";
 			this.butTimeLog.Size = new System.Drawing.Size(71, 20);
@@ -754,6 +775,10 @@
 			// butChangeEst
 			// 
 			this.butChangeEst.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butChangeEst.Autosize = true;
+			this.butChangeEst.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butChangeEst.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butChangeEst.CornerRadius = 4F;
 			this.butChangeEst.Location = new System.Drawing.Point(139, 132);
 			this.butChangeEst.Name = "butChangeEst";
 			this.butChangeEst.Size = new System.Drawing.Size(71, 20);
@@ -799,6 +824,10 @@
 			// 
 			this.butParentPick.AdjustImageLocation = new System.Drawing.Point(0, 0);
 			this.butParentPick.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butParentPick.Autosize = true;
+			this.butParentPick.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butParentPick.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butParentPick.CornerRadius = 4F;
 			this.butParentPick.Location = new System.Drawing.Point(181, 3);
 			this.butParentPick.Name = "butParentPick";
 			this.butParentPick.Size = new System.Drawing.Size(63, 20);
@@ -810,6 +839,10 @@
 			// 
 			this.butParentRemove.AdjustImageLocation = new System.Drawing.Point(0, 0);
 			this.butParentRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butParentRemove.Autosize = true;
+			this.butParentRemove.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butParentRemove.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butParentRemove.CornerRadius = 4F;
 			this.butParentRemove.Image = global::OpenDental.Properties.Resources.deleteX;
 			this.butParentRemove.Location = new System.Drawing.Point(250, 3);
 			this.butParentRemove.Name = "butParentRemove";
@@ -1088,9 +1121,32 @@
 			this.tabTesting.TabIndex = 5;
 			this.tabTesting.Text = "Testing";
 			// 
+			// textTestingHours
+			// 
+			this.textTestingHours.Location = new System.Drawing.Point(544, 8);
+			this.textTestingHours.MaxVal = 1000000D;
+			this.textTestingHours.MinVal = 0D;
+			this.textTestingHours.Name = "textTestingHours";
+			this.textTestingHours.Size = new System.Drawing.Size(44, 20);
+			this.textTestingHours.TabIndex = 316;
+			this.textTestingHours.TextChanged += new System.EventHandler(this.textTestingHours_TextChanged);
+			// 
+			// labelTestingHours
+			// 
+			this.labelTestingHours.Location = new System.Drawing.Point(478, 8);
+			this.labelTestingHours.Name = "labelTestingHours";
+			this.labelTestingHours.Size = new System.Drawing.Size(65, 20);
+			this.labelTestingHours.TabIndex = 315;
+			this.labelTestingHours.Text = "Hrs. Testing";
+			this.labelTestingHours.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// butTested
 			// 
 			this.butTested.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butTested.Autosize = true;
+			this.butTested.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butTested.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butTested.CornerRadius = 4F;
 			this.butTested.Location = new System.Drawing.Point(382, 8);
 			this.butTested.Name = "butTested";
 			this.butTested.Size = new System.Drawing.Size(72, 20);
@@ -1178,24 +1234,9 @@
 			this.textTitle.WordWrap = false;
 			this.textTitle.TextChanged += new System.EventHandler(this.textTitle_TextChanged);
 			// 
-			// textTestingHours
+			// timerTesting
 			// 
-			this.textTestingHours.Location = new System.Drawing.Point(544, 8);
-			this.textTestingHours.MaxVal = 1000000D;
-			this.textTestingHours.MinVal = 0D;
-			this.textTestingHours.Name = "textTestingHours";
-			this.textTestingHours.Size = new System.Drawing.Size(44, 20);
-			this.textTestingHours.TabIndex = 316;
-			this.textTestingHours.TextChanged += new System.EventHandler(this.textTestingHours_TextChanged);
-			// 
-			// labelTestingHours
-			// 
-			this.labelTestingHours.Location = new System.Drawing.Point(478, 8);
-			this.labelTestingHours.Name = "labelTestingHours";
-			this.labelTestingHours.Size = new System.Drawing.Size(65, 20);
-			this.labelTestingHours.TabIndex = 315;
-			this.labelTestingHours.Text = "Hrs. Testing";
-			this.labelTestingHours.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.timerTesting.Tick += new System.EventHandler(this.timerTesting_Tick);
 			// 
 			// UserControlJobEdit
 			// 
@@ -1315,5 +1356,6 @@
 		private System.Windows.Forms.Panel panelLeftBot;
 		private ValidDouble textTestingHours;
 		private System.Windows.Forms.Label labelTestingHours;
+		private System.Windows.Forms.Timer timerTesting;
 	}
 }
