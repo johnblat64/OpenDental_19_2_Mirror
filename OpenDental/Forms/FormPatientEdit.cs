@@ -2688,14 +2688,6 @@ namespace OpenDental{
 					return;
 				}
 			}
-			//If HQ and this is a patient in a reseller family, do not allow the changing of the patient status.
-			if(PrefC.IsODHQ
-				&& Resellers.IsResellerFamily(PatCur)
-				&& PatOld.PatStatus!=_listPatStatuses[listStatus.SelectedIndex])//1:1
-			{
-				MsgBox.Show(this,"Cannot change the status of a patient in a reseller family.");
-				return;
-			}
 			//If public health is enabled and the combo box is in an invalid state, warn the user.
 			if(!PrefC.GetBool(PrefName.EasyHidePublicHealth) && comboGradeLevel.SelectedIndex < 0) {
 				//This isn't really here to get valid data from the user but to prevent the value of -1 getting entered into the database.

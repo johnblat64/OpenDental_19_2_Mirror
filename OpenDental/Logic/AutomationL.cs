@@ -204,14 +204,6 @@ namespace OpenDental {
 						Patient pat=Patients.GetPat(patNum);
 						Patient patOld=pat.Copy();
 						pat.PatStatus=listAutomations[i].PatStatus;
-						//If HQ and this is a patient in a reseller family, do not allow the changing of the patient status.
-						if(PrefC.IsODHQ
-							&& Resellers.IsResellerFamily(pat)
-							&& patOld.PatStatus!=pat.PatStatus)
-						{
-							MsgBox.Show("FormPatientEdit","Cannot change the status of a patient in a reseller family.");
-							continue;
-						}
 						//Don't allow changing status from Archived if this is a merged patient.
 						if(patOld.PatStatus!=pat.PatStatus 
 							&& patOld.PatStatus==PatientStatus.Archived 

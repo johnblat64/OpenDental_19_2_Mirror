@@ -54,11 +54,6 @@ namespace OpenDental {
 				MsgBox.Show(this,"Cannot merge a patient account into itself. Please select a different patient to merge from.");
 				return;
 			}
-			//At HQ, we cannot allow users to merge patients related to reseller families.
-			if(PrefC.IsODHQ && (Resellers.IsResellerFamily(_patTo) || Resellers.IsResellerFamily(_patFrom))) {
-				MsgBox.Show(this,"Cannot merge patients related to reseller families.");
-				return;
-			}
 			string msgText="";
 			if(_patFrom.FName.Trim().ToLower()!=_patTo.FName.Trim().ToLower()
 				|| _patFrom.LName.Trim().ToLower()!=_patTo.LName.Trim().ToLower()
