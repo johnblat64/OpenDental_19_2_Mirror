@@ -2447,6 +2447,9 @@ namespace OpenDental {
 		}
 
 		private void listPayType_Click(object sender,EventArgs e) {
+			if(Plugins.HookMethod(this,"FormPayment.listPayType_Click",listPayType.SelectedItem)) {
+				return;
+			}
 			textDepositAccount.Visible=false;
 			SetComboDepositAccounts();
 		}
