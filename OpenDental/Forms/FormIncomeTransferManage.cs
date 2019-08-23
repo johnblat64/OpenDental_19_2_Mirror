@@ -481,20 +481,22 @@ namespace OpenDental {
 				if(negCharge.GetType()==typeof(PaySplit)) {
 					negSplit.ProcNum=((PaySplit)negCharge.Tag).ProcNum;
 					negSplit.UnearnedType=((PaySplit)negCharge.Tag).UnearnedType;
+					negSplit.FSplitNum=negCharge.PriKey;
 				}
 				else if(negCharge.GetType()==typeof(Procedure)) {
 					if(((Procedure)negCharge.Tag).ProcFee < 0) {
 						continue;//don't use money from negative procedures as a souce of income. 
 					}
 					negSplit.ProcNum=((Procedure)negCharge.Tag).ProcNum;
+					negSplit.FSplitNum=0;
 				}
 				else if(negCharge.GetType()==typeof(Adjustment)) {
 					negSplit.AdjNum=((Adjustment)negCharge.Tag).AdjNum;
+					negSplit.FSplitNum=0;
 				}
 				//we may also need to handle claimspaybytotal and payplancharges in the future.
 				negSplit.DatePay=DateTimeOD.Today;
 				negSplit.ClinicNum=negCharge.ClinicNum;
-				negSplit.FSplitNum=negCharge.PriKey;
 				negSplit.PatNum=negCharge.PatNum;
 				negSplit.PayPlanNum=0;
 				negSplit.PayNum=_paymentCur.PayNum;
