@@ -57,10 +57,11 @@ namespace OpenDental.Bridges {
 				var response=new {
 					success=false,
 					redirectUrl="",
+					errorMessage="",
 				};
 				response=JsonConvert.DeserializeAnonymousType(responseStr,response);
 				if(!response.success) {
-					MsgBox.Show("Oryx","Invalid username or password");
+					MessageBox.Show(Lans.g("Orxy","Error message from Oryx:")+" "+response.errorMessage);
 					return;
 				}
 				ODFileUtils.ProcessStart(response.redirectUrl);
