@@ -905,7 +905,14 @@ namespace OpenDental {
 				}
 				#endregion
 				#region Clinic
-				priProv=Providers.GetProv(Patients.GetProvNum(pat));//guaranteed to work
+				priProv=Providers.GetProv(Patients.GetProvNum(pat));
+				if(priProv==null) {//Rare, temporary fix. We have previously seen this issue happen when a provider is removed from the DB somehow.
+					priProv=new Provider() {//If Provider is missing this will throw a UE where we attempt to use GetFullName(...)
+						FName="",
+						LName="",
+						MI="",//This is the lynch pin to ensuring GetFullName(...) does not fail when looking for a missing Provider.
+					};
+				}
 				//Pat Clinic-------------------------------------------------------------------------------------------------------------
 				Clinic clinic=Clinics.GetClinic(pat.ClinicNum);
 				if(clinic==null) {
