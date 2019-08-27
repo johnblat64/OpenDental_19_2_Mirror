@@ -67,8 +67,10 @@ namespace OpenDental {
 			if(_sheetDefWidget==null) {
 				return false;
 			}
-			RefreshPatient();
-			RefreshDefAndFields();
+			RefreshPatient();//Patient is used in RefreshDefAndFields.
+			if(!RefreshDefAndFields()) {
+				return false;
+			}
 			SetOrRefreshData((ctr,sheetField) => ctr.RefreshData(_pat,sheetField));
 			return true;
 		}
@@ -86,9 +88,17 @@ namespace OpenDental {
 			_pat=Patients.GetPat(FormOpenDental.CurPatNum);
 		}
 
-		private void RefreshDefAndFields() {
-			_sheetDefWidget=SheetDefs.GetSheetDef(_sheetDefWidget.SheetDefNum);
+		private bool RefreshDefAndFields() {
+			try {
+				_sheetDefWidget=SheetDefs.GetSheetDef(_sheetDefWidget.SheetDefNum);
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
+				this.InvokeIfRequired(() => CloseWidget());
+				return false;
+			}
 			SetStaticFields(_pat);
+			return true;
 		}
 
 		private void SetStaticFields(Patient pat,Family fam=null,StaticTextData staticTextData=null) {
