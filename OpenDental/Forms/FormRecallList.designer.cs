@@ -1261,6 +1261,7 @@
 			this.Name = "FormRecallList";
 			this.Text = "Recall List";
 			this.Load += new System.EventHandler(this.FormRecallList_Load);
+			this.Shown+=new System.EventHandler(this.FormRecallList_Shown);
 			this.tabControl.ResumeLayout(false);
 			this.tabPageRecalls.ResumeLayout(false);
 			this.groupBox2.ResumeLayout(false);

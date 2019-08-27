@@ -175,9 +175,14 @@ namespace OpenDental{
 			gridRecentlyContacted.SetFillGrid(() => FillGridRecent());
 			gridReactivations.SetFillGrid(() => FillReactivationGrid());
 			//Etc.
-			FillMain();
 			FillComboEmail();
 			Plugins.HookAddCode(this,"FormRecallList.Load_End",_tableRecalls);
+		}
+
+		///<summary>Due to a bug in ODProgress.cs load methods that spawn progress bars must be moved into the Shown() event to prevent
+		///the form from popping up behind the main program.</summary>
+		private void FormRecallList_Shown(object sender,EventArgs e) {
+			FillMain();
 		}
 
 		private void CheckClinicsSignedUpForWebSched() {
