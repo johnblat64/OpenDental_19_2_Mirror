@@ -4023,8 +4023,8 @@ namespace OpenDentBusiness {
 				Procedures.Insert(proc);
 				ClaimProcs.InsertClaimProcForInsHist(proc,planNum,insSubNum);
 			}
-			//Only Update the date if new date is greater than the ProcDate and proc has a Status of EO.
-			else if(proc.ProcStatus==ProcStat.EO && date.Date>proc.ProcDate.Date) {
+			//Only Update the date if new date is different than the ProcDate and proc has a Status of EO.
+			else if(proc.ProcStatus==ProcStat.EO && date.Date!=proc.ProcDate.Date) {
 				Procedure procOld=proc.Copy();
 				proc.ProcDate=date;
 				Procedures.Update(proc,procOld);
