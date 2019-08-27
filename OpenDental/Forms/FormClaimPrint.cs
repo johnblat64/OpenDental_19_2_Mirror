@@ -513,6 +513,11 @@ namespace OpenDental{
 			else{
 				subsc=FamCur.ListPats[FamCur.GetIndex(subCur.Subscriber)];
 			}
+			if(subsc==null) {//Patient for this InsSub could not be found.  Likely db corruption.
+				MsgBox.Show(this,"Insurance Plan attached to Claim does not have a valid Subscriber.  Run Database Maintenance (Tools): InsSubInvalidSubscriber.");
+				butPrint.Enabled=false;
+				return false;
+			}
 			Patient otherSubsc=new Patient();
 			if(otherPlan.PlanNum!=0){//if secondary insurance exists
 				if(FamCur.GetIndex(otherSub.Subscriber)==-1) {//from another family
