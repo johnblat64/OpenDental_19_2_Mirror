@@ -121,8 +121,7 @@ namespace OpenDentBusiness {
 				INNER JOIN usergroupattach ON userod.UserNum=usergroupattach.UserNum
 				INNER JOIN grouppermission ON usergroupattach.UserGroupNum=grouppermission.UserGroupNum 
 				WHERE userod.IsHidden=0
-				AND grouppermission.PermType="+POut.Int((int)Permissions.SecurityAdmin)+@"
-				GROUP BY userod.UserNum";
+				AND grouppermission.PermType="+POut.Int((int)Permissions.SecurityAdmin);
 			return (Db.GetCount(command)!="0");
 		}
 
