@@ -6425,32 +6425,85 @@ namespace OpenDentBusiness {
 			return log;
 		}
 
-		//DEPRECATED. This no longer holds true for payplans as of version 16.2. Plus, this never did anything anyway.
-		//[DbmMethod]
-		//public static string PaySplitAttachedToPayPlan(bool verbose,DBMMode modeCur) {
-		//	if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-		//		return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);
-		//	}
-		//	string log="";
-		//	command="SELECT SplitNum,payplan.Guarantor FROM paysplit,payplan "
-		//		+"WHERE paysplit.PayPlanNum=payplan.PayPlanNum "
-		//		+"AND paysplit.PatNum!=payplan.Guarantor";
-		//	DataTable table=Db.GetTable(command);
-		//	if(isCheck) {
-		//		if(table.Rows.Count>0 || verbose) {
-		//			log+=Lans.g("FormDatabaseMaintenance","Paysplits found with patnum not matching payplan guarantor: ")+table.Rows.Count+"\r\n";
-		//		}
-		//	}
-		//	else {
-		//		//Too dangerous to do anything at all.  Just have a very descriptive explanation in the check.
-		//		//For now, tell the user that a fix is under development.
-		//		if(table.Rows.Count>0 || verbose) {
-		//			log+=Lans.g("FormDatabaseMaintenance","Paysplits found with patnum not matching payplan guarantor: ")+table.Rows.Count+"\r\n";
-		//			log+=Lans.g("FormDatabaseMaintenance","   A safe fix is under development.")+"\r\n";
-		//		}
-		//	}
-		//	return log;
-		//}
+		[DbmMethodAttr(HasBreakDown = false)]
+		public static string PaySplitAttachedToItself(bool verbose,DbmMode modeCur) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);
+			}
+			string command="SELECT * FROM paysplit WHERE FSplitNum=SplitNum";
+			DataTable table=Db.GetTable(command);
+			if(table.Rows.Count==0 && !verbose) {
+				return "";
+			}
+			string log="";
+			switch(modeCur) {
+				case DbmMode.Check:
+					log+=Lans.g("FormDatabaseMaintenance","Paysplits attached to themselves")+": "+table.Rows.Count+"\r\n";
+					break;
+				case DbmMode.Fix:
+					List<DbmLog> listDbmLogs=new List<DbmLog>();
+					string methodName=MethodBase.GetCurrentMethod().Name;
+					List<long> listPaySplitNums=table.Select().Select(x => PIn.Long(x["SplitNum"].ToString())).ToList();
+					command="UPDATE paysplit SET paysplit.FSplitNum=0 WHERE paysplit.FSplitNum=paysplit.SplitNum";
+					long numFixed=Db.NonQ(command);
+					listPaySplitNums.ForEach(x => listDbmLogs.Add(new DbmLog(Security.CurUser.UserNum,x,DbmLogFKeyType.PaySplit,
+						DbmLogActionType.Update,methodName,"Updated FSplitNum to 0 from PaySplitAttachedToItself.")));
+					if(numFixed>0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Paysplits with invalid FSplitNums fixed: ")+numFixed+"\r\n";
+						Crud.DbmLogCrud.InsertMany(listDbmLogs);
+					}
+					break;
+			}
+			return log;
+		}
+
+		[DbmMethodAttr]
+		public static string PaySplitTransfersWithNoUnearnedType(bool verbose,DbmMode modeCur) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);
+			}
+			string log="";
+			string methodName=MethodBase.GetCurrentMethod().Name;
+			//If the parent is an unearned split (has a prepayment type) then update the unearned type on the current split to match the unearned type of the parent.
+			string command=@"SELECT pschild.SplitNum,psparent.UnearnedType FROM paysplit pschild
+				INNER JOIN paysplit psparent ON pschild.FSplitNum=psparent.SplitNum
+				WHERE pschild.SplitAmt < 0 
+				AND pschild.FSplitNum!=0 
+				AND pschild.UnearnedType=0
+				AND pschild.AdjNum=0
+				AND pschild.ProcNum=0
+				AND pschild.PayPlanNum=0
+				AND psparent.UnearnedType!=0
+				AND psparent.UnearnedType!=pschild.UnearnedType";
+			DataTable tableSplitsWithoutUnearnedType=Db.GetTable(command);
+			int count=tableSplitsWithoutUnearnedType.Rows.Count;
+			switch(modeCur) {
+				case DbmMode.Check:
+					if(count > 0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Paysplit transfers with no UnearnedType")+": "+count;
+					}
+					break;
+				case DbmMode.Fix:
+					List<DbmLog> listDbmLogs=new List<DbmLog>();
+					foreach(DataRow row in tableSplitsWithoutUnearnedType.Rows) {
+						long splitNum=PIn.Long(row["SplitNum"].ToString());
+						long unearnedType=PIn.Long(row["UnearnedType"].ToString());
+						listDbmLogs.Add(new DbmLog(Security.CurUser.UserNum,splitNum,DbmLogFKeyType.PaySplit
+							,DbmLogActionType.Update,methodName,$"Updated unearned type from 0 to {unearnedType}"));
+						command=$@"UPDATE paysplit 
+							SET UnearnedType = {POut.Long(unearnedType)} 
+							WHERE SplitNum = {POut.Long(splitNum)}";
+						Db.NonQ(command);
+					}
+					DbmLogs.InsertMany(listDbmLogs);
+					if(count > 0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Paysplit transfers with no UnearnedType fixed")+": "+count;
+					}
+					MoveToOld(methodName);
+					break;
+			}
+			return log;
+		}
 		
 		[DbmMethodAttr(HasPatNum = true)]
 		public static string PaySplitWithInvalidPayNum(bool verbose,DbmMode modeCur,long patNum=0) {
@@ -6614,38 +6667,6 @@ namespace OpenDentBusiness {
 							log+="\r\n";
 						}
 						log+="   "+Lans.g("FormDatabaseMaintenance","They need to be fixed manually.")+"\r\n";
-					}
-					break;
-			}
-			return log;
-		}
-
-		[DbmMethodAttr(HasBreakDown = false)]
-		public static string PaySplitAttachedToItself(bool verbose,DbmMode modeCur) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);
-			}
-			string command="SELECT * FROM paysplit WHERE FSplitNum=SplitNum";
-			DataTable table=Db.GetTable(command);
-			if(table.Rows.Count==0 && !verbose) {
-				return "";
-			}
-			string log="";
-			switch(modeCur) {
-				case DbmMode.Check:
-					log+=Lans.g("FormDatabaseMaintenance","Paysplits attached to themselves")+": "+table.Rows.Count+"\r\n";
-					break;
-				case DbmMode.Fix:
-					List<DbmLog> listDbmLogs=new List<DbmLog>();
-					string methodName=MethodBase.GetCurrentMethod().Name;
-					List<long> listPaySplitNums=table.Select().Select(x => PIn.Long(x["SplitNum"].ToString())).ToList();
-					command="UPDATE paysplit SET paysplit.FSplitNum=0 WHERE paysplit.FSplitNum=paysplit.SplitNum";
-					long numFixed=Db.NonQ(command);
-					listPaySplitNums.ForEach(x => listDbmLogs.Add(new DbmLog(Security.CurUser.UserNum,x,DbmLogFKeyType.PaySplit,
-						DbmLogActionType.Update,methodName,"Updated FSplitNum to 0 from PaySplitAttachedToItself.")));
-					if(numFixed>0 || verbose) {
-						log+=Lans.g("FormDatabaseMaintenance","Paysplits with invalid FSplitNums fixed: ")+numFixed+"\r\n";
-						Crud.DbmLogCrud.InsertMany(listDbmLogs);
 					}
 					break;
 			}
