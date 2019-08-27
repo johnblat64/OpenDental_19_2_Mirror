@@ -1121,9 +1121,6 @@ namespace OpenDental{
 							break;
 						}
 						DateTime birthdate=PIn.Date(textBirthdate.Text);
-						if(birthdate>DateTime.Today) {
-							birthdate=birthdate.AddYears(-100);
-						}
 						int ageEntered=DateTime.Today.Year-birthdate.Year;
 						if(birthdate>DateTime.Today.AddYears(-ageEntered)) {
 							ageEntered--;
@@ -1494,10 +1491,7 @@ namespace OpenDental{
 				return;
 			}
 			DateTime birthdate=PIn.Date(textBirthdate.Text);
-			if(birthdate>DateTime.Today) {
-				birthdate=birthdate.AddYears(-100);
-				textBirthdate.Text=birthdate.ToShortDateString();//Need to update UI because textBirthdate is what is used in OK click to fill column.
-			}
+			textBirthdate.Text=birthdate.ToShortDateString();//Need to update UI because textBirthdate is what is used in OK click to fill column.
 			DateTime dateTimeTo=DateTime.Now;
 			if(textDateDeceased.Text!="") {
 				try {
