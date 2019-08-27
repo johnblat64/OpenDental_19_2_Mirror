@@ -698,10 +698,14 @@ namespace OpenDentBusiness{
 			if(listSplitsForProc.IsNullOrEmpty() || listSplitsForProc.Sum(x => x.SplitAmt)==0) {
 				return;
 			}
+			//procAttaching will be null when transferring from unearned to same procedure.
+			procAttaching=procAttaching??procOriginal;
 			Payment transferPayment=new Payment();
 			transferPayment.PayDate=DateTime.Today;
 			transferPayment.ClinicNum=procOriginal.ClinicNum;
 			transferPayment.PayNote="Automatic transfer from treatment planned procedure pre-payment.";
+			transferPayment.PatNum=procAttaching.PatNum;//ultimately where the payment ends up.
+			transferPayment.PayType=0;
 			Insert(transferPayment);
 			foreach(PaySplit prepaySplit in listSplitsForProc) {
 				//make negative split to remove the 'tp prepayment'
@@ -723,8 +727,6 @@ namespace OpenDentBusiness{
 				//Update original pre-payment split to disassociate the procedure now that the procedure is complete (Splits cannot have unaerned and C proc)
 				prepaySplit.ProcNum=0;
 				PaySplits.Update(prepaySplit);
-				//procAttaching will be null when transferring from unearned to same procedure.
-				procAttaching=procAttaching??procOriginal;
 				PaySplit positiveSplit=new PaySplit{
 					ClinicNum=procAttaching.ClinicNum,
 					DatePay=DateTime.Today,
