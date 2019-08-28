@@ -331,7 +331,7 @@ namespace OpenDental {
 			listPaySplitsForProc.AddRange(listPaySplitsForProcPaymentWindow.Where(x => x.SplitNum==0));
 			//Remove paysplits that have been deleted in the payment window but have not been saved to db. We don't want to use these paysplits 
 			//when calculating procPrevPaid.
-			listPaySplitsForProc.RemoveAll(x => !listPaySplitsForProcPaymentWindow.Any(y => y.IsSame(x)));
+			listPaySplitsForProc.RemoveAll(x => !listPaySplitsForProcPaymentWindow.Any(y => y.IsSame(x)) && x.PayNum==PaySplitCur.PayNum);
 			textProcDate.Text=ProcCur.ProcDate.ToShortDateString();
 			textProcProv.Text=Providers.GetAbbr(ProcCur.ProvNum);
 			textProcTooth.Text=Tooth.ToInternat(ProcCur.ToothNum);
