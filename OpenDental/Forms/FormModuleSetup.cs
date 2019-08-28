@@ -4613,7 +4613,7 @@ namespace OpenDental{
 			this.checkAgingProcLifo.Name = "checkAgingProcLifo";
 			this.checkAgingProcLifo.Size = new System.Drawing.Size(351, 17);
 			this.checkAgingProcLifo.TabIndex = 306;
-			this.checkAgingProcLifo.Text = "Transactions attached to procedure offset each other before aging";
+			this.checkAgingProcLifo.Text = "Transactions attached to a procedure offset each other before aging";
 			this.checkAgingProcLifo.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkAgingProcLifo.ThreeState = true;
 			// 

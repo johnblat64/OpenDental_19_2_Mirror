@@ -302,7 +302,8 @@ namespace OpenDentBusiness{
 			bool isAllPats=string.IsNullOrWhiteSpace(familyPatNums);//true if guarantor==0 or invalid, meaning for all patients not just one family
 			//Negative adjustments can optionally be overridden in order to ignore the global preference.
 			bool isNegAdjAged=(isForceAgeNegAdj??PrefC.GetBool(PrefName.AgingNegativeAdjsByAdjDate));//if isForceAgeNegAdj==null, use the pref
-			if(isWoAged || isNegAdjAged) {
+			bool isAgedByProc=PrefC.GetYN(PrefName.AgingProcLifo);
+			if(isWoAged || isNegAdjAged || isAgedByProc) {
 				//WriteoffOrig and/or negative Adjs are included in the charges buckets.  Since that could reduce a bucket to less than 0 we need to move any
 				//excess to the TotalCredits bucket to be applied to the oldest charge first
 				command+="SELECT transSums.PatNum,"
@@ -322,170 +323,88 @@ namespace OpenDentBusiness{
 					+(hasDateLastPay?",transSums.DateLastPay ":" ")
 					+"FROM (";
 			}
-			bool isFifo=(!PrefC.GetYN(PrefName.AgingProcLifo));
-			if(isFifo) {
-				command+="SELECT "+(isGroupByGuar?"p.Guarantor PatNum,":"trans.PatNum,")
-					+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig'"+(isNegAdjAged?",'Adj'":"")+")) "
-						+"AND trans.TranDate < "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) ChargesOver90,"
-					+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig'"+(isNegAdjAged?",'Adj'":"")+")) "
-						+"AND trans.TranDate < "+sixtyDaysAgo+" AND trans.TranDate >= "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_61_90,"
-					+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig'"+(isNegAdjAged?",'Adj'":"")+")) "
-						+"AND trans.TranDate < "+thirtyDaysAgo+" AND trans.TranDate >= "+sixtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_31_60,"
-					+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig'"+(isNegAdjAged?",'Adj'":"")+")) "
-						+"AND trans.TranDate <= "+asOfDateStr+" AND trans.TranDate >= "+thirtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_0_30,"
-					+"-SUM(CASE WHEN trans.TranAmount < 0 AND trans.TranType NOT IN ('WriteoffOrig'"+(isNegAdjAged?",'Adj'":"")+") "
-						+"AND trans.TranDate <= "+asOfDateStr+" THEN trans.TranAmount ELSE 0 END) TotalCredits,"
-					+"SUM(CASE WHEN trans.TranAmount != 0"+(isHistoric?(" AND trans.TranDate <= "+asOfDateStr):"")+" THEN trans.TranAmount ELSE 0 END) BalTotal,"
-					+"SUM(trans.InsWoEst) InsWoEst,"
-					+"SUM(trans.InsPayEst) InsPayEst,"
-					+"SUM(trans.PayPlanAmount) PayPlanDue"
-					+(hasDateLastPay?",MAX(CASE WHEN trans.TranType='PatPay' THEN trans.TranDate ELSE '0001-01-01' END) DateLastPay ":" ")
-					+"FROM ("
-						+GetTransQueryString(asOfDate,familyPatNums,isWoAged,isHistoric,doAgePatPayPlanPayments)
-					+") trans ";
-				if(isGroupByGuar) {
-					command+="INNER JOIN patient p ON p.PatNum=trans.PatNum "
-						+"GROUP BY p.Guarantor";
-					if(!isAllPats || !PrefC.GetBool(PrefName.AgingIsEnterprise)) {//only if for one fam or if not using famaging table
-						command+=" ORDER BY NULL";//without this, the explain for this query lists 'using filesort' since there is a group by
-					}
-				}
-				else {
-					command+="GROUP BY trans.PatNum";
+			List <string> listInstantTranTypes=new List<string>();
+			listInstantTranTypes.Add("'WriteoffOrig'");
+			if(isAgedByProc) {
+				listInstantTranTypes.Add("'SumByProcAndDate'");
+			}
+			else if(isNegAdjAged) {
+				listInstantTranTypes.Add("'Adj'");
+			}
+			string instantAdd="trans.TranType IN ("+string.Join(",",listInstantTranTypes)+")";
+			command+="SELECT "+(isGroupByGuar?"p.Guarantor PatNum,":"trans.PatNum,")
+				+"SUM(CASE WHEN (trans.TranAmount > 0 OR "+instantAdd+") "
+					+"AND trans.TranDate < "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) ChargesOver90,"
+				+"SUM(CASE WHEN (trans.TranAmount > 0 OR "+instantAdd+") "
+					+"AND trans.TranDate < "+sixtyDaysAgo+" AND trans.TranDate >= "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_61_90,"
+				+"SUM(CASE WHEN (trans.TranAmount > 0 OR "+instantAdd+") "
+					+"AND trans.TranDate < "+thirtyDaysAgo+" AND trans.TranDate >= "+sixtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_31_60,"
+				+"SUM(CASE WHEN (trans.TranAmount > 0 OR "+instantAdd+") "
+					+"AND trans.TranDate <= "+asOfDateStr+" AND trans.TranDate >= "+thirtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_0_30,"
+				+"-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+") "
+					+"AND trans.TranDate <= "+asOfDateStr+" THEN trans.TranAmount ELSE 0 END) TotalCredits,"
+				+"SUM(CASE WHEN trans.TranAmount != 0"+(isHistoric?(" AND trans.TranDate <= "+asOfDateStr):"")+" THEN trans.TranAmount ELSE 0 END) BalTotal,"
+				+"SUM(trans.InsWoEst) InsWoEst,"
+				+"SUM(trans.InsPayEst) InsPayEst,"
+				+"SUM(trans.PayPlanAmount) PayPlanDue"
+				+(hasDateLastPay?",MAX(CASE WHEN trans.TranType='PatPay' THEN trans.TranDate ELSE '0001-01-01' END) DateLastPay ":" ")
+				+"FROM ("
+					+GetTransQueryStringAgeByProc(asOfDate,familyPatNums,isWoAged,isHistoric,doAgePatPayPlanPayments,isAgedByProc)
+				+") trans ";
+			if(isGroupByGuar) {
+				command+="INNER JOIN patient p ON p.PatNum=trans.PatNum "
+					+"GROUP BY p.Guarantor";
+				if(!isAllPats || !PrefC.GetBool(PrefName.AgingIsEnterprise)) {//only if for one fam or if not using famaging table
+					command+=" ORDER BY NULL";//without this, the explain for this query lists 'using filesort' since there is a group by
 				}
 			}
 			else {
-				//FIFO credits go from oldest (over 90 days) toward newest (0 to 30 days).
-				//LIFO credits go from newest (0 to 30 days) toward oldest (over 90 days).
-				string bucketOver90="transbyproc.ChargesOver90 - transbyproc.CreditsOver90";
-				string bucket_61_90="transbyproc.Charges_61_90 - transbyproc.Credits_61_90";
-				string bucket_31_60="transbyproc.Charges_31_60 - transbyproc.Credits_31_60";
-				string bucket_0_30="transbyproc.Charges_0_30 - transbyproc.Credits_0_30";
-				string lifoSql="SELECT transbyproc.PatNum,"
-					+"SUM(CASE "
-						//FIFO transactions which are not flagged to be processed using LIFO.
-						+"WHEN transbyproc.LifoProcNum=0 "
-							+"THEN transbyproc.ChargesOver90 "
-						//Transactions flagged for LIFO which have a total credit exceeding total charges will be processed as a total credit using FIFO.
-						+"WHEN transbyproc.BalTotal < 0 "
-							+"THEN 0 "
-						//Transactions flagged for LIFO which have a total credit less than or equal to total charges.
-						+"ELSE ("
-							+GetLifoBucketCase(bucketOver90,bucket_61_90+" + "+bucket_31_60+" + "+bucket_0_30)
-						+") "
-					+"END) ChargesOver90,"
-					+"SUM(CASE "
-						//FIFO transactions which are not flagged to be processed using LIFO.
-						+"WHEN transbyproc.LifoProcNum=0 "
-							+"THEN transbyproc.Charges_61_90 "
-						//Transactions flagged for LIFO which have a total credit exceeding total charges will be processed as a total credit using FIFO.
-						+"WHEN transbyproc.BalTotal < 0 "
-							+"THEN 0 "
-						//Transactions flagged for LIFO which have a total credit less than or equal to total charges.
-						+"ELSE ("
-							+GetLifoBucketCase(bucket_61_90,bucket_31_60+" + "+bucket_0_30)
-						+") "
-					+"END) Charges_61_90,"
-					+"SUM(CASE "
-						//FIFO transactions which are not flagged to be processed using LIFO.
-						+"WHEN transbyproc.LifoProcNum=0 "
-							+"THEN transbyproc.Charges_31_60 "
-						//Transactions flagged for LIFO which have a total credit exceeding total charges will be processed as a total credit using FIFO.
-						+"WHEN transbyproc.BalTotal < 0 "
-							+"THEN 0 "
-						//Transactions flagged for LIFO which have a total credit less than or equal to total charges.
-						+"ELSE ("
-							+GetLifoBucketCase(bucket_31_60,bucket_0_30)
-						+") "
-					+"END) Charges_31_60,"
-					+"SUM(CASE "
-						//FIFO transactions which are not flagged to be processed using LIFO.
-						+"WHEN transbyproc.LifoProcNum=0 "
-							+"THEN transbyproc.Charges_0_30 "
-						//Transactions flagged for LIFO which have a total credit exceeding total charges will be processed as a total credit using FIFO.
-						+"WHEN transbyproc.BalTotal < 0 "
-							+"THEN 0 "
-						//Transactions flagged for LIFO which have a total credit less than or equal to total charges.
-						+"ELSE ("
-							+GetLifoBucketCase(bucket_0_30,"0")
-						+") "
-					+"END) Charges_0_30,"
-					+"SUM(CASE "
-						//FIFO transactions which are not flagged to be processed using LIFO.
-						+"WHEN transbyproc.LifoProcNum=0 "
-							+"THEN transbyproc.CreditsOver90+transbyproc.Credits_61_90+transbyproc.Credits_31_60+transbyproc.Credits_0_30 "
-						//Transactions flagged for LIFO which have a total credit exceeding total charges will be processed as a total credit using FIFO.
-						+"WHEN transbyproc.BalTotal < 0 "
-							+"THEN -transbyproc.BalTotal "
-						//Transactions flagged for LIFO which have a total credit less than or equal to total charges.
-						+"ELSE "
-							+"0 "
-					+"END) TotalCredits,"
-					+"SUM(transbyproc.BalTotal) BalTotal,"
-					+"SUM(transbyproc.InsWoEst) InsWoEst,"
-					+"SUM(transbyproc.InsPayEst) InsPayEst,"
-					+"SUM(transbyproc.PayPlanDue) PayPlanDue"
-					+(hasDateLastPay?",MAX(transbyproc.DateLastPay) DateLastPay ":" ")
-					+"FROM ("
-						+"SELECT "+(isGroupByGuar?"p.Guarantor PatNum,":"trans.PatNum,")
-						+"trans.LifoProcNum LifoProcNum,"
-						+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig')) "
-							+"AND trans.TranDate < "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) ChargesOver90,"
-						+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig')) "
-							+"AND trans.TranDate < "+sixtyDaysAgo+" AND trans.TranDate >= "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_61_90,"
-						+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig')) "
-							+"AND trans.TranDate < "+thirtyDaysAgo+" AND trans.TranDate >= "+sixtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_31_60,"
-						+"SUM(CASE WHEN (trans.TranAmount > 0 OR trans.TranType IN ('WriteoffOrig')) "
-							+"AND trans.TranDate <= "+asOfDateStr+" AND trans.TranDate >= "+thirtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Charges_0_30,"
-						+"-SUM(CASE WHEN trans.TranAmount < 0 AND trans.TranType NOT IN ('WriteoffOrig') "
-							+"AND trans.TranDate < "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) CreditsOver90,"
-						+"-SUM(CASE WHEN trans.TranAmount < 0 AND trans.TranType NOT IN ('WriteoffOrig') "
-							+"AND trans.TranDate < "+sixtyDaysAgo+" AND trans.TranDate >= "+ninetyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Credits_61_90,"
-						+"-SUM(CASE WHEN trans.TranAmount < 0 AND trans.TranType NOT IN ('WriteoffOrig') "
-							+"AND trans.TranDate < "+thirtyDaysAgo+" AND trans.TranDate >= "+sixtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Credits_31_60,"
-						+"-SUM(CASE WHEN trans.TranAmount < 0 AND trans.TranType NOT IN ('WriteoffOrig') "
-							+"AND trans.TranDate <= "+asOfDateStr+" AND trans.TranDate >= "+thirtyDaysAgo+" THEN trans.TranAmount ELSE 0 END) Credits_0_30,"
-						+"SUM(CASE WHEN trans.TranAmount != 0"+(isHistoric?(" AND trans.TranDate <= "+asOfDateStr):"")+" THEN trans.TranAmount ELSE 0 END) BalTotal,"
-						+"SUM(trans.InsWoEst) InsWoEst,"
-						+"SUM(trans.InsPayEst) InsPayEst,"
-						+"SUM(trans.PayPlanAmount) PayPlanDue"
-						+(hasDateLastPay?",MAX(CASE WHEN trans.TranType='PatPay' THEN trans.TranDate ELSE '0001-01-01' END) DateLastPay ":" ")
-						+"FROM ("
-							+GetTransQueryString(asOfDate,familyPatNums,isWoAged,isHistoric,doAgePatPayPlanPayments,doIncludeProcNum:false,hasLifoProcNum:true)
-						+") trans "
-						+(isGroupByGuar?"INNER JOIN patient p ON p.PatNum=trans.PatNum ":"")
-						+"GROUP BY "+(isGroupByGuar?"p.Guarantor":"trans.PatNum")+",trans.LifoProcNum"
-					+") transbyproc "
-					+"GROUP BY transbyproc.PatNum";
-				command+=lifoSql;
+				command+="GROUP BY trans.PatNum";
 			}
-			if(isWoAged || isNegAdjAged) {
+			if(isWoAged || isNegAdjAged || isAgedByProc) {
 				command+=") transSums";
 			}
 			return command;
 		}
 
-		///<summary>Assumes the procedure in this LIFO chain has charges totaling a greater than or equal amount of total attached credits.
-		///Charges include the procfee as well as any attached transactions with positive amounts which are being considered.</summary>
-		private static string GetLifoBucketCase(string bucketAmt,string bucketFutureSum) {
-			return
-			"CASE "
-				//This bucket is a credit.  Amount will be added to an older/past bucket.
-				+"WHEN "+bucketAmt+" <= 0 THEN 0 "
-				//This bucket is a charge.  Adding future buckets results in a credit.  Combined sum will be added to an older/past bucket.
-				+"WHEN "+bucketAmt+"+"+bucketFutureSum+" <= 0 THEN 0 "
-				//This bucket is a charge.  Future bucket sum is positive (charge).  No effect on this bucket, only credits carry into past.
-				+"WHEN "+bucketFutureSum+">=0 THEN "+bucketAmt+" "
-				//This bucket is a charge.  Adding future sum will result in a net positive amount.  This bucket consumes the credit sum.
-				+"ELSE "+bucketAmt+"+"+bucketFutureSum+" "
-			+"END";
+		///<summary>Returns the transaction query string used in calculating aging.  string familyPatNums is usually a comma delimited list of PatNums for
+		///a family, but can be a comma delimited list of patients from many families or null/empty.  Returns the query string used to select the trans
+		///for calculating aging for the pats in the familyPatNums string.  If familyPatNums is null/empty the query string will be for all pats.</summary>
+		public static string GetTransQueryStringAgeByProc(DateTime asOfDate,string familyPatNums,bool isWoAged=false,bool isHistoric=false,
+			bool doAgePatPayPlanPayments=false,bool isAgedByProc=false)
+		{
+			if(!isAgedByProc) {
+				return GetTransQueryString(asOfDate,familyPatNums,isWoAged,isHistoric,doAgePatPayPlanPayments,false,false);
+			}
+			string tranType=
+				"(CASE "
+					+"WHEN tranbyproc.AgedProcNum=0 THEN tranbyproc.TranType "
+					+"ELSE 'SumByProcAndDate' "
+				+"END)";
+			string command="SELECT "+tranType+" TranType,0 PriKey,tranbyproc.PatNum,"
+				+"(CASE "
+					+"WHEN tranbyproc.AgedProcNum!=0 AND SUM(tranbyproc.TranAmount) < 0 THEN tranbyproc.AgedProcDate "
+					+"ELSE tranbyproc.TranDate "
+				+"END) TranDate,"
+				+"SUM(tranbyproc.TranAmount) TranAmount,"
+				+"SUM(tranbyproc.PayPlanAmount) PayPlanAmount,SUM(tranbyproc.InsWoEst) InsWoEst,SUM(tranbyproc.InsPayEst) InsPayEst "
+				+"FROM ("
+					+GetTransQueryString(asOfDate,familyPatNums,isWoAged,isHistoric,doAgePatPayPlanPayments,false,true)
+				+") tranbyproc "
+				+"GROUP BY tranbyproc.PatNum,tranbyproc.AgedProcNum,tranbyproc.TranDate,"+tranType+","
+					+"(CASE "
+						+"WHEN tranbyproc.AgedProcNum=0 AND tranbyproc.TranAmount >= 0 THEN 'credit' "
+						+"WHEN tranbyproc.AgedProcNum=0 AND tranbyproc.TranAmount < 0 THEN 'charge' "
+						+"ELSE 'SumByProcAndDate' "//When aging by proc, group flagged transactions together on the same day, regardless of credit/charge.
+					+"END)";
+			return command;
 		}
 
 		///<summary>Returns the transaction query string used in calculating aging.  string familyPatNums is usually a comma delimited list of PatNums for
 		///a family, but can be a comma delimited list of patients from many families or null/empty.  Returns the query string used to select the trans
 		///for calculating aging for the pats in the familyPatNums string.  If familyPatNums is null/empty the query string will be for all pats.</summary>
 		public static string GetTransQueryString(DateTime asOfDate,string familyPatNums,bool isWoAged=false,bool isHistoric=false,
-			bool doAgePatPayPlanPayments=false,bool doIncludeProcNum=false,bool hasLifoProcNum=false)
+			bool doAgePatPayPlanPayments=false,bool doIncludeProcNum=false,bool isAgedByProc=false)
 		{
 			//No need to check RemotingRole; no call to db.
 			string billInAdvanceDate;
@@ -504,7 +423,7 @@ namespace OpenDentBusiness{
 			string command="";
 			#region Completed Procs
 			command+="SELECT 'Proc' TranType,pl.ProcNum PriKey,pl.PatNum,pl.ProcDate TranDate,pl.ProcFee*(pl.UnitQty+pl.BaseUnits) TranAmount,"
-				+"0 PayPlanAmount,0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",pl.ProcNum":"")+(hasLifoProcNum?",pl.ProcNum LifoProcNum":"")+" "
+				+"0 PayPlanAmount,0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",pl.ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 				+"FROM procedurelog pl "
 				+"WHERE pl.ProcStatus=2 "
 				+"AND pl.ProcFee != 0 "
@@ -524,7 +443,7 @@ namespace OpenDentBusiness{
 					+"THEN cp.WriteOff ELSE 0 END)"))+" InsWoEst,"//writeoff
 				+"(CASE WHEN "+(isHistoric?("cp.ProcDate <= "+asOfDateStr+" "//historic=NotRcvd OR Rcvd and DateCp>asOfDate
 					+"AND (cp.Status = 0 OR (cp.Status = 1 AND cp.DateCP > "+asOfDateStr+"))"):"cp.Status = 0")+" "//not historic=NotReceived
-					+"THEN cp.InsPayEst ELSE 0 END) InsPayEst"+(doIncludeProcNum?",cp.ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "//inspayest
+					+"THEN cp.InsPayEst ELSE 0 END) InsPayEst"+(doIncludeProcNum?",cp.ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "//inspayest
 				+"FROM claimproc cp "
 				+(payPlanVersionCur==PayPlanVersions.AgeCreditsAndDebits?"LEFT JOIN payplan pp ON cp.PayPlanNum=pp.PayPlanNum ":"")
 				+"WHERE cp.status IN (0,1,4,5,7) "//NotReceived,Received,Supplemental,CapClaim,CapComplete
@@ -547,7 +466,7 @@ namespace OpenDentBusiness{
 					+"(CASE WHEN "+(isHistoric?("cp.ProcDate <= "+asOfDateStr+" "//historic=ProcDate<=asOfDate and either NotRcvd OR Rcvd with DateCp>asOfDate
 						+"AND (cp.Status = 0 OR (cp.Status = 1 AND cp.DateCP > "+asOfDateStr+")) "):"cp.Status = 0 ")//not historic=NotReceived
 						+"THEN cp.Writeoff - COALESCE(CASE WHEN css.Writeoff=-1 THEN 0 ELSE css.Writeoff END,0) ELSE 0 END) InsWoEst,"
-					+"0 InsPayEst"+(doIncludeProcNum?",cp.ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "
+					+"0 InsPayEst"+(doIncludeProcNum?",cp.ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 					+"FROM claimproc cp "
 					+"LEFT JOIN claimsnapshot css ON cp.ClaimProcNum=css.ClaimProcNum "
 					+"WHERE cp.status IN (0,1,4,5,7) "//NotReceived,Received,Supplemental,CapClaim,CapComplete
@@ -558,7 +477,7 @@ namespace OpenDentBusiness{
 					+"SELECT 'Writeoff' TranType,cp.ClaimProcNum PriKey,cp.PatNum,cp.DateCP TranDate,"//use DateCP
 					//If Rcvd and snapshot exists, age claimproc w/o - snapshot w/o (delta)
 					+"-(cp.Writeoff - (CASE WHEN css.Writeoff = -1 THEN 0 ELSE css.Writeoff END)) TranAmount,"
-					+"0 PayPlanAmount,0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",cp.ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "
+					+"0 PayPlanAmount,0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",cp.ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 					+"FROM claimproc cp "
 					+"INNER JOIN claimsnapshot css ON cp.ClaimProcNum=css.ClaimProcNum "
 					+"WHERE cp.status IN (1,4,5,7) "//Received,Supplemental,CapClaim,CapComplete
@@ -570,7 +489,7 @@ namespace OpenDentBusiness{
 			command+="UNION ALL "
 			#region Adjustments
 				+"SELECT 'Adj' TranType,a.AdjNum PriKey,a.PatNum,a.AdjDate TranDate,a.AdjAmt TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
-				+(doIncludeProcNum?",a.ProcNum":"")+(hasLifoProcNum?",a.ProcNum LifoProcNum":"")+" "
+				+(doIncludeProcNum?",a.ProcNum":"")+(isAgedByProc?",a.ProcNum AgedProcNum,a.ProcDate AgedProcDate":"")+" "
 				+"FROM adjustment a "
 				+"WHERE a.AdjAmt != 0 "
 				+(isAllPats?"":("AND a.PatNum IN ("+familyPatNums+") "))
@@ -592,7 +511,7 @@ namespace OpenDentBusiness{
 				+"(CASE WHEN ps.PayPlanNum != 0 "
 					+(payPlanVersionCur==PayPlanVersions.AgeCreditsAndDebits?"AND COALESCE(pp.IsClosed,0)=0 ":"") //ignore closed payment plans on v2
 					+"THEN -ps.SplitAmt ELSE 0 END) PayPlanAmount,"//Paysplits attached to payment plans
-					+"0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",ps.ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "
+					+"0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",ps.ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 				+"FROM paysplit ps "
 				+(payPlanVersionCur==PayPlanVersions.AgeCreditsAndDebits?"LEFT JOIN payplan pp ON ps.PayPlanNum=pp.PayPlanNum ":"")
 				+"WHERE ps.SplitAmt != 0 ";
@@ -613,7 +532,7 @@ namespace OpenDentBusiness{
 				else {
 					command+="COALESCE(ppc.Principal+ppc.Interest,0) PayPlanAmount,";
 				}
-				command+="0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",0 ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "
+				command+="0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",0 ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 				+"FROM payplancharge ppc "
 				+(payPlanVersionCur==PayPlanVersions.AgeCreditsAndDebits?"LEFT JOIN payplan pp ON ppc.PayPlanNum=pp.PayPlanNum ":"")
 				+"WHERE ppc.ChargeDate <= "+billInAdvanceDate+" "//accounts for historic vs current because of how it's set above
@@ -628,7 +547,7 @@ namespace OpenDentBusiness{
 				//if aging patient payplan payments, don't age the CompletedAmt or it will duplicate the credits aged
 				command+="UNION ALL "
 					+"SELECT 'PPComplete' TranType,pp.PayPlanNum PriKey,pp.PatNum,pp.PayPlanDate TranDate,-pp.CompletedAmt TranAmount,"
-					+"0 PayPlanAmount,0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",0 ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "
+					+"0 PayPlanAmount,0 InsWoEst,0 InsPayEst"+(doIncludeProcNum?",0 ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 					+"FROM payplan pp "
 					+"WHERE pp.CompletedAmt != 0 "
 					+(isAllPats?"":("AND pp.PatNum IN ("+familyPatNums+") "));
@@ -645,9 +564,11 @@ namespace OpenDentBusiness{
 					+"(CASE WHEN ppc.ChargeType != "+POut.Int((int)PayPlanChargeType.Debit)+" THEN -ppc.Principal "
 						+"WHEN pp.PlanNum=0 THEN ppc.Principal+ppc.Interest ELSE 0 END) TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
 					+(doIncludeProcNum?",0 ProcNum":"")
-					+(hasLifoProcNum?",(CASE WHEN ppc.ChargeType="+POut.Int((int)PayPlanChargeType.Credit)+" THEN ppc.ProcNum ELSE 0 END) LifoProcNum":"")+" "
+					+(isAgedByProc?",(CASE WHEN ppc.ChargeType="+POut.Int((int)PayPlanChargeType.Credit)+" THEN ppc.ProcNum ELSE 0 END) AgedProcNum":"")+" "
+					+(isAgedByProc?",pl.ProcDate AgedProcDate":"")+" "
 					+"FROM payplancharge ppc "
 					+"LEFT JOIN payplan pp ON pp.PayPlanNum=ppc.PayPlanNum "
+					+(isAgedByProc?"LEFT JOIN procedurelog pl ON pl.ProcNum=ppc.ProcNum ":"")
 					+"WHERE ppc.ChargeDate <= "+asOfDateStr+" "
 					+(isAllPats?"":("AND (CASE WHEN ppc.ChargeType = "+POut.Int((int)PayPlanChargeType.Debit)+" THEN ppc.Guarantor ELSE ppc.PatNum end) IN ("+familyPatNums+") "));
 			}
@@ -658,9 +579,10 @@ namespace OpenDentBusiness{
 				command+="UNION ALL "
 					+"SELECT 'PPCComplete' TranType,ppc.PayPlanChargeNum PriKey,ppc.PatNum,ppc.ChargeDate TranDate,"
 					+"-ppc.Principal TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
-					+(doIncludeProcNum?",0 ProcNum":"")+(hasLifoProcNum?",ppc.ProcNum LifoProcNum":"")+" "
+					+(doIncludeProcNum?",0 ProcNum":"")+(isAgedByProc?",ppc.ProcNum AgedProcNum,pl.ProcDate AgedProcDate":"")+" "
 					+"FROM payplancharge ppc "
 					+"LEFT JOIN payplan pp ON pp.PayPlanNum=ppc.PayPlanNum "
+					+(isAgedByProc?"LEFT JOIN procedurelog pl ON pl.ProcNum=ppc.ProcNum ":"")
 					+"WHERE ppc.ChargeDate <= "+asOfDateStr+" "
 					+"AND ppc.ChargeType = "+POut.Int((int)PayPlanChargeType.Credit)+" "
 					+(isAllPats?"":("AND ppc.PatNum IN ("+familyPatNums+") "));
@@ -677,7 +599,7 @@ namespace OpenDentBusiness{
 				//get all family PatNums in case there are no transactions for the family in order to clear out the family balance
 				command+="UNION ALL "
 					+"SELECT 'FamPatNums' TranType,PatNum PriKey,PatNum,NULL TranDate,0 TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
-					+(doIncludeProcNum?",0 ProcNum":"")+(hasLifoProcNum?",0 LifoProcNum":"")+" "
+					+(doIncludeProcNum?",0 ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 					+"FROM patient "
 					+"WHERE PatNum IN ("+familyPatNums+")";
 			}

@@ -81,9 +81,9 @@ namespace UnitTests.Ledgers_Tests {
 			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
 			Adjustment adj55=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-55),proc85.ProcDate,proc85.ProcNum);
 			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-8,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
-			CheckAgingProcLifo(pat.PatNum,0,2,100,0,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,10,92,0,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,0,10,92,0,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,0,10,92,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,0,10,92,0,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -95,7 +95,7 @@ namespace UnitTests.Ledgers_Tests {
 			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-100,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
 			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -107,7 +107,7 @@ namespace UnitTests.Ledgers_Tests {
 			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-100,DateTime.Today.AddDays(-2));
 			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -119,7 +119,7 @@ namespace UnitTests.Ledgers_Tests {
 			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-100,DateTime.Today.AddDays(-2),proc55.ProcDate,proc55.ProcNum);
 			CheckAgingProcLifo(pat.PatNum,0,50,100,0,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,0,150,0,0,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -130,9 +130,9 @@ namespace UnitTests.Ledgers_Tests {
 			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
 			Adjustment adj40=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
 			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,-800,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
-			CheckAgingProcLifo(pat.PatNum,0,0,0,310,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,10,0,300,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -146,9 +146,9 @@ namespace UnitTests.Ledgers_Tests {
 			Adjustment adj2_1=AdjustmentT.MakeAdjustment(pat.PatNum,-200,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
 			Adjustment adj2_2=AdjustmentT.MakeAdjustment(pat.PatNum,-250,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
 			Adjustment adj2_3=AdjustmentT.MakeAdjustment(pat.PatNum,-350,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
-			CheckAgingProcLifo(pat.PatNum,0,0,0,310,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,0,10,0,300,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,0,10,100,200,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -159,9 +159,22 @@ namespace UnitTests.Ledgers_Tests {
 			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
 			Adjustment adj40=AdjustmentT.MakeAdjustment(pat.PatNum,-800,DateTime.Today.AddDays(-40),proc85.ProcDate,proc85.ProcNum);
 			Adjustment adj2=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
-			CheckAgingProcLifo(pat.PatNum,0,0,0,310,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,10,0,0,300,0,YN.Yes);
 			CheckAgingProcLifo(pat.PatNum,10,0,100,200,0,YN.No);
-			CheckAgingProcLifo(pat.PatNum,10,0,100,200,0,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+			CheckAgingProcLifo(pat.PatNum,10,0,100,200,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
+		}
+
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_Case6() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case6",suffix:suffix);
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",1000,DateTime.Today.AddDays(-95));
+			Procedure proc85=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-85));
+			Adjustment adj2_1=AdjustmentT.MakeAdjustment(pat.PatNum,10,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			Adjustment adj2_2=AdjustmentT.MakeAdjustment(pat.PatNum,-30,DateTime.Today.AddDays(-2),proc85.ProcDate,proc85.ProcNum);
+			CheckAgingProcLifo(pat.PatNum,0,0,80,1000,0,YN.Yes);
+			CheckAgingProcLifo(pat.PatNum,10,0,100,970,0,YN.No);
+			CheckAgingProcLifo(pat.PatNum,10,0,100,970,0,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 		}
 
 		[TestMethod]
@@ -254,7 +267,7 @@ namespace UnitTests.Ledgers_Tests {
 				PrefT.UpdateInt(PrefName.PayPlansVersion,(int)PayPlanVersions.AgeCreditsAndDebits);
 				CheckAgingProcLifo(pat.PatNum,166.67,166.67,166.67,333.34,833.35,YN.Yes);
 				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.No);
-				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 			}
 			finally {
 				PrefT.UpdateInt(PrefName.PayPlansVersion,payPlansVersionPrev);
@@ -285,7 +298,7 @@ namespace UnitTests.Ledgers_Tests {
 				PrefT.UpdateInt(PrefName.PayPlansVersion,(int)PayPlanVersions.AgeCreditsAndDebits);
 				CheckAgingProcLifo(pat.PatNum,166.67,166.67,166.67,333.34,833.35,YN.Yes);
 				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.No);
-				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.Unknown);//Unset will to behave the same as Off for now, until we change default behavior in future.
+				CheckAgingProcLifo(pat.PatNum,166.67,288.41,288.41,89.86,833.35,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
 			}
 			finally {
 				PrefT.UpdateInt(PrefName.PayPlansVersion,payPlansVersionPrev);
