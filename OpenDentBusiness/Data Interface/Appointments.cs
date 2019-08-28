@@ -518,8 +518,12 @@ namespace OpenDentBusiness{
 			table.Columns.Add("aptDay");
 			table.Columns.Add("aptLength");
 			table.Columns.Add("aptTime");
-			table.Columns.Add("AptDateTime");
-			table.Columns.Add("AptDateTimeArrived");
+			//DataTables are documented as not being thread-safe for write operations.  Even with locking the creation/addition of each row, occasionally
+			//data is not correctly written to the DataRow, most notably when converting a DateTime to a string (previous behavior).  Setting the type on 
+			//these two columns greately reduces the frequency that these columns are not set correctly if there is a collision when each row is built 
+			//asynchronously.  
+			table.Columns.Add("AptDateTime",typeof(DateTime));
+			table.Columns.Add("AptDateTimeArrived",typeof(DateTime));
 			table.Columns.Add("AptNum");
 			table.Columns.Add("AptStatus");
 			table.Columns.Add("Priority");
@@ -878,8 +882,17 @@ namespace OpenDentBusiness{
 					}
 					aptDate=PIn.DateT(rowRaw["apptAptDateTime"].ToString());
 					aptDateArrived=PIn.DateT(rowRaw["apptAptDateTimeArrived"].ToString());
-					row["AptDateTime"]=aptDate;
-					row["AptDateTimeArrived"]=aptDateArrived;
+					void trySetDateTime(string field,DateTime dateTime,int limit=10) {
+						int attempts=1;
+						row[field]=dateTime;
+						while(PIn.DateT(row[field].ToString())!=dateTime && attempts<=limit) {
+							//In the event of an asynchronous collision that caused this field to not be set correctly, re-attempt a limited number of times.
+							row[field]=dateTime;
+							attempts++;
+						}
+					}
+					trySetDateTime("AptDateTime",aptDate);
+					trySetDateTime("AptDateTimeArrived",aptDateArrived);
 					birthdate=PIn.Date(rowRaw["patBirthdate"].ToString());
 					DateTime dateTimeDeceased=PIn.Date(rowRaw["patDateTimeDeceased"].ToString());
 					DateTime dateTimeTo=DateTime.Now;
@@ -1176,7 +1189,23 @@ namespace OpenDentBusiness{
 					}
 				}));
 			}
-			CodeBase.ODThread.RunParallel(actions,TimeSpan.FromMinutes(1));
+			if(actions.Count<=500) {
+				//Per https://docs.microsoft.com/en-us/dotnet/api/system.data.datatable?view=netframework-4.8, DataTable is not thread-safe for write 
+				//operations.  Even with locking the creation/addition of the DataRow, simply writing to various fields has been shown to occasionally drop
+				//data.  In the case of B16298, this resulted in appointments disappearing from view due to AptDateTime field not being set.  Building each 
+				//DataRow synchronously avoids the issue with DataTable thread safety.  Additionally, testing has shown that for fewer than 500 rows, it is 
+				//faster to run synchronously.  Most ApptViews are expected to result in this DataTable containing fewer than 500 rows, which correlates to 
+				//an ApptView with 20 operatories with 25 appointments per operatory.
+				actions.ForEach(x => x());
+			}
+			else {
+				//However, there are valid scenarios where a large customer may have a very large DataTable being built here.  Synchronously building each
+				//row results in unacceptable slowness in this method, and was the original reason these actions were threaded.  Setting the type on the 
+				//AptDateTime and AptDateTimeArrived fields has been shown to dramatically, but not fully, reduce the occurrence of dropped data.  Logic has
+				//been added in the individual actions to attempt to validate/reset AptDateTime and AtpDateTimeArrived when these fields are not set 
+				//correctly.
+				ODThread.RunParallel(actions,TimeSpan.FromMinutes(1));
+			}
 			return table;
 		}
 
