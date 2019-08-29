@@ -191,15 +191,15 @@ namespace OpenDental {
 			gridMobileAppDevices.BeginUpdate();
 			//Columns
 			gridMobileAppDevices.Columns.Clear();
-			gridMobileAppDevices.AddColumn("Device Name",100);
-			gridMobileAppDevices.AddColumn("Last Attempt",135);
-			gridMobileAppDevices.AddColumn("Last Login",135);
+			gridMobileAppDevices.AddColumn("Device Name",0);
+			gridMobileAppDevices.AddColumn("Last Attempt",0);
+			gridMobileAppDevices.AddColumn("Last Login",0);
 			if(PrefC.HasClinicsEnabled) {
-				gridMobileAppDevices.AddColumn("Clinic",140);
+				gridMobileAppDevices.AddColumn("Clinic",0);
 			}
 			gridMobileAppDevices.Columns.Add(new ODGridColumn("Enabled",50,HorizontalAlignment.Center));
 			if(_eClipboardAllowEdit) {
-				gridMobileAppDevices.Columns.Add(new ODGridColumn("Delete",40,HorizontalAlignment.Center));
+				gridMobileAppDevices.Columns.Add(new ODGridColumn("Delete",45,HorizontalAlignment.Center));
 			}
 			//Rows
 			gridMobileAppDevices.Rows.Clear();
@@ -209,7 +209,7 @@ namespace OpenDental {
 			}
 			foreach(MobileAppDevice device in listDevicesToShow) {
 				ODGridRow row=new ODGridRow();
-				row.Cells.Add(device.DeviceName);
+				row.Cells.Add(device.DeviceName+"\r\n("+device.UniqueID+")");
 				row.Cells.Add((device.LastAttempt.Year > 1880 ? device.LastAttempt.ToString() : ""));
 				row.Cells.Add((device.LastLogin.Year > 1880 ? device.LastLogin.ToString() : ""));
 				if(PrefC.HasClinicsEnabled) {
