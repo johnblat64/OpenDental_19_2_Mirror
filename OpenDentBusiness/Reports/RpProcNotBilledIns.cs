@@ -15,15 +15,15 @@ namespace OpenDentBusiness {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetTable(MethodBase.GetCurrentMethod(),listClinicNums,includeMedProcs,dateStart,dateEnd,showProcsBeforeIns,hasMultiVisitProcs);
 			}
-			string query="SELECT PatientName,Stat,ProcDate,Descript,procFee,ProcNum,ClinicNum,PatNum "
-				+"FROM (SELECT ";
+			string query="SELECT ";
 			if(PrefC.GetBool(PrefName.ReportsShowPatNum)) {
-				query+=DbHelper.Concat("CAST(patient.PatNum AS CHAR)","'-'","patient.LName","', '","patient.FName","' '","patient.MiddleI");
+				query+=DbHelper.Concat("CAST(PatNum AS CHAR)","'-'","LName","', '","FName","' '","MiddleI");
 			}
 			else {
-				query+=DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI");
+				query+=DbHelper.Concat("LName","', '","FName","' '","MiddleI");
 			}
-			query+=" AS 'PatientName',"
+			query+=" AS 'PatientName',Stat,ProcDate,Descript,procFee,ProcNum,ClinicNum,PatNum "
+				+"FROM (SELECT patient.LName,patient.FName,patient.MiddleI,"
 				+"CASE WHEN procmultivisit.ProcMultiVisitNum IS NULL "
 					+"THEN '"+Lans.g("enumProcStat",ProcStat.C.ToString())+"' ELSE '"+Lans.g("enumProcStat",ProcStatExt.InProcess)+"' END Stat,"
 				+"procedurelog.ProcDate,procedurecode.Descript,procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits) procFee,"
@@ -53,7 +53,6 @@ namespace OpenDentBusiness {
 				query+="AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
 			}
 			query+="GROUP BY procedurelog.ProcNum "
-				+"ORDER BY patient.LName,patient.FName,patient.PatNum,procedurelog.ProcDate"
 				+") procnotbilled ";//End of the main query which is treated like a sub query in order to process includeMedProcs and showProcsBeforeIns.
 			//Having the "AND insplan.IsMedical=0" check within the WHERE clause of the main query causes slowness for large databases.
 			//MySQL will freak out when looking for what index to use which causes full row scans to take place instead of simply filtering the results.
@@ -67,6 +66,7 @@ namespace OpenDentBusiness {
 				}
 				query+=") ";
 			}
+			query+="ORDER BY LName,FName,PatNum,ProcDate";
 			return Db.GetTable(query);
 		}
 
