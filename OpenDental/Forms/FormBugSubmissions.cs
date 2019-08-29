@@ -417,7 +417,7 @@ namespace OpenDental {
 					&& ((!string.IsNullOrWhiteSpace(msgText)&&!sub.ExceptionMessageText.ToLower().Contains(msgText.ToLower()))
 					||(listSelectedPatNames.Count!=0 && !listSelectedPatNames.Contains(_dictPatients.ContainsKey(sub.RegKey)?_dictPatients[sub.RegKey].GetNameLF():sub.RegKey))
 					||(listStackFilters.Count!=0 && !listStackFilters.Exists(x => sub.ExceptionStackTrace.ToLower().Contains(x)))
-					||(listPatNumFilters.Count!=0 && !listPatNumFilters.Exists(x => x==_dictPatients[sub.RegKey].PatNum.ToString()))
+					||(listPatNumFilters.Count!=0 && (!_dictPatients.ContainsKey(sub.RegKey) || !listPatNumFilters.Exists(x => x==_dictPatients[sub.RegKey].PatNum.ToString())))
 					||(sub.BugId!=0 && !listShowHideOptions.GetSelected(1))
 					||(!listShowHideOptions.GetSelected(0) && _dictPatients.ContainsKey(sub.RegKey) && (_dictPatients[sub.RegKey].BillingType==436||_dictPatients[sub.RegKey].PatNum==1486))//436 is "Internal Use" def, 1486 is HQ patNum.
 					||(hasVersionsSelected && !sub.IsMobileSubmission && !listSelectedVersions.Contains(sub.ProgramVersion.SubstringBefore('.',2)))
