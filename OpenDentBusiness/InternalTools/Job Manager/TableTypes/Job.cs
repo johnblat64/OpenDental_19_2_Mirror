@@ -120,6 +120,8 @@ namespace OpenDentBusiness {
 		///<summary>The time it took to test the job.</summary>
 		[CrudColumn(SpecialType=CrudSpecialColType.TimeSpanLong),XmlIgnore]
 		public TimeSpan TimeTesting;
+		///<summary>Used to mark a job as not tested.</summary>
+		public bool IsNotTested;
 
 		//The following variables should be filled by the class that uses them, not filled from an S class.
 		//Just a convenient way to package a job for passing around in the job manager.

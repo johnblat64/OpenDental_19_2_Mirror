@@ -1001,6 +1001,9 @@ namespace OpenDental {
 					if(job.DateTimeTested.Year>1880 && checkHideTested.Checked) {
 						continue;
 					}
+					if(job.IsNotTested && checkHideNotTested.Checked) {
+						continue;
+					}
 					Def jobPriority=_listJobPriorities.FirstOrDefault(y => y.DefNum==job.PriorityTesting)??new Def() { ItemName="",ItemColor=Color.Empty };
 					gridTesting.Rows.Add(
 						new ODGridRow(
@@ -2550,6 +2553,9 @@ namespace OpenDental {
 		}
 
 		public static void OpenNonModalJob(Job job,List<Job> listJobs) {
+			if(job==null) {//Double clicking on a title row, or something went wrong.
+				return;
+			}
 			FormJobEdit FormJE=_listJobEditForms.FirstOrDefault(x=> x.JobCur.JobNum==job.JobNum);
 			if(FormJE==null) {
 				FormJE=new FormJobEdit(job,listJobs);
@@ -2603,6 +2609,10 @@ namespace OpenDental {
 		}
 
 		private void checkHideTested_CheckedChanged(object sender,EventArgs e) {
+			FillActiveTabGrid();
+		}
+
+		private void checkHideNotTested_CheckedChanged(object sender,EventArgs e) {
 			FillActiveTabGrid();
 		}
 

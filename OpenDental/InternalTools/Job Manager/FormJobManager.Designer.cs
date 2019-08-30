@@ -33,26 +33,21 @@
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.tabControlNav = new System.Windows.Forms.TabControl();
 			this.tabPatternReview = new System.Windows.Forms.TabPage();
-			this.gridPatternReview = new OpenDental.UI.ODGrid();
 			this.tabAction = new System.Windows.Forms.TabPage();
 			this.label15 = new System.Windows.Forms.Label();
 			this.comboProposedVersionNeedsAction = new System.Windows.Forms.ComboBox();
 			this.checkShowUnassigned = new System.Windows.Forms.CheckBox();
-			this.gridAction = new OpenDental.UI.ODGrid();
 			this.tabSpecialProjects = new System.Windows.Forms.TabPage();
 			this.checkShowUnassignedSpecial = new System.Windows.Forms.CheckBox();
-			this.gridSpecial = new OpenDental.UI.ODGrid();
 			this.tabDocumentation = new System.Windows.Forms.TabPage();
 			this.label1 = new System.Windows.Forms.Label();
 			this.textDocumentationVersion = new System.Windows.Forms.TextBox();
-			this.gridDocumentation = new OpenDental.UI.ODGrid();
 			this.tabTesting = new System.Windows.Forms.TabPage();
 			this.butTestingRefresh = new OpenDental.UI.Button();
 			this.checkShowAllUsers = new System.Windows.Forms.CheckBox();
 			this.checkHideTested = new System.Windows.Forms.CheckBox();
 			this.label3 = new System.Windows.Forms.Label();
 			this.textVersionText = new System.Windows.Forms.TextBox();
-			this.gridTesting = new OpenDental.UI.ODGrid();
 			this.tabQuery = new System.Windows.Forms.TabPage();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.butQueriesRefresh = new OpenDental.UI.Button();
@@ -62,24 +57,17 @@
 			this.dateFrom = new System.Windows.Forms.DateTimePicker();
 			this.checkShowQueryComplete = new System.Windows.Forms.CheckBox();
 			this.checkShowQueryCancelled = new System.Windows.Forms.CheckBox();
-			this.gridQueries = new OpenDental.UI.ODGrid();
 			this.tabNotify = new System.Windows.Forms.TabPage();
-			this.gridNotify = new OpenDental.UI.ODGrid();
 			this.tabSubscribed = new System.Windows.Forms.TabPage();
 			this.checkSubscribedIncludeOnHold = new System.Windows.Forms.CheckBox();
-			this.gridSubscribedJobs = new OpenDental.UI.ODGrid();
 			this.tabNeedsEngineer = new System.Windows.Forms.TabPage();
 			this.label7 = new System.Windows.Forms.Label();
 			this.comboProposedVersionNeedsEngineer = new System.Windows.Forms.ComboBox();
-			this.gridAvailableJobs = new OpenDental.UI.ODGrid();
 			this.tabNeedsExpert = new System.Windows.Forms.TabPage();
 			this.label8 = new System.Windows.Forms.Label();
 			this.comboProposedVersionNeedsExpert = new System.Windows.Forms.ComboBox();
-			this.gridAvailableJobsExpert = new OpenDental.UI.ODGrid();
 			this.tabOnHold = new System.Windows.Forms.TabPage();
-			this.gridJobsOnHold = new OpenDental.UI.ODGrid();
 			this.tabSearch = new System.Windows.Forms.TabPage();
-			this.gridSearch = new OpenDental.UI.ODGrid();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
 			this.label12 = new System.Windows.Forms.Label();
 			this.comboProposedVersionSearch = new System.Windows.Forms.ComboBox();
@@ -121,6 +109,19 @@
 			this.butBack = new OpenDental.UI.Button();
 			this.butForward = new OpenDental.UI.Button();
 			this.butRefresh = new OpenDental.UI.Button();
+			this.gridPatternReview = new OpenDental.UI.ODGrid();
+			this.gridAction = new OpenDental.UI.ODGrid();
+			this.gridSpecial = new OpenDental.UI.ODGrid();
+			this.gridDocumentation = new OpenDental.UI.ODGrid();
+			this.gridTesting = new OpenDental.UI.ODGrid();
+			this.gridQueries = new OpenDental.UI.ODGrid();
+			this.gridNotify = new OpenDental.UI.ODGrid();
+			this.gridSubscribedJobs = new OpenDental.UI.ODGrid();
+			this.gridAvailableJobs = new OpenDental.UI.ODGrid();
+			this.gridAvailableJobsExpert = new OpenDental.UI.ODGrid();
+			this.gridJobsOnHold = new OpenDental.UI.ODGrid();
+			this.gridSearch = new OpenDental.UI.ODGrid();
+			this.checkHideNotTested = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
 			this.splitContainer1.Panel1.SuspendLayout();
 			this.splitContainer1.Panel2.SuspendLayout();
@@ -234,38 +235,16 @@
 			this.tabPatternReview.Text = "Pattern Review";
 			this.tabPatternReview.UseVisualStyleBackColor = true;
 			// 
-			// gridPatternReview
-			// 
-			this.gridPatternReview.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridPatternReview.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridPatternReview.HasAddButton = false;
-			this.gridPatternReview.HasDropDowns = false;
-			this.gridPatternReview.HasMultilineHeaders = true;
-			this.gridPatternReview.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridPatternReview.HeaderHeight = 15;
-			this.gridPatternReview.HScrollVisible = false;
-			this.gridPatternReview.Location = new System.Drawing.Point(3, 3);
-			this.gridPatternReview.Name = "gridPatternReview";
-			this.gridPatternReview.ScrollValue = 0;
-			this.gridPatternReview.ShowContextMenu = false;
-			this.gridPatternReview.Size = new System.Drawing.Size(343, 699);
-			this.gridPatternReview.TabIndex = 239;
-			this.gridPatternReview.Title = "Jobs For Review";
-			this.gridPatternReview.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridPatternReview.TitleHeight = 18;
-			this.gridPatternReview.TranslationName = "FormJobManager";
-			this.gridPatternReview.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridPatternReview_CellClick);
-			// 
 			// tabAction
 			// 
 			this.tabAction.Controls.Add(this.label15);
 			this.tabAction.Controls.Add(this.comboProposedVersionNeedsAction);
 			this.tabAction.Controls.Add(this.checkShowUnassigned);
 			this.tabAction.Controls.Add(this.gridAction);
-			this.tabAction.Location = new System.Drawing.Point(4, 58);
+			this.tabAction.Location = new System.Drawing.Point(4, 22);
 			this.tabAction.Name = "tabAction";
 			this.tabAction.Padding = new System.Windows.Forms.Padding(3);
-			this.tabAction.Size = new System.Drawing.Size(349, 705);
+			this.tabAction.Size = new System.Drawing.Size(349, 741);
 			this.tabAction.TabIndex = 0;
 			this.tabAction.Text = "Needs Action";
 			this.tabAction.UseVisualStyleBackColor = true;
@@ -301,40 +280,14 @@
 			this.checkShowUnassigned.UseVisualStyleBackColor = true;
 			this.checkShowUnassigned.CheckedChanged += new System.EventHandler(this.comboUser_SelectionChangeCommitted);
 			// 
-			// gridAction
-			// 
-			this.gridAction.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridAction.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridAction.HasAddButton = false;
-			this.gridAction.HasDropDowns = false;
-			this.gridAction.HasMultilineHeaders = true;
-			this.gridAction.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridAction.HeaderHeight = 15;
-			this.gridAction.HScrollVisible = false;
-			this.gridAction.Location = new System.Drawing.Point(3, 31);
-			this.gridAction.Name = "gridAction";
-			this.gridAction.ScrollValue = 0;
-			this.gridAction.ShowContextMenu = false;
-			this.gridAction.Size = new System.Drawing.Size(343, 671);
-			this.gridAction.TabIndex = 227;
-			this.gridAction.Title = "Action Items";
-			this.gridAction.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridAction.TitleHeight = 18;
-			this.gridAction.TranslationName = "FormJobManager";
-			this.gridAction.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAction_CellDoubleClick);
-			this.gridAction.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAction_CellClick);
-			this.gridAction.MouseMove += new System.Windows.Forms.MouseEventHandler(this.gridAction_MouseMove);
-			// 
 			// tabSpecialProjects
 			// 
 			this.tabSpecialProjects.Controls.Add(this.checkShowUnassignedSpecial);
 			this.tabSpecialProjects.Controls.Add(this.gridSpecial);
-			this.tabSpecialProjects.Location = new System.Drawing.Point(4, 58);
+			this.tabSpecialProjects.Location = new System.Drawing.Point(4, 22);
 			this.tabSpecialProjects.Name = "tabSpecialProjects";
 			this.tabSpecialProjects.Padding = new System.Windows.Forms.Padding(3);
-			this.tabSpecialProjects.Size = new System.Drawing.Size(349, 705);
+			this.tabSpecialProjects.Size = new System.Drawing.Size(349, 741);
 			this.tabSpecialProjects.TabIndex = 11;
 			this.tabSpecialProjects.Text = "Special Projects";
 			this.tabSpecialProjects.UseVisualStyleBackColor = true;
@@ -352,40 +305,15 @@
 			this.checkShowUnassignedSpecial.UseVisualStyleBackColor = true;
 			this.checkShowUnassignedSpecial.CheckedChanged += new System.EventHandler(this.comboUser_SelectionChangeCommitted);
 			// 
-			// gridSpecial
-			// 
-			this.gridSpecial.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridSpecial.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridSpecial.HasAddButton = false;
-			this.gridSpecial.HasDropDowns = false;
-			this.gridSpecial.HasMultilineHeaders = true;
-			this.gridSpecial.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridSpecial.HeaderHeight = 15;
-			this.gridSpecial.HScrollVisible = false;
-			this.gridSpecial.Location = new System.Drawing.Point(3, 31);
-			this.gridSpecial.Name = "gridSpecial";
-			this.gridSpecial.ScrollValue = 0;
-			this.gridSpecial.ShowContextMenu = false;
-			this.gridSpecial.Size = new System.Drawing.Size(343, 671);
-			this.gridSpecial.TabIndex = 239;
-			this.gridSpecial.Title = "Action Items";
-			this.gridSpecial.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridSpecial.TitleHeight = 18;
-			this.gridSpecial.TranslationName = "FormTaskEdit";
-			this.gridSpecial.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSpecial_CellDoubleClick);
-			this.gridSpecial.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSpecial_CellClick);
-			// 
 			// tabDocumentation
 			// 
 			this.tabDocumentation.Controls.Add(this.label1);
 			this.tabDocumentation.Controls.Add(this.textDocumentationVersion);
 			this.tabDocumentation.Controls.Add(this.gridDocumentation);
-			this.tabDocumentation.Location = new System.Drawing.Point(4, 58);
+			this.tabDocumentation.Location = new System.Drawing.Point(4, 22);
 			this.tabDocumentation.Name = "tabDocumentation";
 			this.tabDocumentation.Padding = new System.Windows.Forms.Padding(3);
-			this.tabDocumentation.Size = new System.Drawing.Size(349, 705);
+			this.tabDocumentation.Size = new System.Drawing.Size(349, 741);
 			this.tabDocumentation.TabIndex = 6;
 			this.tabDocumentation.Text = "Documentation";
 			this.tabDocumentation.UseVisualStyleBackColor = true;
@@ -409,32 +337,9 @@
 			this.textDocumentationVersion.TabIndex = 243;
 			this.textDocumentationVersion.TextChanged += new System.EventHandler(this.textDocumentationVersion_TextChanged);
 			// 
-			// gridDocumentation
-			// 
-			this.gridDocumentation.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridDocumentation.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridDocumentation.HasAddButton = false;
-			this.gridDocumentation.HasDropDowns = false;
-			this.gridDocumentation.HasMultilineHeaders = true;
-			this.gridDocumentation.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridDocumentation.HeaderHeight = 15;
-			this.gridDocumentation.HScrollVisible = false;
-			this.gridDocumentation.Location = new System.Drawing.Point(3, 26);
-			this.gridDocumentation.Name = "gridDocumentation";
-			this.gridDocumentation.ScrollValue = 0;
-			this.gridDocumentation.Size = new System.Drawing.Size(343, 675);
-			this.gridDocumentation.TabIndex = 239;
-			this.gridDocumentation.Title = "Action Items";
-			this.gridDocumentation.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridDocumentation.TitleHeight = 18;
-			this.gridDocumentation.TranslationName = "FormTaskEdit";
-			this.gridDocumentation.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridDocumentation_CellDoubleClick);
-			this.gridDocumentation.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridDocumention_CellClick);
-			// 
 			// tabTesting
 			// 
+			this.tabTesting.Controls.Add(this.checkHideNotTested);
 			this.tabTesting.Controls.Add(this.butTestingRefresh);
 			this.tabTesting.Controls.Add(this.checkShowAllUsers);
 			this.tabTesting.Controls.Add(this.checkHideTested);
@@ -511,38 +416,14 @@
 			this.textVersionText.TabIndex = 241;
 			this.textVersionText.Text = "18.3";
 			// 
-			// gridTesting
-			// 
-			this.gridTesting.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridTesting.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridTesting.HasAddButton = false;
-			this.gridTesting.HasDropDowns = false;
-			this.gridTesting.HasMultilineHeaders = true;
-			this.gridTesting.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridTesting.HeaderHeight = 15;
-			this.gridTesting.HScrollVisible = false;
-			this.gridTesting.Location = new System.Drawing.Point(3, 62);
-			this.gridTesting.Name = "gridTesting";
-			this.gridTesting.ScrollValue = 0;
-			this.gridTesting.Size = new System.Drawing.Size(343, 626);
-			this.gridTesting.TabIndex = 228;
-			this.gridTesting.Title = "Completed Jobs";
-			this.gridTesting.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridTesting.TitleHeight = 18;
-			this.gridTesting.TranslationName = "FormTaskEdit";
-			this.gridTesting.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridTesting_CellDoubleClick);
-			this.gridTesting.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridTesting_CellClick);
-			// 
 			// tabQuery
 			// 
 			this.tabQuery.Controls.Add(this.groupBox1);
 			this.tabQuery.Controls.Add(this.gridQueries);
-			this.tabQuery.Location = new System.Drawing.Point(4, 58);
+			this.tabQuery.Location = new System.Drawing.Point(4, 40);
 			this.tabQuery.Name = "tabQuery";
 			this.tabQuery.Padding = new System.Windows.Forms.Padding(3);
-			this.tabQuery.Size = new System.Drawing.Size(349, 705);
+			this.tabQuery.Size = new System.Drawing.Size(349, 723);
 			this.tabQuery.TabIndex = 5;
 			this.tabQuery.Text = "Queries";
 			this.tabQuery.UseVisualStyleBackColor = true;
@@ -635,72 +516,24 @@
 			this.checkShowQueryCancelled.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkShowQueryCancelled.UseVisualStyleBackColor = true;
 			// 
-			// gridQueries
-			// 
-			this.gridQueries.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridQueries.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridQueries.HasAddButton = false;
-			this.gridQueries.HasDropDowns = false;
-			this.gridQueries.HasMultilineHeaders = true;
-			this.gridQueries.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridQueries.HeaderHeight = 15;
-			this.gridQueries.HScrollVisible = false;
-			this.gridQueries.Location = new System.Drawing.Point(2, 86);
-			this.gridQueries.Name = "gridQueries";
-			this.gridQueries.ScrollValue = 0;
-			this.gridQueries.Size = new System.Drawing.Size(344, 616);
-			this.gridQueries.TabIndex = 230;
-			this.gridQueries.Title = "Queries to be done";
-			this.gridQueries.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridQueries.TitleHeight = 18;
-			this.gridQueries.TranslationName = "Job Edit";
-			this.gridQueries.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridQueries_CellDoubleClick);
-			this.gridQueries.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridQueries_CellClick);
-			// 
 			// tabNotify
 			// 
 			this.tabNotify.Controls.Add(this.gridNotify);
-			this.tabNotify.Location = new System.Drawing.Point(4, 58);
+			this.tabNotify.Location = new System.Drawing.Point(4, 40);
 			this.tabNotify.Name = "tabNotify";
-			this.tabNotify.Size = new System.Drawing.Size(349, 705);
+			this.tabNotify.Size = new System.Drawing.Size(349, 723);
 			this.tabNotify.TabIndex = 7;
 			this.tabNotify.Text = "Notify Customer";
 			this.tabNotify.UseVisualStyleBackColor = true;
-			// 
-			// gridNotify
-			// 
-			this.gridNotify.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridNotify.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridNotify.HasAddButton = false;
-			this.gridNotify.HasDropDowns = false;
-			this.gridNotify.HasMultilineHeaders = true;
-			this.gridNotify.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridNotify.HeaderHeight = 15;
-			this.gridNotify.HScrollVisible = false;
-			this.gridNotify.Location = new System.Drawing.Point(3, 4);
-			this.gridNotify.Name = "gridNotify";
-			this.gridNotify.ScrollValue = 0;
-			this.gridNotify.Size = new System.Drawing.Size(343, 698);
-			this.gridNotify.TabIndex = 240;
-			this.gridNotify.Title = "Action Items";
-			this.gridNotify.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridNotify.TitleHeight = 18;
-			this.gridNotify.TranslationName = "FormTaskEdit";
-			this.gridNotify.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridNotify_CellDoubleClick);
-			this.gridNotify.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridNotify_CellClick);
 			// 
 			// tabSubscribed
 			// 
 			this.tabSubscribed.Controls.Add(this.checkSubscribedIncludeOnHold);
 			this.tabSubscribed.Controls.Add(this.gridSubscribedJobs);
-			this.tabSubscribed.Location = new System.Drawing.Point(4, 58);
+			this.tabSubscribed.Location = new System.Drawing.Point(4, 40);
 			this.tabSubscribed.Name = "tabSubscribed";
 			this.tabSubscribed.Padding = new System.Windows.Forms.Padding(3);
-			this.tabSubscribed.Size = new System.Drawing.Size(349, 705);
+			this.tabSubscribed.Size = new System.Drawing.Size(349, 723);
 			this.tabSubscribed.TabIndex = 8;
 			this.tabSubscribed.Text = "Subscribed Jobs";
 			this.tabSubscribed.UseVisualStyleBackColor = true;
@@ -717,31 +550,6 @@
 			this.checkSubscribedIncludeOnHold.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkSubscribedIncludeOnHold.UseVisualStyleBackColor = true;
 			this.checkSubscribedIncludeOnHold.CheckedChanged += new System.EventHandler(this.checkSubscribedIncludeOnHold_CheckedChanged);
-			// 
-			// gridSubscribedJobs
-			// 
-			this.gridSubscribedJobs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridSubscribedJobs.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridSubscribedJobs.HasAddButton = false;
-			this.gridSubscribedJobs.HasDropDowns = false;
-			this.gridSubscribedJobs.HasMultilineHeaders = true;
-			this.gridSubscribedJobs.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridSubscribedJobs.HeaderHeight = 15;
-			this.gridSubscribedJobs.HScrollVisible = false;
-			this.gridSubscribedJobs.Location = new System.Drawing.Point(2, 30);
-			this.gridSubscribedJobs.Name = "gridSubscribedJobs";
-			this.gridSubscribedJobs.NoteSpanStop = 4;
-			this.gridSubscribedJobs.ScrollValue = 0;
-			this.gridSubscribedJobs.Size = new System.Drawing.Size(344, 672);
-			this.gridSubscribedJobs.TabIndex = 239;
-			this.gridSubscribedJobs.Title = "Subscribed Jobs";
-			this.gridSubscribedJobs.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridSubscribedJobs.TitleHeight = 18;
-			this.gridSubscribedJobs.TranslationName = "Job Edit";
-			this.gridSubscribedJobs.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSubscribedJobs_CellDoubleClick);
-			this.gridSubscribedJobs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSubscribedJobs_CellClick);
 			// 
 			// tabNeedsEngineer
 			// 
@@ -775,30 +583,6 @@
 			this.comboProposedVersionNeedsEngineer.TabIndex = 323;
 			this.comboProposedVersionNeedsEngineer.SelectionChangeCommitted += new System.EventHandler(this.comboProposedVersionNeedsEngineer_SelectionChangeCommitted);
 			// 
-			// gridAvailableJobs
-			// 
-			this.gridAvailableJobs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridAvailableJobs.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridAvailableJobs.HasAddButton = false;
-			this.gridAvailableJobs.HasDropDowns = false;
-			this.gridAvailableJobs.HasMultilineHeaders = true;
-			this.gridAvailableJobs.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridAvailableJobs.HeaderHeight = 15;
-			this.gridAvailableJobs.HScrollVisible = false;
-			this.gridAvailableJobs.Location = new System.Drawing.Point(0, 33);
-			this.gridAvailableJobs.Name = "gridAvailableJobs";
-			this.gridAvailableJobs.ScrollValue = 0;
-			this.gridAvailableJobs.Size = new System.Drawing.Size(349, 672);
-			this.gridAvailableJobs.TabIndex = 228;
-			this.gridAvailableJobs.Title = "Available Engineer Jobs";
-			this.gridAvailableJobs.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridAvailableJobs.TitleHeight = 18;
-			this.gridAvailableJobs.TranslationName = "Job Edit";
-			this.gridAvailableJobs.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobs_CellDoubleClick);
-			this.gridAvailableJobs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobs_CellClick);
-			// 
 			// tabNeedsExpert
 			// 
 			this.tabNeedsExpert.Controls.Add(this.label8);
@@ -831,30 +615,6 @@
 			this.comboProposedVersionNeedsExpert.TabIndex = 325;
 			this.comboProposedVersionNeedsExpert.SelectionChangeCommitted += new System.EventHandler(this.comboProposedVersionNeedsExpert_SelectionChangeCommitted);
 			// 
-			// gridAvailableJobsExpert
-			// 
-			this.gridAvailableJobsExpert.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridAvailableJobsExpert.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridAvailableJobsExpert.HasAddButton = false;
-			this.gridAvailableJobsExpert.HasDropDowns = false;
-			this.gridAvailableJobsExpert.HasMultilineHeaders = true;
-			this.gridAvailableJobsExpert.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridAvailableJobsExpert.HeaderHeight = 15;
-			this.gridAvailableJobsExpert.HScrollVisible = false;
-			this.gridAvailableJobsExpert.Location = new System.Drawing.Point(0, 33);
-			this.gridAvailableJobsExpert.Name = "gridAvailableJobsExpert";
-			this.gridAvailableJobsExpert.ScrollValue = 0;
-			this.gridAvailableJobsExpert.Size = new System.Drawing.Size(349, 672);
-			this.gridAvailableJobsExpert.TabIndex = 229;
-			this.gridAvailableJobsExpert.Title = "Available Expert Jobs";
-			this.gridAvailableJobsExpert.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridAvailableJobsExpert.TitleHeight = 18;
-			this.gridAvailableJobsExpert.TranslationName = "Job Edit";
-			this.gridAvailableJobsExpert.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobsExpert_CellDoubleClick);
-			this.gridAvailableJobsExpert.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobsExpert_CellClick);
-			// 
 			// tabOnHold
 			// 
 			this.tabOnHold.Controls.Add(this.gridJobsOnHold);
@@ -865,30 +625,6 @@
 			this.tabOnHold.TabIndex = 4;
 			this.tabOnHold.Text = "On Hold";
 			this.tabOnHold.UseVisualStyleBackColor = true;
-			// 
-			// gridJobsOnHold
-			// 
-			this.gridJobsOnHold.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.gridJobsOnHold.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridJobsOnHold.HasAddButton = false;
-			this.gridJobsOnHold.HasDropDowns = false;
-			this.gridJobsOnHold.HasMultilineHeaders = true;
-			this.gridJobsOnHold.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridJobsOnHold.HeaderHeight = 15;
-			this.gridJobsOnHold.HScrollVisible = false;
-			this.gridJobsOnHold.Location = new System.Drawing.Point(0, 0);
-			this.gridJobsOnHold.Name = "gridJobsOnHold";
-			this.gridJobsOnHold.ScrollValue = 0;
-			this.gridJobsOnHold.Size = new System.Drawing.Size(349, 705);
-			this.gridJobsOnHold.TabIndex = 230;
-			this.gridJobsOnHold.Title = "Jobs On Hold";
-			this.gridJobsOnHold.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridJobsOnHold.TitleHeight = 18;
-			this.gridJobsOnHold.TranslationName = "Job Edit";
-			this.gridJobsOnHold.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridJobsOnHold_CellDoubleClick);
-			this.gridJobsOnHold.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridJobsOnHold_CellClick);
 			// 
 			// tabSearch
 			// 
@@ -901,28 +637,6 @@
 			this.tabSearch.TabIndex = 10;
 			this.tabSearch.Text = "Search";
 			this.tabSearch.UseVisualStyleBackColor = true;
-			// 
-			// gridSearch
-			// 
-			this.gridSearch.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridSearch.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.gridSearch.HasAddButton = false;
-			this.gridSearch.HasDropDowns = false;
-			this.gridSearch.HasMultilineHeaders = true;
-			this.gridSearch.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridSearch.HeaderHeight = 15;
-			this.gridSearch.HScrollVisible = false;
-			this.gridSearch.Location = new System.Drawing.Point(3, 134);
-			this.gridSearch.Name = "gridSearch";
-			this.gridSearch.ScrollValue = 0;
-			this.gridSearch.Size = new System.Drawing.Size(343, 568);
-			this.gridSearch.TabIndex = 240;
-			this.gridSearch.Title = "Results";
-			this.gridSearch.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridSearch.TitleHeight = 18;
-			this.gridSearch.TranslationName = "Job Edit";
-			this.gridSearch.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSearch_CellDoubleClick);
-			this.gridSearch.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSearch_CellClick);
 			// 
 			// groupBox2
 			// 
@@ -1278,7 +992,7 @@
             this.releaseCalculatorToolStripMenuItem,
             this.jobOverviewToolStripMenuItem});
 			this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-			this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+			this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
 			this.toolsToolStripMenuItem.Text = "Tools";
 			// 
 			// backportToolStripMenuItem
@@ -1390,10 +1104,301 @@
 			this.butRefresh.Text = "Refresh";
 			this.butRefresh.Click += new System.EventHandler(this.butRefresh_Click);
 			// 
+			// gridPatternReview
+			// 
+			this.gridPatternReview.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridPatternReview.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.gridPatternReview.HasDropDowns = false;
+			this.gridPatternReview.HasMultilineHeaders = true;
+			this.gridPatternReview.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridPatternReview.HeaderHeight = 15;
+			this.gridPatternReview.HScrollVisible = false;
+			this.gridPatternReview.Location = new System.Drawing.Point(3, 3);
+			this.gridPatternReview.Name = "gridPatternReview";
+			this.gridPatternReview.ScrollValue = 0;
+			this.gridPatternReview.ShowContextMenu = false;
+			this.gridPatternReview.Size = new System.Drawing.Size(343, 699);
+			this.gridPatternReview.TabIndex = 239;
+			this.gridPatternReview.Title = "Jobs For Review";
+			this.gridPatternReview.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridPatternReview.TitleHeight = 18;
+			this.gridPatternReview.TranslationName = "FormJobManager";
+			this.gridPatternReview.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridPatternReview_CellClick);
+			// 
+			// gridAction
+			// 
+			this.gridAction.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridAction.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridAction.HasDropDowns = false;
+			this.gridAction.HasMultilineHeaders = true;
+			this.gridAction.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridAction.HeaderHeight = 15;
+			this.gridAction.HScrollVisible = false;
+			this.gridAction.Location = new System.Drawing.Point(3, 31);
+			this.gridAction.Name = "gridAction";
+			this.gridAction.ScrollValue = 0;
+			this.gridAction.ShowContextMenu = false;
+			this.gridAction.Size = new System.Drawing.Size(343, 707);
+			this.gridAction.TabIndex = 227;
+			this.gridAction.Title = "Action Items";
+			this.gridAction.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridAction.TitleHeight = 18;
+			this.gridAction.TranslationName = "FormJobManager";
+			this.gridAction.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAction_CellDoubleClick);
+			this.gridAction.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAction_CellClick);
+			this.gridAction.MouseMove += new System.Windows.Forms.MouseEventHandler(this.gridAction_MouseMove);
+			// 
+			// gridSpecial
+			// 
+			this.gridSpecial.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridSpecial.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridSpecial.HasDropDowns = false;
+			this.gridSpecial.HasMultilineHeaders = true;
+			this.gridSpecial.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridSpecial.HeaderHeight = 15;
+			this.gridSpecial.HScrollVisible = false;
+			this.gridSpecial.Location = new System.Drawing.Point(3, 31);
+			this.gridSpecial.Name = "gridSpecial";
+			this.gridSpecial.ScrollValue = 0;
+			this.gridSpecial.ShowContextMenu = false;
+			this.gridSpecial.Size = new System.Drawing.Size(343, 707);
+			this.gridSpecial.TabIndex = 239;
+			this.gridSpecial.Title = "Action Items";
+			this.gridSpecial.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridSpecial.TitleHeight = 18;
+			this.gridSpecial.TranslationName = "FormTaskEdit";
+			this.gridSpecial.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSpecial_CellDoubleClick);
+			this.gridSpecial.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSpecial_CellClick);
+			// 
+			// gridDocumentation
+			// 
+			this.gridDocumentation.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridDocumentation.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridDocumentation.HasDropDowns = false;
+			this.gridDocumentation.HasMultilineHeaders = true;
+			this.gridDocumentation.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridDocumentation.HeaderHeight = 15;
+			this.gridDocumentation.HScrollVisible = false;
+			this.gridDocumentation.Location = new System.Drawing.Point(3, 26);
+			this.gridDocumentation.Name = "gridDocumentation";
+			this.gridDocumentation.ScrollValue = 0;
+			this.gridDocumentation.Size = new System.Drawing.Size(343, 711);
+			this.gridDocumentation.TabIndex = 239;
+			this.gridDocumentation.Title = "Action Items";
+			this.gridDocumentation.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridDocumentation.TitleHeight = 18;
+			this.gridDocumentation.TranslationName = "FormTaskEdit";
+			this.gridDocumentation.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridDocumentation_CellDoubleClick);
+			this.gridDocumentation.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridDocumention_CellClick);
+			// 
+			// gridTesting
+			// 
+			this.gridTesting.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridTesting.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridTesting.HasDropDowns = false;
+			this.gridTesting.HasMultilineHeaders = true;
+			this.gridTesting.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridTesting.HeaderHeight = 15;
+			this.gridTesting.HScrollVisible = false;
+			this.gridTesting.Location = new System.Drawing.Point(3, 62);
+			this.gridTesting.Name = "gridTesting";
+			this.gridTesting.ScrollValue = 0;
+			this.gridTesting.Size = new System.Drawing.Size(343, 626);
+			this.gridTesting.TabIndex = 228;
+			this.gridTesting.Title = "Completed Jobs";
+			this.gridTesting.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridTesting.TitleHeight = 18;
+			this.gridTesting.TranslationName = "FormTaskEdit";
+			this.gridTesting.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridTesting_CellDoubleClick);
+			this.gridTesting.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridTesting_CellClick);
+			// 
+			// gridQueries
+			// 
+			this.gridQueries.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridQueries.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridQueries.HasDropDowns = false;
+			this.gridQueries.HasMultilineHeaders = true;
+			this.gridQueries.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridQueries.HeaderHeight = 15;
+			this.gridQueries.HScrollVisible = false;
+			this.gridQueries.Location = new System.Drawing.Point(2, 86);
+			this.gridQueries.Name = "gridQueries";
+			this.gridQueries.ScrollValue = 0;
+			this.gridQueries.Size = new System.Drawing.Size(344, 634);
+			this.gridQueries.TabIndex = 230;
+			this.gridQueries.Title = "Queries to be done";
+			this.gridQueries.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridQueries.TitleHeight = 18;
+			this.gridQueries.TranslationName = "Job Edit";
+			this.gridQueries.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridQueries_CellDoubleClick);
+			this.gridQueries.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridQueries_CellClick);
+			// 
+			// gridNotify
+			// 
+			this.gridNotify.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridNotify.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridNotify.HasDropDowns = false;
+			this.gridNotify.HasMultilineHeaders = true;
+			this.gridNotify.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridNotify.HeaderHeight = 15;
+			this.gridNotify.HScrollVisible = false;
+			this.gridNotify.Location = new System.Drawing.Point(3, 4);
+			this.gridNotify.Name = "gridNotify";
+			this.gridNotify.ScrollValue = 0;
+			this.gridNotify.Size = new System.Drawing.Size(343, 716);
+			this.gridNotify.TabIndex = 240;
+			this.gridNotify.Title = "Action Items";
+			this.gridNotify.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridNotify.TitleHeight = 18;
+			this.gridNotify.TranslationName = "FormTaskEdit";
+			this.gridNotify.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridNotify_CellDoubleClick);
+			this.gridNotify.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridNotify_CellClick);
+			// 
+			// gridSubscribedJobs
+			// 
+			this.gridSubscribedJobs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridSubscribedJobs.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridSubscribedJobs.HasDropDowns = false;
+			this.gridSubscribedJobs.HasMultilineHeaders = true;
+			this.gridSubscribedJobs.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridSubscribedJobs.HeaderHeight = 15;
+			this.gridSubscribedJobs.HScrollVisible = false;
+			this.gridSubscribedJobs.Location = new System.Drawing.Point(2, 30);
+			this.gridSubscribedJobs.Name = "gridSubscribedJobs";
+			this.gridSubscribedJobs.NoteSpanStop = 4;
+			this.gridSubscribedJobs.ScrollValue = 0;
+			this.gridSubscribedJobs.Size = new System.Drawing.Size(344, 690);
+			this.gridSubscribedJobs.TabIndex = 239;
+			this.gridSubscribedJobs.Title = "Subscribed Jobs";
+			this.gridSubscribedJobs.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridSubscribedJobs.TitleHeight = 18;
+			this.gridSubscribedJobs.TranslationName = "Job Edit";
+			this.gridSubscribedJobs.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSubscribedJobs_CellDoubleClick);
+			this.gridSubscribedJobs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSubscribedJobs_CellClick);
+			// 
+			// gridAvailableJobs
+			// 
+			this.gridAvailableJobs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridAvailableJobs.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridAvailableJobs.HasDropDowns = false;
+			this.gridAvailableJobs.HasMultilineHeaders = true;
+			this.gridAvailableJobs.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridAvailableJobs.HeaderHeight = 15;
+			this.gridAvailableJobs.HScrollVisible = false;
+			this.gridAvailableJobs.Location = new System.Drawing.Point(0, 33);
+			this.gridAvailableJobs.Name = "gridAvailableJobs";
+			this.gridAvailableJobs.ScrollValue = 0;
+			this.gridAvailableJobs.Size = new System.Drawing.Size(349, 672);
+			this.gridAvailableJobs.TabIndex = 228;
+			this.gridAvailableJobs.Title = "Available Engineer Jobs";
+			this.gridAvailableJobs.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridAvailableJobs.TitleHeight = 18;
+			this.gridAvailableJobs.TranslationName = "Job Edit";
+			this.gridAvailableJobs.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobs_CellDoubleClick);
+			this.gridAvailableJobs.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobs_CellClick);
+			// 
+			// gridAvailableJobsExpert
+			// 
+			this.gridAvailableJobsExpert.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridAvailableJobsExpert.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridAvailableJobsExpert.HasDropDowns = false;
+			this.gridAvailableJobsExpert.HasMultilineHeaders = true;
+			this.gridAvailableJobsExpert.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridAvailableJobsExpert.HeaderHeight = 15;
+			this.gridAvailableJobsExpert.HScrollVisible = false;
+			this.gridAvailableJobsExpert.Location = new System.Drawing.Point(0, 33);
+			this.gridAvailableJobsExpert.Name = "gridAvailableJobsExpert";
+			this.gridAvailableJobsExpert.ScrollValue = 0;
+			this.gridAvailableJobsExpert.Size = new System.Drawing.Size(349, 672);
+			this.gridAvailableJobsExpert.TabIndex = 229;
+			this.gridAvailableJobsExpert.Title = "Available Expert Jobs";
+			this.gridAvailableJobsExpert.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridAvailableJobsExpert.TitleHeight = 18;
+			this.gridAvailableJobsExpert.TranslationName = "Job Edit";
+			this.gridAvailableJobsExpert.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobsExpert_CellDoubleClick);
+			this.gridAvailableJobsExpert.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridAvailableJobsExpert_CellClick);
+			// 
+			// gridJobsOnHold
+			// 
+			this.gridJobsOnHold.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridJobsOnHold.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridJobsOnHold.HasDropDowns = false;
+			this.gridJobsOnHold.HasMultilineHeaders = true;
+			this.gridJobsOnHold.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridJobsOnHold.HeaderHeight = 15;
+			this.gridJobsOnHold.HScrollVisible = false;
+			this.gridJobsOnHold.Location = new System.Drawing.Point(0, 0);
+			this.gridJobsOnHold.Name = "gridJobsOnHold";
+			this.gridJobsOnHold.ScrollValue = 0;
+			this.gridJobsOnHold.Size = new System.Drawing.Size(349, 705);
+			this.gridJobsOnHold.TabIndex = 230;
+			this.gridJobsOnHold.Title = "Jobs On Hold";
+			this.gridJobsOnHold.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridJobsOnHold.TitleHeight = 18;
+			this.gridJobsOnHold.TranslationName = "Job Edit";
+			this.gridJobsOnHold.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridJobsOnHold_CellDoubleClick);
+			this.gridJobsOnHold.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridJobsOnHold_CellClick);
+			// 
+			// gridSearch
+			// 
+			this.gridSearch.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridSearch.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.gridSearch.HasDropDowns = false;
+			this.gridSearch.HasMultilineHeaders = true;
+			this.gridSearch.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridSearch.HeaderHeight = 15;
+			this.gridSearch.HScrollVisible = false;
+			this.gridSearch.Location = new System.Drawing.Point(3, 134);
+			this.gridSearch.Name = "gridSearch";
+			this.gridSearch.ScrollValue = 0;
+			this.gridSearch.Size = new System.Drawing.Size(343, 568);
+			this.gridSearch.TabIndex = 240;
+			this.gridSearch.Title = "Results";
+			this.gridSearch.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridSearch.TitleHeight = 18;
+			this.gridSearch.TranslationName = "Job Edit";
+			this.gridSearch.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSearch_CellDoubleClick);
+			this.gridSearch.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridSearch_CellClick);
+			// 
+			// checkHideNotTested
+			// 
+			this.checkHideNotTested.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkHideNotTested.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkHideNotTested.Checked = true;
+			this.checkHideNotTested.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.checkHideNotTested.Location = new System.Drawing.Point(101, 32);
+			this.checkHideNotTested.Name = "checkHideNotTested";
+			this.checkHideNotTested.Size = new System.Drawing.Size(113, 20);
+			this.checkHideNotTested.TabIndex = 247;
+			this.checkHideNotTested.Text = "Hide Not Tested";
+			this.checkHideNotTested.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkHideNotTested.UseVisualStyleBackColor = true;
+			this.checkHideNotTested.CheckedChanged += new System.EventHandler(this.checkHideNotTested_CheckedChanged);
+			// 
 			// FormJobManager
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-			this.ClientSize = new System.Drawing.Size(1516, 825);
+			this.ClientSize = new System.Drawing.Size(1516, 826);
 			this.Controls.Add(this.butRefresh);
 			this.Controls.Add(this.butForward);
 			this.Controls.Add(this.butBack);
@@ -1543,5 +1548,6 @@
 		private System.Windows.Forms.ComboBox comboProposedVersionNeedsExpert;
 		private System.Windows.Forms.Label label12;
 		private System.Windows.Forms.ComboBox comboProposedVersionSearch;
+		private System.Windows.Forms.CheckBox checkHideNotTested;
 	}
 }

@@ -33,6 +33,8 @@ namespace OpenDental.InternalTools.Job_Manager {
 		private List<string> _listCategoryNamesFiltered;
 		///<summary>All jobs</summary>
 		private List<Job> _listJobs;
+		///<summary>Used to save one call to the DB when the Mark Tested button is pushed and the job is marked Not Tested</summary>
+		private bool _isMarkTestedPushed=false;
 
 		///<summary>Occurs whenever this control saves changes to DB, after the control has redrawn itself. 
 		/// Usually connected to either a form close or refresh.</summary>
@@ -218,6 +220,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			comboProject.SelectedIndex=(int)_jobCur.PatternReviewProject;
 			comboPatternStatus.SelectedIndex=(int)_jobCur.PatternReviewStatus;
 			textDateTested.Text=_jobCur.DateTimeTested.ToShortDateString();
+			checkNotTested.Checked=_jobCur.IsNotTested;
 			if(_jobCur.IsApprovalNeeded) {
 				textApprove.Text="Waiting";
 			}
@@ -3520,9 +3523,28 @@ namespace OpenDental.InternalTools.Job_Manager {
 		}
 		
 		private void butTested_Click(object sender,EventArgs e) {
+			_isMarkTestedPushed=true; //Make sure the checkNotTested call below doesn't call an extra SaveJob(_jobCur).
 			_jobCur.DateTimeTested=DateTime.Now;
+			checkNotTested.Checked=false;
 			SaveJob(_jobCur);
 			JobLogs.MakeLogEntryForTesting(_jobCur,"Job Marked as Tested");
+			_isMarkTestedPushed=false;
+		}
+
+		private void checkNotTested_CheckedChanged(object sender,EventArgs e) {
+			if(_isLoading) {
+				return;
+			}
+			_jobCur.IsNotTested=checkNotTested.Checked;
+			if(!_isMarkTestedPushed) {
+				SaveJob(_jobCur);
+			}
+			if(_jobCur.IsNotTested) {
+				JobLogs.MakeLogEntryForTesting(_jobCur,"Job marked as not tested");
+			}
+			else {
+				JobLogs.MakeLogEntryForTesting(_jobCur,"Not tested status removed");
+			}
 		}
 
 		private void SetHoursLeft() {
