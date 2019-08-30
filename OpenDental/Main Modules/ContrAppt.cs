@@ -2577,21 +2577,21 @@ namespace OpenDental {
 			menuItem.Name=MenuItemNames.RoutingSlip;
 			menuBlockout.MenuItems.Clear();
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Edit Blockout"),OnBlockEdit_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.EditBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Cut Blockout"),OnBlockCut_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.CutBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Copy Blockout"),OnBlockCopy_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.CopyBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Paste Blockout"),OnBlockPaste_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.PasteBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Delete Blockout"),OnBlockDelete_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.DeleteBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,MenuItemNames.DeleteWebSchedAsapBlockout),DeleteWebSchedAsapBlockout_Click);
 			menuItem.Name=MenuItemNames.DeleteWebSchedAsapBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Add Blockout"),OnBlockAdd_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.AddBlockout;
 			menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Blockout Cut-Copy-Paste"),OnBlockCutCopyPaste_Click);
-			menuItem.Name=MenuItemNames.RoutingSlip;
+			menuItem.Name=MenuItemNames.BlockoutCutCopyPaste;
 			if(!PrefC.HasClinicsEnabled) {//Clear All Blockouts for Day is too aggressive when Clinics are enabled.
 				menuItem=menuBlockout.MenuItems.Add(Lan.g(this,"Clear All Blockouts for Day"),ClearBlockouts_Click);
 				menuItem.Name=MenuItemNames.ClearAllBlockoutsForDay;
@@ -4014,22 +4014,23 @@ namespace OpenDental {
 
 		private void MouseDownNonAppointment(MouseEventArgs e,Graphics grfx,TimeSpan sheetClickedOnTime) {
 			if(e.Button==MouseButtons.Right) {
-				MenuItem menuEdit=menuBlockout.MenuItems[0];
-				MenuItem menuCut=menuBlockout.MenuItems[1];
-				MenuItem menuCopy=menuBlockout.MenuItems[2];
-				MenuItem menuPaste=menuBlockout.MenuItems[3];
-				MenuItem menuDelete=menuBlockout.MenuItems[4];
-				MenuItem menuCutCopyPaste=menuBlockout.MenuItems[6];
+				MenuItem menuEdit=menuBlockout.MenuItems.Find(MenuItemNames.EditBlockout,false)[0];
+				MenuItem menuCut=menuBlockout.MenuItems.Find(MenuItemNames.CutBlockout,false)[0];
+				MenuItem menuCopy=menuBlockout.MenuItems.Find(MenuItemNames.CopyBlockout,false)[0];
+				MenuItem menuPaste=menuBlockout.MenuItems.Find(MenuItemNames.PasteBlockout,false)[0];
+				MenuItem menuDelete=menuBlockout.MenuItems.Find(MenuItemNames.DeleteBlockout,false)[0];
+				//AddBlockout is not used here
+				MenuItem menuCutCopyPaste=menuBlockout.MenuItems.Find(MenuItemNames.BlockoutCutCopyPaste,false)[0];
 				MenuItem menuClearForDay=new MenuItem();
 				MenuItem menuClearForDayOp=new MenuItem();
 				MenuItem menuClearForDayClinics=new MenuItem();
 				if(PrefC.HasClinicsEnabled) {//No clear for day if clinics enabled
-					menuClearForDayOp=menuBlockout.MenuItems[7];
-					menuClearForDayClinics=menuBlockout.MenuItems[8];
+					menuClearForDayOp=menuBlockout.MenuItems.Find(MenuItemNames.ClearAllBlockoutsForDayOpOnly,false)[0];
+					menuClearForDayClinics=menuBlockout.MenuItems.Find(MenuItemNames.ClearAllBlockoutsForDayClinicOnly,false)[0];
 				}
 				else {//Clinics disabled, no clear for day clinics
-					menuClearForDay=menuBlockout.MenuItems[7];
-					menuClearForDayOp=menuBlockout.MenuItems[8];					
+					menuClearForDay=menuBlockout.MenuItems.Find(MenuItemNames.ClearAllBlockoutsForDay,false)[0];
+					menuClearForDayOp=menuBlockout.MenuItems.Find(MenuItemNames.ClearAllBlockoutsForDayOpOnly,false)[0];
 				}
 				if(!Security.IsAuthorized(Permissions.Blockouts,true)) {
 					menuCutCopyPaste.Enabled=false;
@@ -7644,5 +7645,12 @@ namespace OpenDental {
 		public const string TextApptsForDayView="Text Appointments for Day, Current View only";
 		public const string TextApptsForDay="Text Appointments for Day";
 		public const string DeleteWebSchedAsapBlockout="Delete Web Schedule ASAP Blockout";
+		public const string EditBlockout="Edit Blockout";
+		public const string CutBlockout="Cut Blockout";
+		public const string CopyBlockout="Copy Blockout";
+		public const string PasteBlockout="Paste Blockout";
+		public const string DeleteBlockout="Delete Blockout";
+		public const string AddBlockout="Add Blockout";
+		public const string BlockoutCutCopyPaste="Blockout Cut-Copy-Paste";
 	}
 }
