@@ -12,6 +12,12 @@ namespace OpenDental {
 	public partial class FormOrthoChartAddDate:ODForm {
 		public DateTime SelectedDate;
 
+		protected override bool HasHelpKey {
+			get {
+				return false;
+			}
+		}
+
 		public FormOrthoChartAddDate() {
 			InitializeComponent();
 			SelectedDate=new DateTime();
