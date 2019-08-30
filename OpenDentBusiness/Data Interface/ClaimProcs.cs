@@ -1016,11 +1016,12 @@ namespace OpenDentBusiness{
 		///lookupFees can be null, in which case, it will go to the db for fee.  lookupFees passed in will also contain all possible alternate codes and medical codes.  In GlobalUpdateWriteoffs, it will be massive, which is why it must be a lookup.
 		///For Canadians, this method doesn't simply calculate insurance related numbers for a single claimproc as it states above.
 		///There is a chance that this function will create new claimprocs for labs associated to the procedure passed in if they do not already exist.
-		///Optionally pass a list of claimprocs that will get manipulated for calling methods that need to know about any new claimprocs.</summary>
+		///Set doCheckCanadianLabs to false when simply making in memory changes to given cp (like in FormClaimProc).
+		///Otherwise duplicate lab claimprocs can be created if cp.Status was only changed in memory.</summary>
 		public static void ComputeBaseEst(ClaimProc cp,Procedure proc,InsPlan plan,long patPlanNum,List<Benefit> benList,List<ClaimProcHist> histList
 			,List<ClaimProcHist> loopList,List<PatPlan> patPlanList,double paidOtherInsTot,double paidOtherInsBase,int patientAge,double writeOffOtherIns
 			,List<InsPlan> listInsPlans,List<InsSub> listInsSubs,List<SubstitutionLink> listSubstLinks,bool useProcDateOnProc,//=false,List<Fee> listFees=null) 
-			Lookup<FeeKey2,Fee> lookupFees)
+			Lookup<FeeKey2,Fee> lookupFees,bool doCheckCanadianLabs=true)
 			//
 		{
 			//No need to check RemotingRole; no call to db.
@@ -1047,7 +1048,7 @@ namespace OpenDentBusiness{
 				|| cp.Status==ClaimProcStatus.CapComplete
 				|| cp.Status==ClaimProcStatus.Preauth
 				|| cp.Status==ClaimProcStatus.Supplemental) {
-				if(Canadian.IsValidForLabEstimates(plan) && cp.Status==ClaimProcStatus.Preauth) {
+				if(Canadian.IsValidForLabEstimates(plan) && cp.Status==ClaimProcStatus.Preauth && doCheckCanadianLabs) {
 					List<Procedure> listLabFees=Procedures.GetCanadianLabFees(proc.ProcNum);
 					foreach(Procedure procCur in listLabFees) {
 						CanadianLabBaseEstHelper(cp,procCur,plan,cp.InsSubNum,proc,benList,patPlanNum,histList,loopList,patientAge,useProcDateOnProc);
@@ -1071,7 +1072,7 @@ namespace OpenDentBusiness{
 				ZeroOutClaimProc(cp);
 				//Canadian Lab Fee Estimates-------------------------------------------------------------------------------------------------------------------
 				//These will all be 0 because they are based on the parent claimproc's percentage, which just got blanked out.
-				if(Canadian.IsValidForLabEstimates(plan)){
+				if(Canadian.IsValidForLabEstimates(plan) && doCheckCanadianLabs){
 					List<Procedure> listLabFees=Procedures.GetCanadianLabFees(proc.ProcNum);
 					foreach(Procedure procCur in listLabFees) {
 						CanadianLabBaseEstHelper(cp,procCur,plan,cp.InsSubNum,proc,benList,patPlanNum,histList,loopList,patientAge,useProcDateOnProc);
@@ -1325,7 +1326,7 @@ namespace OpenDentBusiness{
 				}
 			}
 			//Canadian Lab Fee Estimates-------------------------------------------------------------------------------------------------------------------
-			if(Canadian.IsValidForLabEstimates(plan)){
+			if(Canadian.IsValidForLabEstimates(plan) && doCheckCanadianLabs){
 				List<Procedure> listLabFees=Procedures.GetCanadianLabFees(proc.ProcNum);
 				foreach(Procedure procCur in listLabFees) {
 					CanadianLabBaseEstHelper(cp,procCur,plan,cp.InsSubNum,proc,benList,patPlanNum,histList,loopList,patientAge,useProcDateOnProc);
@@ -1570,6 +1571,37 @@ namespace OpenDentBusiness{
 			}
 			loopList.AddRange(ClaimProcs.GetHistForProc(new List<ClaimProc>() {claimProcLab},procLab.ProcNum,procLab.CodeNum));
 			Update(claimProcLab);
+		}
+
+		///<summary>Updates pertinent lab claimproc statuses for given parentClaimProc.
+		///Only updates the statuses for claimprocs associated to the same plan as given parentClaimProc.
+		///Simply returns if given insPlan is not valid for lab estimates.</summary>
+		public static void UpdatePertinentLabStatuses(ClaimProc parentClaimProc,InsPlan insPlan) {
+			//No need to check RemotingRole; no call to db.
+			if(!Canadian.IsValidForLabEstimates(insPlan)) {
+				return;
+			}
+			bool isOnClaim=(parentClaimProc.Status.In(ClaimProcStatus.Preauth,ClaimProcStatus.NotReceived,ClaimProcStatus.Received,ClaimProcStatus.CapClaim,ClaimProcStatus.Supplemental));
+			List<ClaimProc> listLabClaimProcs=GetAllLabClaimProcsForParentProcNum(parentClaimProc.ProcNum);
+			listLabClaimProcs.RemoveAll(x => //Mimics CanadianLabBaseEstHelper(...)
+				x.InsSubNum!=parentClaimProc.InsSubNum || 
+				x.PlanNum!=parentClaimProc.PlanNum ||
+				(isOnClaim?x.ClaimNum!=parentClaimProc.ClaimNum:false)
+			);
+			listLabClaimProcs.ForEach(x => x.Status=parentClaimProc.Status);
+			UpdateMany(listLabClaimProcs);
+		}
+
+		///<summary>Returns all ClaimProcs associated to any lab procedures that may point the the given parentProcNum.</summary>
+		public static List<ClaimProc> GetAllLabClaimProcsForParentProcNum(long parentProcNum) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetObject<List<ClaimProc>>(MethodBase.GetCurrentMethod(),parentProcNum);
+			}
+			string command=$@"SELECT claimProc.*
+				FROM claimproc
+				INNER JOIN procedurelog ON claimproc.ProcNum=procedurelog.ProcNum 
+				AND ProcNumLab={POut.Long(parentProcNum)}";
+			return ClaimProcCrud.SelectMany(command);
 		}
 
 		///<summary>Typically called when cp.NoBillIns is true.

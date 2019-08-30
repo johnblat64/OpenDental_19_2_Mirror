@@ -743,8 +743,12 @@ namespace OpenDental {
 				ClaimProcCur.WriteOffEstOverride=PIn.Double(textWriteOffEstOverride.Text);
 			}
 			if(IsProc) {
+				//doCheckCanadianLabs is false because we are simply making in memory changs to ClaimProcCur.
+				//If ClaimProcCur.Status was changed then the inner CanadianLabBaseEstHelper(...) call would insert new lab claimProc rows.
+				//We currently do not use the lab claimProcs in any way in this window so we only need to worry about update the statuses
+				//on an OK click when commiting ClaimProcCur changes to DB.
 				ClaimProcs.ComputeBaseEst(ClaimProcCur,proc,Plan,PatPlanNum,BenefitList,
-					HistList,LoopList,PatPlanList,PaidOtherInsTotal,PaidOtherInsBaseEst,PatCur.Age,WriteOffOtherIns,PlanList,SubList,ListSubLinks,false,null);
+					HistList,LoopList,PatPlanList,PaidOtherInsTotal,PaidOtherInsBaseEst,PatCur.Age,WriteOffOtherIns,PlanList,SubList,ListSubLinks,false,null,doCheckCanadianLabs:false);
 				//Paid other ins is not accurate
 			}
 			//else {
@@ -1298,6 +1302,12 @@ namespace OpenDental {
 						MsgBox.Show(this,"Status of procedure was changed back to preauth to match status of claim.");
 				}
 				ClaimProcs.Update(ClaimProcCur);
+				if(ClaimProcCur.Status!=ClaimProcOld.Status && IsProc) {
+					//We must update the DB such that any associated Canadian labs have the same status as their parent claimproc.
+					//If we do not do this then ClaimProcs.CanadianLabBaseEstHelper(...) will fail to match and will not update any existing lab claimpros either.
+					//Instead it would insert an new lab claim proc with the parents new claim procs status.
+					ClaimProcs.UpdatePertinentLabStatuses(ClaimProcCur,Plan);//Checks for Canada, simply returns if not.
+				}
 			}//otherwise, the change to db will be made by calling class
 			//there is no functionality here for insert cur, because all claimprocs are
 			//created before editing.
