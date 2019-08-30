@@ -65,7 +65,7 @@ namespace OpenDental{
 			this.textNewDate.Location = new System.Drawing.Point(114, 39);
 			this.textNewDate.Name = "textNewDate";
 			this.textNewDate.Size = new System.Drawing.Size(163, 20);
-			this.textNewDate.TabIndex = 4;
+			this.textNewDate.TabIndex = 0;
 			// 
 			// label1
 			// 
