@@ -703,7 +703,7 @@ namespace OpenDentBusiness{
 			Payment transferPayment=new Payment();
 			transferPayment.PayDate=DateTime.Today;
 			transferPayment.ClinicNum=procOriginal.ClinicNum;
-			transferPayment.PayNote="Automatic transfer from treatment planned procedure pre-payment.";
+			transferPayment.PayNote="Automatic transfer from treatment planned procedure prepayment.";
 			transferPayment.PatNum=procAttaching.PatNum;//ultimately where the payment ends up.
 			transferPayment.PayType=0;
 			Insert(transferPayment);
