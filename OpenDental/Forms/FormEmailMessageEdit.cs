@@ -602,6 +602,7 @@ namespace OpenDental{
 			SetDefaultAutograph();
 			EmailSaveEvent.Fired+=EmailSaveEvent_Fired;
 			Cursor=Cursors.Default;
+			Plugins.HookAddCode(this,"FormEmailMessageEdit_Load_end",_emailMessage,emailPreview);
 		}
 
 		private void EmailSaveEvent_Fired(ODEventArgs e) {
