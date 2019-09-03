@@ -105,6 +105,10 @@ namespace OpenDental {
 					MsgBox.Show(this,"Invalid date");
 					return false;
 				}
+				if(dateEntry.Year<1880 || dateEntry.Year>2100) {
+					MsgBox.Show("Invalid date. Valid dates between 1880 and 2100");
+					return false;
+				}
 			}
 			return true;
 		}
@@ -136,6 +140,10 @@ namespace OpenDental {
 			}
 			try {
 				textBox.Text=DateTime.Parse(textBox.Text).ToString("d");//will throw exception if invalid
+				if(DateTime.Parse(textBox.Text).Year<1880 || DateTime.Parse(textBox.Text).Year>2100) {
+					MsgBox.Show("Valid dates between 1880 and 2100");
+					return;
+				}
 			}
 			catch(Exception ex) {
 				//We don't want a full exception, just a popup.  OK_Click will block them from putting invalid data in the db.
