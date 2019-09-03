@@ -652,8 +652,8 @@ namespace OpenDental{
 					listTypes.SetSelected(i,true);
 				}
 			}
-			textDaysFirstReminder.Text=PrefC.GetLongHideNegOne(PrefName.RecallShowIfDaysFirstReminder,useZero:true);
-			textDaysSecondReminder.Text=PrefC.GetLongHideNegOne(PrefName.RecallShowIfDaysSecondReminder,useZero:true);
+			textDaysFirstReminder.Text=PrefC.GetLongHideNegOne(PrefName.RecallShowIfDaysFirstReminder);
+			textDaysSecondReminder.Text=PrefC.GetLongHideNegOne(PrefName.RecallShowIfDaysSecondReminder);
 			textMaxReminders.Text=PrefC.GetLongHideNegOne(PrefName.RecallMaxNumberReminders);
 			if(PrefC.GetBool(PrefName.RecallUseEmailIfHasEmailAddress)) {
 				radioUseEmailTrue.Checked=true;
@@ -934,6 +934,14 @@ namespace OpenDental{
 			FormESS.Show();
 		}
 
+		///<summary>Returns -1 if string is blank.</summary>
+		private long GetLongFromString(string strInput) {
+			if(string.IsNullOrEmpty(strInput)) {
+				return -1;
+			}
+			return PIn.Long(strInput);
+		}
+
 		private void butOK_Click(object sender, System.EventArgs e) {
 			if(textRight.errorProvider1.GetError(textRight)!=""
 				|| textDown.errorProvider1.GetError(textDown)!=""
@@ -973,8 +981,8 @@ namespace OpenDental{
 			}
 			Prefs.UpdateBool(PrefName.RecallCardsShowReturnAdd,checkReturnAdd.Checked);
 			Prefs.UpdateBool(PrefName.RecallGroupByFamily,checkGroupFamilies.Checked);
-			Prefs.UpdateLongAsNegOne(PrefName.RecallDaysPast,textDaysPast.Text);
-			Prefs.UpdateLongAsNegOne(PrefName.RecallDaysFuture,textDaysFuture.Text);
+			Prefs.UpdateLong(PrefName.RecallDaysPast,GetLongFromString(textDaysPast.Text));
+			Prefs.UpdateLong(PrefName.RecallDaysFuture,GetLongFromString(textDaysFuture.Text));
 			Prefs.UpdateBool(PrefName.RecallExcludeIfAnyFutureAppt,radioExcludeFutureYes.Checked);
 			Prefs.UpdateDouble(PrefName.RecallAdjustRight,PIn.Double(textRight.Text));
 			Prefs.UpdateDouble(PrefName.RecallAdjustDown,PIn.Double(textDown.Text));
@@ -985,9 +993,9 @@ namespace OpenDental{
 			Prefs.UpdateLong(PrefName.RecallStatusEmailedTexted,comboStatusEmailTextRecall.SelectedTag<Def>().DefNum);
 			string recalltypes = string.Join(",",listTypes.SelectedIndices.OfType<int>().Select(x => listRecallCache[x].RecallTypeNum));
 			Prefs.UpdateString(PrefName.RecallTypesShowingInList,recalltypes);
-			Prefs.UpdateLongAsNegOne(PrefName.RecallShowIfDaysFirstReminder,textDaysFirstReminder.Text);
-			Prefs.UpdateLongAsNegOne(PrefName.RecallShowIfDaysSecondReminder,textDaysSecondReminder.Text);
-			Prefs.UpdateLongAsNegOne(PrefName.RecallMaxNumberReminders,textMaxReminders.Text);
+			Prefs.UpdateLong(PrefName.RecallShowIfDaysFirstReminder,GetLongFromString(textDaysFirstReminder.Text));
+			Prefs.UpdateLong(PrefName.RecallShowIfDaysSecondReminder,GetLongFromString(textDaysSecondReminder.Text));
+			Prefs.UpdateLong(PrefName.RecallMaxNumberReminders,GetLongFromString(textMaxReminders.Text));
 			Prefs.UpdateBool(PrefName.RecallUseEmailIfHasEmailAddress,radioUseEmailTrue.Checked);
 			//If we want to take the time to check every Update and see if something changed 
 			//then we could move this to a FormClosing event later.
