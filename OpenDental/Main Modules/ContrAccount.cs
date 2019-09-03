@@ -5496,11 +5496,25 @@ namespace OpenDental {
 			if(textQuickProcs.Text=="") {
 				return;
 			}
+			string quickProcText=textQuickProcs.Text;//because the text seems to disappear from textbox in menu bar when MsgBox comes up.
+			if(PrefC.IsODHQ){
+				if (PatCur.State=="") {
+					MessageBox.Show("A valid state is required to process sales tax on procedures. "
+						+"Please delete the procedure, enter a valid state, then reenter the procedure.");
+				}
+				//if this patient is in a taxable state
+				if(AvaTax.ListTaxableStates!=null && AvaTax.ListTaxableStates.Any(x => x==PatCur.State)){
+					if(!Patients.HasValidUSZipCode(PatCur)) {
+						MessageBox.Show("A valid zip code is required to process sales tax on procedures in this patient's state. "
+						+"Please delete the procedure, enter a valid zip, then reenter the procedure.");
+					}
+				}
+			}
 			Provider patProv=Providers.GetProv(PatCur.PriProv);
-			if(AddProcAndValidate(textQuickProcs.Text,patProv)) {
+			if(AddProcAndValidate(quickProcText,patProv)) {
 				SecurityLogs.MakeLogEntry(Permissions.AccountProcsQuickAdd,PatCur.PatNum
 					,Lan.g(this,"The following procedures were added via the Quick Charge button from the Account module")
-						+": "+string.Join(",",textQuickProcs.Text));
+						+": "+string.Join(",",quickProcText));
 				ModuleSelected(PatCur.PatNum);
 			}
 			textQuickProcs.Text="";

@@ -186,8 +186,10 @@ namespace OpenDentBusiness {
 					_logger.WriteLine($"Invalid ZipCode for PatNum {proc.PatNum} while running Repeat Charge Tool on {DateTime.Today}",LogLevel.Error);
 				}
 				else {
-					MessageBox.Show("A valid zip code is required to process sales tax on procedures in this patient's state. "
-					+"Please update the patient information with a valid zip code before continuing.");
+					//Remove the message box for now to avoid it from popping up on the server, stopping anyone using middletier to continue
+					//forward, because they can't click OK in the message box.
+					//MessageBox.Show("A valid zip code is required to process sales tax on procedures in this patient's state. "
+					//+"Please update the patient information with a valid zip code before continuing.");
 				}
 			}
 			return true;
