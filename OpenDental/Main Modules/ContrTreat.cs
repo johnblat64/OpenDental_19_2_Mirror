@@ -3325,11 +3325,11 @@ namespace OpenDental{
 				FormT.Document=printdoc;
 				FormT.TotalPages=renderer.FormattedDocument.PageCount;
 			}
+			long tpNum=_listTreatPlans[gridPlans.SelectedIndices[0]].TreatPlanNum;
 			FormT.SaveDocDelegate=SaveTPAsDocument;
 			FormT.TPcur=_listTreatPlans[gridPlans.SelectedIndices[0]];
 			FormT.DoPrintUsingSheets=DoPrintUsingSheets();
 			FormT.ShowDialog();
-			long tpNum=_listTreatPlans[gridPlans.SelectedIndices[0]].TreatPlanNum;
 			ModuleSelected(PatCur.PatNum);//refreshes TPs
 			for(int i=0;i<_listTreatPlans.Count;i++) {
 				if(_listTreatPlans[i].TreatPlanNum==tpNum) {
