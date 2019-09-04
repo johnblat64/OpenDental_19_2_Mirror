@@ -255,7 +255,7 @@ namespace UnitTests.InsVerify_Tests {
 		public void InsVerifies_TryBatchPatInsVerify_NoRequestNeeded() {
 			//No appointment created so no need for batch ins verify.
 			//AppointmentT.ClearAppointmentTable();
-			List<InsVerify> listInsVerify=InsVerifies.TryBatchPatInsVerify(true);
+			List<InsVerify> listInsVerify=InsVerifies.TryBatchPatInsVerify(isTest:true);
 			Assert.IsTrue(listInsVerify.Count==3 
 				&& listInsVerify[0].BatchVerifyState==BatchInsVerifyState.Success
 				&& listInsVerify[1].BatchVerifyState==BatchInsVerifyState.Error

@@ -401,7 +401,7 @@ namespace OpenDentBusiness{
 
 		///<summary>Called in OpenDentalService.  Attempts to verify patient benefits for same list in FormInsVerificaitonList.cs.
 		///Only runs for carriers that are flagged with TrustedEtransTypes.RealTimeEligibility.</summary>
-		public static List<InsVerify> TryBatchPatInsVerify(bool isTest=false) {
+		public static List<InsVerify> TryBatchPatInsVerify(LogWriter logger=null,bool isTest=false) {
 			//Mimics FormInsVerificaitonList.GetRowsForGrid(...)
 			bool excludePatVerifyWhenNoIns=PrefC.GetBool(PrefName.InsVerifyExcludePatVerify);
 			bool excludePatClones=(PrefC.GetBool(PrefName.ShowFeaturePatientClone) && PrefC.GetBool(PrefName.InsVerifyExcludePatientClones));
@@ -409,6 +409,11 @@ namespace OpenDentBusiness{
 			DateTime dateTimeEnd=DateTime.Today.AddDays(PrefC.GetInt(PrefName.InsVerifyAppointmentScheduledDays));//Non past due logic
 			DateTime dateTimeLastPatEligibility=DateTime.Today.AddDays(-PrefC.GetInt(PrefName.InsVerifyPatientEnrollmentDays));
 			DateTime dateTimeLastPlanBenefits=DateTime.Today.AddDays(-PrefC.GetInt(PrefName.InsVerifyBenefitEligibilityDays));
+			logger?.WriteLine($"BatchPatInsVerify has started:\r\n"+
+				$"dateTimeStart={dateTimeStart}\r\n"+
+				$"dateTimeEnd={dateTimeEnd}\r\n"+
+				$"dateTimeLastPatEligibility={dateTimeLastPatEligibility}\r\n"+
+				$"dateTimeLastPlanBenefits={dateTimeLastPlanBenefits}",LogLevel.Verbose);
 			List<InsVerifyGridObject> listInsVerify=GetVerifyGridList(dateTimeStart,dateTimeEnd,dateTimeLastPatEligibility,dateTimeLastPlanBenefits
 				,new List<long>(){ -1 }//All clinics
 				,new List<long>(){ 0 }//All regions
@@ -418,6 +423,7 @@ namespace OpenDentBusiness{
 				,excludePatVerifyWhenNoIns
 				,excludePatClones
 			);
+			logger?.WriteLine($"{listInsVerify.Count} insverify grid objects",LogLevel.Verbose);
 			Dictionary<long,Carrier> dictTrustedCarriers=null;//Key: CarrierNum, Value: Carrier
 			Dictionary<long,InsSub> dictInsSubs=null;//Key: InsSubNum, Value: InsSub
 			Dictionary<long,InsPlan> dictInsPlans=null;//Key: PlanNum, Value: InsPlan
@@ -456,6 +462,7 @@ namespace OpenDentBusiness{
 					etransRequest=x270Controller.TryInsVerifyRequest(insVerifyObj.PatInsVerify,dictInsPlans[insVerifyObj.PatInsVerify.PlanNum]
 						,dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum],dictInsSubs[insVerifyObj.PatInsVerify.InsSubNum],out errorStatus
 					);//Can be null
+					logger?.WriteLine($"PatNum:{insVerifyObj.PatInsVerify.PatNum} error status:{errorStatus}",LogLevel.Verbose);
 				}
 				if(errorStatus.IsNullOrEmpty()) {//No error yet.
 					if(etransRequest==null) {//Can happen when an AAA segment is returned.
@@ -487,6 +494,7 @@ namespace OpenDentBusiness{
 					insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Error;
 				}
 			}
+			logger?.WriteLine("BatchPatInsVerify has ended...",LogLevel.Verbose);
 			return listInsVerifies;
 		}
 
