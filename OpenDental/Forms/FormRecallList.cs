@@ -480,6 +480,8 @@ namespace OpenDental{
 				if(!recallEntryToday) {
 					Commlog commlogCur=new Commlog();
 					commlogCur.CommDateTime=DateTime.Now;
+					commlogCur.Mode_=CommItemMode.Phone;//user can change this, of course.
+					commlogCur.SentOrReceived=CommSentOrReceived.Sent;
 					commlogCur.CommType=Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL);
 					commlogCur.PatNum=selectedPatNum;
 					commlogCur.Note="";
