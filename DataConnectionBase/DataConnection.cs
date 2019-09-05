@@ -52,7 +52,7 @@ namespace DataConnectionBase {
 		private static string _connectionStringT="";
 		[ThreadStatic]
 		private static DatabaseType _dBtypeT;
-		private static int _commandTimout=0;
+		private static int _commandTimeout=0;
 		///<summary>Will be set to true if a DataConnectionEvent signifying the connection has been restored is received.</summary>
 		private bool _isConnectionRestored;
 		///<summary>The number of seconds to automatically retry connection to the database when the connection has been lost. Defaults
@@ -117,15 +117,18 @@ namespace DataConnectionBase {
 		// Individual threads that need to access different databases (CEMT) need to call SetDbT before making db calls.
 		//=====================================================================================================================================================
 		
-		public static int CommandTimout {
+		public static int CommandTimeout {
 			get {
-				if(_commandTimout==0) {
-					_commandTimout=3600;//Default to 1 hour
+				if(_commandTimeout==0) {
+					_commandTimeout=3600;//Default to 1 hour
 				}
-				return _commandTimout;
+				return _commandTimeout;
 			}
 			set {
-				_commandTimout=value;
+				_commandTimeout=value;
+				if(!string.IsNullOrEmpty(ServerName)) {
+					ConnectionString=BuildSimpleConnectionString(DBtype,ServerName,Database,MysqlUser,MysqlPass);
+				}
 			}
 		}
 
@@ -435,7 +438,7 @@ namespace DataConnectionBase {
 				+";Treat Tiny As Boolean=false"
 				+";Allow User Variables=true"
 				+";Convert Zero Datetime=true"//Convert all MySQL dates 0000-00-00 to 0001-01-01, since C# crashes for 0000-00-00 dates.
-				+";Default Command Timeout="+CommandTimout;//one hour timeout on commands.  Prevents crash during conversions, etc.
+				+";Default Command Timeout="+CommandTimeout;//one hour timeout on commands.  Prevents crash during conversions, etc.
 			//+";Pooling=false";
 			return connectStr;
 		}

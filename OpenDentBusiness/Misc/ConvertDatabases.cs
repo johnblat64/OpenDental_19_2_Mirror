@@ -56,7 +56,7 @@ namespace OpenDentBusiness {
 		///The old way of converting the database was to manually daisy chain methods together.
 		///The new way is to just add a method that follows a strict naming pattern which this method will invoke when needed.</summary>
 		public static void InvokeConvertMethods() {
-			DataConnection.CommandTimout=7200;//2 hours, because conversion commands may take longer to run.
+			DataConnection.CommandTimeout=43200;//12 hours, because conversion commands may take longer to run.
 			ConvertDatabases.To2_8_2();//begins going through the chain of conversion steps
 			//Continue going through the chain of conversion methods starting at v17.1.1 via reflection.
 			//Loop through the list of convert databases methods from front to back because it has already been sorted (least to greatest).
@@ -97,7 +97,7 @@ namespace OpenDentBusiness {
 				//Always require major, minor, build, revision.  Will throw an exception if the revision was not explicitly set (which we always set).
 				Prefs.UpdateStringNoCache(PrefName.DataBaseVersion,convertMethodInfo.VersionCur.ToString(4));
 			}
-			DataConnection.CommandTimout=3600;//Set back to default of 1 hour.
+			DataConnection.CommandTimeout=3600;//Set back to default of 1 hour.
 		}
 	}
 
