@@ -7192,9 +7192,6 @@ namespace OpenDental {
 
 		///<summary>Returns the appropriate ChartModuleComponentsToLoad.</summary>
 		private ChartModuleComponentsToLoad GetChartModuleComponents() {
-			if(PatCur==null) {
-				return new ChartModuleComponentsToLoad();
-			}
 			if(UsingEcwTight()) {//ecw customers
 				return new ChartModuleComponentsToLoad(
 					checkAppt.Checked,				        //showAppointments
