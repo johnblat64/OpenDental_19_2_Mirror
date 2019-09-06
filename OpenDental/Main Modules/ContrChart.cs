@@ -3862,7 +3862,7 @@ namespace OpenDental {
 				doMakeSecLog=true;
 				_patNumLast=patNum;
 			}
-			Logger.LogAction("GetFamily",LogPath.ChartModule,() => _loadData=ChartModules.GetAll(patNum,checkAudit.Checked,GetChartModuleComponents(),doMakeSecLog));
+			Logger.LogAction("GetAll",LogPath.ChartModule,() => _loadData=ChartModules.GetAll(patNum,checkAudit.Checked,GetChartModuleComponents(),doMakeSecLog));
 			FamCur=_loadData.Fam;
 			PatCur=_loadData.Pat;
 			SubList=_loadData.ListInsSubs;
