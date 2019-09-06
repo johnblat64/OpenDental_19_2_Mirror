@@ -1016,7 +1016,12 @@ namespace OpenDental {
 				return;
 			}
 			if(FormS.PaperCopies>0){
-				SheetPrinting.Print(SheetCur,FormS.PaperCopies,RxIsControlled,Stmt,MedLabCur);
+				if(IsStatement) {
+					SheetPrinting.Print(SheetCur,_dataSet,1,RxIsControlled,Stmt,MedLabCur);
+				}
+				else {
+					SheetPrinting.Print(SheetCur,FormS.PaperCopies,RxIsControlled,Stmt,MedLabCur);
+				}
 			}
 			string pdfFile="";
 			if(FormS.EmailPatOrLab){
@@ -1053,7 +1058,12 @@ namespace OpenDental {
 				CancelClose();
 				return;
 			}
-			SheetPrinting.Print(SheetCur,1,RxIsControlled,Stmt,MedLabCur);
+			if(IsStatement) {
+				SheetPrinting.Print(SheetCur,_dataSet,1,RxIsControlled,Stmt,MedLabCur);
+			}
+			else {
+				SheetPrinting.Print(SheetCur,1,RxIsControlled,Stmt,MedLabCur);
+			}
 			if(SheetCur.SheetType==SheetTypeEnum.Statement && SaveStatementToDocDelegate!=null) {
 				SaveStatementToDocDelegate(Stmt,SheetCur);
 			}
@@ -1097,6 +1107,9 @@ namespace OpenDental {
 				else {
 					File.Copy(_tempPdfFile,pdfFile);
 				}
+			}
+			else if(IsStatement) {
+				SheetPrinting.CreatePdf(SheetCur,pdfFile,Stmt,_dataSet,MedLabCur);
 			}
 			else {
 				SheetPrinting.CreatePdf(SheetCur,pdfFile,Stmt,MedLabCur);
@@ -1202,7 +1215,12 @@ namespace OpenDental {
 			else {
 				filePathAndName=PrefC.GetRandomTempFile(".pdf");
 				//Graphics g=this.CreateGraphics();
-				SheetPrinting.CreatePdf(SheetCur,filePathAndName,Stmt,MedLabCur);
+				if(IsStatement) {
+					SheetPrinting.CreatePdf(SheetCur,filePathAndName,Stmt,_dataSet,MedLabCur);
+				}
+				else {
+					SheetPrinting.CreatePdf(SheetCur,filePathAndName,Stmt,MedLabCur);
+				}
 			}
 			//g.Dispose();
 			try {
