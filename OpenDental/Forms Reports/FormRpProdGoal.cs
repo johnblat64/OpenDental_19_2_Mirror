@@ -707,11 +707,11 @@ namespace OpenDental {
 				query.AddColumn("Tot Prod",totProdWidth,FieldValueType.Number,font);
 				//Column used to align the summary fields.
 				query.AddGroupSummaryField("Total Production (Production + Adjusts + Scheduled - Writeoffs): ","Writeoffs",
-					"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
+					"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,30);
 			}
 			else {
 				query.AddGroupSummaryField("Total Production (Production + Adjusts + Scheduled - Writeoffs): ","Writeoffs",
-					"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,20);
+					"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,30);
 			}
 			report.AddPageNum();
 			// execute query

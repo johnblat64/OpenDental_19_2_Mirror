@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using CodeBase;
+using System.Linq;
 
 namespace OpenDental.ReportingComplex {
 	/// <summary>This class is loosely modeled after CrystalReports.ReportDocument, but with less inheritence and heirarchy.</summary>
@@ -158,8 +159,8 @@ namespace OpenDental.ReportingComplex {
 		///<summary>Adds a ReportObject with the given font, to the top-center of the Report Header Section.  Should only be done once, and done before any subTitles.</summary>
 		public void AddTitle(string name,string title,Font font){
 			ReportComplexEvent.Fire(ODEventType.ReportComplex,Lan.g("ReportComplex","Adding Title To Report")+"...");
-			Size size=new Size((int)(_grfx.MeasureString(title,font).Width/_grfx.DpiX*100+2)
-				,(int)(_grfx.MeasureString(title,font).Height/_grfx.DpiY*100+2));
+			SizeF sizeF=_grfx.MeasureString(title,font);
+			Size size=new Size((int)(sizeF.Width/_grfx.DpiX*100+2),(int)(sizeF.Height/_grfx.DpiY*100));
 			int xPos;
 			if(_isLandscape) {
 				xPos=1100/2;
@@ -169,16 +170,13 @@ namespace OpenDental.ReportingComplex {
 				xPos=850/2;
 				xPos-=30;
 			}
-			xPos-=(int)(size.Width/2);
+			xPos-=size.Width/2;
 			if(_sections[AreaSectionType.ReportHeader]==null) {
 				_sections.Add(new Section(AreaSectionType.ReportHeader,0));
 			}
-			_reportObjects.Add(
-				new ReportObject(name,AreaSectionType.ReportHeader,new Point(xPos,0),size,title,font,ContentAlignment.MiddleCenter));
+			_reportObjects.Add(new ReportObject(name,AreaSectionType.ReportHeader,new Point(xPos,0),size,title,font,ContentAlignment.MiddleCenter));
 			//this is the only place a white buffer is added to a header.
-			_sections[AreaSectionType.ReportHeader].Height=(int)size.Height+20;
-			//grfx.Dispose();
-			//FormR.Dispose();
+			_sections[AreaSectionType.ReportHeader].Height=size.Height+10;
 		}
 
 		///<summary>Adds a ReportObject, Tahoma font, 10-point and bold, at the bottom-center of the Report Header Section.
@@ -205,8 +203,8 @@ namespace OpenDental.ReportingComplex {
 		///Should only be done after AddTitle.  You can add as many subtitles as you want.  Padding is added to the height only of the subtitle.</summary>
 		public void AddSubTitle(string name,string subTitle,Font font,int padding) {
 			ReportComplexEvent.Fire(ODEventType.ReportComplex,Lan.g("ReportComplex","Adding SubTitle To Report")+"...");
-			Size size=new Size((int)(_grfx.MeasureString(subTitle,font).Width/_grfx.DpiX*100+2)
-				,(int)(_grfx.MeasureString(subTitle,font).Height/_grfx.DpiY*100+2));
+			SizeF sizeF=_grfx.MeasureString(subTitle,font);
+			Size size=new Size((int)(sizeF.Width/_grfx.DpiX*100+2),(int)(sizeF.Height/_grfx.DpiY*100));
 			int xPos;
 			if(_isLandscape) {
 				xPos=1100/2;
@@ -216,21 +214,18 @@ namespace OpenDental.ReportingComplex {
 				xPos=850/2;
 				xPos-=30;
 			}
-			xPos-=(int)(size.Width/2);
+			xPos-=size.Width/2;
 			if(_sections[AreaSectionType.ReportHeader]==null) {
 				_sections.Add(new Section(AreaSectionType.ReportHeader,0));
 			}
 			//find the yPos+Height of the last reportObject in the Report Header section
-			int yPos=0;
-			foreach(ReportObject reportObject in _reportObjects) {
-				if(reportObject.SectionType!=AreaSectionType.ReportHeader) continue;
-				if(reportObject.Location.Y+reportObject.Size.Height > yPos) {
-					yPos=reportObject.Location.Y+reportObject.Size.Height;
-				}
-			}
+			int yPos=_reportObjects.OfType<ReportObject>()
+				.Where(x => x.SectionType==AreaSectionType.ReportHeader)
+				.Select(x => x.Location.Y+x.Size.Height).Where(x => x>0).DefaultIfEmpty(0).Max();
 			_reportObjects.Add(new ReportObject(name,AreaSectionType.ReportHeader,new Point(xPos,yPos+padding),size,subTitle,font,ContentAlignment.MiddleCenter));
-			_sections[AreaSectionType.ReportHeader].Height+=(int)size.Height+padding;
+			_sections[AreaSectionType.ReportHeader].Height+=size.Height+padding;
 		}
+
 		/// <summary>Adds a report object with the given font at the footer of the report, with the given alignment. </summary>
 		public void AddFooterText(string name, string text, Font font, int padding, ContentAlignment contentAlign) {
 			//Size size=new Size((int)(_grfx.MeasureString(text,font).Width/_grfx.DpiX*100+2)

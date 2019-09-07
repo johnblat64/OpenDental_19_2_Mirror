@@ -1198,19 +1198,20 @@ namespace OpenDental {
 			// add columns to report
 			Font font=new Font("Tahoma",8,FontStyle.Regular);
 			int datewidth=70;
-			int weekdaywidth=70;
-			int productionwidth=80;
-			int schedwidth=80;
-			int adjwidth=80;
-			int writeoffestwidth=80;
+			int weekdaywidth=65;
+			int productionwidth=90;
+			int schedwidth=85;
+			int adjwidth=85;
+			int writeoffestwidth=95;
 			int writeoffwidth=80;
-			int writeoffadjwidth=80;
-			int totprodwidth=80;
-			int ptincomewidth=80;
+			int writeoffadjwidth=70;
+			int totprodwidth=90;
+			int ptincomewidth=85;
 			int unearnedPtIncomeWidth=80;
-			int insincomewidth=80;
-			int totincomewidth=80;
-			int summaryOffSetY=15;
+			int insincomewidth=85;
+			int totincomewidth=90;
+			int summaryOffSetY=30;
+			int summaryIncomeOffSetY=4;
 			query.AddColumn("Date",datewidth,FieldValueType.String,font);
 			query.AddColumn("Weekday",weekdaywidth,FieldValueType.String,font);
 			query.AddColumn("Production",productionwidth,FieldValueType.Number,font);
@@ -1262,11 +1263,9 @@ namespace OpenDental {
 					query.AddGroupSummaryField("Total Production (Production + Scheduled + Adjustments - Writeoffs): ",columnNameAlign,
 						"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
-				int summaryIncomeOffSetY=summaryOffSetY-5;
 				if(checkUnearned.Checked) {//if unearned check, add summaries.
 					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ",columnNameAlign,"Total Pt Income",
 						SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
-					summaryIncomeOffSetY-=3;
 				}
 				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ",columnNameAlign,"Total Income",SummaryOperation.Sum,
 					new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
@@ -1281,11 +1280,9 @@ namespace OpenDental {
 					query.AddGroupSummaryField("Total Production (Production + Scheduled + Adjustments - Writeoffs): ",columnNameAlign,
 						"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
-				int summaryIncomeOffSetY=summaryOffSetY-5;
 				if(checkUnearned.Checked) {//if unearned check, add summaries.
 					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ",columnNameAlign,"Total Pt Income",
 						SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
-					summaryIncomeOffSetY-=3;
 				}
 				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ",columnNameAlign,"Total Income",SummaryOperation.Sum,
 					new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
@@ -1407,17 +1404,18 @@ namespace OpenDental {
 			}
 			// add columns to report
 			int datewidth=65;//65px width allows room for a 3 letter month abbreviation and 4 digit year.
-			int productionwidth=100;//100px width allows the total row to fit values up to 99,999,999.99
-			int adjwidth=80;//80px width allows the total row to fit values up to 999,999.99 and down to -99,999.99
-			int writeoffestwidth=90;//90px width allows the total row to fit values up to 9,999,999.99 and down to -999,999.99
-			int writeoffwidth=90;//90px width allows the total row to fit values up to 9,999,999.99 and down to -999,999.99
-			int writeoffadjwidth=90;//90px width allows the total row to fit values up to 9,999,999.99 and down to -999,999.99
-			int totprodwidth=100;//100px width allows the total row to fit values up to 99,999,999.99
-			int ptincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99
-			int unearnedPtIncomeWidth=100;//100px width allows the total row to fit values up to 99,999,999.99
-			int insincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99
-			int totincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99
-			int summaryOffSetY=15;
+			int productionwidth=110;//110px width allows the total row to fit values up to 999,999,999.99 and down to -99,999,999.99
+			int adjwidth=110;//110px width allows the total row to fit values up to 999,999,999.99 and down to -99,999,999.99
+			int writeoffestwidth=115;//110px width allows the total row to fit values up to 999,999,999.99 and down to -99,999,999.99
+			int writeoffwidth=110;//110px width allows the total row to fit values up to 999,999,999.99 and down to -99,999,999.99
+			int writeoffadjwidth=80;//80px width allows the total row to fit values up to 999,999.99 and down to -99,999.99
+			int totprodwidth=110;//110px width allows the total row to fit values up to 999,999,999.99 and down to -99,999,999.99
+			int ptincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99 and down to -9,999,999.99
+			int unearnedPtIncomeWidth=80;//80px width allows the total row to fit values up to 999,999.99 and down to -99,999.99
+			int insincomewidth=100;//100px width allows the total row to fit values up to 99,999,999.99 and down to -9,999,999.99
+			int totincomewidth=110;//110px width allows the total row to fit values up to 999,999,999.99 and down to -99,999,999.99
+			int summaryOffSetY=30;
+			int summaryIncomeOffSetY=4;
 			query.AddColumn("Month",datewidth,FieldValueType.String);
 			query.AddColumn("Production",productionwidth,FieldValueType.Number);
 			query.AddColumn("Adjustments",adjwidth,FieldValueType.Number);
@@ -1463,11 +1461,9 @@ namespace OpenDental {
 					query.AddGroupSummaryField("Total Production (Production + Adjustments - Writeoffs): ","Tot Prod",
 						"Tot Prod",SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
-				int summaryIncomeOffSetY=summaryOffSetY-5;
 				if(checkUnearned.Checked) {//if unearned check, add summaries.
 					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ","Tot Prod","Total Pt Income",
 						SummaryOperation.Sum,new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
-					summaryIncomeOffSetY-=3;
 				}
 				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ","Tot Prod","Total Income",SummaryOperation.Sum,
 					new List<int>() { 2 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
@@ -1481,11 +1477,9 @@ namespace OpenDental {
 					query.AddGroupSummaryField("Total Production (Production + Adjustments - Writeoffs): ","Tot Prod",
 						"Tot Prod",SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryOffSetY);
 				}
-				int summaryIncomeOffSetY=summaryOffSetY-5;
 				if(checkUnearned.Checked) {//if unearned check, add summaries.
 					query.AddGroupSummaryField("Total Pt Income (Pt Income + Unearned Pt Income): ","Tot Prod","Total Pt Income",
 						SummaryOperation.Sum,new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);
-					summaryIncomeOffSetY-=3;
 				}
 				query.AddGroupSummaryField("Total Income (Total Pt Income + Ins Income): ","Tot Prod","Total Income",SummaryOperation.Sum,
 					new List<int>() { 1 },Color.Black,new Font("Tahoma",9,FontStyle.Bold),75,summaryIncomeOffSetY);

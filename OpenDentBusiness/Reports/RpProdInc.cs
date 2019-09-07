@@ -1819,9 +1819,9 @@ namespace OpenDentBusiness {
 				+"SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits))-IFNULL(SUM(cp.WriteOff),0) Production "
 				+"FROM procedurelog "
 				+"LEFT JOIN (SELECT SUM(claimproc.WriteOff) AS WriteOff, claimproc.ProcNum FROM claimproc "
-				+"WHERE claimproc.Status=7 "//only CapComplete writeoffs are subtracted here.
+				+$"WHERE claimproc.Status={POut.Int((int)ClaimProcStatus.CapComplete)} "
 				+"GROUP BY claimproc.ProcNum) cp ON procedurelog.ProcNum=cp.ProcNum "
-				+"WHERE procedurelog.ProcStatus = 2 "
+				+$"WHERE procedurelog.ProcStatus = {POut.Int((int)ProcStat.C)} "
 				+whereProv
 				+whereClin
 				+"AND procedurelog.ProcDate >= " +POut.Date(dateFrom)+" "
@@ -1949,8 +1949,7 @@ namespace OpenDentBusiness {
 					+"AND claimproc.Status IN("+POut.Int((int)ClaimProcStatus.Estimate)+","+POut.Int((int)ClaimProcStatus.CapEstimate)+") "
 					+" AND (WriteOffEst != -1 OR WriteOffEstOverride != -1) "
 				+"WHERE appointment.AptStatus = "+POut.Int((int)ApptStatus.Scheduled)+" "
-				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" >= "+POut.Date(dateFrom)+" "
-				+"AND "+DbHelper.DtimeToDate("appointment.AptDateTime")+" <= "+POut.Date(dateTo)+" "
+				+"AND "+DbHelper.BetweenDates("appointment.AptDateTime",dateFrom,dateTo)+" "
 				+whereProv
 				+whereClin
 				+" GROUP BY procedurelog.ProcNum) t "//without this, there can be duplicate proc rows due to the claimproc join with dual insurance.
@@ -2385,9 +2384,9 @@ namespace OpenDentBusiness {
 				+"SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits))-IFNULL(SUM(cp.WriteOff),0) Production "
 				+"FROM procedurelog "
 				+"LEFT JOIN (SELECT SUM(claimproc.WriteOff) AS WriteOff, claimproc.ProcNum FROM claimproc "
-				+"WHERE claimproc.Status='7' "//only CapComplete writeoffs are subtracted here.
+				+$"WHERE claimproc.Status={POut.Int((int)ClaimProcStatus.CapComplete)} "
 				+"GROUP BY claimproc.ProcNum) cp ON procedurelog.ProcNum=cp.ProcNum "
-				+"WHERE procedurelog.ProcStatus = '2' "
+				+$"WHERE procedurelog.ProcStatus = {POut.Int((int)ProcStat.C)} "
 				+whereProv
 				+whereClin
 				+"AND procedurelog.ProcDate >= " +POut.Date(dateFrom)+" "
