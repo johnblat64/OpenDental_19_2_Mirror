@@ -366,6 +366,7 @@ namespace OpenDental{
 		#endregion
 
 		private void FormClaimsSend_Load(object sender, System.EventArgs e) {
+			Plugins.HookAddCode(this,"FormClaimsSend.FormClaimsSend_Load_start");
 			AdjustPanelSplit();
 			_arrayQueueAll=Claims.GetQueueList(0,0,0);
 			_listNumberOfClaims=new List<int>();
