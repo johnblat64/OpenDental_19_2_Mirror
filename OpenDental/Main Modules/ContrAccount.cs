@@ -4001,6 +4001,9 @@ namespace OpenDental {
 					//	OnPat_Click();
 					//	break;
 					case "Payment":
+						if(Plugins.HookMethod(this,"ContrAccount.ToolBarMain_ButtonClick_Payment")) {
+							break;
+						}
 						bool isTsiPayment=(TsiTransLogs.IsTransworldEnabled(PatCur.ClinicNum)
 							&& Patients.IsGuarCollections(PatCur.Guarantor)
 							&& !MsgBox.Show(this,MsgBoxButtons.YesNo,"The guarantor of this family has been sent to TSI for a past due balance.  "

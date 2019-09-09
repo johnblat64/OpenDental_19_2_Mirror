@@ -4610,6 +4610,10 @@ namespace OpenDental {
 			{
 				return false;
 			}
+			object[] parameters={ listPayType.SelectedItem,textNote.Text,_isCCDeclined,_paymentCur };
+			Plugins.HookAddCode(this,"FormPayment.SavePaymentToDb_afterUnearnedCurCheck",parameters);
+			textNote.Text=(string)parameters[1];
+			_isCCDeclined=(bool)parameters[2];
 			if(_isCCDeclined) {
 				textAmount.Text=0.ToString("f");//So that a declined transaction does not affect account balance
 				_listSplitsCur.ForEach(x => x.SplitAmt=0);
