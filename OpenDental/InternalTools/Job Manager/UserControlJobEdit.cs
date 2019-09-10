@@ -2202,7 +2202,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 				checkIsActive.Checked=true;
 			}
 			else {
-				checkIsActive.Checked=true;
+				checkIsActive.Checked=false;
 			}
 			_isLoading=false;
 			CheckPermissions();
