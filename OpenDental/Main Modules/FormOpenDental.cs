@@ -7203,7 +7203,6 @@ namespace OpenDental{
 		private void menuItemProcCodes_Click(object sender, System.EventArgs e) {
 			//security handled within form
 			FormProcCodes FormP=new FormProcCodes(true);
-			FormP.ProcCodeSort=(ProcCodeListSort)PrefC.GetInt(PrefName.ProcCodeListSortOrder);
 			FormP.ShowDialog();	
 		}
 

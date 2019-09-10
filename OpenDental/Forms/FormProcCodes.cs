@@ -102,7 +102,7 @@ namespace OpenDental{
 		private FeeCache _feeCache;
 		private ComboBox comboSort;
 		private Label label6;
-		public ProcCodeListSort ProcCodeSort;
+		private ProcCodeListSort _procCodeSort;
 		/// <summary> List should contain two logs per fee because we are inserting two security logs everytime we update a fee.</summary>
 		private Dictionary<long,List<SecurityLog>> _dictFeeLogs;
 		private bool _canShowHidden;
@@ -1115,7 +1115,8 @@ namespace OpenDental{
 			for(int i=0;i<Enum.GetNames(typeof(ProcCodeListSort)).Length;i++) {
 				comboSort.Items.Add(Enum.GetNames(typeof(ProcCodeListSort))[i]);
 			}
-			comboSort.SelectedIndex=(int)ProcCodeSort;
+			_procCodeSort=(ProcCodeListSort)PrefC.GetInt(PrefName.ProcCodeListSortOrder);
+			comboSort.SelectedIndex=(int)_procCodeSort;
 			FillGrid();
 			//Preselect corresponding procedure codes once on load.  Do not do it within FillGrid().
 			if(ListSelectedProcCodes.Count > 0) {
@@ -1398,7 +1399,7 @@ namespace OpenDental{
 			string searchCode=textCode.Text;
 			List<ProcedureCode> listProcsForCats=new List<ProcedureCode>();
 			//Loop through the list of categories which are ordered by def.ItemOrder.
-			if(ProcCodeSort==ProcCodeListSort.Category) {
+			if(_procCodeSort==ProcCodeListSort.Category) {
 				for(int i=0;i<listCatDefs.Count;i++) {
 					//Get all procedure codes that are part of the selected category.  Then order the list of procedures by ProcCodes.
 					//Append the list of ordered procedures to the master list of procedures for the selected categories.
@@ -1407,7 +1408,7 @@ namespace OpenDental{
 						.OrderBy(proc => proc.ProcCode).ToList());
 				}
 			}
-			else if(ProcCodeSort==ProcCodeListSort.ProcCode) {
+			else if(_procCodeSort==ProcCodeListSort.ProcCode) {
 				for(int i = 0;i<listCatDefs.Count;i++) {
 					listProcsForCats.AddRange(ProcedureCodes.GetWhereFromList(proc => proc.ProcCat==listCatDefs[i].DefNum).ToList());
 				}
@@ -1426,7 +1427,7 @@ namespace OpenDental{
 				row.Tag=procCode;
 				//Only show the category on the first procedure code in that category.
 				string categoryName=Defs.GetName(DefCat.ProcCodeCats,procCode.ProcCat);
-				if(lastCategoryName!=categoryName && ProcCodeSort==ProcCodeListSort.Category) {
+				if(lastCategoryName!=categoryName && _procCodeSort==ProcCodeListSort.Category) {
 					row.Cells.Add(categoryName);
 					lastCategoryName=categoryName;
 				}
@@ -2018,7 +2019,7 @@ namespace OpenDental{
 		#endregion
 
 		private void comboSort_SelectionChangeCommitted(object sender,EventArgs e) {
-			ProcCodeSort=(ProcCodeListSort)comboSort.SelectedIndex;
+			_procCodeSort=(ProcCodeListSort)comboSort.SelectedIndex;
 			FillGrid();
 		}
 
