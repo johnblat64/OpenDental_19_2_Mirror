@@ -556,6 +556,7 @@ namespace OpenDental{
 			this.textInsWriteoffDescript = new System.Windows.Forms.TextBox();
 			this.label17 = new System.Windows.Forms.Label();
 			this.tabPageMisc = new System.Windows.Forms.TabPage();
+			this.checkAgingProcLifo = new System.Windows.Forms.CheckBox();
 			this.groupRepeatingCharges = new System.Windows.Forms.GroupBox();
 			this.labelRepeatingChargesAutomatedTime = new System.Windows.Forms.Label();
 			this.textRepeatingChargesAutomatedTime = new OpenDental.ValidTime();
@@ -739,7 +740,6 @@ namespace OpenDental{
 			this.checkRxSendNewToQueue = new System.Windows.Forms.CheckBox();
 			this.butCancel = new OpenDental.UI.Button();
 			this.butOK = new OpenDental.UI.Button();
-			this.checkAgingProcLifo = new System.Windows.Forms.CheckBox();
 			this.tabControlMain.SuspendLayout();
 			this.tabAppts.SuspendLayout();
 			this.tabControlAppts.SuspendLayout();
@@ -2579,6 +2579,18 @@ namespace OpenDental{
 			this.tabPageMisc.Text = "Misc Account";
 			this.tabPageMisc.UseVisualStyleBackColor = true;
 			// 
+			// checkAgingProcLifo
+			// 
+			this.checkAgingProcLifo.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkAgingProcLifo.FlatStyle = System.Windows.Forms.FlatStyle.System;
+			this.checkAgingProcLifo.Location = new System.Drawing.Point(94, 148);
+			this.checkAgingProcLifo.Name = "checkAgingProcLifo";
+			this.checkAgingProcLifo.Size = new System.Drawing.Size(351, 17);
+			this.checkAgingProcLifo.TabIndex = 306;
+			this.checkAgingProcLifo.Text = "Transactions attached to a procedure offset each other before aging";
+			this.checkAgingProcLifo.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkAgingProcLifo.ThreeState = true;
+			// 
 			// groupRepeatingCharges
 			// 
 			this.groupRepeatingCharges.Controls.Add(this.labelRepeatingChargesAutomatedTime);
@@ -2783,6 +2795,7 @@ namespace OpenDental{
 			this.checkShowFamilyCommByDefault.TabIndex = 75;
 			this.checkShowFamilyCommByDefault.Text = "Show Family Comm Entries By Default";
 			this.checkShowFamilyCommByDefault.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkShowFamilyCommByDefault.Click += new System.EventHandler(this.CheckShowFamilyCommByDefault_Click);
 			// 
 			// checkShowAllocateUnearnedPaymentPrompt
 			// 
@@ -4605,18 +4618,6 @@ namespace OpenDental{
 			this.butOK.Text = "&OK";
 			this.butOK.Click += new System.EventHandler(this.butOK_Click);
 			// 
-			// checkAgingProcLifo
-			// 
-			this.checkAgingProcLifo.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkAgingProcLifo.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.checkAgingProcLifo.Location = new System.Drawing.Point(94, 148);
-			this.checkAgingProcLifo.Name = "checkAgingProcLifo";
-			this.checkAgingProcLifo.Size = new System.Drawing.Size(351, 17);
-			this.checkAgingProcLifo.TabIndex = 306;
-			this.checkAgingProcLifo.Text = "Transactions attached to a procedure offset each other before aging";
-			this.checkAgingProcLifo.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkAgingProcLifo.ThreeState = true;
-			// 
 			// FormModuleSetup
 			// 
 			this.ClientSize = new System.Drawing.Size(538, 659);
@@ -5488,6 +5489,10 @@ namespace OpenDental{
 		private void checkRepeatingChargesAutomated_CheckedChanged(object sender,EventArgs e) {
 			labelRepeatingChargesAutomatedTime.Enabled=checkRepeatingChargesAutomated.Checked;
 			textRepeatingChargesAutomatedTime.Enabled=checkRepeatingChargesAutomated.Checked;
+		}
+
+		private void CheckShowFamilyCommByDefault_Click(object sender,EventArgs e) {
+			MsgBox.Show(this,"You will need to restart the program for the change to take effect.");
 		}
 
 		///<summary>Turning on automated repeating charges, but recurring charges are also enabled and set to run before auto repeating charges.  Prompt 
