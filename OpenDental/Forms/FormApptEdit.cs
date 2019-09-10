@@ -2530,8 +2530,8 @@ namespace OpenDental{
 					doPreventChange=AppointmentL.DoPreventChangesToCompletedAppt(AptOld,action,listAttachedProcs);
 					break;
 				case PreventChangesApptAction.Status:
-					doPreventChange=AppointmentL.DoPreventChangesToCompletedAppt(AptOld,action,listAttachedProcs)
-						&& comboStatus.SelectedIndex!=1;//Setting the Apt status to something other than Complete
+					doPreventChange=comboStatus.SelectedIndex!=1 && //Setting the Apt status to something other than Complete
+						AppointmentL.DoPreventChangesToCompletedAppt(AptOld,action,listAttachedProcs);						
 					break;
 				default:
 					throw new ApplicationException("Unsupported action");
