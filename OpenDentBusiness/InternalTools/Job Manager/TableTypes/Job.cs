@@ -141,11 +141,14 @@ namespace OpenDentBusiness {
 		[CrudColumn(IsNotDbColumn=true)]
 		public List<JobQuote> ListJobQuotes=new List<JobQuote>();
 		///<summary>Not a data column.</summary>
-		[CrudColumn(IsNotDbColumn = true)]
+		[CrudColumn(IsNotDbColumn=true)]
 		public List<JobLog> ListJobLogs = new List<JobLog>();
 		///<summary>Not a data column.</summary>
-		[CrudColumn(IsNotDbColumn = true)]
+		[CrudColumn(IsNotDbColumn=true)]
 		public List<JobNotification> ListJobNotifications = new List<JobNotification>();
+		///<summary>Not a data column.</summary>
+		[CrudColumn(IsNotDbColumn=true)]
+		public List<JobActiveLink> ListJobActiveLinks = new List<JobActiveLink>();
 
 		///<summary>Used only for serialization purposes.</summary>
 		[XmlElement(nameof(TimeEstimateDevelopment),typeof(long))]
@@ -230,6 +233,7 @@ namespace OpenDentBusiness {
 			job.ListJobQuotes=this.ListJobQuotes.Select(x => x.Copy()).ToList();
 			job.ListJobLogs=this.ListJobLogs.Select(x => x.Copy()).ToList();
 			job.ListJobNotifications=this.ListJobNotifications.Select(x => x.Copy()).ToList();
+			job.ListJobActiveLinks=this.ListJobActiveLinks.Select(x => x.Copy()).ToList();
 			return job;
 		}
 
@@ -647,6 +651,8 @@ namespace OpenDentBusiness {
 
 	///<summary>Never Stored in the DB. Only used for sorting and displaying. The order these values are ordered in this enum is the order they will be displayed in.</summary>
 	public enum JobAction {
+		[Description("Active Job")]
+		ActiveJob,
 		[Description("Review Code")]
 		ReviewCode,
 		[Description("Needs Quote")]

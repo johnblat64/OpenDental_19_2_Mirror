@@ -268,6 +268,7 @@
     <Compile Include="Crud\BugSubmissionCrud.cs" />
     <Compile Include="Crud\FaqCrud.cs" />
     <Compile Include="Crud\EClipboardSheetDefCrud.cs" />
+    <Compile Include="Crud\JobActiveLinkCrud.cs" />
     <Compile Include="Crud\JobNotificationCrud.cs" />
     <Compile Include="Crud\JobSprintCrud.cs" />
     <Compile Include="Crud\JobSprintLinkCrud.cs" />
@@ -342,6 +343,7 @@
     <Compile Include="Email\EmailResult.cs" />
     <Compile Include="Email\SendEmails.cs" />
     <Compile Include="Email\SerializeEmail.cs" />
+    <Compile Include="InternalTools\Job Manager\JobActiveLinks.cs" />
     <Compile Include="InternalTools\Job Manager\JobHelper.cs" />
     <Compile Include="InternalTools\Job Manager\JobNotifications.cs" />
     <Compile Include="Data Interface\ProviderClinics.cs" />
@@ -353,6 +355,7 @@
     <Compile Include="InternalTools\Job Manager\Backports.cs" />
     <Compile Include="InternalTools\Job Manager\JobSprintLinks.cs" />
     <Compile Include="InternalTools\Job Manager\JobSprints.cs" />
+    <Compile Include="InternalTools\Job Manager\TableTypes\JobActiveLink.cs" />
     <Compile Include="InternalTools\Job Manager\TableTypes\JobSprint.cs" />
     <Compile Include="InternalTools\Job Manager\TableTypes\JobSprintLink.cs" />
     <Compile Include="InternalTools\Job Manager\TableTypes\JobNotification.cs" />

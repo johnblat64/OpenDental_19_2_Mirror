@@ -281,6 +281,7 @@ namespace OpenDentBusiness {
 			Dictionary<long,List<JobQuote>> dictJobQuotesAll=new Dictionary<long,List<JobQuote>>();
 			Dictionary<long,List<JobLog>> dictJobLogsAll=new Dictionary<long,List<JobLog>>();
 			Dictionary<long,List<JobNotification>> dictJobNotificationsAll=new Dictionary<long,List<JobNotification>>();
+			Dictionary<long,List<JobActiveLink>> dictJobActiveLinksAll=new Dictionary<long,List<JobActiveLink>>();
 			//The job search only needs ListJobLinks and ListJobReviews to be filled.
 			dictJobLinksAll=JobLinks.GetJobLinksForJobs(jobNums).GroupBy(x => x.JobNum).ToDictionary(x => x.Key,x => x.ToList());
 			dictJobReviewsAll=JobReviews.GetReviewsForJobs(jobNums.ToArray()).GroupBy(x => x.JobNum).ToDictionary(x => x.Key,x => x.ToList());
@@ -291,6 +292,7 @@ namespace OpenDentBusiness {
 				dictJobQuotesAll=JobQuotes.GetJobQuotesForJobs(jobNums).GroupBy(x => x.JobNum).ToDictionary(x => x.Key,x => x.ToList());
 				dictJobLogsAll=JobLogs.GetJobLogsForJobs(jobNums).GroupBy(x => x.JobNum).ToDictionary(x => x.Key,x => x.ToList());
 				dictJobNotificationsAll=JobNotifications.GetNotificationsForJobs(jobNums).GroupBy(x => x.JobNum).ToDictionary(x => x.Key,x => x.ToList());
+				dictJobActiveLinksAll=JobActiveLinks.GetJobActiveLinksForJobNums(jobNums).GroupBy(x => x.JobNum).ToDictionary(x => x.Key,x => x.ToList());
 			}
 			foreach(Job job in listJobsAll) {
 				if(!dictJobLinksAll.TryGetValue(job.JobNum,out job.ListJobLinks)) {
@@ -313,6 +315,9 @@ namespace OpenDentBusiness {
 				}
 				if(!dictJobNotificationsAll.TryGetValue(job.JobNum,out job.ListJobNotifications)) {
 					job.ListJobNotifications=new List<JobNotification>();//empty list if not found
+				}
+				if(!dictJobActiveLinksAll.TryGetValue(job.JobNum,out job.ListJobActiveLinks)) {
+					job.ListJobActiveLinks=new List<JobActiveLink>();//empty list if not found
 				}
 			}
 		}

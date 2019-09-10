@@ -221,6 +221,14 @@ namespace OpenDental.InternalTools.Job_Manager {
 			comboPatternStatus.SelectedIndex=(int)_jobCur.PatternReviewStatus;
 			textDateTested.Text=_jobCur.DateTimeTested.ToShortDateString();
 			checkNotTested.Checked=_jobCur.IsNotTested;
+			if(JobPermissions.IsAuthorized(JobPerm.Concept,true) && !job.PhaseCur.In(JobPhase.Cancelled,JobPhase.Complete,JobPhase.Documentation)) {
+				checkIsActive.Enabled=true;
+				checkIsActive.Checked=job.ListJobActiveLinks.Exists(x => x.UserNum==Security.CurUser.UserNum);
+			}
+			else {
+				checkIsActive.Enabled=false;
+				checkIsActive.Checked=job.ListJobActiveLinks.Exists(x => x.UserNum==Security.CurUser.UserNum);
+			}
 			if(_jobCur.IsApprovalNeeded) {
 				textApprove.Text="Waiting";
 			}
@@ -965,8 +973,8 @@ namespace OpenDental.InternalTools.Job_Manager {
 				}
 			}
 		}
-
-		///<summary>This is a nasty method. Logic in this must closely match the ActionMenuOpen method in FormJobManager.</summary>
+		
+		///<summary>This is a nasty method. Be careful with making changes to it.</summary>
 		private void butActions_Click(object sender,EventArgs e) {
 			bool perm=false;
 			ContextMenu actionMenu=new System.Windows.Forms.ContextMenu();
@@ -1141,6 +1149,14 @@ namespace OpenDental.InternalTools.Job_Manager {
 			}
 			butActions.ContextMenu=actionMenu;
 			butActions.ContextMenu.Show(butActions,new Point(0,butActions.Height));
+		}
+		
+		///<summary>Functions as a toggle for setting jobs active.</summary>
+		private void checkIsActive_CheckedChanged(object sender,EventArgs e) {
+			if(_isLoading) {
+				return;
+			}
+			IsChanged=true;
 		}
 			
 		private bool ValidateJob(Job _jobCur) {
@@ -2181,6 +2197,13 @@ namespace OpenDental.InternalTools.Job_Manager {
 				_jobCur.JobNum=jobMerge.JobNum;
 				_jobOld.JobNum=jobMerge.JobNum;
 			}
+			//IS ACTIVE
+			if(_jobCur.ListJobActiveLinks.Exists(x => x.UserNum==Security.CurUser.UserNum)) {
+				checkIsActive.Checked=true;
+			}
+			else {
+				checkIsActive.Checked=true;
+			}
 			_isLoading=false;
 			CheckPermissions();
 			textJobEditor.RefreshSpellCheckConcept();
@@ -2284,6 +2307,7 @@ namespace OpenDental.InternalTools.Job_Manager {
 			JobReviews.SyncReviews(job.ListJobReviews,job.JobNum);
 			JobReviews.SyncTimeLogs(job.ListJobTimeLogs,job.JobNum);
 			JobQuotes.Sync(job.ListJobQuotes,job.JobNum);
+			JobActiveLinks.ManageLink(job,_jobOld,Security.CurUser.UserNum,checkIsActive.Checked);
 			MakeLogEntry(job,_jobOld);
 			Signalods.SetInvalid(InvalidType.Jobs,KeyType.Job,job.JobNum);
 			LoadJob(job,_treeNode,_listJobs);//Tree view may become out of date if viewing a job for an extended period of time.

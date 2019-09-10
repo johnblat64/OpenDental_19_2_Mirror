@@ -344,6 +344,21 @@ namespace OpenDentBusiness{
 			JobLogs.Insert(jobLog);
 			return JobLogs.GetOne(jobLog.JobLogNum);//to get new timestamp.
 		}
+		
+		public static JobLog MakeLogEntryForActive(Job job,long userNum,bool isActive) {
+			string note=$@"Job was set to {(isActive?"active":"inactive")}";
+			JobLog jobLog = new JobLog() {
+				JobNum=job.JobNum,
+				UserNumChanged=Security.CurUser.UserNum,
+				UserNumExpert=job.UserNumExpert,
+				UserNumEngineer=job.UserNumEngineer,
+				Title=job.Title,
+				Description=note,
+				TimeEstimate=TimeSpan.FromHours(job.HoursEstimate)
+			};
+			JobLogs.Insert(jobLog);
+			return JobLogs.GetOne(jobLog.JobLogNum);//to get new timestamp.
+		}
 
 		public static void DeleteForJob(long jobNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {

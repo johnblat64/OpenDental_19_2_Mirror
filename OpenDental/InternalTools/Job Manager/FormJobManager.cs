@@ -601,6 +601,12 @@ namespace OpenDental {
 			Dictionary<JobAction,List<Job>> dictActions=new Dictionary<JobAction,List<Job>>();
 			foreach(Job job in _listJobsAll) {
 				JobAction action;
+				if(job.ListJobActiveLinks.Exists(x => x.UserNum==Security.CurUser.UserNum)) {
+					if(!dictActions.ContainsKey(JobAction.ActiveJob)) {
+						dictActions[JobAction.ActiveJob]=new List<Job>();
+					}
+					dictActions[JobAction.ActiveJob].Add(job);
+				}
 				if(userFilter==null) {
 					action=job.OwnerAction;
 				}
