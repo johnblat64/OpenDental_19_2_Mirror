@@ -506,7 +506,11 @@ namespace OpenDentBusiness {
 			req.SingleSignOn=GetSingleSignOn(clinicID,clinicKey,userID,false);
 			DoseSpotService.GetPrescriberNotificationCountsResponse res=api.GetPrescriberNotificationCounts(req);
 			if(res.Result!=null && res.Result.ResultCode.ToLower()=="error") {
-				throw new Exception(res.Result.ResultDescription);
+				ODException.ErrorCodes errorCode=ODException.ErrorCodes.NotDefined;
+				if(Erx.IsUserAnEmployee(Security.CurUser) && res.Result.ResultDescription.Contains("not authorized") || res.Result.ResultDescription.Contains("unauthorized")) {
+					errorCode=ODException.ErrorCodes.DoseSpotNotAuthorized;
+				}
+				throw new ODException(res.Result.ResultDescription,errorCode);
 			}
 			countRefillReqs=res.RefillRequestsCount;
 			countTransactionErrors=res.TransactionErrorsCount;

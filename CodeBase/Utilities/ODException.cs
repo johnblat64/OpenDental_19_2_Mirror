@@ -110,7 +110,7 @@ namespace CodeBase {
 			///<summary>Immortal socket connection was found by Proxy but the remote eConnector socket is not responding. 
 			///Most likely because the eConnector has been turned off but the Proxy has not performed an ACK to discover that it's off.</summary>
 			ODSocketEConnectorNotResponding=101,
-			//200-299 range. Values used by XWeb/XCharge integration.
+			//200-299 range. Values used by 3rd party integrations.
 			///<summary>.</summary>
 			OtkArgsInvalid=200,
 			///<summary>.</summary>
@@ -123,6 +123,8 @@ namespace CodeBase {
 			PayConnectProgramProperties=204,
 			///<summary>.</summary>
 			WebPaySetup=205,
+			///<summary>DoseSpot user not authorized to perform action.</summary>
+			DoseSpotNotAuthorized=206,
 			//400-499 range. Values used by web apps
 			///<summary>No patient found that matches the specified parameters.</summary>
 			NoPatientFound=400,

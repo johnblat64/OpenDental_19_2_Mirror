@@ -236,6 +236,7 @@ namespace OpenDentBusiness {
 			}
 		}
 
+		///<summary>An employee user is assumed to be a proxy user in DoseSpot/Legacy</summary>
 		public static bool IsUserAnEmployee(Userod user) {
 			bool isEmp=false;
 			if(user.EmployeeNum==0) {//The current user does not have an employee associated.

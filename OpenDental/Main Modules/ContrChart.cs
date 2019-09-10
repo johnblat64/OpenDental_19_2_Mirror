@@ -5059,7 +5059,7 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					ex.DoNothing();
-					SetErxButtonNotification(0,0,0,true);
+					SetErxButtonNotification(-1,-1,-1,true);
 					return;
 				}
 				//We have valid DoseSpot credentials.  Try to access information from DoseSpot's API.  Catch independently to ensure as much data is gathered as possible.
@@ -5069,7 +5069,7 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					ex.DoNothing();
-					SetErxButtonNotification(0,0,0,true);
+					SetErxButtonNotification(-1,-1,-1,true,(ex is ODException odex && odex.ErrorCodeAsEnum==ODException.ErrorCodes.DoseSpotNotAuthorized));
 				}
 				try {
 					Action<List<RxPat>> onRxAdd=new Action<List<RxPat>>((listRx) => {
@@ -5081,29 +5081,35 @@ namespace OpenDental {
 				}
 				catch(Exception ex) {
 					ex.DoNothing();
-					SetErxButtonNotification(0,0,0,true);
+					SetErxButtonNotification(countRefillRequests,countErrors,countPendingPrescriptions,true);
 				}
 			});
 			thread.Start();
 		}
 
 		///<summary>Currently only used for DoseSpot.</summary>
-		private void SetErxButtonNotification(int countRefillRequests,int countErrors,int countPendingPrescriptions,bool isError) {
+		private void SetErxButtonNotification(int countRefillRequests,int countErrors,int countPendingPrescriptions,bool isError,bool wasNotAuthorized=false) {
 			if(this.InvokeRequired) {
 				this.BeginInvoke((Action)delegate () {
-					SetErxButtonNotification(countRefillRequests,countErrors,countPendingPrescriptions,isError);
+					SetErxButtonNotification(countRefillRequests,countErrors,countPendingPrescriptions,isError,wasNotAuthorized);
 				});
 				return;
 			}
 			menuItemDoseSpotPendingPescr.Enabled=(!isError);
 			menuItemDoseSpotRefillReqs.Enabled=(!isError);
 			menuItemDoseSpotTransactionErrors.Enabled=(!isError);
-			_butErx.IsRed=isError; //Set the eRx button back to default color.
+			if(wasNotAuthorized) {
+				_butErx.IsRed=false;//Not authorized errors shouldn't make the button red.
+			}
+			else {
+				_butErx.IsRed=isError;//Set the eRx button back to default color.
+			}
 			_butErx.NotificationText="";
 			menuItemDoseSpotPendingPescr.Text="Pending Prescriptions";
 			menuItemDoseSpotRefillReqs.Text="Refill Requests";
 			menuItemDoseSpotTransactionErrors.Text="Transaction Errors";
-			if(!isError) {
+			//Has valid counts to display to the user.  There may have been an error, but if we have valid counts we should show them to the user.
+			if(countRefillRequests>=0 && countErrors>=0 && countPendingPrescriptions>=0) {
 				_butErx.NotificationText=Math.Min(99,countRefillRequests+countErrors+countPendingPrescriptions).ToString();
 				menuItemDoseSpotPendingPescr.Text+=" ("+countPendingPrescriptions+")";
 				menuItemDoseSpotRefillReqs.Text+=" ("+countRefillRequests+")";
