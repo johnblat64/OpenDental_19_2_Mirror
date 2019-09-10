@@ -2972,23 +2972,8 @@ namespace OpenDental {
 						MessageBox.Show(Lan.g(this,"Must pick at least 1 tooth"));
 						return;
 					}
-          string range="";
-					int idxAmer;
-					for(int j=0;j<listBoxTeeth.SelectedIndices.Count;j++){
-						idxAmer=listBoxTeeth.SelectedIndices[j];
-						if(j!=0){
-							range+=",";
-						}
-            range+=Tooth.labelsUniversal[idxAmer];
-					}
-					for(int j=0;j<listBoxTeeth2.SelectedIndices.Count;j++){
-						idxAmer=listBoxTeeth2.SelectedIndices[j]+16;
-						if(j!=0){
-							range+=",";
-						}
-            range+=Tooth.labelsUniversal[idxAmer];
-          }
-			    _procCur.ToothRange=range;
+					_procCur.ToothRange=string.Join(",",listBoxTeeth.SelectedIndices.AsEnumerable<int>().Select(x => Tooth.labelsUniversal[x])
+						.Concat(listBoxTeeth2.SelectedIndices.AsEnumerable<int>().Select(x => Tooth.labelsUniversal[x+16])));
 					_procCur.Surf="";
 					_procCur.ToothNum="";	
 					break;
