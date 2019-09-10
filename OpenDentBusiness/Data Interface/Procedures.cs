@@ -3719,7 +3719,7 @@ namespace OpenDentBusiness {
 						SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,AptCur.PatNum,Lans.g("AppointmentEdit","Procedure")+" "
 							+ProcedureCodes.GetProcCode(proc.CodeNum).AbbrDesc+" "+Lans.g("AppointmentEdit","moved from planned appointment created on")+" "
 							+apptOldPlannedDateStr+" "+Lans.g("AppointmentEdit","to planned appointment created on")+" "
-							+AptCur.AptDateTime.ToShortDateString(),logSource);
+							+AptCur.AptDateTime.ToShortDateString(),AptCur.AptNum,logSource,AptCur.DateTStamp);
 						UpdateOtherApptDesc(proc,AptCur,isAptPlanned,listAppointments,listProcs);
 					}
 					proc.PlannedAptNum=AptCur.AptNum;
@@ -3730,7 +3730,7 @@ namespace OpenDentBusiness {
 						string apptOldDateStr=(apptOld==null ? "[INVALID #"+proc.AptNum+"]" : apptOld.AptDateTime.ToShortDateString());
 						SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,AptCur.PatNum,Lans.g("AppointmentEdit","Procedure")+" "
 							+ProcedureCodes.GetProcCode(proc.CodeNum).AbbrDesc+" "+Lans.g("AppointmentEdit","moved from appointment on")+" "+apptOldDateStr
-							+" "+Lans.g("AppointmentEdit","to appointment on")+" "+AptCur.AptDateTime,logSource);
+							+" "+Lans.g("AppointmentEdit","to appointment on")+" "+AptCur.AptDateTime,AptCur.AptNum,logSource,AptCur.DateTStamp);
 						UpdateOtherApptDesc(proc,AptCur,isAptPlanned,listAppointments,listProcs);
 					}
 					proc.AptNum=AptCur.AptNum;

@@ -2923,11 +2923,15 @@ namespace OpenDentBusiness{
 					}
 				}
 				if(doCreateSecLog) {
-					if(aptOld.AptStatus!=ApptStatus.Complete) { //seperate log entry for completed appointments
-						SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,pat.PatNum,
-							aptCur.AptDateTime.ToShortDateString()+", "+aptCur.ProcDescript+logEntryMessage,aptCur.AptNum,datePrevious);
+					if(aptOld.AptStatus!=ApptStatus.Complete) {
+						string logText=aptCur.AptDateTime.ToShortDateString()+", "+aptCur.ProcDescript;
+						if(aptCur.AptStatus==ApptStatus.Complete) {
+							logText+=", Set Complete";//Podium expects this exact text in the security log when the appointment was set complete.
+						}
+						logText+=logEntryMessage;
+						SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,pat.PatNum,logText,aptCur.AptNum,datePrevious);
 					}
-					else {
+					else {//seperate log entry for completed appointments
 						SecurityLogs.MakeLogEntry(Permissions.AppointmentCompleteEdit,pat.PatNum,
 							aptCur.AptDateTime.ToShortDateString()+", "+aptCur.ProcDescript+logEntryMessage,aptCur.AptNum,datePrevious);
 					}
@@ -3678,7 +3682,8 @@ namespace OpenDentBusiness{
 					logtext+=" "+Lans.g("MoveAppointment","hygienist changed");
 				}
 				if(logtext!="") {
-					SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,apt.PatNum,Lans.g("MoveAppointment","Appointment on")+" "+apt.AptDateTime.ToString()+logtext,secLogSource);
+					SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,apt.PatNum,
+						Lans.g("MoveAppointment","Appointment on")+" "+apt.AptDateTime.ToString()+logtext,apt.AptNum,secLogSource,apt.DateTStamp);
 				}
 			}
 			else { 

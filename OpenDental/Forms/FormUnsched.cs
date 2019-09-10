@@ -546,7 +546,7 @@ namespace OpenDental{
 			Appointments.Delete(listSelectedAptNums);
 			foreach(int i in grid.SelectedIndices) {
 				SecurityLogs.MakeLogEntry(Permissions.AppointmentEdit,_listUnschedApt[i].PatNum,
-					Lan.g(this,"Appointment deleted from the Unscheduled list."));
+					Lan.g(this,"Appointment deleted from the Unscheduled list."),_listUnschedApt[i].AptNum,_listUnschedApt[i].DateTStamp);
 			}
 			FillGrid();
 		}
