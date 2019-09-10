@@ -31,7 +31,8 @@ namespace OpenDentBusiness{
 			if(string.IsNullOrEmpty(appointmentType.Pattern)) {
 				//Dynamically calculate the timePattern from the procedure codes associated to the appointment type passed in.
 				List<string> listProcCodeStrings=appointmentType.CodeStr.Split(new char[] { ',' },StringSplitOptions.RemoveEmptyEntries).ToList();
-				List<ProcedureCode> listProcCodes=ProcedureCodes.GetProcCodes(listProcCodeStrings);
+				List<ProcedureCode> listProcCodes=new List<ProcedureCode>();
+				listProcCodeStrings.ForEach(x => listProcCodes.Add(ProcedureCodes.GetProcCode(x)));
 				timePattern=OpenDentBusiness.Appointments.CalculatePattern(provNumDentist,provNumHyg,listProcCodes.Select(x => x.CodeNum).ToList(),true);
 			}
 			else {
