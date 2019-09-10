@@ -1993,6 +1993,8 @@ namespace OpenDental {
 
 		public static void DrawFieldSigBox(SheetField field,Sheet sheet,Graphics g,XGraphics gx) {
 			Bitmap sigImage=new Bitmap(field.Width,field.Height);
+			bool isSigPresent=field.FieldValue.Length>0; //a signature is present
+			bool isTypedFromWebforms=false;
 			if(sheet.SheetType==SheetTypeEnum.TreatmentPlan) {
 				sigImage=GetSigTPHelper(sheet,field);
 			}
@@ -2003,7 +2005,7 @@ namespace OpenDental {
 				SignatureBoxWrapper wrapper=new SignatureBoxWrapper();
 				wrapper.Width=field.Width;
 				wrapper.Height=field.Height;
-				if(field.FieldValue.Length>0) { //a signature is present
+				if(isSigPresent) {
 					bool sigIsTopaz=false;
 					if(field.FieldValue[0]=='1') {
 						sigIsTopaz=true;
@@ -2015,13 +2017,33 @@ namespace OpenDental {
 					//string keyData=Sheets.GetSignatureKey(sheet);//can't do this because some of the fields might have different new line characters. Sig will be invalid.
 					wrapper.FillSignature(sigIsTopaz,field.SigKey,signature);
 					sigImage=wrapper.GetSigImage();
+					isTypedFromWebforms=wrapper.GetIsTypedFromWebForms();
 				}
 			}
+			string fontName=(string.IsNullOrEmpty(sheet.FontName) ? FontFamily.GenericMonospace.ToString() : sheet.FontName);
+			double fontSizeSigned=8.25;//Mimics FormSheetFillEdit.LayoutFields
+			string strSigned=(isTypedFromWebforms ? Lans.g("","Typed Signature in Webforms: ") : Lans.g("","Signed: "))+field.DateTimeSig.ToString();
+			int sigWidth=field.Width-2;
+			int sigHeight=field.Height-2;
 			if(g!=null) {
-				g.DrawImage(sigImage,field.XPos,field.YPos-_yPosPrint,field.Width-2,field.Height-2);
+				Rectangle bounds=new Rectangle(field.XPos,field.YPos-_yPosPrint,sigWidth,sigHeight);
+				g.DrawImage(sigImage,bounds);
+				if(isSigPresent) {
+					Rectangle boundsSigned=new Rectangle(bounds.X+1,bounds.Y+bounds.Height-15,sigWidth-2,14);//Height 14 taken from FormSheetFillEdit
+					Font font=new Font(fontName,(float)fontSizeSigned,FontStyle.Regular);
+					GraphicsHelper.DrawString(g,strSigned,font,Brushes.Black,boundsSigned,HorizontalAlignment.Left);
+					font.Dispose();
+					font=null;
+				}
 			}
 			else {
-				gx.DrawImage(XImage.FromGdiPlusImage(sigImage),p(field.XPos),p(field.YPos-_yPosPrint),p(field.Width-2),p(field.Height-2));
+				gx.DrawImage(XImage.FromGdiPlusImage(sigImage),p(field.XPos),p(field.YPos-_yPosPrint),p(sigWidth),p(sigHeight));
+				if(isSigPresent) {
+					RectangleF boundsSigned=new RectangleF(field.XPos+1,field.YPos-_yPosPrint+field.Height-15,sigWidth-2,14);//Height 14 taken from FormSheetFillEdit
+					XFont xfont=new XFont(fontName,fontSizeSigned,XFontStyle.Regular);
+					GraphicsHelper.DrawStringX(gx,strSigned,xfont,Brushes.Black,boundsSigned,HorizontalAlignment.Left);
+					xfont=null;
+				}
 			}
 			sigImage.Dispose();
 			sigImage=null;
