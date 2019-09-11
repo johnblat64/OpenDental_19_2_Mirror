@@ -1685,6 +1685,8 @@ namespace OpenDentBusiness{
 		WebChat,
 		///<summary>Database containing information regarding offices hosted by OD.</summary>
 		Hosting,
+		///<summary>Database containing archives of HQ serviceshq</summary>
+		ServicesHqArchive,
 	}
 
 	///<summary>Only used by the Signup Portal</summary>
