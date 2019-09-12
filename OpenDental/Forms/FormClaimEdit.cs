@@ -1588,7 +1588,7 @@ namespace OpenDental{
 			else if(FormCP.DialogResult!=DialogResult.OK){
 				ClaimProcs.Delete(ClaimProcCur);
 			}
-			else{
+			else{//Claim still exists, and user didn't click cancel
 				for(int i=0;i<_listClaimProcsForClaim.Count;i++){
 					if(_listClaimProcsForClaim[i].Status!=ClaimProcStatus.NotReceived){
 						continue;
@@ -1602,11 +1602,11 @@ namespace OpenDental{
 					_listClaimProcsForClaim[i].DateEntry=DateTime.Now;//the date is was switched to rec'd
 					ClaimProcs.Update(_listClaimProcsForClaim[i]);
 				}
-			}
-			_isPaymentEntered=true;
-			comboClaimStatus.SelectedIndex=5;//Received
-			if(textDateRec.Text==""){
-				textDateRec.Text=DateTime.Today.ToShortDateString();
+				_isPaymentEntered=true;
+				comboClaimStatus.SelectedIndex=5;//Received
+				if(textDateRec.Text=="") {
+					textDateRec.Text=DateTime.Today.ToShortDateString();
+				}
 			}
 			ClaimProcList=ClaimProcs.Refresh(PatCur.PatNum);
 			FillGrids();
