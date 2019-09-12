@@ -1513,6 +1513,7 @@ namespace OpenDentBusiness{
 					claimProcForLab.Status=claimProcParent.Status;
 					claimProcForLab.ProvNum=claimProcParent.ProvNum;
 					claimProcForLab.ClaimNum=claimProcParent.ClaimNum;
+					claimProcForLab.CodeSent=GetCanadianCodeSent(procLab.CodeNum);//Not used when sending a claim.
 					if(claimProcForLab.Status.In(ClaimProcStatus.Received,ClaimProcStatus.Supplemental)) {
 						claimProcForLab.DateEntry=claimProcParent.DateEntry;
 					}
@@ -1550,10 +1551,7 @@ namespace OpenDentBusiness{
 				claimProcLab.DateEntry=claimProcParent.DateEntry;
 			}
 			claimProcLab.ClaimNum=claimProcParent.ClaimNum;
-			claimProcLab.CodeSent=ProcedureCodes.GetStringProcCode(procLab.CodeNum);
-			if(claimProcLab.CodeSent.Length>5) { //In Canadian electronic claims, codes can contain letters or numbers and cannot be longer than 5 characters.
-				claimProcLab.CodeSent=claimProcLab.CodeSent.Substring(0,5);
-			}
+			claimProcLab.CodeSent=GetCanadianCodeSent(procLab.CodeNum);//Not used when sending a claim.
 			claimProcLab.NoBillIns=claimProcParent.NoBillIns;
 			if(claimProcLab.NoBillIns) {
 				ZeroOutClaimProc(claimProcLab);
@@ -1571,6 +1569,15 @@ namespace OpenDentBusiness{
 			}
 			loopList.AddRange(ClaimProcs.GetHistForProc(new List<ClaimProc>() {claimProcLab},procLab.ProcNum,procLab.CodeNum));
 			Update(claimProcLab);
+		}
+
+		///<summary>If the given procedure status is in a "completed" state, set the CodeSent, othewise set it to an empty string.</summary>
+		private static string GetCanadianCodeSent(long codeNum) {
+			string code=ProcedureCodes.GetStringProcCode(codeNum);
+			if(code.Length>5) { //In Canadian electronic claims, codes can contain letters or numbers and cannot be longer than 5 characters.
+				code=code.Substring(0,5);
+			}
+			return code;
 		}
 
 		///<summary>Updates pertinent lab claimproc statuses for given parentClaimProc.
