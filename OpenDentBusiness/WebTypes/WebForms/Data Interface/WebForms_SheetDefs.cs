@@ -42,7 +42,8 @@ namespace OpenDentBusiness.WebTypes.WebForms {
 				new PayloadItem(sheetDef,"SheetDef")
 			};
 			string payload=PayloadHelper.CreatePayloadWebHostSynch(regKey,listPayloadItems.ToArray());
-			SheetsSynchProxy.GetWebServiceInstance().UpLoadSheetDef(payload);
+			string result=SheetsSynchProxy.GetWebServiceInstance().UpLoadSheetDef(payload);
+			PayloadHelper.CheckForError(result);
 		}
 
 		/// <summary>Takes a provided sheetDef and packages it into a payload string. The payload string is broken into chunks of equal or lesser size

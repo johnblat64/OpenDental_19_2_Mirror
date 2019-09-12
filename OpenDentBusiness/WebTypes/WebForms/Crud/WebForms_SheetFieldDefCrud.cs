@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Text;
 
 namespace OpenDentBusiness.WebTypes.WebForms.Crud{
 	public class WebForms_SheetFieldDefCrud {
@@ -190,6 +191,73 @@ namespace OpenDentBusiness.WebTypes.WebForms.Crud{
 				webForms_SheetFieldDef.WebSheetFieldDefID=Db.NonQ(command,true,"WebSheetFieldDefID","webForms_SheetFieldDef",paramFieldValue,paramImageData);
 			}
 			return webForms_SheetFieldDef.WebSheetFieldDefID;
+		}
+
+		///<summary>Inserts many WebForms_SheetFieldDefs into the database.</summary>
+		public static void InsertMany(List<WebForms_SheetFieldDef> listWebForms_SheetFieldDefs) {
+			InsertMany(listWebForms_SheetFieldDefs,false);
+		}
+
+		///<summary>Inserts many WebForms_SheetFieldDefs into the database.  Provides option to use the existing priKey.</summary>
+		public static void InsertMany(List<WebForms_SheetFieldDef> listWebForms_SheetFieldDefs,bool useExistingPK) {
+				StringBuilder sbCommands=null;
+				int index=0;
+				while(index < listWebForms_SheetFieldDefs.Count) {
+					WebForms_SheetFieldDef webForms_SheetFieldDef=listWebForms_SheetFieldDefs[index];
+					StringBuilder sbRow=new StringBuilder("(");
+					bool hasComma=false;
+					if(sbCommands==null) {
+						sbCommands=new StringBuilder();
+						sbCommands.Append("INSERT INTO webforms_sheetfielddef (");
+						if(useExistingPK) {
+							sbCommands.Append("WebSheetFieldDefID,");
+						}
+						sbCommands.Append("WebSheetDefID,FieldType,FieldName,FieldValue,FontSize,FontName,FontIsBold,XPos,YPos,Width,Height,GrowthBehavior,RadioButtonValue,RadioButtonGroup,IsRequired,ImageData,TabOrder,ReportableName,TextAlign,ItemColor,TabOrderMobile,UiLabelMobile,UiLabelMobileRadioButton) VALUES ");
+					}
+					else {
+						hasComma=true;
+					}
+					if(useExistingPK) {
+						sbRow.Append(POut.Long(webForms_SheetFieldDef.WebSheetFieldDefID)); sbRow.Append(",");
+					}
+					sbRow.Append(POut.Long(webForms_SheetFieldDef.WebSheetDefID)); sbRow.Append(",");
+					sbRow.Append(POut.Int((int)webForms_SheetFieldDef.FieldType)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.FieldName)+"'"); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.FieldValue)+"'"); sbRow.Append(",");
+					sbRow.Append(POut.Float(webForms_SheetFieldDef.FontSize)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.FontName)+"'"); sbRow.Append(",");
+					sbRow.Append(POut.Bool(webForms_SheetFieldDef.FontIsBold)); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.XPos)); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.YPos)); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.Width)); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.Height)); sbRow.Append(",");
+					sbRow.Append(POut.Int((int)webForms_SheetFieldDef.GrowthBehavior)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.RadioButtonValue)+"'"); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.RadioButtonGroup)+"'"); sbRow.Append(",");
+					sbRow.Append(POut.Bool(webForms_SheetFieldDef.IsRequired)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.ImageData)+"'"); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.TabOrder)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.ReportableName)+"'"); sbRow.Append(",");
+					sbRow.Append(POut.Int((int)webForms_SheetFieldDef.TextAlign)); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.ItemColor.ToArgb())); sbRow.Append(",");
+					sbRow.Append(POut.Int(webForms_SheetFieldDef.TabOrderMobile)); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.UiLabelMobile)+"'"); sbRow.Append(",");
+					sbRow.Append("'"+POut.String(webForms_SheetFieldDef.UiLabelMobileRadioButton)+"'"); sbRow.Append(")");
+					if(sbCommands.Length+sbRow.Length+1 > TableBase.MaxAllowedPacketCount) {
+						Db.NonQ(sbCommands.ToString());
+						sbCommands=null;
+					}
+					else {
+						if(hasComma) {
+							sbCommands.Append(",");
+						}
+						sbCommands.Append(sbRow.ToString());
+						if(index==listWebForms_SheetFieldDefs.Count-1) {
+							Db.NonQ(sbCommands.ToString());
+						}
+						index++;
+					}
+				}
 		}
 
 		///<summary>Inserts one WebForms_SheetFieldDef into the database.  Returns the new priKey.  Doesn't use the cache.</summary>
