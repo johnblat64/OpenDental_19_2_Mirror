@@ -296,28 +296,25 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please enter a valid Date/Time.");
 				return;
 			}
-			try{
-				if(textHours.Text.Contains(":")){
-					ClockEvents.ParseHours(textHours.Text);
+			TimeSpan hoursEntered=TimeSpan.FromHours(0);
+			try {
+				if(textHours.Text.Contains(":")) {
+					hoursEntered=ClockEvents.ParseHours(textHours.Text);
 				}
-				else{
-					Double.Parse(textHours.Text);
+				else {
+					hoursEntered=TimeSpan.FromHours(Double.Parse(textHours.Text));
+				}
+				if(hoursEntered==TimeSpan.FromHours(0)) {
+					throw new ApplicationException("Invalid hoursEntered");
 				}
 			}
-			catch{
+			catch {
 				MsgBox.Show(this,"Please enter valid Hours and Minutes.");
 				return;
 			}
 			//end of validation
 			TimeAdjustCur.IsAuto=radioAuto.Checked;
 			TimeAdjustCur.TimeEntry=DateTime.Parse(textTimeEntry.Text);
-			TimeSpan hoursEntered;
-			if(textHours.Text.Contains(":")){
-				hoursEntered=ClockEvents.ParseHours(textHours.Text);//we know this will work because we tested ParseHours above.
-			}
-			else{
-				hoursEntered=TimeSpan.FromHours(Double.Parse(textHours.Text));
-			}
 			if(checkOvertime.Checked){
 				TimeAdjustCur.RegHours=-hoursEntered;
 				TimeAdjustCur.OTimeHours=hoursEntered;

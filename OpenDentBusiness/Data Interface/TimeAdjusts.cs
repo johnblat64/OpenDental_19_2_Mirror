@@ -15,7 +15,8 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<TimeAdjust>(MethodBase.GetCurrentMethod(),empNum,startDate);
 			}
-			string command="SELECT * FROM timeadjust WHERE EmployeeNum="+POut.Long(empNum)+" AND TimeEntry="+POut.DateT(startDate)+" AND IsAuto=0";
+			string command="SELECT * FROM timeadjust WHERE EmployeeNum="+POut.Long(empNum)+" AND TimeEntry="+POut.DateT(startDate)+" AND IsAuto=0 ";
+			command+="AND RegHours='00:00:00' AND OTimeHours='00:00:00'";
 			return Crud.TimeAdjustCrud.SelectOne(command);
 		}
 
@@ -24,7 +25,8 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<TimeAdjust>>(MethodBase.GetCurrentMethod(),startDate);
 			}
-			string command="SELECT * FROM timeadjust WHERE TimeEntry="+POut.DateT(startDate)+" AND isAuto=0";
+			string command="SELECT * FROM timeadjust WHERE TimeEntry="+POut.DateT(startDate)+" AND isAuto=0 ";
+			command+="AND RegHours='00:00:00' AND OTimeHours='00:00:00'";
 			return Crud.TimeAdjustCrud.SelectMany(command);
 		}
 		#endregion
