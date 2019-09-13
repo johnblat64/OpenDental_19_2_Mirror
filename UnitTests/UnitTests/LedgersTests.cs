@@ -305,6 +305,30 @@ namespace UnitTests.Ledgers_Tests {
 			}
 		}
 
+		///<summary>This unit test was created to show what happens when the user attaches a greater amount of credit to a procedure than the procedure
+		///fee.  For now, the excess credit is applied to the aging bucket that the procedure is in, and if the aging bucket is completely paid, then the
+		///excess credit for the bucket is treated as a generic credit which is applied to the oldest balance.</summary>
+		[TestMethod]
+		public void LedgersTests_ComputeAgingProcLifo_PayPlan3() {
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat=PatientT.CreatePatient(fName:"Aging_Case6",suffix:suffix);
+			Procedure proc95=ProcedureT.CreateProcedure(pat,"D0270",ProcStat.C,"",200,DateTime.Today.AddDays(-95));
+			Procedure proc35=ProcedureT.CreateProcedure(pat,"D1110",ProcStat.C,"",100,DateTime.Today.AddDays(-35));
+			PayPlan payPlan=PayPlanT.CreatePayPlan(pat.PatNum,100,50,DateTime.Today.AddDays(-35),proc35.ProvNum);
+			Adjustment adj5=AdjustmentT.MakeAdjustment(pat.PatNum,-5.50,DateTime.Today.AddDays(-5),proc35.ProcDate,proc35.ProcNum);
+			PayPlanCharge ppc5=PayPlanChargeT.CreateOne(payPlan.PayPlanNum,pat.Guarantor,pat.PatNum,DateTime.Today.AddDays(-5),100,0,chargeType:PayPlanChargeType.Credit,procNum:proc35.ProcNum);
+			int payPlansVersionPrev=PrefC.GetInt(PrefName.PayPlansVersion);
+			try {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,(int)PayPlanVersions.AgeCreditsAndDebits);
+				CheckAgingProcLifo(pat.PatNum,50,44.50,0,200,100,YN.Yes);
+				CheckAgingProcLifo(pat.PatNum,50,150,0,94.50,100,YN.No);
+				CheckAgingProcLifo(pat.PatNum,50,150,0,94.50,100,YN.Unknown);//Unset will behave the same as Off for now, until we change default behavior in future.
+			}
+			finally {
+				PrefT.UpdateInt(PrefName.PayPlansVersion,payPlansVersionPrev);
+			}
+		}
+
 		[TestMethod]
 		public void LedgersTests_ComputeAgingProcLifo_LargeDb() {
 			Def defNeg=DefT.CreateDefinition(DefCat.AdjTypes,"Ortho Revenue","-");
