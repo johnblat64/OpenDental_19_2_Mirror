@@ -155,15 +155,22 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Gets the list of patients that need to be on the reactivation list based on the passed in filters.</summary>
-		public static DataTable GetReactivationList(DateTime dateSince,bool groupFamilies,bool showDoNotContact,long provNum,long clinicNum,long siteNum
-			,long billingType,ReactivationListSort sortBy,RecallListShowNumberReminders showReactivations) {
+		public static DataTable GetReactivationList(DateTime dateSince,DateTime dateStop,bool groupFamilies,bool showDoNotContact,bool isInactiveIncluded
+			,long provNum,long clinicNum,long siteNum,long billingType,ReactivationListSort sortBy,RecallListShowNumberReminders showReactivations) 
+		{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb){
-				return Meth.GetTable(MethodBase.GetCurrentMethod(),dateSince,groupFamilies,showDoNotContact,provNum,clinicNum,siteNum,billingType,sortBy,showReactivations);
+				return Meth.GetTable(MethodBase.GetCurrentMethod(),dateSince,dateStop,groupFamilies,showDoNotContact,isInactiveIncluded,provNum,clinicNum
+					,siteNum,billingType,sortBy,showReactivations);
 			}
 			//Get information we will need to do the query
 			List<long> listReactCommLogTypeDefNums=Defs.GetDefsForCategory(DefCat.CommLogTypes,isShort:true)
 				.FindAll(x => CommItemTypeAuto.REACT.GetDescription(useShortVersionIfAvailable:true).Equals(x.ItemValue)).Select(x => x.DefNum).ToList();
 			int contactInterval=PrefC.GetInt(PrefName.ReactivationContactInterval);
+			List<PatientStatus> listPatStatuses=new List<PatientStatus>() {PatientStatus.Patient,PatientStatus.Prospective};
+			if(isInactiveIncluded) {
+				listPatStatuses.Add(PatientStatus.Inactive);
+			}
+			string strPatStatuses=string.Join(",",listPatStatuses.Select(x => POut.Int((int)x)));
 			//Get the raw set of patients who should be on the reactivation list
 			string cmd=
 				$@"SELECT 
@@ -180,6 +187,10 @@ namespace OpenDentBusiness{
 						pat.ClinicNum,
 						pat.SiteNum,
 						pat.PreferRecallMethod,
+						'' AS ContactMethod,
+						pat.HmPhone,
+						pat.WirelessPhone,
+						pat.WkPhone,
 						{(groupFamilies?"COALESCE(guarantor.Email,pat.Email,'') AS Email,":"pat.Email,")}
 						MAX(proc.ProcDate) AS DateLastProc,
 						COALESCE(comm.DateLastContacted,'') AS DateLastContacted,
@@ -206,9 +217,7 @@ namespace OpenDentBusiness{
 					LEFT JOIN reactivation react ON pat.PatNum=react.PatNum
 					LEFT JOIN definition billingtype ON pat.BillingType=billingtype.DefNum
 					INNER JOIN patient guarantor ON pat.Guarantor=guarantor.PatNum
-					WHERE pat.PatStatus IN ({POut.Int((int)PatientStatus.Patient)}
-						,{POut.Int((int)PatientStatus.Inactive)}
-						,{POut.Int((int)PatientStatus.Prospective)}) ";
+					WHERE pat.PatStatus IN ({strPatStatuses}) ";
 			cmd+=provNum>0?" AND pat.PriProv="+POut.Long(provNum):"";
 			cmd+=clinicNum>-1?" AND pat.ClinicNum="+POut.Long(clinicNum):"";//might still want to get the 0 clinic pats
 			cmd+=siteNum>0?" AND pat.SiteNum="+POut.Long(siteNum):"";
@@ -232,7 +241,7 @@ namespace OpenDentBusiness{
 				cmd+=" AND (comm.ContactedCount < "+POut.Int(maxReminds)+" OR comm.ContactedCount IS NULL) "; 
 			}
 			cmd+=$@" GROUP BY pat.PatNum 
-							HAVING MAX(proc.ProcDate) < {POut.Date(dateSince)}
+							HAVING MAX(proc.ProcDate) < {POut.Date(dateSince)} AND MAX(proc.ProcDate) >= {POut.Date(dateStop)}
 							AND MIN(appt.AptDateTime) IS NULL ";
 			//set the sort by
 			switch(sortBy) {
@@ -245,8 +254,17 @@ namespace OpenDentBusiness{
 				case ReactivationListSort.LastContacted:
 					cmd+=" ORDER BY IF(comm.DateLastContacted='' OR comm.DateLastContacted IS NULL,1,0),comm.DateLastContacted"+(groupFamilies?",guarantor.LName,guarantor.FName":"");
 					break;
+				case ReactivationListSort.LastSeen:
+					cmd+=" ORDER BY MAX(proc.ProcDate)";
+					break;
 			}
 			DataTable dtReturn=Db.GetTable(cmd);
+			foreach(DataRow row in dtReturn.Rows) {
+				//FOR REVIEW: currently, we are displaying PreferRecallMethod, which is what RecallList also does.  Just want to make sure we don't want to use PreferContactMethod
+				row["ContactMethod"]=Recalls.GetContactFromMethod(PIn.Enum<ContactMethod>(row["PreferRecallMethod"].ToString()),groupFamilies
+						,row["HmPhone"].ToString(),row["WkPhone"].ToString(),row["WirelessPhone"].ToString(),row["Email"].ToString()//guarEmail queried as Email
+						,row["Email"].ToString());//Pat.Email is also "Email"
+			}
 			return dtReturn;
 		}
 
@@ -340,6 +358,8 @@ namespace OpenDentBusiness{
 		BillingType,
 		///<summary></summary>
 		Alphabetical,
+		///<summary></summary>
+		LastSeen,
 	}
 
 }

@@ -533,52 +533,9 @@ namespace OpenDentBusiness {
 					row["age"]=Patients.DateToAge(PIn.Date(rowPat["Birthdate"].ToString())).ToString();
 					row["billingType"]=Defs.GetName(DefCat.BillingTypes,PIn.Long(rowPat["BillingType"].ToString()));
 					row["ClinicNum"]=PIn.Long(rowPat["ClinicNum"].ToString());
-					#region Contact Method
-					contmeth=(ContactMethod)PIn.Long(rowPat["PreferRecallMethod"].ToString());
-					switch(contmeth) {
-						case ContactMethod.None:
-							if(PrefC.GetBool(PrefName.RecallUseEmailIfHasEmailAddress)) {//if user wants to use email if there is an email address
-								if(groupByFamilies && rowPat["guarEmail"].ToString()!="") {
-									row["contactMethod"]=rowPat["guarEmail"].ToString();
-									break;
-								}
-								else if(!groupByFamilies && rowPat["Email"].ToString()!="") {
-									row["contactMethod"]=rowPat["Email"].ToString();
-									break;
-								}
-							}
-							//no email, or user doesn't want to use email even if there is one, default to using HmPhone
-							row["contactMethod"]=Lans.g("FormRecallList","Hm")+":"+rowPat["HmPhone"].ToString();
-							break;
-						case ContactMethod.HmPhone:
-							row["contactMethod"]=Lans.g("FormRecallList","Hm")+":"+rowPat["HmPhone"].ToString();
-							break;
-						case ContactMethod.WkPhone:
-							row["contactMethod"]=Lans.g("FormRecallList","Wk")+":"+rowPat["WkPhone"].ToString();
-							break;
-						case ContactMethod.WirelessPh:
-							row["contactMethod"]=Lans.g("FormRecallList","Cell")+":"+rowPat["WirelessPhone"].ToString();
-							break;
-						case ContactMethod.TextMessage:
-							row["contactMethod"]=Lans.g("FormRecallList","Text")+":"+rowPat["WirelessPhone"].ToString();
-							break;
-						case ContactMethod.Email:
-							if(groupByFamilies) {
-								row["contactMethod"]=rowPat["guarEmail"].ToString();//always use guarantor email if grouped by fam
-							}
-							else {
-								row["contactMethod"]=rowPat["Email"].ToString();
-							}
-							break;
-						case ContactMethod.Mail:
-							row["contactMethod"]=Lans.g("FormRecallList","Mail");
-							break;
-						case ContactMethod.DoNotCall:
-						case ContactMethod.SeeNotes:
-							row["contactMethod"]=Lans.g("enumContactMethod",contmeth.ToString());
-							break;
-					}
-					#endregion Contact Method
+					row["contactMethod"]=GetContactFromMethod(PIn.Enum<ContactMethod>(rowPat["PreferRecallMethod"].ToString()),groupByFamilies
+						,rowPat["HmPhone"].ToString(),rowPat["WkPhone"].ToString(),rowPat["WirelessPhone"].ToString(),rowPat["guarEmail"].ToString()
+						,rowPat["Email"].ToString());
 					row["dateLastReminder"]="";
 					if(dateRemind.Year>1880) {
 						row["dateLastReminder"]=dateRemind.ToShortDateString();
@@ -663,6 +620,59 @@ namespace OpenDentBusiness {
 			Logger.WriteLine($"\r\n----------INFO TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n----------\r\n{verbose}\r\n\r\n","FillRecallTableVerbose");
 #endif
 			return table;
+		}
+
+		///<summary>Determines the contact method for the given patient and returns a string with an appropriate representation of that contact method.
+		///</summary>
+		public static string GetContactFromMethod(ContactMethod contMeth,bool isGroupByFamilies,string hmPhone,string wkPhone,string wirelessPhone
+			,string guarEmail,string email) 
+		{
+			string contactMethod;
+			switch(contMeth) {
+				case ContactMethod.HmPhone:
+					contactMethod=Lans.g("FormRecallList","Hm")+":"+hmPhone;
+					break;
+				case ContactMethod.WkPhone:
+					contactMethod=Lans.g("FormRecallList","Wk")+":"+wkPhone;
+					break;
+				case ContactMethod.WirelessPh:
+					contactMethod=Lans.g("FormRecallList","Cell")+":"+wirelessPhone;
+					break;
+				case ContactMethod.TextMessage:
+					contactMethod=Lans.g("FormRecallList","Text")+":"+wirelessPhone;
+					break;
+				case ContactMethod.Email:
+					if(isGroupByFamilies) {
+						contactMethod=guarEmail;//always use guarantor email if grouped by fam
+					}
+					else {
+						contactMethod=email;
+					}
+					break;
+				case ContactMethod.Mail:
+					contactMethod=Lans.g("FormRecallList","Mail");
+					break;
+				case ContactMethod.DoNotCall:
+				case ContactMethod.SeeNotes:
+					contactMethod=Lans.g("enumContactMethod",contMeth.GetDescription());
+					break;
+				case ContactMethod.None:
+				default:
+					if(PrefC.GetBool(PrefName.RecallUseEmailIfHasEmailAddress)) {//if user wants to use email if there is an email address
+						if(isGroupByFamilies && guarEmail!="") {
+							contactMethod=guarEmail;
+							break;
+						}
+						else if(!isGroupByFamilies && email!="") {
+							contactMethod=email;
+							break;
+						}
+					}
+					//no email, or user doesn't want to use email even if there is one, default to using HmPhone
+					contactMethod=Lans.g("FormRecallList","Hm")+":"+hmPhone;
+					break;
+			}
+			return contactMethod;
 		}
 
 		///<summary>Returns true if a recall reminder should be sent for this patient based on the passed in arguments.</summary>

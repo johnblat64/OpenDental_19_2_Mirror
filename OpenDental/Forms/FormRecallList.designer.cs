@@ -89,9 +89,12 @@
 			this.comboReactStatus = new System.Windows.Forms.ComboBox();
 			this.butReactSetStatus = new OpenDental.UI.Button();
 			this.groupBox7 = new System.Windows.Forms.GroupBox();
+			this.checkExcludeInactive = new System.Windows.Forms.CheckBox();
+			this.checkReactShowDNC = new System.Windows.Forms.CheckBox();
+			this.validDateStop = new OpenDental.ValidDate();
+			this.labelDateStop = new System.Windows.Forms.Label();
 			this.checkReactGroupFamilies = new System.Windows.Forms.CheckBox();
 			this.comboReactProv = new System.Windows.Forms.ComboBox();
-			this.checkReactShowDNC = new System.Windows.Forms.CheckBox();
 			this.comboBillingTypes = new System.Windows.Forms.ComboBox();
 			this.labelBillingType = new System.Windows.Forms.Label();
 			this.comboShowReactivate = new System.Windows.Forms.ComboBox();
@@ -160,7 +163,7 @@
 			this.tabControl.Controls.Add(this.tabPageRecalls);
 			this.tabControl.Controls.Add(this.tabPageRecentlyContacted);
 			this.tabControl.Controls.Add(this.tabPageReactivations);
-			this.tabControl.Location = new System.Drawing.Point(2, 3);
+			this.tabControl.Location = new System.Drawing.Point(2, 2);
 			this.tabControl.Name = "tabControl";
 			this.tabControl.SelectedIndex = 0;
 			this.tabControl.Size = new System.Drawing.Size(979, 725);
@@ -201,7 +204,7 @@
 			// 
 			this.groupBox2.Controls.Add(this.comboEmailFrom);
 			this.groupBox2.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.groupBox2.Location = new System.Drawing.Point(704, 58);
+			this.groupBox2.Location = new System.Drawing.Point(704, 65);
 			this.groupBox2.Name = "groupBox2";
 			this.groupBox2.Size = new System.Drawing.Size(263, 46);
 			this.groupBox2.TabIndex = 125;
@@ -433,11 +436,11 @@
 			this.gridMain.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridMain.HeaderHeight = 15;
 			this.gridMain.HScrollVisible = true;
-			this.gridMain.Location = new System.Drawing.Point(3, 110);
+			this.gridMain.Location = new System.Drawing.Point(3, 117);
 			this.gridMain.Name = "gridMain";
 			this.gridMain.ScrollValue = 0;
 			this.gridMain.SelectionMode = OpenDental.UI.GridSelectionMode.MultiExtended;
-			this.gridMain.Size = new System.Drawing.Size(965, 527);
+			this.gridMain.Size = new System.Drawing.Size(965, 520);
 			this.gridMain.TabIndex = 126;
 			this.gridMain.Title = "Recall List";
 			this.gridMain.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
@@ -535,7 +538,7 @@
 			this.groupBox1.FlatStyle = System.Windows.Forms.FlatStyle.System;
 			this.groupBox1.Location = new System.Drawing.Point(3, 6);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(695, 98);
+			this.groupBox1.Size = new System.Drawing.Size(695, 105);
 			this.groupBox1.TabIndex = 120;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "View";
@@ -543,9 +546,9 @@
 			// checkShowReminded
 			// 
 			this.checkShowReminded.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkShowReminded.Location = new System.Drawing.Point(26, 48);
+			this.checkShowReminded.Location = new System.Drawing.Point(6, 56);
 			this.checkShowReminded.Name = "checkShowReminded";
-			this.checkShowReminded.Size = new System.Drawing.Size(159, 18);
+			this.checkShowReminded.Size = new System.Drawing.Size(179, 18);
 			this.checkShowReminded.TabIndex = 42;
 			this.checkShowReminded.Text = "Include Reminded";
 			this.checkShowReminded.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -555,7 +558,7 @@
 			// 
 			this.comboProv.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboProv.FormattingEnabled = true;
-			this.comboProv.Location = new System.Drawing.Point(437, 16);
+			this.comboProv.Location = new System.Drawing.Point(437, 10);
 			this.comboProv.Name = "comboProv";
 			this.comboProv.Size = new System.Drawing.Size(160, 21);
 			this.comboProv.TabIndex = 41;
@@ -563,9 +566,9 @@
 			// checkConflictingTypes
 			// 
 			this.checkConflictingTypes.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkConflictingTypes.Location = new System.Drawing.Point(26, 30);
+			this.checkConflictingTypes.Location = new System.Drawing.Point(6, 34);
 			this.checkConflictingTypes.Name = "checkConflictingTypes";
-			this.checkConflictingTypes.Size = new System.Drawing.Size(159, 18);
+			this.checkConflictingTypes.Size = new System.Drawing.Size(179, 18);
 			this.checkConflictingTypes.TabIndex = 40;
 			this.checkConflictingTypes.Text = "Show Conflicting Types";
 			this.checkConflictingTypes.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -575,7 +578,7 @@
 			// comboNumberReminders
 			// 
 			this.comboNumberReminders.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboNumberReminders.Location = new System.Drawing.Point(103, 68);
+			this.comboNumberReminders.Location = new System.Drawing.Point(103, 77);
 			this.comboNumberReminders.MaxDropDownItems = 40;
 			this.comboNumberReminders.Name = "comboNumberReminders";
 			this.comboNumberReminders.Size = new System.Drawing.Size(82, 21);
@@ -583,7 +586,7 @@
 			// 
 			// label3
 			// 
-			this.label3.Location = new System.Drawing.Point(3, 71);
+			this.label3.Location = new System.Drawing.Point(3, 80);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(99, 14);
 			this.label3.TabIndex = 38;
@@ -593,7 +596,7 @@
 			// comboSort
 			// 
 			this.comboSort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboSort.Location = new System.Drawing.Point(242, 67);
+			this.comboSort.Location = new System.Drawing.Point(250, 54);
 			this.comboSort.MaxDropDownItems = 40;
 			this.comboSort.Name = "comboSort";
 			this.comboSort.Size = new System.Drawing.Size(118, 21);
@@ -601,7 +604,7 @@
 			// 
 			// label5
 			// 
-			this.label5.Location = new System.Drawing.Point(186, 70);
+			this.label5.Location = new System.Drawing.Point(194, 57);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(55, 14);
 			this.label5.TabIndex = 36;
@@ -611,7 +614,7 @@
 			// comboSite
 			// 
 			this.comboSite.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboSite.Location = new System.Drawing.Point(437, 68);
+			this.comboSite.Location = new System.Drawing.Point(437, 56);
 			this.comboSite.MaxDropDownItems = 40;
 			this.comboSite.Name = "comboSite";
 			this.comboSite.Size = new System.Drawing.Size(160, 21);
@@ -619,7 +622,7 @@
 			// 
 			// labelSite
 			// 
-			this.labelSite.Location = new System.Drawing.Point(365, 71);
+			this.labelSite.Location = new System.Drawing.Point(365, 59);
 			this.labelSite.Name = "labelSite";
 			this.labelSite.Size = new System.Drawing.Size(70, 14);
 			this.labelSite.TabIndex = 24;
@@ -630,16 +633,16 @@
 			// 
 			this.comboClinic.DoIncludeAll = true;
 			this.comboClinic.DoIncludeUnassigned = true;
-			this.comboClinic.Location = new System.Drawing.Point(402, 42);
+			this.comboClinic.Location = new System.Drawing.Point(402, 33);
 			this.comboClinic.Name = "comboClinic";
 			this.comboClinic.Size = new System.Drawing.Size(195, 21);
 			this.comboClinic.TabIndex = 23;
 			// 
 			// label4
 			// 
-			this.label4.Location = new System.Drawing.Point(365, 19);
+			this.label4.Location = new System.Drawing.Point(368, 13);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(70, 14);
+			this.label4.Size = new System.Drawing.Size(67, 14);
 			this.label4.TabIndex = 20;
 			this.label4.Text = "Provider";
 			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -647,9 +650,9 @@
 			// checkGroupFamilies
 			// 
 			this.checkGroupFamilies.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkGroupFamilies.Location = new System.Drawing.Point(77, 12);
+			this.checkGroupFamilies.Location = new System.Drawing.Point(34, 13);
 			this.checkGroupFamilies.Name = "checkGroupFamilies";
-			this.checkGroupFamilies.Size = new System.Drawing.Size(108, 18);
+			this.checkGroupFamilies.Size = new System.Drawing.Size(151, 18);
 			this.checkGroupFamilies.TabIndex = 19;
 			this.checkGroupFamilies.Text = "Group Families";
 			this.checkGroupFamilies.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -658,21 +661,21 @@
 			// 
 			// textDateEnd
 			// 
-			this.textDateEnd.Location = new System.Drawing.Point(283, 42);
+			this.textDateEnd.Location = new System.Drawing.Point(291, 32);
 			this.textDateEnd.Name = "textDateEnd";
 			this.textDateEnd.Size = new System.Drawing.Size(77, 20);
 			this.textDateEnd.TabIndex = 18;
 			// 
 			// textDateStart
 			// 
-			this.textDateStart.Location = new System.Drawing.Point(283, 18);
+			this.textDateStart.Location = new System.Drawing.Point(291, 10);
 			this.textDateStart.Name = "textDateStart";
 			this.textDateStart.Size = new System.Drawing.Size(77, 20);
 			this.textDateStart.TabIndex = 17;
 			// 
 			// label2
 			// 
-			this.label2.Location = new System.Drawing.Point(198, 45);
+			this.label2.Location = new System.Drawing.Point(206, 35);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(82, 14);
 			this.label2.TabIndex = 12;
@@ -681,7 +684,7 @@
 			// 
 			// label1
 			// 
-			this.label1.Location = new System.Drawing.Point(198, 21);
+			this.label1.Location = new System.Drawing.Point(206, 13);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(82, 14);
 			this.label1.TabIndex = 11;
@@ -695,7 +698,7 @@
 			this.butRefresh.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butRefresh.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butRefresh.CornerRadius = 4F;
-			this.butRefresh.Location = new System.Drawing.Point(609, 64);
+			this.butRefresh.Location = new System.Drawing.Point(609, 10);
 			this.butRefresh.Name = "butRefresh";
 			this.butRefresh.Size = new System.Drawing.Size(80, 24);
 			this.butRefresh.TabIndex = 2;
@@ -816,9 +819,9 @@
 			// 
 			this.groupBox5.Controls.Add(this.comboReactEmailFrom);
 			this.groupBox5.FlatStyle = System.Windows.Forms.FlatStyle.System;
-			this.groupBox5.Location = new System.Drawing.Point(704, 49);
+			this.groupBox5.Location = new System.Drawing.Point(704, 65);
 			this.groupBox5.Name = "groupBox5";
-			this.groupBox5.Size = new System.Drawing.Size(263, 40);
+			this.groupBox5.Size = new System.Drawing.Size(263, 46);
 			this.groupBox5.TabIndex = 163;
 			this.groupBox5.TabStop = false;
 			this.groupBox5.Text = "Email From";
@@ -826,7 +829,7 @@
 			// comboReactEmailFrom
 			// 
 			this.comboReactEmailFrom.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboReactEmailFrom.Location = new System.Drawing.Point(17, 14);
+			this.comboReactEmailFrom.Location = new System.Drawing.Point(17, 17);
 			this.comboReactEmailFrom.MaxDropDownItems = 40;
 			this.comboReactEmailFrom.Name = "comboReactEmailFrom";
 			this.comboReactEmailFrom.Size = new System.Drawing.Size(233, 21);
@@ -1022,11 +1025,11 @@
 			this.gridReactivations.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridReactivations.HeaderHeight = 15;
 			this.gridReactivations.HScrollVisible = true;
-			this.gridReactivations.Location = new System.Drawing.Point(3, 93);
+			this.gridReactivations.Location = new System.Drawing.Point(3, 117);
 			this.gridReactivations.Name = "gridReactivations";
 			this.gridReactivations.ScrollValue = 0;
 			this.gridReactivations.SelectionMode = OpenDental.UI.GridSelectionMode.MultiExtended;
-			this.gridReactivations.Size = new System.Drawing.Size(965, 544);
+			this.gridReactivations.Size = new System.Drawing.Size(965, 520);
 			this.gridReactivations.TabIndex = 145;
 			this.gridReactivations.Title = "Reactivation List";
 			this.gridReactivations.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
@@ -1042,7 +1045,7 @@
 			this.groupBox6.FlatStyle = System.Windows.Forms.FlatStyle.System;
 			this.groupBox6.Location = new System.Drawing.Point(704, 6);
 			this.groupBox6.Name = "groupBox6";
-			this.groupBox6.Size = new System.Drawing.Size(263, 40);
+			this.groupBox6.Size = new System.Drawing.Size(263, 46);
 			this.groupBox6.TabIndex = 142;
 			this.groupBox6.TabStop = false;
 			this.groupBox6.Text = "Set Status";
@@ -1050,7 +1053,7 @@
 			// comboReactStatus
 			// 
 			this.comboReactStatus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboReactStatus.Location = new System.Drawing.Point(17, 14);
+			this.comboReactStatus.Location = new System.Drawing.Point(17, 17);
 			this.comboReactStatus.MaxDropDownItems = 40;
 			this.comboReactStatus.Name = "comboReactStatus";
 			this.comboReactStatus.Size = new System.Drawing.Size(160, 21);
@@ -1063,7 +1066,7 @@
 			this.butReactSetStatus.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butReactSetStatus.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butReactSetStatus.CornerRadius = 4F;
-			this.butReactSetStatus.Location = new System.Drawing.Point(183, 11);
+			this.butReactSetStatus.Location = new System.Drawing.Point(183, 14);
 			this.butReactSetStatus.Name = "butReactSetStatus";
 			this.butReactSetStatus.Size = new System.Drawing.Size(67, 24);
 			this.butReactSetStatus.TabIndex = 14;
@@ -1072,9 +1075,12 @@
 			// 
 			// groupBox7
 			// 
+			this.groupBox7.Controls.Add(this.checkExcludeInactive);
+			this.groupBox7.Controls.Add(this.checkReactShowDNC);
+			this.groupBox7.Controls.Add(this.validDateStop);
+			this.groupBox7.Controls.Add(this.labelDateStop);
 			this.groupBox7.Controls.Add(this.checkReactGroupFamilies);
 			this.groupBox7.Controls.Add(this.comboReactProv);
-			this.groupBox7.Controls.Add(this.checkReactShowDNC);
 			this.groupBox7.Controls.Add(this.comboBillingTypes);
 			this.groupBox7.Controls.Add(this.labelBillingType);
 			this.groupBox7.Controls.Add(this.comboShowReactivate);
@@ -1091,18 +1097,57 @@
 			this.groupBox7.FlatStyle = System.Windows.Forms.FlatStyle.System;
 			this.groupBox7.Location = new System.Drawing.Point(3, 6);
 			this.groupBox7.Name = "groupBox7";
-			this.groupBox7.Size = new System.Drawing.Size(695, 83);
+			this.groupBox7.Size = new System.Drawing.Size(695, 105);
 			this.groupBox7.TabIndex = 139;
 			this.groupBox7.TabStop = false;
 			this.groupBox7.Text = "View";
 			// 
+			// checkExcludeInactive
+			// 
+			this.checkExcludeInactive.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkExcludeInactive.Location = new System.Drawing.Point(6, 56);
+			this.checkExcludeInactive.Name = "checkExcludeInactive";
+			this.checkExcludeInactive.Size = new System.Drawing.Size(179, 18);
+			this.checkExcludeInactive.TabIndex = 47;
+			this.checkExcludeInactive.Text = "Exclude \"Inactive\"";
+			this.checkExcludeInactive.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkExcludeInactive.UseVisualStyleBackColor = true;
+			// 
+			// checkReactShowDNC
+			// 
+			this.checkReactShowDNC.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkReactShowDNC.Location = new System.Drawing.Point(6, 34);
+			this.checkReactShowDNC.Name = "checkReactShowDNC";
+			this.checkReactShowDNC.Size = new System.Drawing.Size(179, 18);
+			this.checkReactShowDNC.TabIndex = 42;
+			this.checkReactShowDNC.Text = "Show \"Do Not Contact\"";
+			this.checkReactShowDNC.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.checkReactShowDNC.UseVisualStyleBackColor = true;
+			// 
+			// validDateStop
+			// 
+			this.validDateStop.Location = new System.Drawing.Point(291, 32);
+			this.validDateStop.Name = "validDateStop";
+			this.validDateStop.Size = new System.Drawing.Size(77, 20);
+			this.validDateStop.TabIndex = 46;
+			this.validDateStop.Validated += new System.EventHandler(this.ValidDateStop_Validated);
+			// 
+			// labelDateStop
+			// 
+			this.labelDateStop.Location = new System.Drawing.Point(206, 35);
+			this.labelDateStop.Name = "labelDateStop";
+			this.labelDateStop.Size = new System.Drawing.Size(82, 14);
+			this.labelDateStop.TabIndex = 45;
+			this.labelDateStop.Text = "Date Stop";
+			this.labelDateStop.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			// 
 			// checkReactGroupFamilies
 			// 
 			this.checkReactGroupFamilies.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkReactGroupFamilies.Location = new System.Drawing.Point(26, 14);
+			this.checkReactGroupFamilies.Location = new System.Drawing.Point(34, 13);
 			this.checkReactGroupFamilies.Name = "checkReactGroupFamilies";
 			this.checkReactGroupFamilies.RightToLeft = System.Windows.Forms.RightToLeft.No;
-			this.checkReactGroupFamilies.Size = new System.Drawing.Size(159, 18);
+			this.checkReactGroupFamilies.Size = new System.Drawing.Size(151, 18);
 			this.checkReactGroupFamilies.TabIndex = 44;
 			this.checkReactGroupFamilies.Text = "Group Families";
 			this.checkReactGroupFamilies.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1113,26 +1158,15 @@
 			// 
 			this.comboReactProv.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.comboReactProv.FormattingEnabled = true;
-			this.comboReactProv.Location = new System.Drawing.Point(437, 11);
+			this.comboReactProv.Location = new System.Drawing.Point(437, 10);
 			this.comboReactProv.Name = "comboReactProv";
 			this.comboReactProv.Size = new System.Drawing.Size(160, 21);
 			this.comboReactProv.TabIndex = 43;
 			// 
-			// checkReactShowDNC
-			// 
-			this.checkReactShowDNC.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkReactShowDNC.Location = new System.Drawing.Point(26, 33);
-			this.checkReactShowDNC.Name = "checkReactShowDNC";
-			this.checkReactShowDNC.Size = new System.Drawing.Size(159, 18);
-			this.checkReactShowDNC.TabIndex = 42;
-			this.checkReactShowDNC.Text = "Show \"Do Not Contact\"";
-			this.checkReactShowDNC.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkReactShowDNC.UseVisualStyleBackColor = true;
-			// 
 			// comboBillingTypes
 			// 
 			this.comboBillingTypes.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboBillingTypes.Location = new System.Drawing.Point(255, 34);
+			this.comboBillingTypes.Location = new System.Drawing.Point(250, 77);
 			this.comboBillingTypes.MaxDropDownItems = 40;
 			this.comboBillingTypes.Name = "comboBillingTypes";
 			this.comboBillingTypes.Size = new System.Drawing.Size(118, 21);
@@ -1140,7 +1174,7 @@
 			// 
 			// labelBillingType
 			// 
-			this.labelBillingType.Location = new System.Drawing.Point(192, 37);
+			this.labelBillingType.Location = new System.Drawing.Point(187, 80);
 			this.labelBillingType.Name = "labelBillingType";
 			this.labelBillingType.Size = new System.Drawing.Size(62, 14);
 			this.labelBillingType.TabIndex = 40;
@@ -1150,7 +1184,7 @@
 			// comboShowReactivate
 			// 
 			this.comboShowReactivate.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboShowReactivate.Location = new System.Drawing.Point(103, 57);
+			this.comboShowReactivate.Location = new System.Drawing.Point(103, 77);
 			this.comboShowReactivate.MaxDropDownItems = 40;
 			this.comboShowReactivate.Name = "comboShowReactivate";
 			this.comboShowReactivate.Size = new System.Drawing.Size(82, 21);
@@ -1158,7 +1192,7 @@
 			// 
 			// labelShowReactivate
 			// 
-			this.labelShowReactivate.Location = new System.Drawing.Point(3, 60);
+			this.labelShowReactivate.Location = new System.Drawing.Point(3, 80);
 			this.labelShowReactivate.Name = "labelShowReactivate";
 			this.labelShowReactivate.Size = new System.Drawing.Size(99, 14);
 			this.labelShowReactivate.TabIndex = 38;
@@ -1168,7 +1202,7 @@
 			// comboReactSortBy
 			// 
 			this.comboReactSortBy.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboReactSortBy.Location = new System.Drawing.Point(255, 56);
+			this.comboReactSortBy.Location = new System.Drawing.Point(250, 54);
 			this.comboReactSortBy.MaxDropDownItems = 40;
 			this.comboReactSortBy.Name = "comboReactSortBy";
 			this.comboReactSortBy.Size = new System.Drawing.Size(118, 21);
@@ -1176,7 +1210,7 @@
 			// 
 			// labelReactSortBy
 			// 
-			this.labelReactSortBy.Location = new System.Drawing.Point(199, 59);
+			this.labelReactSortBy.Location = new System.Drawing.Point(194, 57);
 			this.labelReactSortBy.Name = "labelReactSortBy";
 			this.labelReactSortBy.Size = new System.Drawing.Size(55, 14);
 			this.labelReactSortBy.TabIndex = 36;
@@ -1186,7 +1220,7 @@
 			// comboReactSite
 			// 
 			this.comboReactSite.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-			this.comboReactSite.Location = new System.Drawing.Point(437, 57);
+			this.comboReactSite.Location = new System.Drawing.Point(437, 56);
 			this.comboReactSite.MaxDropDownItems = 40;
 			this.comboReactSite.Name = "comboReactSite";
 			this.comboReactSite.Size = new System.Drawing.Size(160, 21);
@@ -1194,9 +1228,9 @@
 			// 
 			// labelReactSite
 			// 
-			this.labelReactSite.Location = new System.Drawing.Point(379, 60);
+			this.labelReactSite.Location = new System.Drawing.Point(365, 59);
 			this.labelReactSite.Name = "labelReactSite";
-			this.labelReactSite.Size = new System.Drawing.Size(56, 14);
+			this.labelReactSite.Size = new System.Drawing.Size(70, 14);
 			this.labelReactSite.TabIndex = 24;
 			this.labelReactSite.Text = "Site";
 			this.labelReactSite.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -1205,32 +1239,33 @@
 			// 
 			this.comboReactClinic.DoIncludeAll = true;
 			this.comboReactClinic.DoIncludeUnassigned = true;
-			this.comboReactClinic.Location = new System.Drawing.Point(402, 34);
+			this.comboReactClinic.Location = new System.Drawing.Point(402, 33);
 			this.comboReactClinic.Name = "comboReactClinic";
 			this.comboReactClinic.Size = new System.Drawing.Size(195, 21);
 			this.comboReactClinic.TabIndex = 23;
 			// 
 			// labelReactProv
 			// 
-			this.labelReactProv.Location = new System.Drawing.Point(365, 14);
+			this.labelReactProv.Location = new System.Drawing.Point(368, 13);
 			this.labelReactProv.Name = "labelReactProv";
-			this.labelReactProv.Size = new System.Drawing.Size(70, 14);
+			this.labelReactProv.Size = new System.Drawing.Size(67, 14);
 			this.labelReactProv.TabIndex = 20;
 			this.labelReactProv.Text = "Provider";
 			this.labelReactProv.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// validDateSince
 			// 
-			this.validDateSince.Location = new System.Drawing.Point(255, 13);
+			this.validDateSince.Location = new System.Drawing.Point(291, 10);
 			this.validDateSince.Name = "validDateSince";
 			this.validDateSince.Size = new System.Drawing.Size(77, 20);
 			this.validDateSince.TabIndex = 17;
+			this.validDateSince.Validated += new System.EventHandler(this.ValidDateSince_Validated);
 			// 
 			// labelDateSince
 			// 
-			this.labelDateSince.Location = new System.Drawing.Point(189, 16);
+			this.labelDateSince.Location = new System.Drawing.Point(206, 13);
 			this.labelDateSince.Name = "labelDateSince";
-			this.labelDateSince.Size = new System.Drawing.Size(65, 14);
+			this.labelDateSince.Size = new System.Drawing.Size(82, 14);
 			this.labelDateSince.TabIndex = 11;
 			this.labelDateSince.Text = "Date Since";
 			this.labelDateSince.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -1242,7 +1277,7 @@
 			this.butReactRefresh.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butReactRefresh.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butReactRefresh.CornerRadius = 4F;
-			this.butReactRefresh.Location = new System.Drawing.Point(609, 53);
+			this.butReactRefresh.Location = new System.Drawing.Point(609, 10);
 			this.butReactRefresh.Name = "butReactRefresh";
 			this.butReactRefresh.Size = new System.Drawing.Size(80, 24);
 			this.butReactRefresh.TabIndex = 2;
@@ -1369,5 +1404,8 @@
 		private System.Windows.Forms.ComboBox comboReactEmailFrom;
 		private UI.ODGrid gridReactivations;
 		private System.Windows.Forms.CheckBox checkShowReminded;
+		private ValidDate validDateStop;
+		private System.Windows.Forms.Label labelDateStop;
+		private System.Windows.Forms.CheckBox checkExcludeInactive;
 	}
 }

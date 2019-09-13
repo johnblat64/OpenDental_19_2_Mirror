@@ -8,7 +8,7 @@ namespace UnitTestsCore {
 		///<summary>Creates a patient.  Practice default provider and billing type.</summary>
 		public static Patient CreatePatient(string suffix="",long priProvNum=0,long clinicNum=0,string email="",string phone="",
 			ContactMethod contactMethod=ContactMethod.Email,string lName="",string fName="",string preferredName="",DateTime birthDate=default(DateTime)
-			,long secProvNum=0,long guarantor=0,bool setPortalAccessInfo=false) 
+			,long secProvNum=0,long guarantor=0,bool setPortalAccessInfo=false,PatientStatus patStatus=PatientStatus.Patient) 
 		{
 			Patient pat=new Patient {
 				Email=email,
@@ -26,6 +26,7 @@ namespace UnitTestsCore {
 				Preferred=preferredName,
 				Birthdate=birthDate,
 				SecProv=secProvNum,
+				PatStatus=patStatus,
 			};
 			if(priProvNum!=0) {
 				pat.PriProv=priProvNum;

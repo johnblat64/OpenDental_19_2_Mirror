@@ -44,6 +44,8 @@ namespace OpenDental{
 		private Func<DataTable> _getRecallTable;
 		///<summary>Short list, for the two combo boxes.</summary>
 		private List<Provider> _listProv;
+		///<summary>Default starting offset from Date Since for Date Stop.</summary>
+		private const int _reactDateStopOffset=-36;
 
 		///<summary>True if the thread checking the clinics that are signed up for Web Sched has finished.</summary>
 		private bool _isDoneCheckingWebSchedClinics {
@@ -136,7 +138,17 @@ namespace OpenDental{
 			}
 			//Set Days Since in reactivations
 			int daysSince=PrefC.GetInt(PrefName.ReactivationDaysPast);
-			validDateSince.Text=daysSince==-1?"":DateTime.Today.AddDays(-daysSince).ToShortDateString();
+			DateTime dateSince=DateTime.MinValue;
+			DateTime dateStop=DateTime.MinValue;
+			try {
+				dateSince=DateTime.Today.AddDays(-daysSince);
+				dateStop=dateSince.AddMonths(_reactDateStopOffset);
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
+			}
+			validDateSince.Text=daysSince==-1 || dateSince==DateTime.MinValue ? "" : dateSince.ToShortDateString();
+			validDateStop.Text=daysSince==-1 || dateStop==DateTime.MinValue ? "" : dateStop.ToShortDateString();
 			_listProv=Providers.GetDeepCopy(isShort:true);
 			comboProv.Items.Add("All");
 			for(int i=0;i<_listProv.Count;i++){
@@ -1660,7 +1672,7 @@ namespace OpenDental{
 					}
 					gridRecentlyContacted.EndUpdate();
 				},
-				startingMessage:Lans.g(this,"Retieving data for the Recently Contacted grid..."),
+				startingMessage:Lans.g(this,"Retrieving data for the Recently Contacted grid..."),
 				eventType:typeof(RecallListEvent),
 				odEventType:ODEventType.RecallList
 			);
@@ -1672,16 +1684,14 @@ namespace OpenDental{
 				return;
 			}
 			//Verification
-			if(validDateSince.errorProvider1.GetError(validDateSince)!="") {
+			if(!validDateSince.IsValid || !validDateStop.IsValid) {
 				return;
 			}
 			//Remember which reactivationnums were selected
 			List<PatRowTag> listSelectedRows=gridReactivations.SelectedTags<PatRowTag>();
 			//Determine the search settings from the UI
-			DateTime dateSince=DateTime.MinValue;
-			if(!string.IsNullOrWhiteSpace(validDateSince.Text)) {
-				dateSince=PIn.Date(validDateSince.Text);
-			}
+			DateTime dateSince=PIn.Date(validDateSince.Text);
+			DateTime dateStop=PIn.Date(validDateStop.Text);
 			long provNum=-1;
 			if(comboReactProv.SelectedIndex>0){
 				provNum=_listProv[comboReactProv.SelectedIndex-1].ProvNum;
@@ -1696,8 +1706,12 @@ namespace OpenDental{
 			if(comboBillingTypes.SelectedIndex>0) {
 				billingType=comboBillingTypes.SelectedTag<Def>().DefNum;
 			}
-			DataTable tableReactivations=Reactivations.GetReactivationList(dateSince,checkReactGroupFamilies.Checked,checkReactShowDNC.Checked,
-				provNum,clinicNum,siteNum,billingType,comboReactSortBy.SelectedTag<ReactivationListSort>(),comboShowReactivate.SelectedTag<RecallListShowNumberReminders>());
+			DataTable tableReactivations=new DataTable();
+			ODProgress.ShowAction(() => tableReactivations=Reactivations.GetReactivationList(dateSince,dateStop,checkReactGroupFamilies.Checked
+				,checkReactShowDNC.Checked,!checkExcludeInactive.Checked,provNum,clinicNum,siteNum,billingType
+				,comboReactSortBy.SelectedTag<ReactivationListSort>(),comboShowReactivate.SelectedTag<RecallListShowNumberReminders>()),
+				startingMessage:Lans.g(this,"Retrieving Reactivation List...")
+			);
 			//Fill in the grid
 			gridReactivations.BeginUpdate();
 			gridReactivations.Columns.Clear();
@@ -1714,7 +1728,7 @@ namespace OpenDental{
 			gridReactivations.AddColumn("Billing Type",85);
 			gridReactivations.AddColumn("#Remind",55);
 			gridReactivations.AddColumn("Last Contacted",100);
-			gridReactivations.AddColumn("Contact Method",100);
+			gridReactivations.AddColumn("Contact",100);
 			gridReactivations.AddColumn("Status",80);
 			gridReactivations.AddColumn("Note",150);
 			//Rows
@@ -1737,7 +1751,7 @@ namespace OpenDental{
 				rowNew.Cells.Add(row["BillingType"].ToString());
 				rowNew.Cells.Add(row["ContactedCount"].ToString());
 				rowNew.Cells.Add(row["DateLastContacted"].ToString());
-				rowNew.Cells.Add(PIn.Enum<ContactMethod>(row["PreferRecallMethod"].ToString()).ToString()); 
+				rowNew.Cells.Add(row["ContactMethod"].ToString()); 
 				long status=PIn.Long(row["ReactivationStatus"].ToString());
 				rowNew.Cells.Add(status>0?Defs.GetDef(DefCat.RecallUnschedStatus,status).ItemName:"");
 				rowNew.Cells.Add(row["ReactivationNote"].ToString());
@@ -1756,6 +1770,28 @@ namespace OpenDental{
 			}
 			labelReactPatCount.Text=Lan.g(this,"Patient Count:")+" "+gridReactivations.Rows.Count.ToString();
 			gridReactivations.EndUpdate();
+		}
+
+		private void ValidDateStop_Validated(object sender,EventArgs e) {
+			ValidateReactivationDates();
+		}
+
+		private void ValidDateSince_Validated(object sender,EventArgs e) {
+			ValidateReactivationDates();
+		}
+
+		private void ValidateReactivationDates() {
+			if(PIn.Date(validDateStop.Text)>PIn.Date(validDateSince.Text)) {
+				MessageBox.Show(this,labelDateStop.Text+Lan.g(this," cannot be set to a date after ")+labelDateSince.Text);
+				DateTime dateStop=DateTime.MinValue;
+				try {
+					dateStop=PIn.Date(validDateSince.Text).AddMonths(_reactDateStopOffset);
+				}
+				catch(Exception ex) {
+					ex.DoNothing();
+				}
+				validDateStop.Text=dateStop==DateTime.MinValue ? "" : dateStop.ToShortDateString();
+			}
 		}
 
 		private void gridReactivations_CellDoubleClick(object sender,ODGridClickEventArgs e) {
