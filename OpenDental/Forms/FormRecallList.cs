@@ -95,6 +95,9 @@ namespace OpenDental{
 		private void FormRecallList_Load(object sender, System.EventArgs e) {
 			//AptNumsSelected=new List<long>();
 			CheckClinicsSignedUpForWebSched();
+			if(PrefC.GetBool(PrefName.EnterpriseApptList)) {
+				comboClinic.DoIncludeAll=false;
+			}
 #if DEBUG
 			butECards.Visible=true;
 #endif

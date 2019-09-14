@@ -828,6 +828,9 @@ namespace OpenDental {
 					}
 				},comboProv,comboSite,comboClinic,comboAptStatus,comboNumberReminders,checkGroupFamilies);
 			CheckClinicsSignedUpForWebSched();
+			if(PrefC.GetBool(PrefName.EnterpriseApptList)) {
+				comboClinic.DoIncludeAll=false;
+			}
 			comboProv.Items.Add(Lan.g(this,"All"));
 			comboProv.SelectedIndex=0;
 			_listProviders=Providers.GetDeepCopy(true);

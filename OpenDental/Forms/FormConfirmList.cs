@@ -505,6 +505,9 @@ namespace OpenDental{
 
 		private void FormConfirmList_Load(object sender, System.EventArgs e) {
 			Cursor=Cursors.WaitCursor;
+			if(PrefC.GetBool(PrefName.EnterpriseApptList)) {
+				comboClinic.DoIncludeAll=false;
+			}
 			comboShowRecall.SelectedIndex=0;//Default to show all.
 			textDateFrom.Text=AddWorkDays(1,DateTime.Today).ToShortDateString();
 			textDateTo.Text=AddWorkDays(2,DateTime.Today).ToShortDateString();
