@@ -11,8 +11,9 @@ namespace OpenDental.Bridges {
 
 		///<summary>Makes an API call to get an Oryx URL to launch that is specific to the current user and patient.</summary>
 		public static void SendData(Program progOryx,Patient pat) {
+			string clientUrl="";
 			try {
-				string clientUrl=OpenDentBusiness.ProgramProperties.GetPropVal(progOryx.ProgramNum,ProgramProperties.ClientUrl);
+				clientUrl=OpenDentBusiness.ProgramProperties.GetPropVal(progOryx.ProgramNum,ProgramProperties.ClientUrl);
 				if(clientUrl=="") {//Office has not signed up with Oryx yet, launch a promotional page.
 					string promoUrl="http://www.opendental.com/resources/redirects/redirectoryx.html";
 #if DEBUG
@@ -25,7 +26,7 @@ namespace OpenDental.Bridges {
 					MsgBox.Show("Oryx","Oryx must be enabled in Program Links.");
 					return;
 				}
-				if(!clientUrl.StartsWith("http")) {
+				if(!clientUrl.ToLower().StartsWith("http")) {
 					clientUrl="https://"+clientUrl;
 				}
 				UserOdPref userNamePref=UserOdPrefs.GetByUserFkeyAndFkeyType(Security.CurUser.UserNum,progOryx.ProgramNum,UserOdFkeyType.ProgramUserName)
@@ -67,7 +68,12 @@ namespace OpenDental.Bridges {
 				ODFileUtils.ProcessStart(response.redirectUrl);
 			}
 			catch(Exception ex) {
-				FriendlyException.Show(Lans.g("Oryx","Unable to launch Oryx."),ex);
+				string errorMessage="Unable to launch Oryx.";
+				if(ex is NotSupportedException && ex.Message=="The given path's format is not supported.") {
+					//Oryx has asked us to give a more helpful error message when this happens.
+					errorMessage+=" This is likely because the Client URL is invalid.\r\nClient URL: "+clientUrl;
+				}
+				FriendlyException.Show(Lans.g("Oryx",errorMessage),ex);
 			}
 		}
 
