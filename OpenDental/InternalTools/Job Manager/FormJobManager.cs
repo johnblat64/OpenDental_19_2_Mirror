@@ -601,12 +601,6 @@ namespace OpenDental {
 			Dictionary<JobAction,List<Job>> dictActions=new Dictionary<JobAction,List<Job>>();
 			foreach(Job job in _listJobsAll) {
 				JobAction action;
-				if(job.ListJobActiveLinks.Exists(x => x.UserNum==Security.CurUser.UserNum)) {
-					if(!dictActions.ContainsKey(JobAction.ActiveJob)) {
-						dictActions[JobAction.ActiveJob]=new List<Job>();
-					}
-					dictActions[JobAction.ActiveJob].Add(job);
-				}
 				if(userFilter==null) {
 					action=job.OwnerAction;
 				}
@@ -674,6 +668,7 @@ namespace OpenDental {
 				JobAction[] writeAdviseReview=new[] { JobAction.WriteCode,JobAction.ReviewCode,JobAction.WaitForReview,JobAction.Advise };
 				Color changedColor=Security.CurUser.UserNum==9 ? Color.FromArgb(20,Color.LightGreen):Color.FromArgb(80,Color.LightGreen);
 				foreach(Job job in listJobsSorted) {
+					JobActiveLink activeLink=job.ListJobActiveLinks.FirstOrDefault(x => x.UserNum==userFilter?.UserNum && x.DateTimeEnd==DateTime.MinValue);
 					Def jobPriority=_listJobPriorities.FirstOrDefault(y => y.DefNum==job.Priority);
 					string ownerString=job.OwnerNum==0 ? "-" : Userods.GetName(job.OwnerNum);
 					//If in ReviewCode (you are the reviewer for the job), add a string for who sent it to you
@@ -687,7 +682,8 @@ namespace OpenDental {
 							ColorText=(job.Priority==_listJobPriorities.FirstOrDefault(y => y.ItemValue.Contains("Urgent")).DefNum) ? Color.White : Color.Black,
 						},
 						new ODGridCell(FlagHelper(job,gridAction.Rows.Count)) {
-							ColorText=job.TagOD!=null ? (Color)job.TagOD : Color.Black//Set in FlagCellHelper(...), tag is reset everytime FillGridActions() is called.
+							ColorText=job.TagOD!=null ? (Color)job.TagOD : Color.Black,//Set in FlagCellHelper(...), tag is reset everytime FillGridActions() is called.
+							CellColor=activeLink!=null?Color.FromArgb(90,Color.Cyan):Color.Empty,
 							},
 						new ODGridCell(ownerString),
 						new ODGridCell(job.ToString()) { CellColor=(job.ToString().ToLower().Contains(textSearch.Text.ToLower())&&!string.IsNullOrWhiteSpace(textSearch.Text) ? Color.LightYellow : 

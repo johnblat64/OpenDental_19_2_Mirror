@@ -16,9 +16,12 @@ namespace OpenDentBusiness {
 		public long JobNum;
 		///<summary>FK to userod.UserNum.</summary>
 		public long UserNum;
-		///<summary>The date/time that the job was created.  Not user editable.</summary>
+		///<summary>The date/time that the jobactivelink was created.  Not user editable.</summary>
 		[CrudColumn(SpecialType=CrudSpecialColType.DateTEntry)]
 		public DateTime DateTimeEntry;
+		///<summary>The date/time that the jobactivelink was ended.  Not user editable.</summary>
+		[CrudColumn(SpecialType=CrudSpecialColType.DateT)]
+		public DateTime DateTimeEnd;
 
 		///<summary></summary>
 		public JobActiveLink Copy() {

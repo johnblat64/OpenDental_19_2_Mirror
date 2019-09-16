@@ -1,7 +1,8 @@
-﻿using CodeBase;
+using CodeBase;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -17,19 +18,21 @@ namespace OpenDentBusiness{
 			string command="SELECT * FROM jobactivelink WHERE JobNum = "+POut.Long(jobNum)+" AND UserNum = "+POut.Long(userNum);
 			return Crud.JobActiveLinkCrud.SelectOne(command);
 		}		
-
-		public static void ManageLink(Job job,Job jobOld,long userNum,bool isActive) {
+		
+		///<summary>Returns the jobs new list of JobActiveLinks</summary>
+		public static List<JobActiveLink> UpsertLink(Job job,Job jobOld,long userNum,bool isActive) {
 			//No need for remoting call here.
+			List<JobActiveLink> listJobActiveLinks=job.ListJobActiveLinks;
 			if(!jobOld.PhaseCur.In(JobPhase.Cancelled,JobPhase.Complete,JobPhase.Documentation) 
 				&& job.PhaseCur.In(JobPhase.Cancelled,JobPhase.Complete,JobPhase.Documentation)) 
 			{
-				DeleteForJobNum(job.JobNum);
-				return;
+				EndForJobNum(job.JobNum);
+				return new List<JobActiveLink>();
 			}
-			JobActiveLink activeLink=GetForJobAndUser(job.JobNum,userNum);
+			JobActiveLink activeLink=listJobActiveLinks.FirstOrDefault(x => x.JobNum==job.JobNum && x.UserNum==userNum && x.DateTimeEnd==DateTime.MinValue);
 			if(activeLink==null) {
 				if(!isActive) {
-					return;
+					return listJobActiveLinks;
 				}
 				activeLink=new JobActiveLink();
 				activeLink.JobNum=job.JobNum;
@@ -38,13 +41,16 @@ namespace OpenDentBusiness{
 			}
 			else {
 				if(isActive) {
-					return;
+					return listJobActiveLinks;
 				}
-				Delete(activeLink.JobActiveLinkNum);
+				activeLink.DateTimeEnd=DateTime.Now;
+				Update(activeLink);
 			}
 			//Only occurs if an actual db change happened for a single user
 			//Mass delete does not make a log entry
 			JobLogs.MakeLogEntryForActive(job,userNum,isActive);
+			listJobActiveLinks.Add(activeLink);
+			return listJobActiveLinks;
 		}
 
 		///<summary></summary>
@@ -87,6 +93,16 @@ namespace OpenDentBusiness{
 			}
 			Crud.JobActiveLinkCrud.Update(jobActiveLink);
 		}
+
+		///<summary>Sets the end date for the active links for the specific jobnum</summary>
+		public static void EndForJobNum(long jobNum){
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),jobNum);
+				return;
+			}
+			string command="UPDATE jobactivelink SET DateTimeEnd="+POut.DateT(DateTime.Now)+" WHERE JobNum = "+POut.Long(jobNum);
+			Db.NonQ(command);
+		}
 		#endregion Update
 		#region Delete
 		///<summary></summary>
@@ -96,17 +112,6 @@ namespace OpenDentBusiness{
 				return;
 			}
 			Crud.JobActiveLinkCrud.Delete(jobActiveLinkNum);
-		}
-
-		///<summary>Deletes the payment as well as all splits.
-		///Surround with try catch, throws an exception if trying to delete a payment attached to a deposit.</summary>
-		public static void DeleteForJobNum(long jobNum){
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),jobNum);
-				return;
-			}
-			string command="DELETE from jobactivelink WHERE JobNum = "+POut.Long(jobNum);
-			Db.NonQ(command);
 		}
 		#endregion Delete
 		#endregion Modification Methods
