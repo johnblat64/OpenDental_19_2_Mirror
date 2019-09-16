@@ -1374,16 +1374,18 @@ namespace OpenDental{
 			if(_processOnScreenKeyboard==null) {
 				return;
 			}
-			//Remove the event handler (prevents it from firing when the On Screen Keys are closed by killing a process)
-			_processOnScreenKeyboard.Exited-=OnScreenKeyboardClosedEventHandler;
-			//If the on screen keyboard process is still running, kill it
-			if(!_processOnScreenKeyboard.HasExited) {
-				//Focus on the Form Patient Select before killing the On Screen Keyboard Process to avoid a threading error
-				//textLName.Select();
-				_processOnScreenKeyboard.Refresh();
-				_processOnScreenKeyboard.Kill();
-			}
-			_processOnScreenKeyboard=null;
+			ODException.SwallowAnyException(() => {
+				//Remove the event handler (prevents it from firing when the On Screen Keys are closed by killing a process)
+				_processOnScreenKeyboard.Exited-=OnScreenKeyboardClosedEventHandler;
+				//If the on screen keyboard process is still running, kill it
+				if(!_processOnScreenKeyboard.HasExited) {
+					//Focus on the Form Patient Select before killing the On Screen Keyboard Process to avoid a threading error
+					//textLName.Select();
+					_processOnScreenKeyboard.Refresh();
+					_processOnScreenKeyboard.Kill();
+				}
+				_processOnScreenKeyboard=null;
+			});
 			if(selectedTxtBox!=null) {
 				SelectTextBox();
 			}
