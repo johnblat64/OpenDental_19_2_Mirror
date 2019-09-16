@@ -80,14 +80,12 @@ namespace OpenDental {
 		///<summary>Throws Exception.  Exports all medications to the passed in filename. Throws Exceptions.</summary>
 		public static int ExportMedications(string filename,List<Medication> listMedications) {
 			StringBuilder strBldrOutput=new StringBuilder();
+			string encapsulate(string text) {
+				return "\""+text.Replace("\"","\\\"")+"\"";
+			}
 			foreach(Medication med in listMedications) {//Loop through medications.
-				/* Do not use POut here, as this will try to escape special characters, this is for writing to a file, not the db.
-				 * Importing uses PIn, so we don't have to worry about these special characters causing problems on import.
-				 * Using POut causes actual duplicates to not be detected on import. In other words, if you import a file of 10 medications, make no changes,
-				 * export, then import this newly exported file, any medications with special characters will not register as a duplicate and you will end up
-				 * with more than 10 medications in your list, some of them being duplicates except with \' instead of ' (as an example special character).
-				 * */
-				strBldrOutput.AppendLine(med.MedName+'\t'+Medications.GetGenericName(med.GenericNum)+'\t'+med.Notes+'\t'+med.RxCui);
+				strBldrOutput.AppendLine(encapsulate(med.MedName)+'\t'+encapsulate(Medications.GetGenericName(med.GenericNum))+'\t'+encapsulate(med.Notes)
+					+'\t'+encapsulate(POut.Long(med.RxCui)));
 			}
 			File.WriteAllText(filename,strBldrOutput.ToString());//Allow Exception to trickle up.
 			SecurityLogs.MakeLogEntry(Permissions.Setup,0,
@@ -128,9 +126,49 @@ namespace OpenDental {
 		///Lines are determined by new line characters and tabs between fields.</summary>
 		private static List<string[]> SplitLines(string data) {
 			List<string[]> listLines=new List<string[]>();
-			if(data==null) {
+			if(string.IsNullOrWhiteSpace(data)) {
 				return listLines;
 			}
+			if(data[0]!='"') {
+				return SplitLinesOld(data);
+			}
+			bool isFieldStarted=false;
+			string field="";
+			List<string> listMedLines=data.Split("\r\n",StringSplitOptions.RemoveEmptyEntries).ToList();
+			foreach(string medication in listMedLines) {
+				List<string> listFields=new List<string>();
+				for(int i=0;i<medication.Length;i++) {
+					char c=medication[i];
+					if(!isFieldStarted) {
+						if(c=='"') {//Start of a new field.
+							isFieldStarted=true;
+							continue;
+						}
+						else if(c=='\t') {
+							continue;
+						}
+						else {//Character outside of an encapsulated field.  Invalid formatting..
+							throw new Exception(Lan.g("Medications","Invalid formatting in Medication file."));
+						}
+					}
+					if(c=='"' && (field.Length==0 || field[field.Length-1]!='\\')) {//End of a field.
+						isFieldStarted=false;
+						listFields.Add(field.Replace("\\\"","\""));//Unescape any " in the field.
+						field="";
+						continue;
+					}
+					//Normal character inside a field.
+					field+=c;
+				}
+				listLines.Add(listFields.ToArray());
+			}
+			return listLines;
+		}
+
+		///<summary>Backwards compatible approach for medications exported before the change that encapsulates the exported data.</summary>
+		private static List<string[]> SplitLinesOld(string data) {
+			List<string[]> listLines=new List<string[]>();
+			//Backward compatible
 			if(data.Contains("\r\n")){
 				data=data.Replace("\r\n","\n");
 			}
