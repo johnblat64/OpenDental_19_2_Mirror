@@ -1382,7 +1382,7 @@ namespace OpenDental{
 					//Focus on the Form Patient Select before killing the On Screen Keyboard Process to avoid a threading error
 					//textLName.Select();
 					_processOnScreenKeyboard.Refresh();
-					_processOnScreenKeyboard.Kill();
+					_processOnScreenKeyboard.CloseMainWindow();
 				}
 				_processOnScreenKeyboard=null;
 			});
