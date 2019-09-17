@@ -1649,13 +1649,9 @@ namespace OpenDental{
 			comboProv.Items.Clear();
 			for(int i=0;i<_listProvs.Count;i++) {
 				comboProv.Items.Add(_listProvs[i].GetLongDesc());
-				if(_listProvs[i].ProvNum==ProvCur.ProvNumBillingOverride) {
-					comboProv.SelectedIndex=comboProv.Items.Count-1;
-				}
 			}
-			if(comboProv.SelectedIndex==-1) {//The provider exists but is hidden (exclude this block of code if provider selection is optional)
-				comboProv.Text=Providers.GetLongDesc(_selectedProvNum);//Appends "(hidden)" to the end of the long description.
-			}
+			//Select this Prov's ProvNumbillingOverride.  Appends "(hidden)" to the end of the long description if billing override prov is hidden.
+			comboProv.SetSelectedItem<Provider>((x) => x.ProvNum==ProvCur.ProvNumBillingOverride,Providers.GetLongDesc(_selectedProvNum));
 			textWebSchedDescript.Text=ProvCur.WebSchedDescript;
 			FillImage();
 			if(ProvCur.ProvStatus==ProviderStatus.Deleted) {
