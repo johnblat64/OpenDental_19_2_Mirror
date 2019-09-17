@@ -204,7 +204,7 @@ namespace OpenDental {
 			contextMenu.MenuItems.Add(new MenuItem(Lan.g(this,"Copy"),onClick,Shortcut.CtrlC));
 			contextMenu.MenuItems.Add(new MenuItem(Lan.g(this,"Paste"),onClick,Shortcut.CtrlV));
 			contextMenu.MenuItems.Add(new MenuItem(Lan.g(this,"Paste Plain Text"),onClick));
-			contextMenu.MenuItems.Add(new MenuItem(Lan.g(this,"Edit AutoNote"),onClick));
+			contextMenu.MenuItems.Add(new MenuItem(Lan.g(this,"Edit Auto Note"),onClick));
 			base.BackColor=SystemColors.Window;//Needed for OnReadOnlyChanged() to change backcolor when ReadOnly because of an issue with RichTextBox.
 		}
 

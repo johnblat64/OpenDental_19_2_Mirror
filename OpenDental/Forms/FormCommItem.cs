@@ -75,7 +75,6 @@ namespace OpenDental {
 			string keyData=GetSignatureKey();
 			signatureBoxWrapper.FillSignature(_commlogCur.SigIsTopaz,keyData,_commlogCur.Signature);
 			signatureBoxWrapper.BringToFront();
-			butEditAutoNote.Visible=GetHasAutoNotePrompt();
 			if(_isPersistent) {
 				RefreshUserOdPrefs();
 				labelCommlogNum.Visible=false;
@@ -98,6 +97,7 @@ namespace OpenDental {
 			listSentOrReceived.SelectedIndex=(int)_commlogCur.SentOrReceived;
 			textNote.Text=_commlogCur.Note;
 			textNote.SelectionStart=textNote.Text.Length;
+			butEditAutoNote.Visible=GetHasAutoNotePrompt();
 			if(!ODBuild.IsDebug()) {
 				labelCommlogNum.Visible=false;
 				textCommlogNum.Visible=false;

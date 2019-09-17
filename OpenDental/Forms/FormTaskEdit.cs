@@ -9,6 +9,7 @@ using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace OpenDental {
 	/// <summary>
@@ -138,6 +139,9 @@ namespace OpenDental {
 		private bool _isTaskDeleted=false;
 		///<summary>UserNum attached to task when form was loaded.  Used in OK click to detect changes.  Can be 0.</summary>
 		private long _userNumFrom;
+		private UI.Button butEditAutoNote;
+		private const string _autoNotePromptRegex=@"\[Prompt:""[a-zA-Z_0-9 ]+""\]";
+
 		///<summary>PatNum attached to task when form was loaded.  Used in OK click to detect changes.  Can be 0.</summary>
 		private long _patientPatNum;
 
@@ -281,6 +285,7 @@ namespace OpenDental {
 			this.butRefresh = new OpenDental.UI.Button();
 			this.textBoxDateTimeCreated = new System.Windows.Forms.TextBox();
 			this.label3 = new System.Windows.Forms.Label();
+			this.butEditAutoNote = new OpenDental.UI.Button();
 			this.panelRepeating.SuspendLayout();
 			this.groupReminder.SuspendLayout();
 			this.panelReminderFrequency.SuspendLayout();
@@ -1034,6 +1039,7 @@ namespace OpenDental {
 			// 
 			// splitContainerDescriptNote.Panel1
 			// 
+			this.splitContainerDescriptNote.Panel1.Controls.Add(this.butEditAutoNote);
 			this.splitContainerDescriptNote.Panel1.Controls.Add(this.butAutoNote);
 			this.splitContainerDescriptNote.Panel1.Controls.Add(this.butBlue);
 			this.splitContainerDescriptNote.Panel1.Controls.Add(this.butRed);
@@ -1058,9 +1064,9 @@ namespace OpenDental {
 			this.butAutoNote.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butAutoNote.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butAutoNote.CornerRadius = 4F;
-			this.butAutoNote.Location = new System.Drawing.Point(9, 81);
+			this.butAutoNote.Location = new System.Drawing.Point(4, 80);
 			this.butAutoNote.Name = "butAutoNote";
-			this.butAutoNote.Size = new System.Drawing.Size(80, 22);
+			this.butAutoNote.Size = new System.Drawing.Size(85, 22);
 			this.butAutoNote.TabIndex = 157;
 			this.butAutoNote.Text = "Auto Note";
 			this.butAutoNote.Click += new System.EventHandler(this.butAutoNote_Click);
@@ -1073,9 +1079,9 @@ namespace OpenDental {
 			this.butBlue.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butBlue.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butBlue.CornerRadius = 4F;
-			this.butBlue.Location = new System.Drawing.Point(46, 27);
+			this.butBlue.Location = new System.Drawing.Point(47, 27);
 			this.butBlue.Name = "butBlue";
-			this.butBlue.Size = new System.Drawing.Size(43, 24);
+			this.butBlue.Size = new System.Drawing.Size(42, 24);
 			this.butBlue.TabIndex = 156;
 			this.butBlue.Text = "Blue";
 			this.butBlue.Visible = false;
@@ -1089,9 +1095,9 @@ namespace OpenDental {
 			this.butRed.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butRed.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butRed.CornerRadius = 4F;
-			this.butRed.Location = new System.Drawing.Point(46, 54);
+			this.butRed.Location = new System.Drawing.Point(4, 27);
 			this.butRed.Name = "butRed";
-			this.butRed.Size = new System.Drawing.Size(43, 24);
+			this.butRed.Size = new System.Drawing.Size(42, 24);
 			this.butRed.TabIndex = 155;
 			this.butRed.Text = "Red";
 			this.butRed.Visible = false;
@@ -1130,9 +1136,7 @@ namespace OpenDental {
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridMain.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridMain.HasAddButton = false;
 			this.gridMain.HasDropDowns = false;
-			this.gridMain.HasMultilineHeaders = false;
 			this.gridMain.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridMain.HeaderHeight = 15;
 			this.gridMain.HScrollVisible = false;
@@ -1192,6 +1196,21 @@ namespace OpenDental {
 			this.label3.TabIndex = 176;
 			this.label3.Text = "Date/Time Created";
 			this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// butEditAutoNote
+			// 
+			this.butEditAutoNote.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butEditAutoNote.Autosize = true;
+			this.butEditAutoNote.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butEditAutoNote.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butEditAutoNote.CornerRadius = 4F;
+			this.butEditAutoNote.Location = new System.Drawing.Point(4, 54);
+			this.butEditAutoNote.Name = "butEditAutoNote";
+			this.butEditAutoNote.Size = new System.Drawing.Size(85, 24);
+			this.butEditAutoNote.TabIndex = 158;
+			this.butEditAutoNote.Text = "Edit Auto Note";
+			this.butEditAutoNote.UseVisualStyleBackColor = true;
+			this.butEditAutoNote.Click += new System.EventHandler(this.ButEditAutoNote_Click);
 			// 
 			// FormTaskEdit
 			// 
@@ -1311,6 +1330,7 @@ namespace OpenDental {
 				if(!isTaskForCurUser && !Security.IsAuthorized(Permissions.TaskEdit,true)) {
 					butDelete.Enabled=false;
 					butAutoNote.Enabled=false;
+					butEditAutoNote.Enabled=false;
 					textDescript.ReadOnly=true;
 					textDescript.BackColor=System.Drawing.SystemColors.Window;
 				}
@@ -1477,6 +1497,7 @@ namespace OpenDental {
 			if(_taskCur.DateTask.Year>1880) {
 				textDateTask.Text=_taskCur.DateTask.ToShortDateString();
 			}
+			butEditAutoNote.Visible=GetHasAutoNotePrompt();
 			if(_taskCur.IsRepeating) {
 				checkNew.Enabled=false;
 				checkDone.Enabled=false;
@@ -1941,6 +1962,7 @@ namespace OpenDental {
 			FormA.ShowDialog();
 			if(FormA.DialogResult==DialogResult.OK) {
 				textDescript.AppendText(FormA.CompletedNote);
+				butEditAutoNote.Visible=GetHasAutoNotePrompt();
 			}
 		}
 
@@ -2684,6 +2706,24 @@ namespace OpenDental {
 				TaskUnreads.AddUnreads(_taskCur,Security.CurUser.UserNum);//we also need to tell the database about all the users with unread tasks
 				SendSignalsRefillLocal(_taskCur);
 			}
+		}
+
+		private void ButEditAutoNote_Click(object sender,EventArgs e) {
+			if(GetHasAutoNotePrompt()) {
+				FormAutoNoteCompose FormA=new FormAutoNoteCompose();
+				FormA.MainTextNote=textDescript.Text;
+				FormA.ShowDialog();
+				if(FormA.DialogResult==DialogResult.OK) {
+					textDescript.Text=FormA.CompletedNote;
+					butEditAutoNote.Visible=GetHasAutoNotePrompt();
+				}
+			}
+			else {
+				MessageBox.Show(Lan.g(this,"No Auto Note available to edit."));
+			}
+		}
+		private bool GetHasAutoNotePrompt() {
+			return Regex.IsMatch(textDescript.Text,_autoNotePromptRegex);
 		}
 	}
 }
