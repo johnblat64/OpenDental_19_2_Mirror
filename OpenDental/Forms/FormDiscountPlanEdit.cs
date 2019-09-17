@@ -16,6 +16,7 @@ namespace OpenDental {
 		private List<string> _listPatNames;
 		///<summary>IsSelectionMode is true if this window is opened with the intent of selecting a plan for a user</summary>
 		public bool IsSelectionMode;
+		private int _countPats;
 
 		public FormDiscountPlanEdit() {
 			InitializeComponent();
@@ -24,11 +25,6 @@ namespace OpenDental {
 
 		private void FormDiscountPlanEdit_Load(object sender,EventArgs e) {
 			textDescript.Text=DiscountPlanCur.Description;
-			_listPatNames=DiscountPlans.GetPatsForPlan(DiscountPlanCur.DiscountPlanNum)
-				.Select(x => x.LName+", "+x.FName)
-				.Distinct()
-				.OrderBy(x => x)
-				.ToList();
 			_feeSchedCur=FeeScheds.GetFirstOrDefault(x => x.FeeSchedNum==DiscountPlanCur.FeeSchedNum,true);
 			textFeeSched.Text=_feeSchedCur!=null ? _feeSchedCur.Description : "";
 			_listAdjTypeDefs=Defs.GetDiscountPlanAdjTypes().ToList();
@@ -39,14 +35,18 @@ namespace OpenDental {
 				}
 			}
 			//populate patient information
-			int countPats=_listPatNames.Count;
-			textNumPatients.Text=countPats.ToString();
-			if(countPats>10000) {//10,000 per Nathan. copied from FormInsPlan.cs
+			_countPats=DiscountPlans.GetPatCountForPlan(DiscountPlanCur.DiscountPlanNum);
+			textNumPatients.Text=_countPats.ToString();
+			if(_countPats>10000) {//10,000 per Nathan. copied from FormInsPlan.cs
 				comboPatient.Visible=false;
 				butListPatients.Visible=true;
 				butListPatients.Location=comboPatient.Location;
 			}
 			else {
+				_listPatNames=DiscountPlans.GetPatNamesForPlan(DiscountPlanCur.DiscountPlanNum)
+					.Distinct()
+					.OrderBy(x => x)
+					.ToList();
 				comboPatient.Visible=true;
 				butListPatients.Visible=false;
 				comboPatient.Items.Clear();
@@ -88,8 +88,7 @@ namespace OpenDental {
 
 		private void checkHidden_Click(object sender,EventArgs e) {
 			if(checkHidden.Checked) {
-				List<Patient> listPatsForPlan=DiscountPlans.GetPatsForPlan(DiscountPlanCur.DiscountPlanNum);
-				if(listPatsForPlan.Count!=0) {
+				if(_countPats!=0) {
 					string msgText=Lan.g(this,"Specified Discount Plan will be hidden.  "+
 						"It will no longer be available for assigning, but existing patients on plan will remain");
 					if(MessageBox.Show(this,msgText,"",MessageBoxButtons.OKCancel)==DialogResult.Cancel) {
@@ -130,6 +129,12 @@ namespace OpenDental {
 		}
 
 		private void butListPatients_Click(object sender,EventArgs e) {
+			if(_listPatNames==null) {
+				_listPatNames=DiscountPlans.GetPatNamesForPlan(DiscountPlanCur.DiscountPlanNum)
+					.Distinct()
+					.OrderBy(x => x)
+					.ToList();
+			}
 			ODForm form=new ODForm() {
 				Size=new Size(500,400),
 				Text="Other Patients List",

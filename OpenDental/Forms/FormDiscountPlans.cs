@@ -25,7 +25,7 @@ namespace OpenDental {
 
 		private void FillGrid() {
 			List<DiscountPlan> listDiscountPlans=DiscountPlans.GetAll(checkShowHidden.Checked);
-			List<Patient> listPatientsOnPlan=DiscountPlans.GetPatsForPlans(listDiscountPlans.Select(x => x.DiscountPlanNum).ToList());
+			Dictionary<long,int> dictPatientsOnPlan=DiscountPlans.GetPatCountsForPlans(listDiscountPlans.Select(x => x.DiscountPlanNum).ToList());
 			listDiscountPlans.Sort(DiscountPlanComparer);
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
@@ -45,7 +45,8 @@ namespace OpenDental {
 				row.Cells.Add(listDiscountPlans[i].Description);
 				row.Cells.Add(FeeScheds.GetDescription(listDiscountPlans[i].FeeSchedNum));
 				row.Cells.Add((adjType==null) ? "" : adjType.ItemName);
-				row.Cells.Add(listPatientsOnPlan.FindAll(x => x.DiscountPlanNum==listDiscountPlans[i].DiscountPlanNum).Count.ToString());
+				row.Cells.Add(dictPatientsOnPlan.ContainsKey(listDiscountPlans[i].DiscountPlanNum)
+					? dictPatientsOnPlan[listDiscountPlans[i].DiscountPlanNum].ToString() : "0");
 				if(checkShowHidden.Checked) {
 					row.Cells.Add(listDiscountPlans[i].IsHidden ? "X" : "");
 				}

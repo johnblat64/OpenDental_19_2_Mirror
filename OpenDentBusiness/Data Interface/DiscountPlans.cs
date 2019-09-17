@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -89,27 +90,44 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Returns an empty list if planNum is 0.</summary>
-		public static List<Patient> GetPatsForPlan(long planNum) {
+		public static List<string> GetPatNamesForPlan(long planNum) {
 			if(planNum==0) {
-				return new List<Patient>();
+				return new List<string>();
 			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Patient>>(MethodBase.GetCurrentMethod(),planNum);
+				return Meth.GetObject<List<string>>(MethodBase.GetCurrentMethod(),planNum);
 			}
-			string command="SELECT * FROM patient WHERE DiscountPlanNum="+POut.Long(planNum);
-			return Crud.PatientCrud.SelectMany(command);
+			string command="SELECT LName,FName FROM patient WHERE DiscountPlanNum="+POut.Long(planNum);
+			//No Preferred or MiddleI needed because this logic needs to match FormInsPlan.
+			return Db.GetTable(command).Select().Select(x => Patients.GetNameLFnoPref(x["LName"].ToString(),x["FName"].ToString(),"")).ToList();
 		}
 
-		///<summary>Returns an empty list if the list of plan nums is empty.</summary>
-		public static List<Patient> GetPatsForPlans(List<long> listPlanNums) {
-			if(listPlanNums.Count==0) {
-				return new List<Patient>();
+		///<summary>Returns an empty list if planNum is 0.</summary>
+		public static int GetPatCountForPlan(long planNum) {
+			if(planNum==0) {
+				return 0;
 			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<Patient>>(MethodBase.GetCurrentMethod(),listPlanNums);
+				return Meth.GetInt(MethodBase.GetCurrentMethod(),planNum);
 			}
-			string command="SELECT * FROM patient WHERE DiscountPlanNum IN ("+string.Join(",",listPlanNums)+")";
-			return Crud.PatientCrud.SelectMany(command);
+			string command="SELECT COUNT(PatNum) FROM patient WHERE DiscountPlanNum="+POut.Long(planNum);
+			return PIn.Int(Db.GetCount(command));
+		}
+
+		///<summary>Returns a dictionary where key=DiscountPlanNum and value=count of patients for the DiscountPlanNum.
+		///Returns an empty dictionary if the list of plan nums is empty.</summary>
+		public static SerializableDictionary<long,int> GetPatCountsForPlans(List<long> listPlanNums) {
+			if(listPlanNums.Count==0) {
+				return new SerializableDictionary<long,int>();
+			}
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetSerializableDictionary<long,int>(MethodBase.GetCurrentMethod(),listPlanNums);
+			}
+			string command="SELECT DiscountPlanNum,COUNT(PatNum) PatCount FROM patient " +
+				"WHERE DiscountPlanNum IN ("+string.Join(",",listPlanNums)+") " +
+				"GROUP BY DiscountPlanNum";
+			return Db.GetTable(command).Select()
+				.ToSerializableDictionary(x => PIn.Long(x["DiscountPlanNum"].ToString()),x => PIn.Int(x["PatCount"].ToString()));
 		}
 	}
 }
