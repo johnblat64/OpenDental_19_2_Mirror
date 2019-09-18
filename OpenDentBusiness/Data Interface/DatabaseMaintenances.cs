@@ -557,7 +557,8 @@ namespace OpenDentBusiness {
 				new { tableName="appointment",columnName="Note",key="AptNum" },
 				new { tableName="commlog",columnName="Note",key="CommlogNum" },
 				new { tableName="procnote",columnName="Note",key="ProcNoteNum" },
-				new { tableName="patient",columnName="FamFinUrgNote",key="PatNum" }
+				new { tableName="patient",columnName="FamFinUrgNote",key="PatNum" },
+				new { tableName="patfield",columnName="FieldValue",key="PatFieldNum" }
 			};
 			//Loop through the custom object array looking for rows in the database that have too many tabs, newlines, or trailing spaces.
 			for(int i=0;i<listTablesAndColumns.Length;i++) {
@@ -594,6 +595,7 @@ namespace OpenDentBusiness {
 				#endregion
 				#region Newlines
 				switch(modeCur) {
+					case DbmMode.Breakdown:
 					case DbmMode.Check:
 						command="SELECT COUNT(*) FROM "+POut.String(tableName)+" "
 							+"WHERE "+POut.String(colName)+" LIKE '%"+POut.String(tooManyRN)+"%' "
@@ -626,6 +628,7 @@ namespace OpenDentBusiness {
 				#endregion
 				#region Trailing Spaces
 				switch(modeCur) {
+					case DbmMode.Breakdown:
 					case DbmMode.Check:
 						command=@"SELECT COUNT(*) FROM "+POut.String(tableName)+" "
 							+@"WHERE "+POut.String(colName)+" LIKE '%"+POut.String(tooManySP)+"%' ";//This is Sparta!
@@ -5590,12 +5593,12 @@ namespace OpenDentBusiness {
 			return log;
 		}
 
-		[DbmMethodAttr]
 		///<summary>Finds Patients in a SuperFamily where the SuperHead is no longer in the SuperFamily.  This occurs when the SuperHead is moved out of 
 		///the SuperFamily but the remaining SuperFamily members do not have their SuperFamily field updated.  Since we cannot reliably choose a member 
 		///of the remaining SuperFamily as the new SuperHead, we use the new Guarantor of the previous SuperHead as the new SuperHead, or in the event 
 		///the old SuperHead has been moved to a new SuperFamily we use the SuperHead of that SuperFamily, effectively merging the SuperFamily into this 
 		///new Family/SuperFamily where the previous SuperHead now resides.</summary>
+		[DbmMethodAttr]
 		public static string PatientInvalidSuperFamilyHead(bool verbose,DbmMode modeCur) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);

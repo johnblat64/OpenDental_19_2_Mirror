@@ -113,7 +113,7 @@ namespace OpenDentBusiness.Crud{
 			if(patField.FieldValue==null) {
 				patField.FieldValue="";
 			}
-			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(patField.FieldValue));
+			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringNote(patField.FieldValue));
 			if(useExistingPK || PrefC.RandomKeys) {
 				Db.NonQ(command,paramFieldValue);
 			}
@@ -152,7 +152,7 @@ namespace OpenDentBusiness.Crud{
 			if(patField.FieldValue==null) {
 				patField.FieldValue="";
 			}
-			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(patField.FieldValue));
+			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringNote(patField.FieldValue));
 			if(useExistingPK || isRandomKeys) {
 				Db.NonQ(command,paramFieldValue);
 			}
@@ -175,7 +175,7 @@ namespace OpenDentBusiness.Crud{
 			if(patField.FieldValue==null) {
 				patField.FieldValue="";
 			}
-			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(patField.FieldValue));
+			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringNote(patField.FieldValue));
 			Db.NonQ(command,paramFieldValue);
 		}
 
@@ -203,7 +203,7 @@ namespace OpenDentBusiness.Crud{
 			if(patField.FieldValue==null) {
 				patField.FieldValue="";
 			}
-			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringParam(patField.FieldValue));
+			OdSqlParameter paramFieldValue=new OdSqlParameter("paramFieldValue",OdDbType.Text,POut.StringNote(patField.FieldValue));
 			command="UPDATE patfield SET "+command
 				+" WHERE PatFieldNum = "+POut.Long(patField.PatFieldNum);
 			Db.NonQ(command,paramFieldValue);
