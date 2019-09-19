@@ -232,6 +232,9 @@ namespace OpenDentBusiness{
 				case "HANNAHN":
 					bug.Submitter=53;
 					break;
+				case "ALEXB":
+					bug.Submitter=55;
+					break;
 				default:
 					bug.Submitter=2;//Tech Support
 					break;
