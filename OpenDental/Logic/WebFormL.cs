@@ -194,7 +194,6 @@ namespace OpenDental {
 			//Now get the patients that were transferred from the CEMT tool. These sheets will have a PatNum=0;
 			List<Sheet> listSheetsFromCemtTool=Sheets.GetTransferSheets();
 			List<long> listCemtSheetsToDelete=new List<long>();
-			List<long> listCemtSheetsToSkip=new List<long>();
 			foreach(Sheet cemtSheet in listSheetsFromCemtTool) {
 				try {
 					//continue if the SheetNum is either marked as skipped or is going to be deleted. 
@@ -202,7 +201,7 @@ namespace OpenDental {
 						continue;
 					}
 					if(!DidImportSheet(null,cemtSheet,null,listSheetsFromCemtTool,System.Globalization.CultureInfo.CurrentCulture.Name,
-						ref listCemtSheetsToDelete,ref listCemtSheetsToSkip)) 
+						ref listCemtSheetsToDelete)) 
 					{
 						//user wants to cancel import.
 						return strMsg;
@@ -224,7 +223,7 @@ namespace OpenDental {
 					return strMsg;
 				}
 				List<WebForms_Sheet> listWebFormSheets;
-				List<long> listSkippedSheets=new List<long>();
+				List<long> listSheetsSeen=new List<long>();
 				int iterations=0;
 				do {
 					if(WebForms_Sheets.TryGetSheets(out listWebFormSheets)) {
@@ -233,7 +232,7 @@ namespace OpenDental {
 					}
 					iterations++;
 					List<long> listSheetIdsForDeletion=new List<long>();
-					listWebFormSheets.RemoveAll(x => listSkippedSheets.Contains(x.SheetID));//Remove all sheets that the user has already skipped.
+					listWebFormSheets.RemoveAll(x => listSheetsSeen.Contains(x.SheetID));//Remove all sheets that we've already seen.
 					if(listWebFormSheets.Count==0) {
 						if(iterations==1 && listSheetsFromCemtTool.Count==0) {
 							strMsg=Lan.g("FormWebForms","No Patient forms retrieved from server");
@@ -243,13 +242,14 @@ namespace OpenDental {
 						}
 						return strMsg;
 					}
+					listSheetsSeen.AddRange(listWebFormSheets.Select(x => x.SheetID));
 					//loop through all incoming sheets
 					foreach(WebForms_Sheet webFormsSheet in listWebFormSheets) {
 						try { //this try catch is put so that a defective downloaded sheet does not stop other sheets from being downloaded.
 							if(listSheetIdsForDeletion.Contains(webFormsSheet.SheetID)) {
 								continue;//Marked for deletion already. Next.
 							}
-							if(!DidImportSheet(webFormsSheet,null,listWebFormSheets,null,cultureName,ref listSheetIdsForDeletion,ref listSkippedSheets)) {
+							if(!DidImportSheet(webFormsSheet,null,listWebFormSheets,null,cultureName,ref listSheetIdsForDeletion)) {
 								//user wants to cancel import.
 								return strMsg;
 							}
@@ -258,7 +258,9 @@ namespace OpenDental {
 							strMsg+=e.Message+"\r\n";
 						}
 					}// end of for loop
-					WebForms_Sheets.DeleteSheetData(listSheetIdsForDeletion.Distinct().ToList());
+					if(!WebForms_Sheets.DeleteSheetData(listSheetIdsForDeletion.Distinct().ToList())) {
+						break;//If any error happens, stop retrieving forms.
+					}
 				} while(listWebFormSheets.Count>0);
 			}
 			catch(Exception e) {
@@ -273,7 +275,7 @@ namespace OpenDental {
 		///Tries to find a matching patient using LName,FName,and DOB. If no matching patient is found automatically, it will allow the user to either 
 		///create a new patient, select an existing patient,delete, or skip the sheet. Call using a try/catch.</summary>
 		private static bool DidImportSheet(WebForms_Sheet webFormsSheet,Sheet sheet,List<WebForms_Sheet> listWebSheets,List<Sheet> listSheets,string cultureName,
-			ref List<long> listSheetIdsForDeletion,ref List<long> listSkippedSheets) 
+			ref List<long> listSheetIdsForDeletion) 
 		{
 			bool isWebForms=webFormsSheet!=null && listWebSheets!=null;
 			long patNum=0;
@@ -319,15 +321,6 @@ namespace OpenDental {
 					if(FormPpw.IsDiscardAll) {
 						//user wants to delete all webforms for this patient. Mark them for deletion.
 						listSheetIdsForDeletion.AddRange(listWebSheetNumsForPat);
-					}
-					else {
-						if(isWebForms) {
-							//user wants to skip this patient import only
-							listSkippedSheets.Add(webFormsSheet.SheetID);
-						}
-						else {
-							listSkippedSheets.Add(sheet.SheetNum);
-						}
 					}
 					return true;//continue on to the next one
 				}

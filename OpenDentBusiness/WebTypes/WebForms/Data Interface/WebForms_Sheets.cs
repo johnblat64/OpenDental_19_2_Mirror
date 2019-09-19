@@ -31,10 +31,10 @@ namespace OpenDentBusiness.WebTypes.WebForms {
 			return true;
 		}
 
-		/// <summary></summary>
+		/// <summary>Returns true if able to successfully delete the sheets. Returns false otherwise.</summary>
 		/// <param name="regKey"></param>
 		/// <param name="listSheetNums"></param>
-		public static void DeleteSheetData(List<long> listSheetNums,string regKey=null) {
+		public static bool DeleteSheetData(List<long> listSheetNums,string regKey=null) {
 			if(string.IsNullOrEmpty(regKey)) {
 				regKey=PrefC.GetString(PrefName.RegistrationKey);
 			}
@@ -44,10 +44,13 @@ namespace OpenDentBusiness.WebTypes.WebForms {
 					new PayloadItem(listSheetNums,"SheetNumsForDeletion")
 				};
 				string payload=PayloadHelper.CreatePayloadWebHostSynch(regKey,listPayloadItems.ToArray());
-				SheetsSynchProxy.GetWebServiceInstance().DeleteSheetData(payload);
+				string result=SheetsSynchProxy.GetWebServiceInstance().DeleteSheetData(payload);
+				PayloadHelper.CheckForError(result);
+				return true;
 			}
 			catch (Exception ex) {
 				ex.DoNothing();
+				return false;
 			}
 		}
 

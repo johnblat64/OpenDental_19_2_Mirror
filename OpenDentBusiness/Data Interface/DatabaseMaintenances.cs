@@ -8339,6 +8339,38 @@ namespace OpenDentBusiness {
 			return log;
 		}
 
+		///<summary>At one point, we had an issue on our Web Forms server that possibly caused offices to import 1000's of blank Web Forms.</summary>
+		[DbmMethodAttr]
+		public static string SheetsWithNoSheetFields(bool verbose,DbmMode modeCur) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetString(MethodBase.GetCurrentMethod(),verbose,modeCur);
+			}
+			string command=@"SELECT sheet.SheetNum 
+				FROM sheet 
+				LEFT JOIN sheetfield ON sheetfield.SheetNum=sheet.SheetNum
+				WHERE sheet.IsWebForm=1
+				AND sheetfield.SheetNum IS NULL";
+			List<long> listSheetNums=Db.GetListLong(command);
+			string log="";
+			switch(modeCur) {
+				case DbmMode.Check:
+					if(listSheetNums.Count>0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Blank Web Forms sheets found")+": "+listSheetNums.Count+"\r\n";
+					}
+					break;
+				case DbmMode.Fix:
+					if(listSheetNums.Count>0) {
+						command="DELETE FROM sheet WHERE SheetNum IN("+string.Join(",",listSheetNums.Select(POut.Long))+")";
+						Db.NonQ(command);
+					}
+					if(listSheetNums.Count>0 || verbose) {
+						log+=Lans.g("FormDatabaseMaintenance","Blank Web Forms sheets deleted")+": "+listSheetNums.Count+"\r\n";
+					}
+					break;
+			}
+			return log;
+		}
+
 		#endregion ScheduleOp, Schedule, SecurityLog, Sheet---------------------------------------------------------------------------------------------
 		#region Signal, SigMessage, Statement, SummaryOfCare--------------------------------------------------------------------------------------------
 
