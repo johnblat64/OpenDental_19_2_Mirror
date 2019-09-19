@@ -5075,7 +5075,9 @@ namespace OpenDental {
 					Action<List<RxPat>> onRxAdd=new Action<List<RxPat>>((listRx) => {
 						AutomationL.Trigger(AutomationTrigger.RxCreate,new List<string>(),PatCur.PatNum,0,listRx);
 					});
-					if(DoseSpot.SyncPrescriptionsFromDoseSpot(doseSpotClinicID,doseSpotClinicKey,doseSpotUserID,PatCur.PatNum,onRxAdd)) {
+					if(!Erx.IsUserAnEmployee(Security.CurUser)
+						&& DoseSpot.SyncPrescriptionsFromDoseSpot(doseSpotClinicID,doseSpotClinicKey,doseSpotUserID,PatCur.PatNum,onRxAdd))
+					{
 						ModuleSelectedDoseSpot();
 					}
 				}
