@@ -1486,14 +1486,19 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			string officeSequenceNumber=msgText.Substring(12,6);//Field A02. Office Sequence Number is always part of every message type and is always in the same place.
 			int fileNum=PIn.Int(officeSequenceNumber)%1000;
-			//first, delete the result file from previous communication so that no such files can affect the loop logic below.
-			string outputFile=ODFileUtils.CombinePaths(saveFolder,"output."+fileNum.ToString().PadLeft(3,'0'));
-			if(File.Exists(outputFile)) {
+			//First, delete any existing result files from previous communication so that no such files can affect the loop logic below.
+			//ClaimStream version 1.0.7.1 decided to get cute and change the naming pattern of the output files to -utput.### sometimes,
+			//even when the ccdws.ini file has "output" set for the OutputFileName variable.  See task #2256035.
+			//Our strategy is to allow both output.### and -utput.### to be acceptable response file names.
+			DirectoryInfo saveDirInfo=new DirectoryInfo(saveFolder);
+			FileInfo[] arrayExistingOutputFiles=saveDirInfo.GetFiles("*utput."+fileNum.ToString().PadLeft(3,'0'),SearchOption.TopDirectoryOnly);
+			foreach(FileInfo existingFileInfo in arrayExistingOutputFiles) {
 				try {
-					File.Delete(outputFile);//no exception thrown if file does not exist.
+					File.Delete(existingFileInfo.FullName);
 				}
 				catch(Exception ex) {//Will throw if the file does exist but cannot be deleted.
-					errorMsg=Lans.g("Canadian","Failed to remove old output file to make room for new output file.  Please try again.  File: ")+" '"+outputFile+"'\r\n"+ex.Message;
+					errorMsg=Lans.g("Canadian","Failed to remove old output file to make room for new output file.  Please try again.  File: ")+" '"
+						+existingFileInfo.FullName+"'\r\n"+ex.Message;
 					return "";//Return empty response, since we never received one.
 				}
 			}
@@ -1511,8 +1516,11 @@ namespace OpenDentBusiness.Eclaims {
 				return "";//Return empty response, since we never received one.
 			}
 			DateTime start=DateTime.Now;
+			string outputFile=null;
 			while(DateTime.Now<start.AddSeconds(120)){//We wait for up to 120 seconds. Responses can take up to 95 seconds and we need some extra time to be sure.
-				if(File.Exists(outputFile)){
+				FileInfo[] arrayOutputFiles=saveDirInfo.GetFiles("*utput."+fileNum.ToString().PadLeft(3,'0'),SearchOption.TopDirectoryOnly);
+				if(arrayOutputFiles.Length > 0) {
+					outputFile=arrayOutputFiles[0].FullName;
 					break;
 				}
 				Thread.Sleep(200);//2/10 second
