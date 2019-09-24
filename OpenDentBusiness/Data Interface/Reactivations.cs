@@ -278,7 +278,11 @@ namespace OpenDentBusiness{
 				listPatsOrGuars=listGuars.FindAll(x => x.PatNum.In(listPats.Select(y => y.Guarantor)));
 			}
 			foreach(Patient patCur in listPatsOrGuars) {
-				List<string> listPatNames=Patients.GetFamily(patCur.PatNum).ListPats.Select(pat => pat.FName).ToList();
+				List<string> listPatNames=Patients.GetFamily(patCur.PatNum)
+					.ListPats
+					.Where(x => x.PatNum.In(listPats.Select(y => y.PatNum)))//Only include Patients that were selected, rather than all family members.
+					.Select(pat => pat.FName)
+					.ToList();
 				DataRow row=table.NewRow();
 				row["address"]						=patCur.Address+(!string.IsNullOrWhiteSpace(patCur.Address2)?Environment.NewLine+patCur.Address2:"");
 				row["City"]								=patCur.City;
