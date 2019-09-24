@@ -66,7 +66,7 @@ namespace OpenDental{
 			this.gridMain.Title = null;
 			this.gridMain.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
 			this.gridMain.TitleHeight = 18;
-			this.gridMain.TranslationName = null;
+			this.gridMain.TranslationName = "TableScheduledProcess";
 			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butClose
