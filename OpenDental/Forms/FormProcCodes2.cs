@@ -486,6 +486,7 @@ namespace OpenDental{
 			this.gridMain.TranslationName = "TableProcedures";
 			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
 			this.gridMain.CellLeave += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellLeave);
+			this.gridMain.CellEnter += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellEnter);
 			// 
 			// label5
 			// 
@@ -1432,7 +1433,7 @@ namespace OpenDental{
 			}
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
-			//The order of these columns are important for gridMain_CellDoubleClick() and gridMain_CellLeave()
+			//The order of these columns are important for gridMain_CellDoubleClick(), gridMain_CellLeave(), and GridMain_CellClick()
 			ODGridColumn col=new ODGridColumn(Lan.g("TableProcedures","Category"),90);
 			gridMain.Columns.Add(col);
 			col=new ODGridColumn(Lan.g("TableProcedures","Description"),206);
@@ -1575,9 +1576,16 @@ namespace OpenDental{
 			FillGrid();
 		}
 
+		private void GridMain_CellEnter(object sender,ODGridClickEventArgs e) {
+			Security.IsAuthorized(Permissions.FeeSchedEdit);//Show message if user does not have permission.
+		}
+
 		///<summary>Takes care of individual cell edits.  Calls FillGrid to refresh other columns using the same data.</summary>
 		private void gridMain_CellLeave(object sender,ODGridClickEventArgs e) {
 			//This is where the real fee editing logic is.
+			if(!Security.IsAuthorized(Permissions.FeeSchedEdit,true)) { //Don't do anything if they don't have permission.
+				return;
+			}
 			//Logic only works for columns 4 to 6.
 			long codeNum=((ProcedureCode)gridMain.Rows[e.Row].Tag).CodeNum;
 			FeeSched feeSched=null;
@@ -1629,11 +1637,6 @@ namespace OpenDental{
 			if(fee!=null){
 				datePrevious = fee.SecDateTEdit;
 				feeAmtOld=fee.Amount.ToString("n");
-			}
-			if(!Security.IsAuthorized(Permissions.FeeSchedEdit)) { //Don't do anything if they don't have permission.
-				gridMain.Rows[e.Row].Cells[e.Col].Text=feeAmtOld;
-				gridMain.Invalidate();//Causes the grid to redraw itself so that the old value comes back.
-				return;
 			}
 			string feeAmtNewStr=gridMain.Rows[e.Row].Cells[e.Col].Text;
 			double feeAmtNew=0;
