@@ -67,7 +67,7 @@ namespace OpenDental {
 		private OpenDental.UI.ODToolBar ToolBarMain;
 		private System.Windows.Forms.TextBox textLab;
 		private System.Windows.Forms.TextBox textProduction;
-		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.Label labelProduction;
 		private System.Windows.Forms.ComboBox comboView;
 		private System.Windows.Forms.ContextMenu menuPatient;
 		///<summary></summary>
@@ -332,7 +332,7 @@ namespace OpenDental {
 			this.butLab = new OpenDental.UI.Button();
 			this.butSearch = new OpenDental.UI.Button();
 			this.textProduction = new System.Windows.Forms.TextBox();
-			this.label7 = new System.Windows.Forms.Label();
+			this.labelProduction = new System.Windows.Forms.Label();
 			this.textLab = new System.Windows.Forms.TextBox();
 			this.comboView = new System.Windows.Forms.ComboBox();
 			this.label2 = new System.Windows.Forms.Label();
@@ -708,7 +708,7 @@ namespace OpenDental {
 			this.panelCalendar.Controls.Add(this.butLab);
 			this.panelCalendar.Controls.Add(this.butSearch);
 			this.panelCalendar.Controls.Add(this.textProduction);
-			this.panelCalendar.Controls.Add(this.label7);
+			this.panelCalendar.Controls.Add(this.labelProduction);
 			this.panelCalendar.Controls.Add(this.textLab);
 			this.panelCalendar.Controls.Add(this.comboView);
 			this.panelCalendar.Controls.Add(this.label2);
@@ -864,14 +864,14 @@ namespace OpenDental {
 			this.textProduction.Text = "$100";
 			this.textProduction.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			// 
-			// label7
+			// labelProduction
 			// 
-			this.label7.Location = new System.Drawing.Point(16, 357);
-			this.label7.Name = "label7";
-			this.label7.Size = new System.Drawing.Size(68, 15);
-			this.label7.TabIndex = 39;
-			this.label7.Text = "Daily Prod";
-			this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.labelProduction.Location = new System.Drawing.Point(16, 357);
+			this.labelProduction.Name = "labelProduction";
+			this.labelProduction.Size = new System.Drawing.Size(68, 15);
+			this.labelProduction.TabIndex = 39;
+			this.labelProduction.Text = "Daily Prod";
+			this.labelProduction.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textLab
 			// 
@@ -2623,7 +2623,7 @@ namespace OpenDental {
 				butSearch,
 				butClearPin,
 				label2,
-				label7,
+				labelProduction,
 				butMakeAppt,
 				butMakeRecall,
 				butFamRecall,
@@ -2873,11 +2873,15 @@ namespace OpenDental {
 				radioWeek.Checked=true;
 				butFwd.Enabled=false;
 				butBack.Enabled=false;
+				labelProduction.Visible=false;
+				textProduction.Visible=false;
 			}
 			else {
 				radioDay.Checked=true;
 				butFwd.Enabled=true;
 				butBack.Enabled=true;
+				labelProduction.Visible=true;
+				textProduction.Visible=true;
 			}
 			SetWeekDates();
 			ApptDrawing.IsWeeklyView=isWeeklyView;

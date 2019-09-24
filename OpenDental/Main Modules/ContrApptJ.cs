@@ -4127,11 +4127,15 @@ namespace OpenDental {
 				radioWeek.Checked=true;
 				butFwd.Enabled=false;
 				butBack.Enabled=false;
+				labelProduction.Visible=false;
+				textProduction.Visible=false;
 			}
 			else {
 				radioDay.Checked=true;
 				butFwd.Enabled=true;
 				butBack.Enabled=true;
+				labelProduction.Visible=true;
+				textProduction.Visible=true;
 			}
 			contrApptPanel.IsWeeklyView=isWeeklyView;
 			if(!_hasInitializedOnStartup) {
