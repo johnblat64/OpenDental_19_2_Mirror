@@ -328,6 +328,33 @@ namespace OpenDental {
 			Close();
 		}
 
+		private void ButDelete_Click(object sender,EventArgs e) {
+			if(!Security.IsAuthorized(Permissions.SecurityAdmin)) {
+				return;
+			}
+			if(MsgBox.Show(MsgBoxButtons.YesNo,"This will IMMEDIATELY delete the displayed room from the database.  Continue?")) {//Not translating because HQ only.
+				if(MsgBox.Show(MsgBoxButtons.YesNo,"Are you sure?")) {
+					string mapName=_mapCur.Description;
+					//Delete cubicles
+					mapAreaPanel.Clear(true);
+					//Delete room
+					ListMaps.Remove(_mapCur);
+					PhoneMapJSON.SaveToDb(ListMaps);
+					//reset combobox
+					comboRoom.Items.Clear();
+					foreach(MapAreaContainer mapCur in ListMaps) {
+						comboRoom.Items.Add(mapCur.Description);
+					}
+					comboRoom.SelectedIndex=0;
+					if(!ListMaps.IsNullOrEmpty()) {
+						_mapCur=ListMaps[0];
+					}
+					FillSettings();
+					SecurityLogs.MakeLogEntry(Permissions.SecurityAdmin,0,mapName+" deleted from call center map by user.");
+				}
+			}
+		}
+
 		private void butClose_Click(object sender,EventArgs e) {
 			DialogResult=DialogResult.Cancel;
 			this.Close();

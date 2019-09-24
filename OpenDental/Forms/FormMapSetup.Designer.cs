@@ -50,6 +50,7 @@
 			this.label8 = new System.Windows.Forms.Label();
 			this.comboSite = new System.Windows.Forms.ComboBox();
 			this.butAddSmall = new OpenDental.UI.Button();
+			this.butDelete = new OpenDental.UI.Button();
 			((System.ComponentModel.ISupportInitialize)(this.numFloorWidthFeet)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numFloorHeightFeet)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numPixelsPerFoot)).BeginInit();
@@ -425,11 +426,29 @@
 			this.butAddSmall.Text = "Add Small";
 			this.butAddSmall.Click += new System.EventHandler(this.ButAddSmall_Click);
 			// 
+			// butDelete
+			// 
+			this.butDelete.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butDelete.Autosize = true;
+			this.butDelete.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butDelete.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butDelete.CornerRadius = 4F;
+			this.butDelete.Image = global::OpenDental.Properties.Resources.deleteX;
+			this.butDelete.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.butDelete.Location = new System.Drawing.Point(396, 5);
+			this.butDelete.Name = "butDelete";
+			this.butDelete.Size = new System.Drawing.Size(106, 24);
+			this.butDelete.TabIndex = 61;
+			this.butDelete.Text = "Delete Room";
+			this.butDelete.UseVisualStyleBackColor = true;
+			this.butDelete.Click += new System.EventHandler(this.ButDelete_Click);
+			// 
 			// FormMapSetup
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.AutoScroll = true;
 			this.ClientSize = new System.Drawing.Size(1579, 1045);
+			this.Controls.Add(this.butDelete);
 			this.Controls.Add(this.butAddSmall);
 			this.Controls.Add(this.label8);
 			this.Controls.Add(this.comboSite);
@@ -486,5 +505,6 @@
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.ComboBox comboSite;
 		private UI.Button butAddSmall;
+		private UI.Button butDelete;
 	}
 }
