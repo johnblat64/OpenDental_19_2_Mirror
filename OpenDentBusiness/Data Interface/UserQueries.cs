@@ -78,10 +78,9 @@ namespace OpenDentBusiness{
 						//Function has quotes. Set quote mode.
 						quoteMode=c;
 					}
-					//Only split string if we are not in quote mode.
-					if(quoteMode=='-' && listSplitStrs.Contains(c.ToString())) {
+					//Only split string if we are not in quote mode and not in a function.
+					if(quoteMode=='-' && stackFuncs.Count==0 && listSplitStrs.Contains(c.ToString())) {
 						AddTotalStrToList(c,includeDelimeters,ref totalStr,ref listStrSplit);
-						stackFuncs.Clear();
 					}
 					else {
 						totalStr+=c;

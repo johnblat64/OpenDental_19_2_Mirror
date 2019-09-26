@@ -74,9 +74,9 @@ namespace UnitTests.UserQueries_Tests {
 
 		[TestMethod]
 		public void UserQueries_SplitQuery_CaseStatementMissingEnd() {
-			string strQuery=@"SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 ELSE 10);
+			string strQuery=@"SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 ELSE 10 END);
 				SELECT @Test;";
-			RunSplitQueryTest(strQuery,CreateList("SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 ELSE 10)","SELECT @Test"));
+			RunSplitQueryTest(strQuery,CreateList("SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 ELSE 10 END)","SELECT @Test"));
 		}
 
 		[TestMethod]
@@ -91,9 +91,9 @@ namespace UnitTests.UserQueries_Tests {
 
 		[TestMethod]
 		public void UserQueries_SplitQuery_MultiCaseStatement() {
-			string strQuery=@"SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1  CASE WHEN CURDATE()='2019-05-20' THEN 55 ELSE 10 END);
+			string strQuery=@"SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 WHEN CURDATE()='2019-05-20' THEN 55 ELSE 10 END);
 				SELECT @Test;";
-			RunSplitQueryTest(strQuery,CreateList("SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1  CASE WHEN CURDATE()='2019-05-20' THEN 55 ELSE 10 END)","SELECT @Test"));
+			RunSplitQueryTest(strQuery,CreateList("SET @Test=(CASE WHEN CURDATE()='2019-03-20' THEN 1 WHEN CURDATE()='2019-05-20' THEN 55 ELSE 10 END)","SELECT @Test"));
 		}
 
 		[TestMethod]
@@ -101,6 +101,14 @@ namespace UnitTests.UserQueries_Tests {
 			string strQuery=@"SET @ExcAllergy='%None%'; 
 				SELECT * FROM allergydef";
 			RunSplitQueryTest(strQuery,CreateList("SET @ExcAllergy='%None%'","SELECT * FROM allergydef"));
+		}
+
+		[TestMethod]
+		public void UserQueries_SplitQuery_CommandInFunction() {
+			string strQuery=@"SET @Test=DATE_SUB(CURDATE(), INTERVAL 30 DAY);
+				SET @End=CURDATE();
+				SELECT @Test, @End;";
+			RunSplitQueryTest(strQuery,CreateList("SET @Test=DATE_SUB(CURDATE(), INTERVAL 30 DAY)","SET @End=CURDATE()","SELECT @Test, @End"));
 		}
 
 		[TestMethod]

@@ -153,7 +153,9 @@ namespace OpenDental {
 			if(valOld == valNew) {
 				return; //don't bother doing any of the logic below if nothing changed.
 			}
-			valNew = "'"+valNew.Trim().Trim('\"').Trim('\'')+"'";
+			if(HasQuotes(valOld)) {
+				valNew = "'"+valNew.Trim().Trim('\"').Trim('\'')+"'";
+			}
 			//Regular expression for the expression @Variable = Value.
 			Regex r = new Regex(Regex.Escape(varOld)+@"\s*=\s*"+Regex.Escape(valOld));
 			string stmtNew = r.Replace(stmtOld,varOld+"="+valNew);
@@ -165,7 +167,12 @@ namespace OpenDental {
 				((QuerySetStmtObject)y.Tag).Stmt = stmtNew;
 			});
 		}
-		
+
+		///<summary>Returns true if the string starts and ends with quotes.</summary>
+		private bool HasQuotes(string val) {
+			return (val.StartsWith("\"") && val.EndsWith("\"")) || (val.StartsWith("\'") && val.EndsWith("\'"));
+		}
+
 		private void butOk_Click(object sender,EventArgs e) {
 			this.DialogResult=DialogResult.OK;
 		}
