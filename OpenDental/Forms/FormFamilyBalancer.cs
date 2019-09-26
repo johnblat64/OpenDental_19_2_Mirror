@@ -461,9 +461,8 @@ namespace OpenDental {
 				negSplit.SplitAmt=0-(double)amt;
 				//If money is coming from paysplit, use its unearned type (if any).
 				negSplit.UnearnedType=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).UnearnedType : 0;
-				if(PrefC.GetInt(PrefName.RigorousAccounting)==0) {
+				if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully) {
 					if(Math.Sign(posSplit.ProcNum)!=Math.Sign(posSplit.ProvNum)
-						|| Math.Sign(negSplit.ProcNum)!=Math.Sign(negSplit.ProvNum)
 						|| Math.Sign(posSplit.UnearnedType)==Math.Sign(posSplit.ProvNum)
 						|| Math.Sign(negSplit.UnearnedType)==Math.Sign(negSplit.ProvNum))
 					{
