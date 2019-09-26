@@ -641,11 +641,6 @@ namespace OpenDental{
 				butAdd.Enabled=false;
 				butPaste.Enabled=false;
 			}
-			if(_submitOnLoad) {
-				//Coming from FormOpenDental menu item click for query favorites.  Existence in this list is taken to mean sql in these queries is 
-				//considered safe to run.
-				SubmitQueryThreaded(true);
-			}
 			if(string.IsNullOrWhiteSpace(PrefC.GetString(PrefName.ReportingServerDbName)) 
 				|| string.IsNullOrWhiteSpace(PrefC.GetString(PrefName.ReportingServerCompName))) {
 				checkReportServer.Visible=false;
@@ -653,6 +648,11 @@ namespace OpenDental{
 			else {//default to report server when one is set up.
 				checkReportServer.Visible=true;
 				checkReportServer.Checked=true;
+			}
+			if(_submitOnLoad) {
+				//Coming from FormOpenDental menu item click for query favorites.  Existence in this list is taken to mean sql in these queries is 
+				//considered safe to run.
+				SubmitQueryThreaded(true);
 			}
 		}
 
