@@ -322,8 +322,11 @@ namespace OpenDental {
 					creditTotal-=(decimal)listAdjustments[i].AdjAmt;
 				}
 			}
+			List<long> listHiddenUnearnedTypes=PaySplits.GetHiddenUnearnedDefNums();
 			for(int i=0;i<listPaySplits.Count;i++) {
-				creditTotal+=(decimal)listPaySplits[i].SplitAmt;
+				if(!listHiddenUnearnedTypes.Contains(listPaySplits[i].UnearnedType)) {
+					creditTotal+=(decimal)listPaySplits[i].SplitAmt;
+				}
 			}
 			for(int i=0;i<ListSplitsCur.Count;i++) {
 				if(ListSplitsCur[i].SplitNum==0) {
