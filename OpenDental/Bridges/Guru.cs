@@ -179,7 +179,7 @@ namespace OpenDental.Bridges {
 			}
 			if(pat.ImageFolder=="") {//Could happen if the images module has not been visited for a new patient.
 				Patient patOld=pat.Copy();
-				pat.ImageFolder=pat.LName+pat.FName+pat.PatNum;
+				pat.ImageFolder=ImageStore.GetImageFolderName(pat);
 				Patients.Update(pat,patOld);
 			}
 			string imagePath=CodeBase.ODFileUtils.CombinePaths(ProgramProperties.GetPropVal(ProgramCur.ProgramNum,"Guru image path"),pat.ImageFolder);

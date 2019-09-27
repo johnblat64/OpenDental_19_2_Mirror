@@ -76,15 +76,7 @@ namespace OpenDentBusiness {
 			}
 			Patient PatOld=pat.Copy();
 			if(string.IsNullOrEmpty(pat.ImageFolder)) {//creates new folder for patient if none present
-				string name=pat.LName+pat.FName;
-				string folder="";
-				for(int i=0;i<name.Length;i++) {
-					if(Char.IsLetter(name,i)) {
-						folder+=name.Substring(i,1);
-					}
-				}
-				folder+=pat.PatNum.ToString();//ensures unique name
-				pat.ImageFolder=folder;
+				pat.ImageFolder=GetImageFolderName(pat);
 			}
 			if(CloudStorage.IsCloudStorage) {
 				retVal=ODFileUtils.CombinePaths(AtoZpath,
@@ -114,6 +106,19 @@ namespace OpenDentBusiness {
 				Patients.Update(pat,PatOld);
 			}
 			return retVal;
+		}
+
+		///<summary>Returns the name of the ImageFolder. Removes any non letter to the patient's name.</summary>
+		public static string GetImageFolderName(Patient pat) {
+			string name=pat.LName+pat.FName;
+			string folder="";
+			for(int i=0;i<name.Length;i++) {
+				if(Char.IsLetter(name,i)) {
+					folder+=name.Substring(i,1);
+				}
+			}
+			folder+=pat.PatNum.ToString();//ensures unique name
+			return folder;
 		}
 
 		///<summary>Will create folder if needed.  Will validate that folder exists.</summary>
