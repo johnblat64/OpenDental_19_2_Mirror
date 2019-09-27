@@ -16,6 +16,7 @@ using System.Windows.Forms;
 using CodeBase;
 using OpenDentBusiness;
 using PdfSharp.Drawing;
+using PdfSharp.Pdf;
 
 namespace OpenDental.UI {
 	///<summary>Used for Cell specific events.</summary>
@@ -4562,7 +4563,14 @@ namespace OpenDental.UI {
 			}
 			//pixels: (except Size is em-size)
 			Font font=new Font(xfont.Name,(float)xfont.Size,fontstyle);
-			xfont=new XFont(xfont.Name,xfont.Size,xfont.Style);
+			bool hasNonAscii=str.Any(x => x > 127);
+			if(hasNonAscii) {
+				XPdfFontOptions options=new XPdfFontOptions(PdfFontEncoding.Unicode,PdfFontEmbedding.Always);
+				xfont=new XFont(xfont.Name,xfont.Size,xfont.Style,options);
+			}
+			else {
+				xfont=new XFont(xfont.Name,xfont.Size,xfont.Style);
+			}
 			//pixels:
 			SizeF fit=new SizeF((float)(bounds.Width-rightPad),(float)(font.Height));
 			StringFormat format=StringFormat.GenericTypographic;
