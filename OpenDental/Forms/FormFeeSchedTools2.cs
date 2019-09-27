@@ -1211,9 +1211,16 @@ namespace OpenDental {
 				provNum=_listProvs[comboProvider.SelectedIndex-1].ProvNum;
 			}
 			FeeSched feeSched=_listFeeScheds[comboFeeSched.SelectedIndex];
+			bool isImportSuccessful=true;
 			ODProgress.ShowAction(
 				() => {
-					FeeL.ImportFees2(Dlg.FileName,feeSched.FeeSchedNum,clinicNum,provNum);
+					try {
+						FeeL.ImportFees2(Dlg.FileName,feeSched.FeeSchedNum,clinicNum,provNum);
+					}
+					catch(Exception ex) {
+						FriendlyException.Show("Error importing fees.",ex);
+						isImportSuccessful=false;
+					}
 				},
 				startingMessage:"Importing fees...",
 				progStyle:ProgressBarStyle.Continuous,
@@ -1221,7 +1228,9 @@ namespace OpenDental {
 				odEventType:ODEventType.FeeSched);
 			//Progress bar won't go away.  No big deal I guess.
 			Cursor=Cursors.Default;
-			MsgBox.Show(this,"Fee schedule imported.");
+			if(isImportSuccessful) { 
+				MsgBox.Show(this,"Fee schedule imported.");
+			}
 		}
 
 		private void butImportCanada_Click(object sender,EventArgs e) {

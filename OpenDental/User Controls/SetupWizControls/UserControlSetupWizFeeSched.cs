@@ -111,8 +111,13 @@ namespace OpenDental.User_Controls.SetupWizard {
 				return;
 			}
 			FeeSched feeSched=((FeeSched)gridMain.SelectedGridRows[0].Tag);//get selected fee sched from grid.
-			FeeL.ImportFees(feeSched.FeeSchedNum,clinicNum,provNum,Dlg.FileName,ParentForm);
-			_isChanged=true;
+			try { 
+				FeeL.ImportFees(feeSched.FeeSchedNum,clinicNum,provNum,Dlg.FileName,ParentForm);
+				_isChanged=true;
+			}
+			catch(Exception ex) {
+				FriendlyException.Show("Error importing fees.",ex);
+			}
 			Cursor=Cursors.Default;
 		}
 
