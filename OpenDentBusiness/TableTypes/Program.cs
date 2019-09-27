@@ -135,6 +135,7 @@ namespace OpenDentBusiness{
 		Transworld,
 		Triana,
 		Trojan,
+		TrojanExpressCollect,
 		Trophy,
 		TrophyEnhanced,
 		Tscan,

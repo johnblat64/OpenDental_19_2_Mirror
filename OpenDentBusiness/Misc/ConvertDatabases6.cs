@@ -1425,13 +1425,15 @@ namespace OpenDentBusiness {
 					INDEX(UserName(10))
 					) DEFAULT CHARSET=utf8";
 			Db.NonQ(command);
-			command="SELECT ValueString FROM preference WHERE PrefName='AccountShowTrojanExpressCollect'";
-			if(PIn.Bool(Db.GetScalar(command))) {//They had it enabled, enable the Trojan program link
-				command="UPDATE program SET Enabled=1 WHERE ProgName='Trojan'";
-				Db.NonQ(command);
-				command="UPDATE preference SET ValueString='0' WHERE PrefName='AccountShowTrojanExpressCollect'";
-				Db.NonQ(command);
-			}
+			//This was incorrectly implemented should've created a new Trojan Express Collect program link instead of enabling the Trojan program link.
+			//And it shouldn't have disabled the show feature, it should have left the show feature setting and enabled the program link accordingly.
+			//command="SELECT ValueString FROM preference WHERE PrefName='AccountShowTrojanExpressCollect'";
+			//if(PIn.Bool(Db.GetScalar(command))) {//They had it enabled, enable the Trojan program link
+			//	command="UPDATE program SET Enabled=1 WHERE ProgName='Trojan'";
+			//	Db.NonQ(command);
+			//	command="UPDATE preference SET ValueString='0' WHERE PrefName='AccountShowTrojanExpressCollect'";
+			//	Db.NonQ(command);
+			//}
 			command="INSERT INTO preference(PrefName,ValueString) VALUES('RecurringChargesAllowedWhenNoPatBal','1')";//Default to 'True'
 			Db.NonQ(command);
 			ODEvent.Fire(ODEventType.ConvertDatabases,"Upgrading database to version: 19.2.1 - Adding CanChargeWhenNoBal to creditcard");
@@ -1672,6 +1674,54 @@ namespace OpenDentBusiness {
 					Db.NonQ(command);
 				}
 			}
+		}
+
+		private static void To19_2_29() {
+			string command;
+			#region Move Trojan Express Collect to Program Link
+			command="SELECT ValueString FROM preference WHERE PrefName='TrojanExpressCollectPath'";
+			string trojanPath=PIn.String(Db.GetScalar(command));
+			command="SELECT ValueString FROM preference WHERE PrefName='TrojanExpressCollectBillingType'";
+			long trojanBillType=PIn.Long(Db.GetScalar(command));
+			command="SELECT ValueString FROM preference WHERE PrefName='TrojanExpressCollectPassword'";
+			string trojanPwd=PIn.String(Db.GetScalar(command));
+			command="SELECT ValueString FROM preference WHERE PrefName='TrojanExpressCollectPreviousFileNumber'";
+			int trojanPrevFileNum=PIn.Int(Db.GetScalar(command));
+			command="SELECT ValueString FROM preference WHERE PrefName='AccountShowTrojanExpressCollect'";
+			bool isTrojanEnabled=PIn.Bool(Db.GetScalar(command));
+			if(!isTrojanEnabled) {
+				//The convert script for 19.2.1.0 set the show feature pref to disabled, so if they had previously updated to 19.2.1.0 or above we need to
+				//check for values in the other prefs to determine whether or not to enable this program link.
+				command="SELECT ProgramVersion FROM updatehistory ORDER BY DateTimeUpdated DESC LIMIT 1";
+				string programVersion=Db.GetScalar(command);
+				if(string.IsNullOrEmpty(programVersion) || new Version(programVersion)>=new Version(19,2,1,0)) {
+					isTrojanEnabled=trojanBillType>0 || trojanPrevFileNum>0 || !string.IsNullOrEmpty(trojanPath) || !string.IsNullOrEmpty(trojanPwd);
+				}
+			}
+			//Create the Trojan Express Collect program using the existing show feature prefs
+			command=$@"INSERT INTO program (ProgName,ProgDesc,Enabled,Note)
+				VALUES('TrojanExpressCollect','Trojan Express Collect',{POut.Bool(isTrojanEnabled)},'')";
+			long programNum=Db.NonQ(command,true);
+			//Trojan Express Collect Program Property - Folder Path
+			command=$@"INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue)
+				VALUES({POut.Long(programNum)},'FolderPath','{POut.String(trojanPath)}')";
+			Db.NonQ(command);
+			//Trojan Express Collect Program Property - Billing Type
+			command=$@"INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue)
+				VALUES({POut.Long(programNum)},'BillingType','{POut.Long(trojanBillType)}')";
+			Db.NonQ(command);
+			//Trojan Express Collect Program Property - Password
+			command=$@"INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue)
+				VALUES({POut.Long(programNum)},'Password','{POut.String(trojanPwd)}')";
+			Db.NonQ(command);
+			//Trojan Express Collect Program Property - Previous File Number
+			command=$@"INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue)
+				VALUES({POut.Long(programNum)},'PreviousFileNumber','{POut.Int(trojanPrevFileNum)}')";
+			Db.NonQ(command);
+			command=$@"INSERT INTO toolbutitem (ProgramNum,ToolBar,ButtonText)
+				VALUES ({POut.Long(programNum)},0,'TrojanCollect')";//ToolBarsAvail.AccountModule
+			Db.NonQ(command);
+			#endregion Move Trojan Express Collect to Program Link
 		}
 
 	}

@@ -51,8 +51,8 @@ namespace OpenDentBusiness {
 		///<summary>Show questionnaire button in account module toolbar.  Set in FormShowFeatures.</summary>
 		[PrefName(ValueType=PrefValueType.BOOL)]
 		AccountShowQuestionnaire,
-		///<summary>DEPRECATED - Use Trojan ProgramLink instead - Show TrojanCollect button in account module toolbar.  Set in FormShowFeatures.</summary>
-		[PrefName(ValueType=PrefValueType.BOOL)]
+		///<summary>DEPRECATED - Use Trojan ProgramLink instead.</summary>
+		[PrefName(ValueType=PrefValueType.BOOL),Obsolete("This preference has been deprecated. Do not use.",true)]
 		AccountShowTrojanExpressCollect,
 		ADAComplianceDateTime,
 		ADAdescriptionsReset,
@@ -1583,9 +1583,17 @@ namespace OpenDentBusiness {
 		TriageTime,
 		///<summary>Used by OD HQ. Not added to db convert script. Minutes behind on calls for yellow alert.///</summary>
 		TriageTimeWarning,
+		///<summary>DEPRECATED.  Moved to the Trojan Express Collect program link properties.</summary>
+		[Obsolete("This preference has been deprecated. Do not use.",true)]
 		TrojanExpressCollectBillingType,
+		///<summary>DEPRECATED.  Moved to the Trojan Express Collect program link properties.</summary>
+		[Obsolete("This preference has been deprecated. Do not use.",true)]
 		TrojanExpressCollectPassword,
+		///<summary>DEPRECATED.  Moved to the Trojan Express Collect program link properties.</summary>
+		[Obsolete("This preference has been deprecated. Do not use.",true)]
 		TrojanExpressCollectPath,
+		///<summary>DEPRECATED.  Moved to the Trojan Express Collect program link properties.</summary>
+		[Obsolete("This preference has been deprecated. Do not use.",true)]
 		TrojanExpressCollectPreviousFileNumber,
 		///<summary>Can be any int.  Defaults to 0.</summary>
 		UnschedDaysFuture,

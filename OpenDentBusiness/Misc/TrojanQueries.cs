@@ -9,48 +9,38 @@ using System.Text;
 namespace OpenDentBusiness {
 	public class TrojanQueries {
 
-		public static DataTable GetMaxProcedureDate(long PatNum) {
+		public static DateTime GetMaxProcedureDate(long PatNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetTable(MethodBase.GetCurrentMethod(),PatNum);
+				return Meth.GetObject<DateTime>(MethodBase.GetCurrentMethod(),PatNum);
 			}
-			string command=@"SELECT MAX(ProcDate) FROM procedurelog,patient
+			string command=$@"SELECT MAX(ProcDate) FROM procedurelog,patient
 				WHERE patient.PatNum=procedurelog.PatNum
-				AND patient.Guarantor="+POut.Long(PatNum);
-			return Db.GetTable(command);
+				AND procedurelog.ProcStatus={POut.Int((int)ProcStat.C)}
+				AND patient.Guarantor={POut.Long(PatNum)}";
+			return PIn.Date(Db.GetScalar(command));
 		}
 
-		public static DataTable GetMaxPaymentDate(long PatNum) {
+		public static DateTime GetMaxPaymentDate(long PatNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetTable(MethodBase.GetCurrentMethod(),PatNum);
+				return Meth.GetObject<DateTime>(MethodBase.GetCurrentMethod(),PatNum);
 			}
-			string command=@"SELECT MAX(DatePay) FROM paysplit,patient
+			string command=$@"SELECT MAX(DatePay) FROM paysplit,patient
 				WHERE patient.PatNum=paysplit.PatNum
-				AND patient.Guarantor="+POut.Long(PatNum);
-			return Db.GetTable(command);
+				AND patient.Guarantor={POut.Long(PatNum)}";
+			return PIn.Date(Db.GetScalar(command));
 		}
 
-		///<summary>returns int32</summary>
+		///<summary>Increments the PreviousFileNumber program property to the next available int and returns that new file number.</summary>
 		public static int GetUniqueFileNum(){
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetInt(MethodBase.GetCurrentMethod());
 			}
-			string command="SELECT ValueString FROM preference WHERE PrefName='TrojanExpressCollectPreviousFileNumber'";
-			DataTable table=Db.GetTable(command);
-			int previousNum=PIn.Int(table.Rows[0][0].ToString());
-			int thisNum=previousNum+1;
-			command="UPDATE preference SET ValueString='"+POut.Long(thisNum)+
-				"' WHERE PrefName='TrojanExpressCollectPreviousFileNumber'"
-				+" AND ValueString='"+POut.Long(previousNum)+"'";
-			int result=Db.NonQ32(command);
-			while(result!=1) {//someone else sent one at the same time
-				previousNum++;
-				thisNum++;
-				command="UPDATE preference SET ValueString='"+POut.Long(thisNum)+
-					"' WHERE PrefName='TrojanExpressCollectPreviousFileNumber'"
-					+" AND ValueString='"+POut.Long(previousNum)+"'";
-				result=Db.NonQ32(command);
+			long progNum=Programs.GetProgramNum(ProgramName.TrojanExpressCollect);
+			int fileNum=PIn.Int(ProgramProperties.GetValFromDb(progNum,"PreviousFileNumber"),false)+1;
+			while(ProgramProperties.SetProperty(progNum,"PreviousFileNumber",fileNum.ToString())<1) {
+				fileNum++;
 			}
-			return thisNum;
+			return fileNum;
 		}
 
 		///<summary>Get the list of records for the pending plan deletion report for plans that need to be brought to the patient's attention.</summary>

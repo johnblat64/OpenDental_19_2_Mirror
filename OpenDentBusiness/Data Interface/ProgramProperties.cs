@@ -233,16 +233,15 @@ namespace OpenDentBusiness {
 			return GetWhere(x => x.ProgramNum==programNum && x.PropertyDesc!="").OrderBy(x => x.ClinicNum).ThenBy(x => x.ProgramPropertyNum).ToList();
 		}
 
-		///<summary>Sets the program property for all clinics.</summary>
-		public static void SetProperty(long programNum,string desc,string propval) {
+		///<summary>Sets the program property for all clinics.  Returns the number of rows changed.</summary>
+		public static long SetProperty(long programNum,string desc,string propval) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),programNum,desc,propval);
-				return;
+				return Meth.GetLong(MethodBase.GetCurrentMethod(),programNum,desc,propval);
 			}
-			string command="UPDATE programproperty SET PropertyValue='"+POut.String(propval)+"' "
-				+"WHERE ProgramNum="+POut.Long(programNum)+" "
-				+"AND PropertyDesc='"+POut.String(desc)+"'";
-			Db.NonQ(command);
+			string command=$@"UPDATE programproperty SET PropertyValue='{POut.String(propval)}'
+				WHERE ProgramNum={POut.Long(programNum)}
+				AND PropertyDesc='{POut.String(desc)}'";
+			return Db.NonQ(command);
 		}
 
 		///<summary>After GetForProgram has been run, this gets one of those properties.  DO NOT MODIFY the returned property.  Read only.</summary>

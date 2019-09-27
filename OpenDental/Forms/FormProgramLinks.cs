@@ -239,6 +239,11 @@ namespace OpenDental{
 					FormXDRSetup FormXS=new FormXDRSetup();
 					dResult=FormXS.ShowDialog();
 					break;
+				case "TrojanExpressCollect":
+					using(FormTrojanCollectSetup FormTro=new FormTrojanCollectSetup()) {
+						dResult=FormTro.ShowDialog();
+					}
+					break;
 				default:
 					FormProgramLinkEdit FormPE=new FormProgramLinkEdit();
 					if(Programs.IsStatic(program)) {

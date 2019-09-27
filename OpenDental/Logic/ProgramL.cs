@@ -359,6 +359,12 @@ namespace OpenDental{
 				Triana.SendData(prog,pat);
 				return;
 			}
+			else if(prog.ProgName==ProgramName.TrojanExpressCollect.ToString()) {
+				using(FormTrojanCollect FormT=new FormTrojanCollect(pat)) {
+					FormT.ShowDialog();
+				}
+				return;
+			}
 			else if(prog.ProgName==ProgramName.Trophy.ToString()) {
 				Trophy.SendData(prog,pat);
 				return;

@@ -2344,10 +2344,6 @@ namespace OpenDental {
 				ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
 				ToolBarMain.Buttons.Add(new ODToolBarButton(Lan.g(this,"Questionnaire"),-1,"","Questionnaire"));
 			}
-			if(PrefC.GetBool(PrefName.AccountShowTrojanExpressCollect)) {
-				ToolBarMain.Buttons.Add(new ODToolBarButton(ODToolBarButtonStyle.Separator));
-				ToolBarMain.Buttons.Add(new ODToolBarButton(Lan.g(this,"TrojanCollect"),-1,"","TrojanCollect"));
-			}
 			ProgramL.LoadToolbar(ToolBarMain,ToolBarsAvail.AccountModule);
 			ToolBarMain.Invalidate();
 			Plugins.HookAddCode(this,"ContrAccount.LayoutToolBar_end",PatCur);
@@ -2588,9 +2584,6 @@ namespace OpenDental {
 				if(ToolBarMain.Buttons["Questionnaire"]!=null && PrefC.GetBool(PrefName.AccountShowQuestionnaire)) {
 					ToolBarMain.Buttons["Questionnaire"].Enabled=false;
 				}
-				if(ToolBarMain.Buttons["TrojanCollect"]!=null && PrefC.GetBool(PrefName.AccountShowTrojanExpressCollect)) {
-					ToolBarMain.Buttons["TrojanCollect"].Enabled=false;
-				}
 				ToolBarMain.Invalidate();
 				textUrgFinNote.Enabled=false;
 				textFinNote.Enabled=false;
@@ -2614,9 +2607,6 @@ namespace OpenDental {
 				ToolBarMain.Buttons["Statement"].Enabled=true;
 				if(ToolBarMain.Buttons["Questionnaire"]!=null && PrefC.GetBool(PrefName.AccountShowQuestionnaire)) {
 					ToolBarMain.Buttons["Questionnaire"].Enabled=true;
-				}
-				if(ToolBarMain.Buttons["TrojanCollect"]!=null && PrefC.GetBool(PrefName.AccountShowTrojanExpressCollect)) {
-					ToolBarMain.Buttons["TrojanCollect"].Enabled=true;
 				}
 				ToolBarMain.Invalidate();
 				textUrgFinNote.Enabled=true;
@@ -4058,9 +4048,6 @@ namespace OpenDental {
 					case "Questionnaire":
 						toolBarButComm_Click();
 						break;
-					case "TrojanCollect":
-						toolBarButTrojan_Click();
-						break;
 					case "QuickProcs":
 						toolBarButQuickProcs_Click();
 						break;
@@ -5454,12 +5441,6 @@ namespace OpenDental {
 		private void butCreditCard_Click(object sender,EventArgs e) {
 			FormCreditCardManage FormCCM=new FormCreditCardManage(PatCur);
 			FormCCM.ShowDialog();
-		}
-
-		private void toolBarButTrojan_Click() {
-			FormTrojanCollect FormT=new FormTrojanCollect();
-			FormT.PatNum=PatCur.PatNum;
-			FormT.ShowDialog();
 		}
 
 		private void toolBarButQuickProcs_Click() {

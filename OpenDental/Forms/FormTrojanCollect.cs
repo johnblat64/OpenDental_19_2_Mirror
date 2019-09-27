@@ -1,15 +1,13 @@
 using System;
-using System.Data;
-using System.Drawing;
-using System.Collections;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
-namespace OpenDental{
+namespace OpenDental {
 	/// <summary>
 	/// Summary description for FormBasicTemplate.
 	/// </summary>
@@ -34,35 +32,27 @@ namespace OpenDental{
 		private Label labelPatient;
 		private Label label15;
 		private Label label16;
-		private TextBox textDate;
-		private TextBox textAmount;
-		private Label label17;
 		private RadioButton radioDiplomatic;
 		private RadioButton radioFirm;
 		private RadioButton radioSkip;
-		private Label label18;
-		private TextBox textPassword;
 		private MainMenu mainMenu1;
 		private MenuItem menuItemSetup;
 		private IContainer components;
-		public long PatNum;
-		private Patient patCur;
-		private Patient guarCur;
-		private Employer empCur;
+		private Patient _patCur;
+		private Patient _guarCur;
+		private ValidDate textDate;
+		private GroupBox groupTransactionType;
+		private ValidDouble textAmount;
+		private Employer _empCur;
 
 		///<summary></summary>
-		public FormTrojanCollect()
-		{
-			//
-			// Required for Windows Form Designer support
-			//
+		public FormTrojanCollect(Patient pat) {
+			_patCur=pat;
 			InitializeComponent();
 			Lan.F(this);
 		}
 
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
+		///<summary>Clean up any resources being used.</summary>
 		protected override void Dispose( bool disposing )
 		{
 			if( disposing )
@@ -76,10 +66,7 @@ namespace OpenDental{
 		}
 
 		#region Windows Form Designer generated code
-		/// <summary>
-		/// Required method for Designer support - do not modify
-		/// the contents of this method with the code editor.
-		/// </summary>
+		///<summary>Required method for Designer support - do not modify the contents of this method with the code editor.</summary>
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
@@ -101,199 +88,188 @@ namespace OpenDental{
 			this.labelPatient = new System.Windows.Forms.Label();
 			this.label15 = new System.Windows.Forms.Label();
 			this.label16 = new System.Windows.Forms.Label();
-			this.textDate = new System.Windows.Forms.TextBox();
-			this.textAmount = new System.Windows.Forms.TextBox();
-			this.label17 = new System.Windows.Forms.Label();
 			this.radioDiplomatic = new System.Windows.Forms.RadioButton();
 			this.radioFirm = new System.Windows.Forms.RadioButton();
 			this.radioSkip = new System.Windows.Forms.RadioButton();
-			this.label18 = new System.Windows.Forms.Label();
-			this.textPassword = new System.Windows.Forms.TextBox();
 			this.mainMenu1 = new System.Windows.Forms.MainMenu(this.components);
 			this.menuItemSetup = new System.Windows.Forms.MenuItem();
 			this.butHelp = new OpenDental.UI.Button();
 			this.butOK = new OpenDental.UI.Button();
 			this.butCancel = new OpenDental.UI.Button();
+			this.textDate = new OpenDental.ValidDate();
+			this.groupTransactionType = new System.Windows.Forms.GroupBox();
+			this.textAmount = new OpenDental.ValidDouble();
+			this.groupTransactionType.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// label1
 			// 
-			this.label1.Location = new System.Drawing.Point(44,15);
+			this.label1.Location = new System.Drawing.Point(12, 15);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(238,16);
+			this.label1.Size = new System.Drawing.Size(208, 18);
 			this.label1.TabIndex = 3;
 			this.label1.Text = "Financially Responsible Person:";
+			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelGuarantor
 			// 
-			this.labelGuarantor.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelGuarantor.Location = new System.Drawing.Point(50,37);
+			this.labelGuarantor.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelGuarantor.Location = new System.Drawing.Point(18, 37);
 			this.labelGuarantor.Name = "labelGuarantor";
-			this.labelGuarantor.Size = new System.Drawing.Size(226,16);
+			this.labelGuarantor.Size = new System.Drawing.Size(202, 18);
 			this.labelGuarantor.TabIndex = 4;
 			this.labelGuarantor.Text = "Joe Smith";
+			this.labelGuarantor.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelAddress
 			// 
-			this.labelAddress.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelAddress.Location = new System.Drawing.Point(50,55);
+			this.labelAddress.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelAddress.Location = new System.Drawing.Point(18, 55);
 			this.labelAddress.Name = "labelAddress";
-			this.labelAddress.Size = new System.Drawing.Size(226,16);
+			this.labelAddress.Size = new System.Drawing.Size(202, 18);
 			this.labelAddress.TabIndex = 5;
 			this.labelAddress.Text = "123 E St.";
+			this.labelAddress.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelCityStZip
 			// 
-			this.labelCityStZip.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelCityStZip.Location = new System.Drawing.Point(50,73);
+			this.labelCityStZip.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelCityStZip.Location = new System.Drawing.Point(18, 73);
 			this.labelCityStZip.Name = "labelCityStZip";
-			this.labelCityStZip.Size = new System.Drawing.Size(226,16);
+			this.labelCityStZip.Size = new System.Drawing.Size(202, 18);
 			this.labelCityStZip.TabIndex = 6;
 			this.labelCityStZip.Text = "Los Angeles, CA 20212";
+			this.labelCityStZip.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label4
 			// 
-			this.label4.Location = new System.Drawing.Point(282,37);
+			this.label4.Location = new System.Drawing.Point(227, 37);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(45,16);
+			this.label4.Size = new System.Drawing.Size(100, 18);
 			this.label4.TabIndex = 7;
 			this.label4.Text = "SS#:";
+			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// label5
 			// 
-			this.label5.Location = new System.Drawing.Point(282,55);
+			this.label5.Location = new System.Drawing.Point(227, 55);
 			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(45,16);
+			this.label5.Size = new System.Drawing.Size(100, 18);
 			this.label5.TabIndex = 8;
 			this.label5.Text = "DOB:";
+			this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// label6
 			// 
-			this.label6.Location = new System.Drawing.Point(282,73);
+			this.label6.Location = new System.Drawing.Point(227, 73);
 			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(45,16);
+			this.label6.Size = new System.Drawing.Size(100, 18);
 			this.label6.TabIndex = 9;
 			this.label6.Text = "Phone:";
+			this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// labelSSN
 			// 
-			this.labelSSN.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelSSN.Location = new System.Drawing.Point(324,37);
+			this.labelSSN.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelSSN.Location = new System.Drawing.Point(328, 37);
 			this.labelSSN.Name = "labelSSN";
-			this.labelSSN.Size = new System.Drawing.Size(144,16);
+			this.labelSSN.Size = new System.Drawing.Size(154, 18);
 			this.labelSSN.TabIndex = 10;
 			this.labelSSN.Text = "123-12-1234";
+			this.labelSSN.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelDOB
 			// 
-			this.labelDOB.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelDOB.Location = new System.Drawing.Point(324,55);
+			this.labelDOB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelDOB.Location = new System.Drawing.Point(328, 55);
 			this.labelDOB.Name = "labelDOB";
-			this.labelDOB.Size = new System.Drawing.Size(155,16);
+			this.labelDOB.Size = new System.Drawing.Size(154, 18);
 			this.labelDOB.TabIndex = 11;
 			this.labelDOB.Text = "01/10/1980";
+			this.labelDOB.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelPhone
 			// 
-			this.labelPhone.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelPhone.Location = new System.Drawing.Point(324,73);
+			this.labelPhone.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelPhone.Location = new System.Drawing.Point(328, 73);
 			this.labelPhone.Name = "labelPhone";
-			this.labelPhone.Size = new System.Drawing.Size(155,16);
+			this.labelPhone.Size = new System.Drawing.Size(154, 18);
 			this.labelPhone.TabIndex = 12;
 			this.labelPhone.Text = "(310)555-1212";
+			this.labelPhone.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label10
 			// 
-			this.label10.Location = new System.Drawing.Point(44,103);
+			this.label10.Location = new System.Drawing.Point(12, 97);
 			this.label10.Name = "label10";
-			this.label10.Size = new System.Drawing.Size(62,16);
+			this.label10.Size = new System.Drawing.Size(208, 18);
 			this.label10.TabIndex = 13;
 			this.label10.Text = "Employer:";
+			this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelEmpPhone
 			// 
-			this.labelEmpPhone.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelEmpPhone.Location = new System.Drawing.Point(101,121);
+			this.labelEmpPhone.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelEmpPhone.Location = new System.Drawing.Point(18, 137);
 			this.labelEmpPhone.Name = "labelEmpPhone";
-			this.labelEmpPhone.Size = new System.Drawing.Size(249,16);
+			this.labelEmpPhone.Size = new System.Drawing.Size(202, 18);
 			this.labelEmpPhone.TabIndex = 15;
 			this.labelEmpPhone.Text = "(310)665-5544";
+			this.labelEmpPhone.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelEmployer
 			// 
-			this.labelEmployer.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelEmployer.Location = new System.Drawing.Point(101,103);
+			this.labelEmployer.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelEmployer.Location = new System.Drawing.Point(18, 119);
 			this.labelEmployer.Name = "labelEmployer";
-			this.labelEmployer.Size = new System.Drawing.Size(249,16);
+			this.labelEmployer.Size = new System.Drawing.Size(202, 18);
 			this.labelEmployer.TabIndex = 14;
 			this.labelEmployer.Text = "Ace, Inc.";
+			this.labelEmployer.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label13
 			// 
-			this.label13.Location = new System.Drawing.Point(44,150);
+			this.label13.Location = new System.Drawing.Point(12, 161);
 			this.label13.Name = "label13";
-			this.label13.Size = new System.Drawing.Size(62,16);
+			this.label13.Size = new System.Drawing.Size(208, 18);
 			this.label13.TabIndex = 16;
 			this.label13.Text = "Patient:";
+			this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelPatient
 			// 
-			this.labelPatient.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.labelPatient.Location = new System.Drawing.Point(59,168);
+			this.labelPatient.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.labelPatient.Location = new System.Drawing.Point(18, 183);
 			this.labelPatient.Name = "labelPatient";
-			this.labelPatient.Size = new System.Drawing.Size(243,16);
+			this.labelPatient.Size = new System.Drawing.Size(202, 18);
 			this.labelPatient.TabIndex = 17;
 			this.labelPatient.Text = "Mary Smith";
+			this.labelPatient.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label15
 			// 
-			this.label15.Location = new System.Drawing.Point(44,223);
+			this.label15.Location = new System.Drawing.Point(227, 138);
 			this.label15.Name = "label15";
-			this.label15.Size = new System.Drawing.Size(103,16);
+			this.label15.Size = new System.Drawing.Size(100, 18);
 			this.label15.TabIndex = 19;
 			this.label15.Text = "Amount of debt";
+			this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// label16
 			// 
-			this.label16.Location = new System.Drawing.Point(44,201);
+			this.label16.Location = new System.Drawing.Point(227, 118);
 			this.label16.Name = "label16";
-			this.label16.Size = new System.Drawing.Size(103,16);
+			this.label16.Size = new System.Drawing.Size(100, 18);
 			this.label16.TabIndex = 18;
 			this.label16.Text = "Delinquency Date";
-			// 
-			// textDate
-			// 
-			this.textDate.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.textDate.Location = new System.Drawing.Point(144,198);
-			this.textDate.Name = "textDate";
-			this.textDate.Size = new System.Drawing.Size(92,20);
-			this.textDate.TabIndex = 20;
-			this.textDate.Text = "01/25/2007";
-			// 
-			// textAmount
-			// 
-			this.textAmount.Font = new System.Drawing.Font("Microsoft Sans Serif",8.25F,System.Drawing.FontStyle.Bold,System.Drawing.GraphicsUnit.Point,((byte)(0)));
-			this.textAmount.Location = new System.Drawing.Point(144,220);
-			this.textAmount.Name = "textAmount";
-			this.textAmount.Size = new System.Drawing.Size(70,20);
-			this.textAmount.TabIndex = 21;
-			this.textAmount.Text = "123.45";
-			this.textAmount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			// 
-			// label17
-			// 
-			this.label17.Location = new System.Drawing.Point(44,258);
-			this.label17.Name = "label17";
-			this.label17.Size = new System.Drawing.Size(103,16);
-			this.label17.TabIndex = 22;
-			this.label17.Text = "Transaction type:";
+			this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// radioDiplomatic
 			// 
 			this.radioDiplomatic.Checked = true;
-			this.radioDiplomatic.Location = new System.Drawing.Point(144,257);
+			this.radioDiplomatic.Location = new System.Drawing.Point(9, 16);
 			this.radioDiplomatic.Name = "radioDiplomatic";
-			this.radioDiplomatic.Size = new System.Drawing.Size(83,16);
+			this.radioDiplomatic.Size = new System.Drawing.Size(81, 18);
 			this.radioDiplomatic.TabIndex = 23;
 			this.radioDiplomatic.TabStop = true;
 			this.radioDiplomatic.Text = "Diplomatic";
@@ -301,38 +277,21 @@ namespace OpenDental{
 			// 
 			// radioFirm
 			// 
-			this.radioFirm.Location = new System.Drawing.Point(227,257);
+			this.radioFirm.Location = new System.Drawing.Point(97, 16);
 			this.radioFirm.Name = "radioFirm";
-			this.radioFirm.Size = new System.Drawing.Size(55,16);
+			this.radioFirm.Size = new System.Drawing.Size(53, 18);
 			this.radioFirm.TabIndex = 24;
 			this.radioFirm.Text = "Firm";
 			this.radioFirm.UseVisualStyleBackColor = true;
 			// 
 			// radioSkip
 			// 
-			this.radioSkip.Location = new System.Drawing.Point(281,257);
+			this.radioSkip.Location = new System.Drawing.Point(157, 16);
 			this.radioSkip.Name = "radioSkip";
-			this.radioSkip.Size = new System.Drawing.Size(60,16);
+			this.radioSkip.Size = new System.Drawing.Size(50, 18);
 			this.radioSkip.TabIndex = 25;
 			this.radioSkip.Text = "Skip";
 			this.radioSkip.UseVisualStyleBackColor = true;
-			// 
-			// label18
-			// 
-			this.label18.Location = new System.Drawing.Point(44,292);
-			this.label18.Name = "label18";
-			this.label18.Size = new System.Drawing.Size(193,16);
-			this.label18.TabIndex = 26;
-			this.label18.Text = "Trojan Collection Services password";
-			// 
-			// textPassword
-			// 
-			this.textPassword.Location = new System.Drawing.Point(234,289);
-			this.textPassword.Name = "textPassword";
-			this.textPassword.PasswordChar = '*';
-			this.textPassword.Size = new System.Drawing.Size(68,20);
-			this.textPassword.TabIndex = 27;
-			this.textPassword.Text = "123456";
 			// 
 			// mainMenu1
 			// 
@@ -347,60 +306,88 @@ namespace OpenDental{
 			// 
 			// butHelp
 			// 
-			this.butHelp.AdjustImageLocation = new System.Drawing.Point(0,0);
-			this.butHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.butHelp.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butHelp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butHelp.Autosize = true;
 			this.butHelp.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butHelp.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butHelp.CornerRadius = 4F;
-			this.butHelp.Location = new System.Drawing.Point(391,324);
+			this.butHelp.Location = new System.Drawing.Point(263, 223);
 			this.butHelp.Name = "butHelp";
-			this.butHelp.Size = new System.Drawing.Size(69,26);
+			this.butHelp.Size = new System.Drawing.Size(75, 26);
 			this.butHelp.TabIndex = 2;
 			this.butHelp.Text = "Help";
 			this.butHelp.Click += new System.EventHandler(this.butHelp_Click);
 			// 
 			// butOK
 			// 
-			this.butOK.AdjustImageLocation = new System.Drawing.Point(0,0);
+			this.butOK.AdjustImageLocation = new System.Drawing.Point(0, 0);
 			this.butOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.butOK.Autosize = true;
 			this.butOK.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butOK.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butOK.CornerRadius = 4F;
-			this.butOK.Location = new System.Drawing.Point(47,324);
+			this.butOK.Location = new System.Drawing.Point(12, 223);
 			this.butOK.Name = "butOK";
-			this.butOK.Size = new System.Drawing.Size(182,26);
+			this.butOK.Size = new System.Drawing.Size(182, 26);
 			this.butOK.TabIndex = 1;
 			this.butOK.Text = "OK Send Transaction to Trojan";
 			this.butOK.Click += new System.EventHandler(this.butOK_Click);
 			// 
 			// butCancel
 			// 
-			this.butCancel.AdjustImageLocation = new System.Drawing.Point(0,0);
-			this.butCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.butCancel.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butCancel.Autosize = true;
 			this.butCancel.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butCancel.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butCancel.CornerRadius = 4F;
-			this.butCancel.Location = new System.Drawing.Point(275,324);
+			this.butCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+			this.butCancel.Location = new System.Drawing.Point(407, 223);
 			this.butCancel.Name = "butCancel";
-			this.butCancel.Size = new System.Drawing.Size(75,26);
+			this.butCancel.Size = new System.Drawing.Size(75, 26);
 			this.butCancel.TabIndex = 0;
 			this.butCancel.Text = "&Cancel";
-			this.butCancel.Click += new System.EventHandler(this.butCancel_Click);
+			// 
+			// textDate
+			// 
+			this.textDate.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.textDate.Location = new System.Drawing.Point(328, 117);
+			this.textDate.Name = "textDate";
+			this.textDate.Size = new System.Drawing.Size(92, 20);
+			this.textDate.TabIndex = 26;
+			this.textDate.Text = "01/25/2007";
+			// 
+			// groupTransactionType
+			// 
+			this.groupTransactionType.Controls.Add(this.radioDiplomatic);
+			this.groupTransactionType.Controls.Add(this.radioFirm);
+			this.groupTransactionType.Controls.Add(this.radioSkip);
+			this.groupTransactionType.Location = new System.Drawing.Point(227, 166);
+			this.groupTransactionType.Name = "groupTransactionType";
+			this.groupTransactionType.Size = new System.Drawing.Size(255, 40);
+			this.groupTransactionType.TabIndex = 27;
+			this.groupTransactionType.TabStop = false;
+			this.groupTransactionType.Text = "Transaction Type";
+			// 
+			// textAmount
+			// 
+			this.textAmount.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.textAmount.Location = new System.Drawing.Point(328, 137);
+			this.textAmount.MaxVal = 9999999D;
+			this.textAmount.MinVal = 25D;
+			this.textAmount.Name = "textAmount";
+			this.textAmount.Size = new System.Drawing.Size(70, 20);
+			this.textAmount.TabIndex = 28;
+			this.textAmount.Text = "123.45";
+			this.textAmount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			// 
 			// FormTrojanCollect
 			// 
-			this.AutoScaleBaseSize = new System.Drawing.Size(5,13);
-			this.ClientSize = new System.Drawing.Size(491,370);
-			this.Controls.Add(this.textPassword);
-			this.Controls.Add(this.label18);
-			this.Controls.Add(this.radioSkip);
-			this.Controls.Add(this.radioFirm);
-			this.Controls.Add(this.radioDiplomatic);
-			this.Controls.Add(this.label17);
+			this.CancelButton = this.butCancel;
+			this.ClientSize = new System.Drawing.Size(494, 261);
 			this.Controls.Add(this.textAmount);
+			this.Controls.Add(this.groupTransactionType);
 			this.Controls.Add(this.textDate);
 			this.Controls.Add(this.label15);
 			this.Controls.Add(this.label16);
@@ -428,9 +415,9 @@ namespace OpenDental{
 			this.MinimizeBox = false;
 			this.Name = "FormTrojanCollect";
 			this.ShowInTaskbar = false;
-			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Send a Collection Transaction To Trojan";
 			this.Load += new System.EventHandler(this.FormTrojanCollect_Load);
+			this.groupTransactionType.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -438,115 +425,106 @@ namespace OpenDental{
 		#endregion
 
 		private void FormTrojanCollect_Load(object sender,EventArgs e) {
-			patCur=Patients.GetPat(PatNum);
-			guarCur=Patients.GetPat(patCur.Guarantor);
-			if(guarCur.EmployerNum==0){
-				empCur=null;
-			}
-			else{
-				empCur=Employers.GetEmployer(guarCur.EmployerNum);
-			}
-			if(guarCur.LName.Length==0){
-				MessageBox.Show("Missing guarantor last name.");
+			if(_patCur==null) {
+				MsgBox.Show(this,"Please select a patient first.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(guarCur.FName.Length==0) {
-				MessageBox.Show("Missing guarantor first name.");
+			_guarCur=Patients.GetPat(_patCur.Guarantor);
+			if(_guarCur.EmployerNum>0) {
+				_empCur=Employers.GetEmployer(_guarCur.EmployerNum);
+			}
+			if(_guarCur.LName.Length==0){
+				MsgBox.Show(this,"Missing guarantor last name.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(!Regex.IsMatch(guarCur.SSN,@"^\d{9}$")) {
-				MessageBox.Show("Guarantor SSN must be exactly 9 digits.");
+			if(_guarCur.FName.Length==0) {
+				MsgBox.Show(this,"Missing guarantor first name.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(guarCur.Address.Length==0) {
-				MessageBox.Show("Missing guarantor address.");
+			if(!Regex.IsMatch(_guarCur.SSN,@"^\d{9}$")) {
+				MsgBox.Show(this,"Guarantor SSN must be exactly 9 digits.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(guarCur.City.Length==0) {
-				MessageBox.Show("Missing guarantor city.");
+			if(_guarCur.Address.Length==0) {
+				MsgBox.Show(this,"Missing guarantor address.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(guarCur.State.Length!=2) {
-				MessageBox.Show("Guarantor state must be 2 characters.");
+			if(_guarCur.City.Length==0) {
+				MsgBox.Show(this,"Missing guarantor city.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			if(guarCur.Zip.Length<5) {
-				MessageBox.Show("Invalid guarantor zip.");
+			if(_guarCur.State.Length!=2) {
+				MsgBox.Show(this,"Guarantor state must be 2 characters.");
 				DialogResult=DialogResult.Cancel;
 				return;
 			}
-			labelGuarantor.Text=guarCur.GetNameFL();
-			labelAddress.Text=guarCur.Address;
-			if(guarCur.Address2!=""){
-				labelAddress.Text+=", "+guarCur.Address2;
+			if(_guarCur.Zip.Length<5) {
+				MsgBox.Show(this,"Invalid guarantor zip.");
+				DialogResult=DialogResult.Cancel;
+				return;
 			}
-			labelCityStZip.Text=guarCur.City+", "+guarCur.State+" "+guarCur.Zip;
-			labelSSN.Text=guarCur.SSN.Substring(0,3)+"-"+guarCur.SSN.Substring(3,2)+"-"+guarCur.SSN.Substring(5,4);
-			if(guarCur.Birthdate.Year<1880){
-				labelDOB.Text="";
+			labelGuarantor.Text=_guarCur.GetNameFL();
+			labelAddress.Text=_guarCur.Address;
+			if(!string.IsNullOrEmpty(_guarCur.Address2)){
+				labelAddress.Text+=", "+_guarCur.Address2;
 			}
-			else{
-				labelDOB.Text=guarCur.Birthdate.ToString("MM/dd/yyyy");
-			}
-			labelPhone.Text=Clip(guarCur.HmPhone,13);
-			if(empCur==null){
-				labelEmployer.Text="";
-				labelEmpPhone.Text="";
-			}
-			else{
-				labelEmployer.Text=empCur.EmpName;
-				labelEmpPhone.Text=empCur.Phone;
-			}
-			labelPatient.Text=patCur.GetNameFL();
-			DataTable table=TrojanQueries.GetMaxProcedureDate(guarCur.PatNum);
-			DateTime lastProcDate;
-			if(table.Rows.Count==0){
-				lastProcDate=DateTime.MinValue;//this should never happen
-			}
-			else{
-				lastProcDate=PIn.Date(table.Rows[0][0].ToString());
-			}
-			table=TrojanQueries.GetMaxPaymentDate(guarCur.PatNum);
-			DateTime lastPayDate;
-			if(table.Rows.Count==0) {
-				lastPayDate=DateTime.MinValue;
-			}
-			else {
-				lastPayDate=PIn.Date(table.Rows[0][0].ToString());
-			}
-			if(lastPayDate>lastProcDate){
-				textDate.Text=lastPayDate.ToString("MM/dd/yyyy");
-			}
-			else{
-				textDate.Text=lastProcDate.ToString("MM/dd/yyyy");
-			}
-			textAmount.Text=guarCur.BalTotal.ToString("F2");
-			textPassword.Text=PrefC.GetString(PrefName.TrojanExpressCollectPassword);
+			labelCityStZip.Text=_guarCur.City+", "+_guarCur.State+" "+_guarCur.Zip;
+			labelSSN.Text=_guarCur.SSN.Substring(0,3)+"-"+_guarCur.SSN.Substring(3,2)+"-"+_guarCur.SSN.Substring(5,4);
+			labelDOB.Text=_guarCur.Birthdate.Year<1880?"":_guarCur.Birthdate.ToShortDateString();
+			labelPhone.Text=Clip(_guarCur.HmPhone,13);
+			labelEmployer.Text=_empCur?.EmpName??"";
+			labelEmpPhone.Text=_empCur?.Phone??"";
+			labelPatient.Text=_patCur.GetNameFL();
+			DateTime lastProcDate=TrojanQueries.GetMaxProcedureDate(_guarCur.PatNum);
+			DateTime lastPayDate=TrojanQueries.GetMaxPaymentDate(_guarCur.PatNum);
+			textDate.Text=(lastPayDate>lastProcDate?lastPayDate:lastProcDate).ToShortDateString();
+			textAmount.Text=_guarCur.BalTotal.ToString("F2");
 		}
 
 		private void menuItemSetup_Click(object sender,EventArgs e) {
-			FormTrojanCollectSetup FormT=new FormTrojanCollectSetup();
-			FormT.ShowDialog();
+			using(FormTrojanCollectSetup FormT=new FormTrojanCollectSetup()) {
+				if(FormT.ShowDialog()==DialogResult.Cancel) {
+					return;
+				}
+			}
+			if(!Programs.IsEnabled(ProgramName.TrojanExpressCollect)) {
+				DialogResult=DialogResult.Cancel;
+				return;
+			}
+		}
+
+		///<summary>Clips the input string to the specified length.  Also strips out any *, tabs, newlines, etc.  If inputstr is null or empty returns empty string.</summary>
+		private string Clip(string inputstr,int length){
+			if(string.IsNullOrEmpty(inputstr)) {
+				return "";
+			}
+			string retval=inputstr.Replace("*","").Replace("\r","").Replace("\n","").Replace("\t","");
+			if(retval.Length>length){
+				retval=retval.Substring(0,length);
+			}
+			return retval;
+		}
+
+		private void butHelp_Click(object sender,EventArgs e) {
+			using(FormTrojanHelp FormH=new FormTrojanHelp()) {
+				FormH.ShowDialog();
+			}
 		}
 
 		private void butOK_Click(object sender, System.EventArgs e) {
+			if(!textAmount.IsValid) {
+				MsgBox.Show(this,"Please fix debt amount.");
+				return;
+			}
 			double amtDebt=PIn.Double(textAmount.Text);
-			if(amtDebt==0){
-				MessageBox.Show("Please fill in an amount.");
-				return;
-			}
-			if(amtDebt<25) {
-				MessageBox.Show("Amount of debt must be at least $25.00.");
-				return;
-			}
-			if(amtDebt>9999999.00) {//limit 10 char
-				MessageBox.Show("Amount of debt is unreasonably large.");
+			if(!textDate.IsValid) {
+				MsgBox.Show(this,"Date is not valid.");
 				return;
 			}
 			DateTime dateDelinquency=PIn.Date(textDate.Text);
@@ -555,46 +533,47 @@ namespace OpenDental{
 				return;
 			}
 			if(dateDelinquency>DateTime.Today) {
-				MessageBox.Show("Date cannot be a future date.");
+				MsgBox.Show(this,"Date cannot be a future date.");
 				return;
 			}
-			if(!Regex.IsMatch(textPassword.Text,@"^[A-Z]{2}\d{4}$")) {
-				MessageBox.Show("Password is not in correct format. Must be like this: AB1234");
+			long programNum=Programs.GetProgramNum(ProgramName.TrojanExpressCollect);
+			string password=ProgramProperties.GetPropVal(programNum,"Password");
+			if(!Regex.IsMatch(password,@"^[A-Z]{2}\d{4}$")) {
+				MsgBox.Show(this,"Password is not in correct format. Must be like this: AB1234");
 				return;
 			}
-			if(textPassword.Text!=PrefC.GetString(PrefName.TrojanExpressCollectPassword)){//user changed password
-				Prefs.UpdateString(PrefName.TrojanExpressCollectPassword,textPassword.Text);
-				DataValid.SetInvalid(InvalidType.Prefs);
+			string folderPath=ProgramProperties.GetPropVal(programNum,"FolderPath");
+			if(string.IsNullOrEmpty(folderPath)){
+				MsgBox.Show(this,"Export folder has not been setup yet.  Please go to Setup at the top of this window.");
+				return;
+			}
+			long billingType=PIn.Long(ProgramProperties.GetPropVal(programNum,"BillingType"));
+			if(billingType==0) {
+				MsgBox.Show(this,"Billing type has not been setup yet.  Please go to Setup at the top of this window.");
+				return;
 			}
 			Cursor=Cursors.WaitCursor;
-			string folderPath=PrefC.GetString(PrefName.TrojanExpressCollectPath);
-			if(folderPath==""){
+			if(!File.Exists(ODFileUtils.CombinePaths(folderPath,"TROBEN.HB"))){
 				Cursor=Cursors.Default;
-				MessageBox.Show("Export folder has not been setup yet.  Please go to Setup at the top of this window.");
+				MessageBox.Show(Lan.g(this,"The Trojan Communicator is not installed or is not configured for the folder")+": "
+					+folderPath+".  "+Lan.g(this,"Please contact Trojan Software Support at 800-451-9723 x1 or x2"));
 				return;
 			}
-			if(!folderPath.EndsWith("\\")){
-				folderPath+="\\";
+			try {
+				File.Delete(ODFileUtils.CombinePaths(folderPath,"TROBEN.HB"));
 			}
-			if(!File.Exists(folderPath+"TROBEN.HB")){
+			catch(Exception ex) {
+				ex.DoNothing();
 				Cursor=Cursors.Default;
-				MessageBox.Show("The Trojan Communicator is not installed or is not configured for the folder: "
-					+folderPath+".  Please contact Trojan Software Support at 800-451-9723 x1 or x2");
+				MsgBox.Show(this,"There was an error attempting to delete a file from the export folder path.  Check folder permissions and/or try running as administrator.");
 				return;
 			}
-			File.Delete(folderPath+"TROBEN.HB");
-			FileSystemWatcher watcher=new FileSystemWatcher(folderPath,"TROBEN.HB");
-			WaitForChangedResult waitResult=watcher.WaitForChanged(WatcherChangeTypes.Created,10000);
-			if(waitResult.TimedOut){
-				Cursor=Cursors.Default;
-				MessageBox.Show("The Trojan Communicator is not running. Please check it.");
-				return;
-			}
-			long billingType=PrefC.GetLong(PrefName.TrojanExpressCollectBillingType);
-			if(billingType==0){
-				Cursor=Cursors.Default;
-				MessageBox.Show("Billing type has not been setup yet.  Please go to Setup at the top of this window.");
-				return;
+			using(FileSystemWatcher watcher=new FileSystemWatcher(folderPath,"TROBEN.HB")) {
+				if(watcher.WaitForChanged(WatcherChangeTypes.Created,10000).TimedOut) {
+					Cursor=Cursors.Default;
+					MsgBox.Show(this,"The Trojan Communicator is not running. Please check it.");
+					return;
+				}
 			}
 			StringBuilder str=new StringBuilder();
 			if(radioDiplomatic.Checked){
@@ -606,77 +585,54 @@ namespace OpenDental{
 			else if(radioSkip.Checked) {
 				str.Append("S*");
 			}
-			str.Append(Clip(patCur.LName,18)+"*");
-			str.Append(Clip(patCur.FName,18)+"*");
-			str.Append(Clip(patCur.MiddleI,1)+"*");
-			str.Append(Clip(guarCur.LName,18)+"*");//validated
-			str.Append(Clip(guarCur.FName,18)+"*");//validated
-			str.Append(Clip(guarCur.MiddleI,1)+"*");
-			str.Append(guarCur.SSN.Substring(0,3)+"-"+guarCur.SSN.Substring(3,2)+"-"+guarCur.SSN.Substring(5,4)+"*");//validated
-			if(guarCur.Birthdate.Year<1880){
-				str.Append("*");
+			str.Append(Clip(_patCur.LName,18)+"*");
+			str.Append(Clip(_patCur.FName,18)+"*");
+			str.Append(Clip(_patCur.MiddleI,1)+"*");
+			str.Append(Clip(_guarCur.LName,18)+"*");//validated
+			str.Append(Clip(_guarCur.FName,18)+"*");//validated
+			str.Append(Clip(_guarCur.MiddleI,1)+"*");
+			str.Append(_guarCur.SSN.Substring(0,3)+"-"+_guarCur.SSN.Substring(3,2)+"-"+_guarCur.SSN.Substring(5,4)+"*");//validated
+			if(_guarCur.Birthdate.Year>=1880) {
+				str.Append(_guarCur.Birthdate.ToShortDateString());
 			}
-			else{
-				str.Append(guarCur.Birthdate.ToString("MM/dd/yyyy")+"*");
-			}
-			str.Append(Clip(guarCur.HmPhone,13)+"*");
-			if(empCur==null){
-				str.Append("**");
-			}
-			else{
-				str.Append(Clip(empCur.EmpName,35)+"*");
-				str.Append(Clip(empCur.Phone,13)+"*");
-			}
-			string address=guarCur.Address;//validated
-			if(guarCur.Address2!=""){
-				address+=", "+guarCur.Address2;
+			str.Append("*");
+			str.Append(Clip(_guarCur.HmPhone,13)+"*");
+			str.Append(Clip(_empCur?.EmpName,35)+"*");
+			str.Append(Clip(_empCur?.Phone,13)+"*");
+			string address=_guarCur.Address;//validated
+			if(!string.IsNullOrEmpty(_guarCur.Address2)){
+				address+=", "+_guarCur.Address2;
 			}
 			str.Append(Clip(address,30)+"*");
-			str.Append(Clip(guarCur.City,20)+"*");//validated
-			str.Append(Clip(guarCur.State,2)+"*");//validated
-			str.Append(Clip(guarCur.Zip,5)+"*");//validated
+			str.Append(Clip(_guarCur.City,20)+"*");//validated
+			str.Append(Clip(_guarCur.State,2)+"*");//validated
+			str.Append(Clip(_guarCur.Zip,5)+"*");//validated
 			str.Append(amtDebt.ToString("F2")+"*");//validated
-			str.Append(dateDelinquency.ToString("MM/dd/yyyy")+"*");//validated
-			str.Append(textPassword.Text+"*");//validated
-			str.Append(Clip(Security.CurUser.UserName,25)+"\r\n");//There is always a logged in user
+			str.Append(dateDelinquency.ToShortDateString()+"*");//validated
+			str.Append(password+"*");//validated
+			str.AppendLine(Clip(Security.CurUser.UserName,25));//There is always a logged in user
 			int thisNum=TrojanQueries.GetUniqueFileNum();
 			string outputFile="CT"+thisNum.ToString().PadLeft(6,'0')+".TRO";
-			File.AppendAllText(folderPath+outputFile,str.ToString());
-			watcher=new FileSystemWatcher(folderPath,outputFile);
-			waitResult=watcher.WaitForChanged(WatcherChangeTypes.Deleted,10000);
-			if(waitResult.TimedOut) {
+			try {
+				File.AppendAllText(ODFileUtils.CombinePaths(folderPath,outputFile),str.ToString());
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
 				Cursor=Cursors.Default;
-				MessageBox.Show("Warning!! Request was not sent to Trojan within the 10 second limit.");
+				MsgBox.Show(this,"There was an error writing to the export file.  Check folder permissions and/or try running as administrator.");
 				return;
 			}
-			Patients.UpdateFamilyBillingType(billingType,patCur.Guarantor);
+			using(FileSystemWatcher watcher=new FileSystemWatcher(folderPath,outputFile)) {
+				if(watcher.WaitForChanged(WatcherChangeTypes.Deleted,10000).TimedOut) {
+					Cursor=Cursors.Default;
+					MsgBox.Show(this,"Warning!! Request was not sent to Trojan within the 10 second limit.");
+					return;
+				}
+			}
+			Patients.UpdateFamilyBillingType(billingType,_patCur.Guarantor);
 			Cursor=Cursors.Default;
 			DialogResult=DialogResult.OK;
 		}
-
-		///<summary>Clips the input string to the specified length.  Also strips out any *, tabs, newlines, etc.</summary>
-		private string Clip(string inputstr,int length){
-			string retval=inputstr.Replace("*","");
-			retval=retval.Replace("\r","");
-			retval=retval.Replace("\n","");
-			retval=retval.Replace("\t","");
-			if(retval.Length>length){
-				return retval.Substring(0,length);
-			}
-			return retval;
-		}
-
-		private void butCancel_Click(object sender, System.EventArgs e) {
-			DialogResult=DialogResult.Cancel;
-		}
-
-		private void butHelp_Click(object sender,EventArgs e) {
-			FormTrojanHelp FormH=new FormTrojanHelp();
-			FormH.ShowDialog();
-		}
-
-		
-
 
 	}
 }
