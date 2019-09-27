@@ -55,14 +55,26 @@ namespace OpenDentBusiness.Eclaims {
 				return false;
 			}
 			try {
-				string remoteHost=string.IsNullOrEmpty(clearinghouseClin.ClientProgram) ? "mft.oxi.arcaas.com" : clearinghouseClin.ClientProgram;
+				string remoteHost="sftp.mft.oxisaas.com";
+				int remotePort=2222;
+				if(!string.IsNullOrEmpty(clearinghouseClin.ClientProgram)) {
+					if(clearinghouseClin.ClientProgram.Contains(":")) {//if the user included the port number
+						remoteHost=clearinghouseClin.ClientProgram.Split(':')[0];
+						remotePort=PIn.Int(clearinghouseClin.ClientProgram.Split(':')[1],false);
+						if(remotePort==0) {
+							remotePort=2222;
+						}
+					}
+					else {
+						remoteHost=clearinghouseClin.ClientProgram;
+					}
+				}
 				session=jsch.getSession(clearinghouseClin.LoginID,remoteHost);
 				session.setPassword(clearinghouseClin.Password);
 				Hashtable config=new Hashtable();
 				config.Add("StrictHostKeyChecking","no");
 				session.setConfig(config);
-				int port=2222;//new production port
-				session.setPort(port);
+				session.setPort(remotePort);
 				session.connect();
 				channel=session.openChannel("sftp");
 				channel.connect();
