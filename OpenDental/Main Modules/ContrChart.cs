@@ -3782,8 +3782,8 @@ namespace OpenDental {
 				odInternalCustomerGrids.BringToFront();
 				odInternalCustomerGrids.PatCur=PatCur;
 			}
-			ReloadSheetLayout();//Module selected
 			Logger.LogAction("RefreshModuleScreen",LogPath.ChartModule,() => RefreshModuleScreen(isClinicRefresh));//Update UI to reflect any changed dynamic SheetDefs.
+			ReloadSheetLayout();//Module selected
 			Plugins.HookAddCode(this,"ContrChart.ModuleSelected_end",patNum);
 		}
 
@@ -5809,8 +5809,8 @@ namespace OpenDental {
 			FormSheetDefs FormSD=new FormSheetDefs(SheetTypeEnum.ChartModule);
 			FormSD.ShowDialog();
 			SecurityLogs.MakeLogEntry(Permissions.Setup,0,"Sheets");
-			ReloadSheetLayout();//Could have added or deleted layouts, refresh list.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
+			ReloadSheetLayout();//Could have added or deleted layouts, refresh list.
 		}
 
 		private void LayoutMenuItem_Click(object sender,EventArgs e) {
@@ -7580,6 +7580,7 @@ namespace OpenDental {
 			labelCustView.Visible=false;
 			chartCustViewChanged=false;
 			FillProgNotes(isForceFirstPage:true);
+			ReloadSheetLayout();//Progress Notes columns may have changed.  Recalculate grid control width.
 		}
 
 		private void FillToothChart(bool retainSelection) {
@@ -9736,8 +9737,8 @@ namespace OpenDental {
 				gridTreatPlans.SetSelected(0,true);
 			}
 			FillProgNotes();
-			ReloadSheetLayout();//Shows or hides the TP UI. This changes the sheet layout selected.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
+			ReloadSheetLayout();//Shows or hides the TP UI. This changes the sheet layout selected.
 		}
 		#endregion EnterTx
 
@@ -12216,8 +12217,8 @@ namespace OpenDental {
 					panelEcw.Height=tabControlImages.Top-panelEcw.Top+1;
 				}
 			}
-			ReloadSheetLayout();//Shows or hides the images bar. This changes the sheet layout.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
+			ReloadSheetLayout();//Shows or hides the images bar. This changes the sheet layout.
 		}
 
 		///<summary>Updates priority of all selected procedures to the selected priority.</summary>
@@ -12413,8 +12414,8 @@ namespace OpenDental {
 			if(IsDistributorKey) {
 				gridCustomerViews.SetSelected(e.Row,true);
 			}
-			ReloadSheetLayout();//Changes the progress notes grid. This changes the sheet layout.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
+			ReloadSheetLayout();//Changes the progress notes grid. This changes the sheet layout.
 		}
 
 		private void ChartViewsDoubleClicked(ODGridClickEventArgs e) {
@@ -12457,8 +12458,8 @@ namespace OpenDental {
 			if(IsDistributorKey) {
 				gridCustomerViews.SetSelected(gridChartViews.GetSelectedIndex(),true);
 			}
-			ReloadSheetLayout();//Changes the progress notes grid. This changes the sheet layout.
 			RefreshModuleScreen(false);//Update UI to reflect any changed dynamic SheetDefs.
+			ReloadSheetLayout();//Changes the progress notes grid. This changes the sheet layout.
 		}
 
 		private void butChartViewAdd_Click(object sender,EventArgs e) {
