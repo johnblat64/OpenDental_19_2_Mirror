@@ -1433,7 +1433,7 @@ namespace OpenDental{
 			}
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
-			//The order of these columns are important for gridMain_CellDoubleClick(), gridMain_CellLeave(), and GridMain_CellClick()
+			//The order of these columns are important for gridMain_CellDoubleClick(), gridMain_CellLeave(), and GridMain_CellEnter()
 			ODGridColumn col=new ODGridColumn(Lan.g("TableProcedures","Category"),90);
 			gridMain.Columns.Add(col);
 			col=new ODGridColumn(Lan.g("TableProcedures","Description"),206);
