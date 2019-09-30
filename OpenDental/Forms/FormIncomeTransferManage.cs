@@ -629,10 +629,14 @@ namespace OpenDental {
 						negSplit.UnearnedType=0;
 					}
 					if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully) {
-						if(Math.Sign(posSplit.ProcNum)!=Math.Sign(posSplit.ProvNum)
-							|| Math.Sign(posSplit.UnearnedType)==Math.Sign(posSplit.ProvNum)
-							|| Math.Sign(negSplit.UnearnedType)==Math.Sign(negSplit.ProvNum))
+						if(Math.Sign(posSplit.ProcNum)!=Math.Sign(posSplit.ProvNum) || (posSplit.UnearnedType==0 && posSplit.ProvNum==0)
+							|| (negSplit.UnearnedType==0 && negSplit.ProvNum==0)) 
 						{
+							return true;
+						}
+					}
+					if(!PrefC.GetBool(PrefName.AllowPrepayProvider)) {//this pref used to only be available for enforce fully, but now is for all types.
+						if((posSplit.UnearnedType!=0 && posSplit.ProvNum!=0) || (negSplit.UnearnedType!=0 && negSplit.ProvNum!=0)) {
 							return true;
 						}
 					}
