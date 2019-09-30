@@ -23,6 +23,9 @@ namespace OpenDental {
 		///Should contain all patients in the current family along with any patients of payment plans of which a member of this family is the guarantor.</summary>
 		private Dictionary<long,Patient> _dictPatients;
 		private bool _hasInvalidProcWithPayplan;
+		///<summary>To be clear and make the distinction that these splits were created from the transfer unallocated logic and need to be handled in
+		///a unique way to be able to determine the account entries linked to them that need to be modified.</summary>
+		private List<PaySplit> _listPaySplitsCreatedFromUnearned=new List<PaySplit>();
 
 		public FormIncomeTransferManage(Family famCur,Patient patCur,Payment payCur) {
 			_famCur=famCur;
@@ -309,6 +312,21 @@ namespace OpenDental {
 
 		///<summary>Creates micro-allocations intelligently based on most to least matching criteria of selected charges.</summary>
 		private void CreateTransfers(List<AccountEntry> listPosCharges,List<AccountEntry> listNegCharges,List<AccountEntry> listAccountEntries) {
+			List<AccountEntry> listNewEntries=TransferUnallocatedSplitToUnearned(
+				PaySplits.GetForPats(_famCur.ListPats.Select(x => x.PatNum).ToList()),_paymentCur.PayNum);
+			//update account entry's amount ends based on transfers we may have made.
+			AdjustAccountEntryAmtEnds(listPosCharges,_listPaySplitsCreatedFromUnearned);
+			listPosCharges.RemoveAll(x => x.AmountEnd.IsEqual(0));
+			AdjustAccountEntryAmtEnds(listNegCharges,_listPaySplitsCreatedFromUnearned);
+			listNegCharges.RemoveAll(x => x.AmountEnd.IsEqual(0));
+			foreach(AccountEntry entry in listNewEntries) {
+				if(entry.AmountEnd>0) {
+					listPosCharges.Add(entry);
+				}
+				else if(entry.AmountEnd<0) {
+					listNegCharges.Add(entry);
+				}
+			}
 			List<AccountEntry> listPosChargeChanges=CreateUnearnedLoop(listPosCharges,_paymentCur.PayNum,listAccountEntries);
 			foreach(AccountEntry charge in listPosChargeChanges) {
 				if(!charge.AccountEntryNum.In(listPosCharges.Select(x => x.AccountEntryNum).ToList())) {
@@ -505,7 +523,7 @@ namespace OpenDental {
 				PaySplit posSplit=new PaySplit();//the split that's going to unearned
 				posSplit.DatePay=DateTimeOD.Today;
 				posSplit.ClinicNum=negSplit.ClinicNum;
-				posSplit.FSplitNum=0;//Original pre-payments need to have an FSplitNum of 0 so we can identify them
+				posSplit.FSplitNum=0;
 				posSplit.PatNum=negSplit.PatNum;
 				posSplit.PayPlanNum=0;
 				posSplit.PayNum=_paymentCur.PayNum;
@@ -515,6 +533,7 @@ namespace OpenDental {
 				posSplit.SplitAmt=(double)amt;
 				posSplit.UnearnedType=negSplit.UnearnedType==0 ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : negSplit.UnearnedType;
 				_listSplitsCur.AddRange(new[] { posSplit,negSplit });
+				_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(negSplit,posSplit));
 				negCharge.SplitCollection.Add(negSplit);
 				negCharge.AmountEnd+=amt;
 			}
@@ -751,6 +770,101 @@ namespace OpenDental {
 				}
 			}
 			return listPositiveChargeAdditions;
+		}
+
+		///<summary>Takes unallocated money (splits that do not have procNum,adjNum,fSplitNum,payplanNum, or unearned type) and moves them to unearned 
+		///through a transfer that balances to 0. 
+		///In detail, loop through all splits. We are treating each split on the account as a parent split. 
+		///If the split has children we will look at the childrens values to see if they equate to the parent's value.
+		///If the children equate to the parent, we do not need to do anything. We will look at the children splits again when they come up as a 'parent'
+		///If The chidren do not equate to the parent, an additional transfer need to be made to unearned to make them equate
+		///If the split does not have children, we will look to see if it needs to be transferred to unearned (if it's unallocated) or not. </summary>
+		private List<AccountEntry> TransferUnallocatedSplitToUnearned(List<PaySplit> listSplitsAll,long payNum) {
+			List<AccountEntry> listModifiedEntries=new List<AccountEntry>();//to hold new entries for what we just created
+			//TODO future job: Eliminate the need for query passed in. Make it optional to have account entries to implicit/explicit linking.
+			//List<PaySplit> listSplitsAll=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit)).Select(x => (PaySplit)x.Tag).ToList();							
+			foreach(PaySplit parentSplit in listSplitsAll) {
+				List<PaySplit> listChildrenSplits=listSplitsAll.FindAll(x => x.FSplitNum==parentSplit.SplitNum);
+				if(listChildrenSplits.IsNullOrEmpty()) {
+					//no children, just evaluate if parent is unallocated.
+					if(parentSplit.ProcNum!=0 || parentSplit.AdjNum!=0 || parentSplit.PayPlanNum!=0 || parentSplit.UnearnedType!=0) {
+						continue;//split has been allocated, move along.
+					}
+					listModifiedEntries.AddRange(TransferUnallocatedSplitHelper(parentSplit,payNum));//split is unallocated, transfer to unearned. 
+				}
+				else {
+					//children exist for this parent split, evaluate their values in comparison.
+					double sumChildren=listChildrenSplits.Sum(x => x.SplitAmt);
+					double sumParentChildren=parentSplit.SplitAmt + sumChildren;
+					if(sumParentChildren.IsZero() || 
+						(parentSplit.SplitAmt.IsGreaterThan(0) && parentSplit.UnearnedType!=0 && Math.Abs(sumChildren)<parentSplit.SplitAmt)) 
+					{
+						continue;//either the children equate, or this is an unearned split that hasn't been fully allocated yet and that is fine.
+					}
+					if(Math.Abs(parentSplit.SplitAmt) > Math.Abs(sumChildren)) {
+						listModifiedEntries.AddRange(TransferUnallocatedSplitHelper(parentSplit,payNum,sumParentChildren));//under allocated parent
+					}
+					else {
+						listModifiedEntries.AddRange(TransferUnallocatedSplitHelper(parentSplit,payNum,sumParentChildren*-1));//over allocated parent
+					}
+				}
+			}
+			return listModifiedEntries;
+		}
+
+		private  List<AccountEntry> TransferUnallocatedSplitHelper(PaySplit splitToTransfer,long payNum,double splitAmtOverride=0) {
+			List<AccountEntry> listModifiedEntries=new List<AccountEntry>();//to hold an return new entries for what we just created.
+			//make an offsetting split that is the opposite sign as the split to transfer. 
+			PaySplit offsetSplit=new PaySplit();
+			offsetSplit.DatePay=DateTime.Today;
+			offsetSplit.ClinicNum=splitToTransfer.ClinicNum;
+			offsetSplit.FSplitNum=splitToTransfer.SplitNum;
+			offsetSplit.PatNum=splitToTransfer.PatNum;
+			offsetSplit.PayPlanNum=splitToTransfer.PayPlanNum;//should usually be 0. Only not when production had been overallocated.
+			offsetSplit.PayNum=payNum;
+			offsetSplit.ProcNum=splitToTransfer.ProcNum;//should usually be 0
+			offsetSplit.ProvNum=splitToTransfer.ProvNum;
+			offsetSplit.AdjNum=splitToTransfer.AdjNum;//should ususally be 0
+			offsetSplit.SplitAmt=splitAmtOverride==0?(splitToTransfer.SplitAmt*-1):(splitAmtOverride*-1);//should be for the opposite sign as the passed in split.
+			offsetSplit.UnearnedType=splitToTransfer.UnearnedType;//this should stay in the case when we're correct unbalanced unearned specifically.
+			PaySplit unearnedSplit=new PaySplit();
+			unearnedSplit.DatePay=DateTime.Today;
+			unearnedSplit.ClinicNum=splitToTransfer.ClinicNum;
+			unearnedSplit.FSplitNum=0;//0 because offset split hasn't been inserted into the database yet. Make split associated for this.
+			unearnedSplit.PatNum=splitToTransfer.PatNum;
+			unearnedSplit.PayPlanNum=0;
+			unearnedSplit.PayNum=payNum;
+			unearnedSplit.ProvNum=0;
+			if(PrefC.GetBool(PrefName.AllowPrepayProvider)==true) {
+				unearnedSplit.ProvNum=splitToTransfer.ProvNum;
+			}
+			unearnedSplit.AdjNum=0;
+			unearnedSplit.SplitAmt=offsetSplit.SplitAmt*-1;//should be the opposite sign as the offset split.
+			unearnedSplit.UnearnedType=offsetSplit.UnearnedType==0?PrefC.GetLong(PrefName.PrepaymentUnearnedType):offsetSplit.UnearnedType;
+			_listSplitsCur.AddRange(new List<PaySplit> {offsetSplit,unearnedSplit});
+			_listPaySplitsCreatedFromUnearned.AddRange(new List<PaySplit> {offsetSplit,unearnedSplit});
+			_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(offsetSplit,unearnedSplit));
+			//make account entries for these new items, they may need to be used in the regular transfers down the line.
+			AccountEntry offsetEntry=new AccountEntry(offsetSplit);
+			offsetEntry.AmountStart=0;
+			offsetEntry.AmountEnd=0;
+			listModifiedEntries.Add(offsetEntry);
+			listModifiedEntries.Add(new AccountEntry(unearnedSplit));
+			return listModifiedEntries;
+		}
+
+		private void AdjustAccountEntryAmtEnds(List<AccountEntry> listAccountEntries,List<PaySplit> listSplits) {
+			foreach(AccountEntry charge in listAccountEntries){
+				if(charge.GetType()!=typeof(PaySplit)) {
+					continue;
+				}
+				List<long> listFKeys=listSplits.FindAll(x => x.FSplitNum!=0).Select(x => x.FSplitNum).ToList();
+				if(charge.PriKey.In(listFKeys)) {//has a child in the list of splits we created from balancing
+					List<PaySplit> listSplitsForCharge=listSplits.FindAll(x => x.FSplitNum==charge.PriKey);//find all the children of this charge.
+					charge.AmountEnd-=(decimal)listSplitsForCharge.Sum(x => x.SplitAmt);//modify parent since the created children took away value.
+					charge.SplitCollection.AddRange(listSplitsForCharge);
+				}
+			}
 		}
 
 		///<summary>Deletes selected paysplits from the grid and attributes amounts back to where they originated from.

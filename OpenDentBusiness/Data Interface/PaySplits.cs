@@ -249,10 +249,9 @@ namespace OpenDentBusiness{
 				return Meth.GetObject<List<PaySplit>>(MethodBase.GetCurrentMethod(),fam,onlyUnallocated,doExcludeTpPrepay);
 			}
 			List<long> listFamPatNums=fam.ListPats.Select(x => x.PatNum).Distinct().ToList();
-			string command="SELECT * FROM paysplit "
-				+"WHERE UnearnedType!=0 ";
-			if(onlyUnallocated) {
-				command+="AND FSplitNum=0 ";
+			string command="SELECT * FROM paysplit WHERE PatNum IN ("+String.Join(",",listFamPatNums)+") ";
+			if(!onlyUnallocated) {
+				command+="AND UnearnedType!=0 ";
 			}
 			if(doExcludeTpPrepay) {//do not retrieve prepayments that have been set aside for a tp procedure
 				command+=$"AND ProcNum=0 ";
@@ -260,9 +259,28 @@ namespace OpenDentBusiness{
 					command+=$"AND UnearnedType NOT IN ({string.Join(",",GetHiddenUnearnedDefNums())}) ";
 				}
 			}
-			command+="AND PatNum IN ("+String.Join(",",listFamPatNums)+") "
-				+"ORDER BY DatePay";
-			return Crud.PaySplitCrud.SelectMany(command);
+			command+="ORDER BY DatePay";
+			List<PaySplit> listSplitsAll=Crud.PaySplitCrud.SelectMany(command);//need a full list for when searching for allocations.
+			if(!onlyUnallocated) {
+				return listSplitsAll;
+			}
+			List<PaySplit> listUnearnedSplits=listSplitsAll.FindAll(x => x.UnearnedType!=0);//excluded from query so we can get parent splits. 
+			//only allocated splits
+			List<PaySplit> listSplitsAllocated=new List<PaySplit>();
+			foreach(PaySplit split in listUnearnedSplits) {
+				if(split.FSplitNum==0) {
+					listSplitsAllocated.Add(split);//having an FsplitNum of 0 automatically means that this split is an original unearned split.
+					continue;
+				}
+				//Unearned can be unallocated and also have an FSplitNum, so we need to check the parent of this split. If it is not unearned then it
+				//is valid to be added to this list.
+				//If the parent is unearned then it is likey coming from different unearned. 
+				PaySplit parentSplit=listSplitsAll.FirstOrDefault(x => x.SplitNum==split.FSplitNum);
+				if(parentSplit==null || parentSplit.UnearnedType==0) {
+					listSplitsAllocated.Add(split);//either we couldn't find a parent OR we did find a parent, but the parent is not unearned so it is valid.
+				}
+			}
+			return listSplitsAllocated;
 		}
 
 		///<summary>Gets all paysplits that are attached to the prepayment paysplits specified.</summary>
