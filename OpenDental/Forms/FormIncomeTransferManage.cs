@@ -312,8 +312,17 @@ namespace OpenDental {
 
 		///<summary>Creates micro-allocations intelligently based on most to least matching criteria of selected charges.</summary>
 		private void CreateTransfers(List<AccountEntry> listPosCharges,List<AccountEntry> listNegCharges,List<AccountEntry> listAccountEntries) {
-			List<AccountEntry> listNewEntries=TransferUnallocatedSplitToUnearned(
-				PaySplits.GetForPats(_famCur.ListPats.Select(x => x.PatNum).ToList()),_paymentCur.PayNum);
+			List<AccountEntry> listPosChargeChanges=CreateUnearnedLoop(listPosCharges,_paymentCur.PayNum,listAccountEntries);
+			foreach(AccountEntry charge in listPosChargeChanges) {
+				if(!charge.AccountEntryNum.In(listPosCharges.Select(x => x.AccountEntryNum).ToList())) {
+					listPosCharges.Add(charge);//money may have been added back to an adj or proc that was previously paid
+				}
+			}
+			listPosCharges=listPosCharges.OrderBy(x => x.Date).ToList();
+			List<PaySplit> listSplitsAll=PaySplits.GetForPats(_famCur.ListPats.Select(x => x.PatNum).ToList());
+			listSplitsAll.AddRange(_listPaySplitsCreatedFromUnearned);//splits that were just created from the unearned loop.
+			_listPaySplitsCreatedFromUnearned.Clear();//clear it out so it can be used again for the unallocated loop. 
+			List<AccountEntry> listNewEntries=TransferUnallocatedSplitToUnearned(listSplitsAll,_paymentCur.PayNum);
 			//update account entry's amount ends based on transfers we may have made.
 			AdjustAccountEntryAmtEnds(listPosCharges,_listPaySplitsCreatedFromUnearned);
 			listPosCharges.RemoveAll(x => x.AmountEnd.IsEqual(0));
@@ -325,12 +334,6 @@ namespace OpenDental {
 				}
 				else if(entry.AmountEnd<0) {
 					listNegCharges.Add(entry);
-				}
-			}
-			List<AccountEntry> listPosChargeChanges=CreateUnearnedLoop(listPosCharges,_paymentCur.PayNum,listAccountEntries);
-			foreach(AccountEntry charge in listPosChargeChanges) {
-				if(!charge.AccountEntryNum.In(listPosCharges.Select(x => x.AccountEntryNum).ToList())) {
-					listPosCharges.Add(charge);//money may have been added back to an adj or proc that was previously paid
 				}
 			}
 			listPosCharges=listPosCharges.OrderBy(x => x.Date).ToList();//re-order since we may have just changed it. 
@@ -702,7 +705,7 @@ namespace OpenDental {
 			//Negative charge (split) masquarading around as a positve split becasuse it was overallocated. 
 			_hasInvalidProcWithPayplan=false;
 			List<AccountEntry> listPositiveChargeAdditions=new List<AccountEntry>();
-			decimal amountOverallocated=Math.Abs(positiveCharge.AmountOriginal+positiveCharge.AmountEnd);
+			decimal amountOverallocated=positiveCharge.AmountEnd;
 			PaySplit negSplit=new PaySplit();
 			PaySplit posSplit=new PaySplit();
 			//get what is attached to this original pre-payment
@@ -766,6 +769,8 @@ namespace OpenDental {
 					positiveCharge.AmountEnd-=reverseAmt;
 					_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(posSplit,negSplit));
 					_listSplitsCur.AddRange(new[] { posSplit,negSplit });
+					_listPaySplitsCreatedFromUnearned.Add(posSplit);
+					_listPaySplitsCreatedFromUnearned.Add(negSplit);
 					positiveCharge.SplitCollection.Add(posSplit);
 					if(productionEntry!=null) {
 						productionEntry.AmountEnd+=reverseAmt;
@@ -788,7 +793,7 @@ namespace OpenDental {
 			//TODO future job: Eliminate the need for query passed in. Make it optional to have account entries to implicit/explicit linking.
 			//List<PaySplit> listSplitsAll=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit)).Select(x => (PaySplit)x.Tag).ToList();							
 			foreach(PaySplit parentSplit in listSplitsAll) {
-				List<PaySplit> listChildrenSplits=listSplitsAll.FindAll(x => x.FSplitNum==parentSplit.SplitNum);
+				List<PaySplit> listChildrenSplits=listSplitsAll.FindAll(x => x.FSplitNum==parentSplit.SplitNum && x.FSplitNum!=0);
 				if(listChildrenSplits.IsNullOrEmpty()) {
 					//no children, just evaluate if parent is unallocated.
 					if(parentSplit.ProcNum!=0 || parentSplit.AdjNum!=0 || parentSplit.PayPlanNum!=0 || parentSplit.UnearnedType!=0) {
