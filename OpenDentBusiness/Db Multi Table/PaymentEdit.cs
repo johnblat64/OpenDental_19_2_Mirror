@@ -1418,7 +1418,8 @@ namespace OpenDentBusiness {
 					{ 
 						decimal payAmtCur;
 						autoSplitData.ListAutoSplits.AddRange(PaySplits.CreateSplitForPayPlan(payNum,payAmt,charge,
-							listPayPlanCharges.Where(x => x.ChargeType==PayPlanChargeType.Credit).ToList(),autoSplitData.ListAccountCharges,0,true,out payAmtCur));
+							listPayPlanCharges.Where(x => x.ChargeType==PayPlanChargeType.Credit && x.PayPlanNum==((PayPlanCharge)charge.Tag).PayPlanNum).ToList(),
+							autoSplitData.ListAccountCharges,0,true,out payAmtCur));
 						payAmt=(double)payAmtCur;
 					}
 					continue;
