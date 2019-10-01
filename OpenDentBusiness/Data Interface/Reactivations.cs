@@ -277,12 +277,16 @@ namespace OpenDentBusiness{
 				//This makes it so that we only return one family address even if the user has passed in every single member of the family.
 				listPatsOrGuars=listGuars.FindAll(x => x.PatNum.In(listPats.Select(y => y.Guarantor)));
 			}
-			foreach(Patient patCur in listPatsOrGuars) {
-				List<string> listPatNames=Patients.GetFamily(patCur.PatNum)
-					.ListPats
-					.Where(x => x.PatNum.In(listPats.Select(y => y.PatNum)))//Only include Patients that were selected, rather than all family members.
-					.Select(pat => pat.FName)
-					.ToList();
+			foreach(Patient pat in listPatsOrGuars) {
+				Patient patCur=pat;//Always the guarantor if grouping by family, otherwise a selected patient.
+				Patient guar=listGuars.FirstOrDefault(x => x.PatNum==pat.Guarantor);
+				//Only include Patients that were selected, rather than all family members.
+				List<Patient> listSelectedPatsInFam=listPats.Where(x => x.Guarantor==guar.PatNum).ToList();
+				if(listSelectedPatsInFam.Count==1) {//Selected patient may not be the guarantor.
+					//So use first selected patient because this will result in an individual postcard, which should show the selected patient's name, not the
+					//name of the guarantor.
+					patCur=listSelectedPatsInFam.First();
+				}
 				DataRow row=table.NewRow();
 				row["address"]						=patCur.Address+(!string.IsNullOrWhiteSpace(patCur.Address2)?Environment.NewLine+patCur.Address2:"");
 				row["City"]								=patCur.City;
@@ -290,8 +294,8 @@ namespace OpenDentBusiness{
 				row["dateDue"]						=DateTime.MinValue;//This isn't used for reactivations, but it's here keep the table the same as recall addrTable
 				row["email"]							=patCur.Email;
 				row["emailPatNum"]				=patCur.PatNum;
-				row["famList"]						=listPatNames.Count>1 ? string.Join(",",listPatNames) : "";
-				row["guarLName"]					=patCur.LName;
+				row["famList"]						=listSelectedPatsInFam.Count>1 ? string.Join(",",listSelectedPatsInFam.Select(x => x.FName)) : "";
+				row["guarLName"]					=guar.LName;
 				row["numberOfReminders"]	=Reactivations.GetNumReminders(patCur.PatNum);
 				row["patientNameF"]				=patCur.GetNameFirstOrPreferred();
 				row["patientNameFL"]			=patCur.GetNameFLnoPref();
