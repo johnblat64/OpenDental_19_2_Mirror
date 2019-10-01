@@ -598,7 +598,7 @@ namespace OpenDentBusiness{
 			if(!isAllPats) {
 				//get all family PatNums in case there are no transactions for the family in order to clear out the family balance
 				command+="UNION ALL "
-					+"SELECT 'FamPatNums' TranType,PatNum PriKey,PatNum,NULL TranDate,0 TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
+					+"SELECT 'FamPatNums' TranType,PatNum PriKey,PatNum,'0001-01-01' TranDate,0 TranAmount,0 PayPlanAmount,0 InsWoEst,0 InsPayEst"
 					+(doIncludeProcNum?",0 ProcNum":"")+(isAgedByProc?",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "
 					+"FROM patient "
 					+"WHERE PatNum IN ("+familyPatNums+")";
