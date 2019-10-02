@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Data;
 using System.Windows.Forms;
+using CodeBase;
 
 namespace OpenDental.UI
 {
@@ -100,7 +101,15 @@ namespace OpenDental.UI
 			if(HasBorder) {
 				g.DrawRectangle(Pens.Gray,0,0,Width-1,Height-1);
 			}
-			if(image==null){
+			float imageHeight=-1;
+			float imageWidth=-1;
+			if(image!=null) {
+				ODException.SwallowAnyException(() => {
+					imageHeight=(float)image.Height;
+					imageWidth=(float)image.Width;
+				});
+			}
+			if(image==null || imageHeight<=0 || imageWidth<=0){
 				StringFormat format=new StringFormat();
 				format.Alignment=StringAlignment.Center;
 				format.LineAlignment=StringAlignment.Center;
@@ -110,13 +119,13 @@ namespace OpenDental.UI
 			else{
 				float ratio;
 				//Debug.WriteLine("Hratio:"+(float)image.Height/(float)Height+"Wratio:"+(float)image.Width/(float)Width);
-				if((float)image.Height/(float)Height > (float)image.Width/(float)Width){//Image is proportionally taller
-					ratio=(float)Height/(float)image.Height;
-					g.DrawImage(image,new RectangleF(Width/2-((float)image.Width*ratio)/2,0,(float)image.Width*ratio,Height));
+				if(imageHeight/(float)Height > imageWidth/(float)Width){//Image is proportionally taller
+					ratio=(float)Height/imageHeight;
+					g.DrawImage(image,new RectangleF(Width/2-(imageWidth*ratio)/2,0,imageWidth*ratio,Height));
 				}
 				else{//image proportionally wider
-					ratio=(float)Width/(float)image.Width;
-					g.DrawImage(image,new RectangleF(0,(float)Height/2-((float)image.Height*ratio)/2,Width,(float)image.Height*ratio));
+					ratio=(float)Width/imageWidth;
+					g.DrawImage(image,new RectangleF(0,(float)Height/2-(imageHeight*ratio)/2,Width,imageHeight*ratio));
 				}
 			}
 		}
