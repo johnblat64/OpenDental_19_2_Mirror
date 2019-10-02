@@ -652,7 +652,8 @@ namespace OpenDentBusiness {
 					//if splitCur.ProcNum==0 NEEDS to be added back in the future, there is an additional case that will need to be handled elsewhere.  B13471.
 					else if(chargeCur.Tag.GetType()==typeof(PaySplit)//PaySplits will only ever be in the charge list if it's in income transfer mode.
 						&& splitCur.FSplitNum==chargeCur.PriKey && chargeCur.AmountEnd!=0
-						&& chargeCur.ProvNum==splitCur.ProvNum && chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum) 
+						&& (chargeCur.ProvNum==splitCur.ProvNum || chargeCur.ProvNum==0 || splitCur.ProvNum==0)//providers need to match. Exception for unearned provider(0)
+						&& chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum) 
 					{
 						if(splitCur.PayNum!=payNum) {
 							chargeCur.AmountStart-=(decimal)splitCur.SplitAmt;//splits counteracting prepay are negative
