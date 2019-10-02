@@ -102,6 +102,8 @@ namespace OpenDental {
 			if(IsNoneAllowed) {
 				row=new ODGridRow();
 				row.Cells.Add(Lan.g(this,"None"));
+				row.Cells.Add("");
+				row.Cells.Add("");
 				gridMain.Rows.Add(row);
 				row.Tag=null;
 			}

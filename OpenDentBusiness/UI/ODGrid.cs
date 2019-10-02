@@ -3618,6 +3618,9 @@ namespace OpenDental.UI {
 				case GridSelectionMode.One:
 					selectedIndices.Clear();
 					SelectionAddedByUser(MouseDownRow);
+					if(!MouseDownRow.Between(0,Rows.Count-1) || !MouseDownCol.Between(0,Rows[MouseDownRow].Cells.Count-1)) {
+						return;
+					}
 					ODGridCell cell=Rows[MouseDownRow].Cells[MouseDownCol];
 					if(cell.IsButton) {
 						cell.IsPressed=true;
