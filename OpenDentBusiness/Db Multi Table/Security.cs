@@ -341,10 +341,12 @@ namespace OpenDentBusiness{
 				if(dbVersionStr!=serverVersionStr) {
 					throw new Exception("Version mismatch.  Server:"+serverVersionStr+"  Database:"+dbVersionStr);
 				}
-				Version clientVersion=new Version(clientVersionStr);
-				Version serverVersion=new Version(serverVersionStr);
-				if(clientVersion > serverVersion){
-					throw new Exception("Version mismatch.  Client:"+clientVersionStr+"  Server:"+serverVersionStr);
+				if(!string.IsNullOrEmpty(clientVersionStr)) {
+					Version clientVersion=new Version(clientVersionStr);
+					Version serverVersion=new Version(serverVersionStr);
+					if(clientVersion > serverVersion) {
+						throw new Exception("Version mismatch.  Client:"+clientVersionStr+"  Server:"+serverVersionStr);
+					}
 				}
 				//if clientVersion == serverVersion, than we need do nothing.
 				//if clientVersion < serverVersion, than an update will later be triggered.

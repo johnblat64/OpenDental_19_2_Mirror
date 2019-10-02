@@ -234,7 +234,7 @@ namespace CentralManager {
 					row.Cells[3].ColorText=Color.Green;
 					row.Cells[3].Bold=YN.Yes;
 				}
-				else if(status=="OFFLINE") {
+				else if(status.StartsWith("OFFLINE")) {
 					row.Cells.Add(status);
 					row.Bold=true;
 					row.ColorText=Color.Red;
@@ -251,7 +251,7 @@ namespace CentralManager {
 
 		private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 			CentralConnection conn=(CentralConnection)gridMain.Rows[e.Row].Tag;
-			if(conn.ConnectionStatus=="OFFLINE") {
+			if(conn.ConnectionStatus.StartsWith("OFFLINE")) {
 				MsgBox.Show(this,"Server Offline.  Fix connection and check status again to connect.");
 				return;
 			}
@@ -462,6 +462,10 @@ namespace CentralManager {
 					odThread.Tag=new object[] { connection,"OFFLINE" };//Can't connect
 					return;
 				}
+				if(!string.IsNullOrEmpty(connection.ServiceURI)) {
+					//Middle tier connection. Make sure the current user and password are valid.
+					Security.LogInWeb(Security.CurUser.UserName,Security.PasswordTyped,"","",connection.WebServiceIsEcw);
+				}
 				string progVersionRemote=PrefC.GetStringNoCache(PrefName.ProgramVersion);
 				string err="";
 				if(progVersionRemote!=progVersion) {
@@ -474,7 +478,7 @@ namespace CentralManager {
 			}
 			catch(Exception ex) {
 				ex.DoNothing();
-				odThread.Tag=new object[] { connection,"OFFLINE" };//Can't connect
+				odThread.Tag=new object[] { connection,"OFFLINE: "+ex.Message.Left(100) };//Can't connect
 			}
 		}
 
