@@ -166,8 +166,15 @@ namespace OpenDentBusiness{
 			bool isGroupInProcessOld=IsGroupInProcess(listPmvs);
 			if(stat==ProcStat.D) {
 				//If the procedure is deleted, also delete the procvisitmulti to reduce clutter.
+				listPmvs.Remove(pmv);//Remove pmv from listpmvs.
+				if(pmv.ProcMultiVisitNum==pmv.GroupProcMultiVisitNum && !listPmvs.IsNullOrEmpty()) {//If the group points to the pmv to be removed and the group still exists.
+					long replacementGPMVNum=listPmvs.First().GroupProcMultiVisitNum;
+					UpdateGroupProcMultiVisitNumForGroup(pmv.ProcMultiVisitNum,replacementGPMVNum);
+					foreach (ProcMultiVisit procMulti in listPmvs) {//Replace all group numbers.
+						procMulti.GroupProcMultiVisitNum=replacementGPMVNum;
+					}
+				}
 				Delete(pmv.ProcMultiVisitNum);
-				listPmvs.Remove(pmv);
 			}
 			else {
 				ProcMultiVisit oldPmv=pmv.Copy();
@@ -195,6 +202,19 @@ namespace OpenDentBusiness{
 			string command="UPDATE procmultivisit "
 				+"SET IsInProcess="+POut.Bool(isGroupInProcess)+" "
 				+"WHERE GroupProcMultiVisitNum="+POut.Long(groupProcMultiVisitNum);
+			Db.NonQ(command);
+		}
+
+		///<summary>Update the parameter GroupProcMultiVisitNum to a new value.
+		///Does not send cache refresh signal.  Send the signal from calling code.</summary>
+		public static void UpdateGroupProcMultiVisitNumForGroup(long groupProcMultiVisitNumOld,long groupProcMultiVisitNumNew) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),groupProcMultiVisitNumOld,groupProcMultiVisitNumNew);
+				return;
+			}
+			string command="UPDATE GroupProcMultiVisitNum "
+				+"SET GroupProcMultiVisitNum="+POut.Long(groupProcMultiVisitNumNew)+" "
+				+"WHERE GroupProcMultiVisitNum="+POut.Long(groupProcMultiVisitNumOld);
 			Db.NonQ(command);
 		}
 
