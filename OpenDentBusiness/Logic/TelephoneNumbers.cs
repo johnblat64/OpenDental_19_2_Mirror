@@ -111,7 +111,7 @@ namespace OpenDentBusiness {
 				return (phoneNum.Substring(0,1)+"("+phoneNum.Substring(1,3)+")"+phoneNum.Substring(4,3)+"-"+phoneNum.Substring(7));
 			}
 			if(Regex.IsMatch(phoneNum,@"^\d\d\d\d\d\d\d\d\d\d$")) {//If the value is pasted into the field, this could be the format.
-				return ("1("+phoneNum.Substring(0,3)+")"+phoneNum.Substring(3,3)+"-"+phoneNum.Substring(6));
+				return ("("+phoneNum.Substring(0,3)+")"+phoneNum.Substring(3,3)+"-"+phoneNum.Substring(6));
 			}
 			//Got through all other validation.  Make sure phoneNum is in correct final format.
 			if(!Regex.IsMatch(phoneNum,@"^\(\d\d\d\)\d\d\d-\d\d\d\d$") || !Regex.IsMatch(phoneNum,@"^1\(\d\d\d\)\d\d\d-\d\d\d\d$")) {
