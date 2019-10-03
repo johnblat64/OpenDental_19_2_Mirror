@@ -749,6 +749,9 @@ namespace OpenDental {
 		}
 
 		private void pictDraw_MouseDown(object sender,MouseEventArgs e) {
+			if(IsSignatureStarted()){
+				return;
+			}
 			mouseIsDown=true;
 			if(checkErase.Checked){
 				return;
@@ -814,6 +817,9 @@ namespace OpenDental {
 
 		private void pictDraw_MouseUp(object sender,MouseEventArgs e) {
 			mouseIsDown=false;
+			if(IsSignatureStarted()){
+				return;
+			}
 			if(checkErase.Checked){
 				return;
 			}
@@ -1792,6 +1798,15 @@ namespace OpenDental {
 			}
 			SecurityLogs.MakeLogEntry(Permissions.SheetEdit,SheetCur.PatNum,SheetCur.Description+" from "+SheetCur.DateTimeSheet.ToShortDateString());
 			OkClose();
+		}
+
+		private bool IsSignatureStarted() {
+			foreach(SignatureBoxWrapper signatureBoxWrapper in _listSignatureBoxes) {
+				if(signatureBoxWrapper.IsSigStarted) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private void butCancel_Click(object sender,EventArgs e) {

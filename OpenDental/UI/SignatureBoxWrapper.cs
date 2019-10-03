@@ -12,6 +12,9 @@ using CodeBase;
 namespace OpenDental.UI {
 	///<summary>Wraps the Topaz SigPlusNET control and the alternate SignatureBox control.  Also includes both needed buttons.  Should vastly simplify using signature boxes throughout the program.</summary>
 	public partial class SignatureBoxWrapper:UserControl {
+		///<summary>This is set when someone has started drawing a signature. When true, this will be used to stop people from accidentally 
+		///drawing on the screen and invalidating their signature on FormSheetFillEdit.</summary>
+		public bool IsSigStarted;
 		public bool SigChanged{ get; private set; }
 		//private bool allowTopaz;
 		private Control sigBoxTopaz;
@@ -463,6 +466,7 @@ namespace OpenDental.UI {
 		///<summary>Explicitly set focus on this control.</summary>
 		private void sigBox_MouseDown(object sender,MouseEventArgs e) {
 			Focus();
+			IsSigStarted=true;
 		}
 
 		private void sigBox_MouseUp(object sender,MouseEventArgs e) {
