@@ -4747,7 +4747,7 @@ namespace OpenDental {
 								foreach(string str in insuranceArray) {
 									h=g.MeasureString(str,font,infoBubble.Width-(int)x).Height;
 									Carrier carrier=Carriers.GetCarrierByName(str.Replace("Ins1: ","").Replace("Ins2: ",""));
-									if(carrier!=null && carrier.ApptTextBackColor!=Color.Black) {
+									if(carrier!=null && carrier.ApptTextBackColor!=Color.Black && carrier.ApptTextBackColor!=Color.FromArgb(255,Color.Black)) {
 										g.FillRectangle(new SolidBrush(carrier.ApptTextBackColor),x-2,y+1,infoBubble.Width-(int)x+2,h); 
 									}
 									g.DrawString(str,font,brush,new RectangleF(x,y,infoBubble.Width-(int)x,h));

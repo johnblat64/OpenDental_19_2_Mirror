@@ -618,7 +618,7 @@ namespace OpenDentBusiness.UI {
 					if(isInsuranceColor) {
 						if(dataRoww["insColor1"].ToString()!="") {
 							Color color=Color.FromArgb(PIn.Int(dataRoww["insColor1"].ToString()));
-							if(color!=Color.Black) {
+							if(color!=Color.Black && color!=Color.FromArgb(255,Color.Black)) {//black means don't show.
 								Point pt=new Point(drawLoc.X,drawLoc.Y+2);
 								SizeF size=new SizeF(totalWidth,(linesFilled==0 ? linesFilled : stringSize.Height/linesFilled)); //avoid division by 0
 								size.Height-=1;
@@ -628,7 +628,7 @@ namespace OpenDentBusiness.UI {
 						}
 						if(dataRoww["insColor2"].ToString()!="") {
 							Color color=Color.FromArgb(PIn.Int(dataRoww["insColor2"].ToString()));
-							if(color!=Color.Black) {
+							if(color!=Color.Black && color!=Color.FromArgb(255,Color.Black)) {
 								Point pt=new Point(drawLoc.X,drawLoc.Y+2+(int)(linesFilled==0 ? linesFilled : noteSize.Height/linesFilled)); //avoid division by 0
 								SizeF size=new SizeF(totalWidth,(linesFilled==0 ? linesFilled : stringSize.Height/linesFilled)); //avoid division by 0
 								size.Height-=1;
