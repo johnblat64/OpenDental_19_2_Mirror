@@ -584,6 +584,10 @@ namespace OpenDental {
 						posSplit.DatePay=DateTimeOD.Today;
 						posSplit.ClinicNum=posCharge.ClinicNum;
 						posSplit.FSplitNum=posCharge.PriKey;//FSplitNum is the refund splitnum.
+						if(posCharge.PriKey==0) {
+							//hasn't been inserted into the database yet, so make split association for it instead.
+							_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated((PaySplit)posCharge.Tag,posSplit));
+						}
 						posSplit.PatNum=posCharge.PatNum;
 						posSplit.PayPlanNum=0;
 						posSplit.PayNum=_paymentCur.PayNum;
@@ -617,7 +621,14 @@ namespace OpenDental {
 					negSplit=new PaySplit();
 					negSplit.DatePay=DateTimeOD.Today;
 					negSplit.ClinicNum=negCharge.ClinicNum;
-					negSplit.FSplitNum=negCharge.GetType()==typeof(PaySplit) ? negCharge.PriKey : 0;//Money may be coming from a paysplit 
+					negSplit.FSplitNum=0;//Money may be coming from a paysplit 
+					if(negCharge.GetType()==typeof(PaySplit)) {
+						negSplit.FSplitNum=negCharge.PriKey;
+						if(negCharge.PriKey==0) {
+							//money is coming from a split that we created earlier, and hasn't been inserted into the database yet. Make a split association for it.
+							_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated((PaySplit)negCharge.Tag,negSplit));
+						}
+					}
 					negSplit.PatNum=negCharge.PatNum;
 					negSplit.PayPlanNum=0;
 					negSplit.PayNum=_paymentCur.PayNum;
@@ -659,7 +670,13 @@ namespace OpenDental {
 			PaySplit negSplit=new PaySplit();
 			negSplit.DatePay=DateTimeOD.Today;
 			negSplit.ClinicNum=negCharge.ClinicNum;
-			negSplit.FSplitNum=negCharge.GetType()==typeof(PaySplit) ? negCharge.PriKey : 0;//Money may be coming from a paysplit 
+			negSplit.FSplitNum=0;
+			if(negCharge.GetType()==typeof(PaySplit)) {
+				negSplit.FSplitNum=negCharge.PriKey;
+				if(negCharge.PriKey==0) {//hasn't been inserted into the database yet.
+					_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated((PaySplit)negCharge.Tag,negSplit));
+				}
+			}
 			negSplit.PatNum=negCharge.PatNum;
 			negSplit.PayPlanNum=negCharge.GetType()==typeof(PaySplit) ? ((PaySplit)negCharge.Tag).PayPlanNum : 0;
 			negSplit.PayNum=_paymentCur.PayNum;
@@ -828,6 +845,9 @@ namespace OpenDental {
 			offsetSplit.DatePay=DateTime.Today;
 			offsetSplit.ClinicNum=splitToTransfer.ClinicNum;
 			offsetSplit.FSplitNum=splitToTransfer.SplitNum;
+			if(splitToTransfer.SplitNum==0) {
+				_listSplitsAssociated.Add(new PaySplits.PaySplitAssociated(splitToTransfer,offsetSplit));
+			}
 			offsetSplit.PatNum=splitToTransfer.PatNum;
 			offsetSplit.PayPlanNum=splitToTransfer.PayPlanNum;//should usually be 0. Only not when production had been overallocated.
 			offsetSplit.PayNum=payNum;
