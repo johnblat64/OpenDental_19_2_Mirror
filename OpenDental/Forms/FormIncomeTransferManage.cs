@@ -643,8 +643,11 @@ namespace OpenDental {
 						negSplit.UnearnedType=0;
 					}
 					if(PrefC.GetInt(PrefName.RigorousAccounting)==(int)RigorousAccounting.EnforceFully) {
-						if(Math.Sign(posSplit.ProcNum)!=Math.Sign(posSplit.ProvNum) || (posSplit.UnearnedType==0 && posSplit.ProvNum==0)
-							|| (negSplit.UnearnedType==0 && negSplit.ProvNum==0)) 
+						//split being created needs to have a procedure with a provider, or an adjustment with a provider 
+						//or unearned type (optionally w/ provider) BUT if unearned, cannot have a procedure or adjustment. 
+						if((Math.Sign(posSplit.ProcNum)!=Math.Sign(posSplit.ProvNum) && Math.Sign(posSplit.AdjNum)!=Math.Sign(posSplit.ProvNum))
+							|| (posSplit.UnearnedType==0 && posSplit.ProvNum==0)
+							|| (negSplit.UnearnedType==0 && negSplit.ProvNum==0))
 						{
 							return true;
 						}
