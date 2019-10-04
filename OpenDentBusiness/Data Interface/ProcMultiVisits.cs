@@ -212,7 +212,7 @@ namespace OpenDentBusiness{
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),groupProcMultiVisitNumOld,groupProcMultiVisitNumNew);
 				return;
 			}
-			string command="UPDATE GroupProcMultiVisitNum "
+			string command="UPDATE procmultivisit "
 				+"SET GroupProcMultiVisitNum="+POut.Long(groupProcMultiVisitNumNew)+" "
 				+"WHERE GroupProcMultiVisitNum="+POut.Long(groupProcMultiVisitNumOld);
 			Db.NonQ(command);
