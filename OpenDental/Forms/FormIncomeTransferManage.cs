@@ -617,7 +617,17 @@ namespace OpenDental {
 					posSplit.ProvNum=posCharge.ProvNum;
 					posSplit.AdjNum=posCharge.GetType()==typeof(Adjustment) ? (((Adjustment)posCharge.Tag).ProcNum==0 ? ((Adjustment)posCharge.Tag).AdjNum : 0) : 0;
 					posSplit.SplitAmt=(double)amt;
-					posSplit.UnearnedType=posSplit.ProvNum==0 ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : (posCharge.GetType()==typeof(PaySplit)?((PaySplit)posCharge.Tag).UnearnedType:0);//Unearned type will likely be 0, but if we make a positive split to ProvNum=0, use default unearned type.
+					//Unearned type will likely be 0, but if we make a positive split to ProvNum=0, use default unearned type.
+					//explicit because of old adjustments that didn't have to have a provider.
+					if(posSplit.ProvNum==0 && posSplit.AdjNum==0 && posSplit.ProcNum==0) {
+						posSplit.UnearnedType=PrefC.GetLong(PrefName.PrepaymentUnearnedType);
+					}
+					else if(posCharge.GetType()==typeof(PaySplit)) {
+						posSplit.UnearnedType=((PaySplit)posCharge.Tag).UnearnedType;
+					}
+					else {
+						posSplit.UnearnedType=0;
+					}
 					negSplit=new PaySplit();
 					negSplit.DatePay=DateTimeOD.Today;
 					negSplit.ClinicNum=negCharge.ClinicNum;
