@@ -118,8 +118,8 @@ namespace OpenDentBusiness {
 				| StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.insDeductible,StaticTextFieldDependency.ListInsPlans | StaticTextFieldDependency.ListBenefits 
 				| StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
-			{StaticTextField.insDeductibleUsed,StaticTextFieldDependency.ListInsPlans |	StaticTextFieldDependency.ListBenefits 
-				| StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
+			{StaticTextField.insDeductibleUsed,StaticTextFieldDependency.HistList | StaticTextFieldDependency.ListInsPlans |
+				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.insEmployer,StaticTextFieldDependency.ListInsPlans | StaticTextFieldDependency.ListBenefits 
 				| StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.insFeeSchedule,StaticTextFieldDependency.ListInsPlans | StaticTextFieldDependency.ListBenefits 
@@ -130,9 +130,9 @@ namespace OpenDentBusiness {
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.insFreqPanoFMX,StaticTextFieldDependency.ListInsPlans | 
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
-			{StaticTextField.insPending,StaticTextFieldDependency.ListInsPlans | 
+			{StaticTextField.insPending,StaticTextFieldDependency.HistList | StaticTextFieldDependency.ListInsPlans |
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
-			{StaticTextField.insPercentages,StaticTextFieldDependency.ListInsPlans | 
+			{StaticTextField.insPercentages,StaticTextFieldDependency.HistList | StaticTextFieldDependency.ListInsPlans |
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.insPlanGroupNumber,StaticTextFieldDependency.ListInsPlans | 
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
@@ -146,9 +146,9 @@ namespace OpenDentBusiness {
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.insSubNote,StaticTextFieldDependency.ListInsPlans | 
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
-			{StaticTextField.insRemaining,StaticTextFieldDependency.ListInsPlans | 
+			{StaticTextField.insRemaining,StaticTextFieldDependency.HistList | StaticTextFieldDependency.ListInsPlans |
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
-			{StaticTextField.insUsed,StaticTextFieldDependency.ListInsPlans | 
+			{StaticTextField.insUsed,StaticTextFieldDependency.HistList | StaticTextFieldDependency.ListInsPlans |
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
 			{StaticTextField.ins2AnnualMax,StaticTextFieldDependency.ListInsPlans | 
 				StaticTextFieldDependency.ListBenefits | StaticTextFieldDependency.ListInsSubs | StaticTextFieldDependency.ListPatPlans},
