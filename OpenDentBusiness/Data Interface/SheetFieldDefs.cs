@@ -110,8 +110,8 @@ namespace OpenDentBusiness{
 				SheetFieldType.MobileHeader,
 				SheetFieldType.SigBox
 			)
-			//Only include StaticText if it has a valid TabOrderMobile.
-			||(sheetFieldType==SheetFieldType.StaticText && tabOrderMobile>=1)
+			//Only include StaticText if it has a valid TabOrderMobile.  Treat OutputText fields as a StaticText
+			||(sheetFieldType.In(SheetFieldType.StaticText,SheetFieldType.OutputText) && tabOrderMobile>=1)
 			//checkMed checkboxes are ignored. All other checkboxes are included.
 			||(sheetFieldType==SheetFieldType.CheckBox && !fieldName.StartsWith("checkMed"));
 		}
