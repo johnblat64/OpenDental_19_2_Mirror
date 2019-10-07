@@ -33,7 +33,7 @@ namespace OpenDental {
 			else {
 				butExamSheet.Visible=false;
 			}
-			checkIncludeInMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+			checkIncludeInMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			//Show/hide in mobile editor depending on if TabOrderMobile has been previously set. This is how we will selectively include only desireable StaticText fields.
 			checkIncludeInMobile.Checked=SheetFieldDefCur.TabOrderMobile>=1;
 			checkIsLocked.Checked=SheetFieldDefCur.IsNew ? true : SheetFieldDefCur.IsLocked;
@@ -174,7 +174,7 @@ namespace OpenDental {
 			SheetFieldDefCur.IsPaymentOption=checkPmtOpt.Checked;
 			SheetFieldDefCur.ItemColor=butColor.BackColor;
 			SheetFieldDefCur.IsLocked=checkIsLocked.Checked;
-			if(checkIncludeInMobile.Checked && SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType)) { //Had previously been hidden from mobile layout so show and set to top. User can re-order using the mobile editor.
+			if(checkIncludeInMobile.Checked && SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType)) { //Had previously been hidden from mobile layout so show and set to top. User can re-order using the mobile editor.
 				SheetFieldDefCur.TabOrderMobile=1;
 			}
 			else {

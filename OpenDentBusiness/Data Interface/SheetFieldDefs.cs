@@ -108,7 +108,8 @@ namespace OpenDentBusiness{
 				SheetFieldType.ComboBox,
 				SheetFieldType.InputField,
 				SheetFieldType.MobileHeader,
-				SheetFieldType.SigBox
+				SheetFieldType.SigBox,
+				SheetFieldType.OutputText
 			)
 			//Only include StaticText if it has a valid TabOrderMobile.  Treat OutputText fields as a StaticText
 			||(sheetFieldType.In(SheetFieldType.StaticText,SheetFieldType.OutputText) && tabOrderMobile>=1)

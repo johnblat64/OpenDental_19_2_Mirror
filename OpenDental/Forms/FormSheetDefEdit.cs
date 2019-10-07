@@ -158,7 +158,7 @@ namespace OpenDental {
 			}
 			//TODO: We really should clean up the logic related to setting the UI, this is getting messy.
 			sheetEditMobile.IsReadOnly=IsInternal;
-			butMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+			butMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			if(!_sheetDefCur.SheetType.In(SheetTypeEnum.Statement,SheetTypeEnum.MedLabResults,SheetTypeEnum.TreatmentPlan,SheetTypeEnum.PaymentPlan,SheetTypeEnum.ReferralLetter)){
 				butAddGrid.Visible=false;
 			}

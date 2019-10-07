@@ -18,8 +18,8 @@ namespace OpenDental {
 		}
 
 		private void FormSheetFieldSigBox_Load(object sender,EventArgs e) {
-			textUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+			textUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			checkRequired.Checked=SheetFieldDefCur.IsRequired;
 			textUiLabelMobile.Text=SheetFieldDefCur.UiLabelMobile;
 			textName.Text=SheetFieldDefCur.FieldName;

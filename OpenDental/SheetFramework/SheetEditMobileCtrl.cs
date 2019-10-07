@@ -361,6 +361,20 @@ namespace OpenDental {
 						panel.Controls.Add(picBox);
 						#endregion
 					}
+					else if(sheetField.FieldType==SheetFieldType.OutputText) {
+						#region OutputText
+						TextBox textBox=new TextBox() {
+							Width=INNER_CONTROL_WIDTH,
+							Height=20,
+							Anchor=AnchorStyles.Right,
+							Tag=sheetField,
+							ReadOnly=true,
+							Text="Output Text",
+							TextAlign=HorizontalAlignment.Right,
+						};
+						panel.Controls.Add(textBox);
+						#endregion
+					}
 					else if(sheetField.FieldType==SheetFieldType.MobileHeader) {
 						panel.MobileHeader=sheetField.UiLabelMobile;
 						panel.Tag=sheetField;
@@ -509,7 +523,7 @@ namespace OpenDental {
 				if(sheetDef==null||sheetDef.SheetFieldDefs==null) {
 					throw new Exception("Invalid sheet cannot be merged.");
 				}
-				if(!SheetDefs.IsWebFormAllowed(sheetDef.SheetType)) { //Return silently. No need to merge.
+				if(!SheetDefs.IsMobileAllowed(sheetDef.SheetType)) { //Return silently. No need to merge.
 					return true;
 				}
 				if(IsReadOnly) {

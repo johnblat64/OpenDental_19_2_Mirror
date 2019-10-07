@@ -32,7 +32,7 @@ namespace OpenDental {
 			}
 			if(!IsInitial){
 				listSheetType.Enabled=false;
-				checkHasMobileLayout.Enabled=SheetDefs.IsWebFormAllowed(SheetDefCur.SheetType);
+				checkHasMobileLayout.Enabled=SheetDefs.IsMobileAllowed(SheetDefCur.SheetType);
 			}
 			textDescription.Text=SheetDefCur.Description;
 			Func<SheetTypeEnum,string> fItemToString=new Func<SheetTypeEnum,string>((sheetType) => { return Lan.g("enumSheetTypeEnum",sheetType.GetDescription()); });

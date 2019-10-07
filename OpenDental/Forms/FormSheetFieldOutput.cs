@@ -22,6 +22,8 @@ namespace OpenDental {
 				comboGrowthBehavior.Enabled=false;
 				groupBox1.Enabled=false;
 			}
+			textUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			//not allowed to change sheettype or fieldtype once created.  So get all avail fields for this sheettype
 			AvailFields=SheetFieldsAvailable.GetList(_sheetDefCur.SheetType,OutInCheck.Out);
 			listFields.Items.Clear();
@@ -48,7 +50,21 @@ namespace OpenDental {
 			}
 			checkIsLocked.Checked=SheetFieldDefCur.IsNew ? true : SheetFieldDefCur.IsLocked;
 			butColor.BackColor=SheetFieldDefCur.ItemColor;
+			if(!string.IsNullOrEmpty(SheetFieldDefCur.UiLabelMobile)) { //Already has a value that user has setup previously.
+				textUiLabelMobile.Text=SheetFieldDefCur.UiLabelMobile;
+			}
 		}
+
+		private void listFields_SelectedIndexChanged(object sender,EventArgs e) {
+			string fieldName=AvailFields[listFields.SelectedIndex].FieldName;
+			if(fieldName=="dateTime.Today") {
+				textUiLabelMobile.Text="Date";
+			}
+			else if(fieldName=="patient.nameFL") {
+				textUiLabelMobile.Text="Full Name";
+			}
+		}
+
 
 		private void listFields_DoubleClick(object sender,EventArgs e) {
 			OnOk();
@@ -94,6 +110,7 @@ namespace OpenDental {
 			SheetFieldDefCur.TextAlign=(System.Windows.Forms.HorizontalAlignment)comboTextAlign.SelectedIndex;
 			SheetFieldDefCur.ItemColor=butColor.BackColor;
 			SheetFieldDefCur.IsLocked=checkIsLocked.Checked;
+			SheetFieldDefCur.UiLabelMobile=textUiLabelMobile.Text;
 			//don't save to database here.
 			SheetFieldDefCur.IsNew=false;
 			DialogResult=DialogResult.OK;

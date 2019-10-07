@@ -43,6 +43,11 @@ namespace OpenDentBusiness{
 			return sheetType.In(SheetTypeEnum.PatientForm,SheetTypeEnum.MedicalHistory);
 		}
 
+		///<summary>SheetType must either by PatientForm of MedicalHistory.</summary>
+		public static bool IsMobileAllowed(SheetTypeEnum sheetType) {
+			return (IsWebFormAllowed(sheetType) || sheetType==SheetTypeEnum.Consent);
+		}
+
 		///<summary>Determines if a sheetDef is of a SheetTypeEnum that describes a Dashboard.</summary>
 		public static bool IsDashboardType(SheetDef sheetDef) {
 			return IsDashboardType(sheetDef.SheetType);

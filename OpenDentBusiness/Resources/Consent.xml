@@ -11,11 +11,12 @@
   <IsLandscape>false</IsLandscape>
   <PageCount>1</PageCount>
   <IsMultiPage>false</IsMultiPage>
+  <HasMobileLayout>true</HasMobileLayout>
   <SheetFieldDefs>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>683</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4056</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>StaticText</FieldType>
       <FieldName />
       <FieldValue>Extraction Consent</FieldValue>
@@ -35,12 +36,17 @@
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>0</TabOrderMobile>
+      <UiLabelMobile />
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>684</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4057</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>OutputText</FieldType>
       <FieldName>dateTime.Today</FieldName>
       <FieldValue />
@@ -60,12 +66,17 @@
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>1</TabOrderMobile>
+      <UiLabelMobile>Date</UiLabelMobile>
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>685</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4058</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>OutputText</FieldType>
       <FieldName>patient.nameFL</FieldName>
       <FieldValue />
@@ -85,12 +96,17 @@
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>2</TabOrderMobile>
+      <UiLabelMobile>Full Name</UiLabelMobile>
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>686</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4059</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>StaticText</FieldType>
       <FieldName />
       <FieldValue>Tooth number(s): </FieldValue>
@@ -110,12 +126,17 @@
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>0</TabOrderMobile>
+      <UiLabelMobile />
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>687</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4060</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>InputField</FieldType>
       <FieldName>toothNum</FieldName>
       <FieldValue />
@@ -135,12 +156,17 @@
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>3</TabOrderMobile>
+      <UiLabelMobile>Tooth Number(s)</UiLabelMobile>
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>688</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4061</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>StaticText</FieldType>
       <FieldName />
       <FieldValue>Extraction(s) are to be performed on the tooth/teeth listed above.  While we expect no complications, there are some risks involved with this procedure.  The more common complications are:
@@ -168,12 +194,17 @@ By signing below you acknowledge that you understand the information presented, 
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>4</TabOrderMobile>
+      <UiLabelMobile />
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>689</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4062</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>SigBox</FieldType>
       <FieldName />
       <FieldValue />
@@ -193,12 +224,17 @@ By signing below you acknowledge that you understand the information presented, 
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>5</TabOrderMobile>
+      <UiLabelMobile>Signature</UiLabelMobile>
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
     <SheetFieldDef>
       <IsNew>false</IsNew>
-      <SheetFieldDefNum>690</SheetFieldDefNum>
-      <SheetDefNum>25</SheetDefNum>
+      <SheetFieldDefNum>4063</SheetFieldDefNum>
+      <SheetDefNum>114</SheetDefNum>
       <FieldType>StaticText</FieldType>
       <FieldName />
       <FieldValue>Signature</FieldValue>
@@ -218,6 +254,11 @@ By signing below you acknowledge that you understand the information presented, 
       <ReportableName />
       <TextAlign>Left</TextAlign>
       <IsPaymentOption>false</IsPaymentOption>
+      <IsLocked>false</IsLocked>
+      <TabOrderMobile>0</TabOrderMobile>
+      <UiLabelMobile />
+      <UiLabelMobileRadioButton />
+      <LayoutMode>Default</LayoutMode>
       <ItemColor>-16777216</ItemColor>
     </SheetFieldDef>
   </SheetFieldDefs>

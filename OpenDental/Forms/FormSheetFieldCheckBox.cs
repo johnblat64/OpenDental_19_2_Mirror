@@ -62,15 +62,15 @@ namespace OpenDental {
 				textReportableName.Visible=true;
 				textReportableName.Text=SheetFieldDefCur.ReportableName;
 			}
-			textUiLabelMobileMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobileMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			textUiLabelMobileRadioButtonMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobileRadioButtonMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			textUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			textUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelAlsoActs.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+			textUiLabelMobileMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobileMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			textUiLabelMobileRadioButtonMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobileRadioButtonMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			textUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			textUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelAlsoActs.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			//Not allowed to change sheettype or fieldtype once created.  So get all avail fields for this sheettype.
 			//These names will not include the ':' for allergies and problems.
 			List<SheetFieldDef> listSheetFieldDefs=SheetFieldsAvailable.GetList(_sheetDefCur.SheetType,OutInCheck.Check);
@@ -226,8 +226,8 @@ namespace OpenDental {
 				textReportableName.Text="";
 				radioButtonValues=SheetFieldsAvailable.GetRadio(_selectedFieldName);
 				if(radioButtonValues.Count==0) { //Rare, currently only addressAndHmPhoneIsSameEntireFamily.
-					labelUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-					textUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+					labelUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+					textUiLabelMobileCheckBoxNonMisc.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 					return;
 				}
 				groupRadio.Visible=true;

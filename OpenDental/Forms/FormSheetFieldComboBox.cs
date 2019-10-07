@@ -21,8 +21,8 @@ namespace OpenDental {
 			if(_isEditMobile) {
 				textTabOrder.Enabled=false;
 			}
-			textUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+			textUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			textTabOrder.Text=SheetFieldDefCur.TabOrder.ToString();
 			textReportable.Text=SheetFieldDefCur.ReportableName;
 			textUiLabelMobile.Text=SheetFieldDefCur.UiLabelMobile;

@@ -30,8 +30,8 @@ namespace OpenDental {
                 comboGrowthBehavior.Enabled=false;
                 textTabOrder.Enabled=false;
             }
-            textUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
-			labelUiLabelMobile.Visible=SheetDefs.IsWebFormAllowed(_sheetDefCur.SheetType);
+            textUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+			labelUiLabelMobile.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 			//not allowed to change sheettype or fieldtype once created.  So get all avail fields for this sheettype
 			AvailFields=SheetFieldsAvailable.GetList(_sheetDefCur.SheetType,OutInCheck.In);
 			listFields.Items.Clear();
@@ -73,6 +73,7 @@ namespace OpenDental {
 				labelReportableName.Visible=true;
 				textReportableName.Visible=true;
 				textReportableName.Text=SheetFieldDefCur.ReportableName;//will either be "" or saved ReportableName.
+				textUiLabelMobile.Text="Misc";
 			}
 			else {
 				labelReportableName.Visible=false;
@@ -99,6 +100,9 @@ namespace OpenDental {
 			}
 			else if(fieldName=="ICEPhone") {
 				textUiLabelMobile.Text="Emergency Phone";
+			}
+			else if(fieldName=="toothNum") {
+				textUiLabelMobile.Text="Tooth Number(s)";
 			}
 		}
 

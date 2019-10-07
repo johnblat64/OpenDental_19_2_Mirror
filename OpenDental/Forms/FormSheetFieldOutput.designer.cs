@@ -40,6 +40,8 @@ namespace OpenDental{
             this.comboGrowthBehavior = new System.Windows.Forms.ComboBox();
             this.label9 = new System.Windows.Forms.Label();
             this.checkIsLocked = new System.Windows.Forms.CheckBox();
+			this.textUiLabelMobile = new System.Windows.Forms.TextBox();
+			this.labelUiLabelMobile = new System.Windows.Forms.Label();
 			this.groupBox1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -306,10 +308,31 @@ namespace OpenDental{
 			this.checkIsLocked.Text = "Lock Text Editing";
 			this.checkIsLocked.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
+			// textUiLabelMobile
+			// 
+			this.textUiLabelMobile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.textUiLabelMobile.Location = new System.Drawing.Point(268,34);
+			this.textUiLabelMobile.MaxLength = 65535;
+			this.textUiLabelMobile.Name = "textUiLabelMobile";
+			this.textUiLabelMobile.Size = new System.Drawing.Size(197,20);
+			this.textUiLabelMobile.TabIndex = 239;
+			// 
+			// labelUiLabelMobile
+			// 
+			this.labelUiLabelMobile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.labelUiLabelMobile.Location = new System.Drawing.Point(163,35);
+			this.labelUiLabelMobile.Name = "labelUiLabelMobile";
+			this.labelUiLabelMobile.Size = new System.Drawing.Size(105,16);
+			this.labelUiLabelMobile.TabIndex = 240;
+			this.labelUiLabelMobile.Text = "Mobile Caption";
+			this.labelUiLabelMobile.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
 			// FormSheetFieldOutput
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.ClientSize = new System.Drawing.Size(507, 412);
+			this.Controls.Add(this.textUiLabelMobile);
+			this.Controls.Add(this.labelUiLabelMobile);
 			this.Controls.Add(this.checkIsLocked);
 			this.Controls.Add(this.butDelete);
 			this.Controls.Add(this.comboGrowthBehavior);
@@ -357,5 +380,7 @@ namespace OpenDental{
 		private System.Windows.Forms.Label label11;
 		private System.Windows.Forms.Button butColor;
 		private System.Windows.Forms.CheckBox checkIsLocked;
+		private System.Windows.Forms.TextBox textUiLabelMobile;
+		private System.Windows.Forms.Label labelUiLabelMobile;
 	}
 }
