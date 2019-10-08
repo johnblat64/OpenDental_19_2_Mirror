@@ -52,7 +52,12 @@ namespace OpenDental {
 			}
 			textConnectionString.Text=Model.ConnectionString;
 			checkNoShow.Checked=(Model.NoShow==YN.Yes);
-			checkBoxAutomaticLogin.Checked=Model.CentralConnectionCur.IsAutomaticLogin;
+			if(Model.AllowAutoLogin) {
+				checkBoxAutomaticLogin.Checked=Model.CentralConnectionCur.IsAutomaticLogin;
+			}
+			else {
+				checkBoxAutomaticLogin.Visible=false;
+			}
 			if(!string.IsNullOrEmpty(Model.CentralConnectionCur.ServiceURI)) {
 				checkConnectServer.Checked=true;
 				groupDirect.Enabled=false;
@@ -139,8 +144,8 @@ namespace OpenDental {
 		private bool IsValidConnection() {
 			SyncModelWithUI();
 			try {
-				CentralConnections.TryToConnect(Model.CentralConnectionCur,Model.DbType,Model.ConnectionString,(Model.NoShow==YN.Yes),
-					Model.ListAdminCompNames,useDynamicMode:Model.UseDynamicMode);
+				CentralConnections.TryToConnect(Model.CentralConnectionCur,Model.DbType,Model.ConnectionString,noShowOnStartup:(Model.NoShow==YN.Yes),
+					Model.ListAdminCompNames,useDynamicMode:Model.UseDynamicMode,allowAutoLogin:Model.AllowAutoLogin);
 			}
 			catch(Exception ex) {
 				MessageBox.Show(ex.Message);
@@ -181,6 +186,8 @@ namespace OpenDental {
 		public DatabaseType DbType;
 		///<summary>Stored so that they don't get deleted when re-writing the FreeDentalConfig file.</summary>
 		public List<string> ListAdminCompNames=new List<string>();
+		///<summary>Defaults to true. Allows the user to choose whether or not they can select 'Log me in automatically.'</summary>
+		public bool AllowAutoLogin=true;
 
 		public ChooseDatabaseModel() {
 		}
@@ -197,7 +204,8 @@ namespace OpenDental {
 			//The only time we do not need to do that is if a direct DB has been passed in.
 			if(string.IsNullOrEmpty(databaseName)) {
 				CentralConnections.GetChooseDatabaseConnectionSettings(out chooseDatabaseModel.CentralConnectionCur,out chooseDatabaseModel.ConnectionString
-					,out chooseDatabaseModel.NoShow,out chooseDatabaseModel.DbType,out chooseDatabaseModel.ListAdminCompNames,out chooseDatabaseModel.UseDynamicMode);
+					,out chooseDatabaseModel.NoShow,out chooseDatabaseModel.DbType,out chooseDatabaseModel.ListAdminCompNames,out chooseDatabaseModel.UseDynamicMode
+					,out chooseDatabaseModel.AllowAutoLogin);
 			}
 			//Command line args should always trump settings from the config file.
 			#region Command Line Arguements

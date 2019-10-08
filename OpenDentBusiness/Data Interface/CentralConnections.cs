@@ -23,7 +23,7 @@ namespace OpenDentBusiness{
 		///<summary>Gets all of the connection setting information from the FreeDentalConfig.xml
 		///Throws exceptions.</summary>
 		public static void GetChooseDatabaseConnectionSettings(out CentralConnection centralConnection,out string connectionString,out YN noShow
-			,out DatabaseType dbType,out List<string> listAdminCompNames,out bool useDynamicMode) 
+			,out DatabaseType dbType,out List<string> listAdminCompNames,out bool useDynamicMode,out bool allowAutoLogin) 
 		{
 			//No remoting role check; out parameters are used.
 			centralConnection=new CentralConnection();
@@ -32,6 +32,7 @@ namespace OpenDentBusiness{
 			dbType=DatabaseType.MySql;
 			listAdminCompNames=new List<string>();
 			useDynamicMode=false;
+			allowAutoLogin=true;
 			string xmlPath=ODFileUtils.CombinePaths(Application.StartupPath,"FreeDentalConfig.xml");
 			#region Permission Check
 			//Improvement should be made here to avoid requiring admin priv.
@@ -72,6 +73,12 @@ namespace OpenDentBusiness{
 				nav=Navigator.SelectSingleNode("//UseXWebTestGateway");
 				if(nav!=null) {
 					OpenDentBusiness.WebTypes.Shared.XWeb.XWebs.UseXWebTestGateway=nav.Value.ToLower()=="true";
+				}
+				//See if there's a AllowAutoLogin node
+				nav=Navigator.SelectSingleNode("//AllowAutoLogin");
+				if(nav!=null && nav.Value.ToLower()=="false") {
+					//Node must be specifically set to false to change the allowAutoLogin bool.
+					allowAutoLogin=false;
 				}
 				#endregion
 				#region Nodes from Choose Database Window
@@ -146,7 +153,8 @@ namespace OpenDentBusiness{
 					//Retrieve the user from the Windows password vault for the current ServiceURI that was last to successfully single sign on.
 					//If credentials are found then log the user in.  This is safe to do because the password vault is unique per Windows user and workstation.
 					//There is code elsewhere that will handle password vault management (only storing the last valid single sign on per ServiceURI).
-					if(autoLoginNav!=null && autoLoginNav.Value=="True") {
+					//allowAutoLogin defaults to true unless the office specifically set it to false.
+					if(autoLoginNav!=null && autoLoginNav.Value=="True" && allowAutoLogin) {
 						if(!PasswordVaultWrapper.TryRetrieveUserName(centralConnection.ServiceURI,out centralConnection.OdUser)) {
 							centralConnection.OdUser=nav.SelectSingleNode("User").Value;//No username found.  Use the User in FreeDentalConfig (preserve old behavior).
 						}
@@ -285,7 +293,7 @@ namespace OpenDentBusiness{
 
 		///<summary>Throws an exception to display to the user if anything goes wrong.</summary>
 		public static void TryToConnect(CentralConnection centralConnection,DatabaseType dbType,string connectionString="",bool noShowOnStartup=false,
-			List<string> listAdminCompNames=null,bool isCommandLineArgs=false,bool useDynamicMode=false) 
+			List<string> listAdminCompNames=null,bool isCommandLineArgs=false,bool useDynamicMode=false,bool allowAutoLogin=true) 
 		{
 			if(!string.IsNullOrEmpty(centralConnection.ServiceURI)) {
 				LoadMiddleTierProxySettings();
@@ -338,7 +346,8 @@ namespace OpenDentBusiness{
 				RemotingClient.RemotingRole=RemotingRole.ClientDirect;
 			}
 			//Only gets this far if we have successfully connected, thus, saving connection settings is appropriate.
-			TrySaveConnectionSettings(centralConnection,dbType,connectionString,noShowOnStartup,listAdminCompNames,isCommandLineArgs,useDynamicMode);
+			TrySaveConnectionSettings(centralConnection,dbType,connectionString,noShowOnStartup:noShowOnStartup,listAdminCompNames,
+				isCommandLineArgs:isCommandLineArgs,useDynamicMode:useDynamicMode,allowAutoLogin:allowAutoLogin);
 		}
 
 		///<summary>If MiddleTierProxyConfix.xml is present, this loads the three variables from that file into memory.
@@ -360,7 +369,7 @@ namespace OpenDentBusiness{
 		///Set isCommandLineArgs to true in order to preserve settings within FreeDentalConfig.xml that are not command line args.
 		///E.g. the current value within the FreeDentalConfig.xml for NoShowOnStartup will be preserved instead of the value passed in.</summary>
 		public static bool TrySaveConnectionSettings(CentralConnection centralConnection,DatabaseType dbType,string connectionString=""
-			,bool noShowOnStartup=false,List<string> listAdminCompNames=null,bool isCommandLineArgs=false,bool useDynamicMode=false) 
+			,bool noShowOnStartup=false,List<string> listAdminCompNames=null,bool isCommandLineArgs=false,bool useDynamicMode=false,bool allowAutoLogin=true) 
 		{
 			try {
 				//The parameters passed in might have misleading information (like noShowOnStartup) if they were comprised from command line arguments.
@@ -402,6 +411,10 @@ namespace OpenDentBusiness{
 				settings.IndentChars=("    ");
 				using(XmlWriter writer=XmlWriter.Create(ODFileUtils.CombinePaths(Application.StartupPath,"FreeDentalConfig.xml"),settings)) {
 					writer.WriteStartElement("ConnectionSettings");
+					if(!allowAutoLogin) {
+						//Only add if it was added before.
+						writer.WriteElementString("AllowAutoLogin","False");
+					}
 					if(connectionString!="") {
 						writer.WriteStartElement("ConnectionString");
 						writer.WriteString(connectionString);
