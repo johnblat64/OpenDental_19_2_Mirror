@@ -836,9 +836,6 @@ namespace OpenDental{
 					return;
 				}
 			}
-			if(UserClinics.Sync(listUserClinics,UserCur.UserNum)) {//Either syncs new list, or clears old list if no longer restricted.
-				DataValid.SetInvalid(InvalidType.UserClinics);
-			}
 			if(!PrefC.HasClinicsEnabled || listClinic.SelectedIndex==0) {
 				UserCur.ClinicNum=0;
 			}
@@ -878,6 +875,7 @@ namespace OpenDental{
 					Userods.Insert(UserCur,listUserGroup.SelectedItems.OfType<ODBoxItem<UserGroup>>().Select(x => x.Tag.UserGroupNum).ToList());
 					//Set the userodprefs to the new user's UserNum that was just retreived from the database.
 					_listDoseSpotUserPrefNew.ForEach(x => x.UserNum=UserCur.UserNum);
+					listUserClinics.ForEach(x => x.UserNum=UserCur.UserNum);//Set the user clinic's UserNum to the one we just inserted.
 					SecurityLogs.MakeLogEntry(Permissions.AddNewUser,0,"New user '"+UserCur.UserName+"' added");
 				}
 				else{
@@ -912,6 +910,9 @@ namespace OpenDental{
 						SecurityLogs.MakeLogEntry(Permissions.SecurityAdmin,0,"User "+UserCur.UserName+
 							" added to User group(s): "+string.Join(", ",listAddedGroups.Select(x => x.Description).ToArray())+" by: "+Security.CurUser.UserName);
 					}
+				}
+				if(UserClinics.Sync(listUserClinics,UserCur.UserNum)) {//Either syncs new list, or clears old list if no longer restricted.
+					DataValid.SetInvalid(InvalidType.UserClinics);
 				}
 			}
 			catch(Exception ex){
