@@ -18,7 +18,7 @@ namespace OpenDental {
 		/// <summary>The string of the autonote description which is used to bring up the actual prompt.</summary>
 		private string _noteDescript;
 		///<summary>Characters used to indicated the separation between two or more response selections when concatenated into a single string.</summary>
-		private const string DELIMITER="; ";
+		private const string DELIMITER=", ";
 
 		public FormAutoNotePromptMultiResp(string noteDescription) {
 			InitializeComponent();
