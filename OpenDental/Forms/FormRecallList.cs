@@ -1327,7 +1327,7 @@ namespace OpenDental{
 			foreach(PatRowTag tag in listSentRows) {
 				Commlogs.InsertForRecallOrReactivation(tag.PatNum,mode,tag.NumReminders,status,commType);
 				if(commType==CommItemTypeAuto.RECALL) { //RECALL
-					Recalls.UpdateStatus(tag.PatNum,status);
+					Recalls.UpdateStatus(tag.PriKeyNum,status);
 				}
 				else { //REACTIVATION
 					Reactivations.UpdateStatus(tag.PriKeyNum,status);
