@@ -1226,7 +1226,7 @@ namespace OpenDentBusiness{
 				appt.ProvHyg,
 				appt.ProvNum
 				FROM appointment appt
-				WHERE appt.ProvNum="+POut.Long(provNum)+
+				WHERE (appt.ProvNum="+POut.Long(provNum)+" OR appt.ProvHyg="+POut.Long(provNum)+")"+
 				" AND appt.AptDateTime BETWEEN "+POut.DateT(dateTimeAppointmentStart.Date)+" AND "+POut.DateT(dateTimeAppointmentStart.AddDays(1).Date);
 			return dcon.GetTable(command);
 		}
