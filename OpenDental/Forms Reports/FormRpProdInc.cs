@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 
@@ -822,7 +823,11 @@ namespace OpenDental {
 					}
 				}
 			}
-			bool hasAllClinics=(!Security.CurUser.ClinicIsRestricted && checkAllClin.Checked);
+			//true if the all clinics checkbox is checked and the selected clinics contains every ClinicNum, including the 'Unassigned' ClinicNum of 0,
+			//all hidden clinics, and the user cannot be restricted.  'All' clinics means all in the list, which may not be all clinics.
+			List<long> listSelectedClinicNums=listClinics.Select(x => x.ClinicNum).ToList();
+			bool hasAllClinics=checkAllClin.Checked && listSelectedClinicNums.Contains(0)
+				&& Clinics.GetDeepCopy().Select(x => x.ClinicNum).All(x => x.In(listSelectedClinicNums));
 			DataSet dataSetDailyProd=RpProdInc.GetDailyData(dateFrom,dateTo,listProvs,listClinics,checkAllProv.Checked,hasAllClinics
 				,checkClinicBreakdown.Checked,checkClinicInfo.Checked,checkUnearned.Checked,GetWriteoffType());
 			DataTable tableDailyProd=dataSetDailyProd.Tables["DailyProd"];//Includes multiple clinics that will get separated out later.
@@ -1137,7 +1142,11 @@ namespace OpenDental {
 					}
 				}
 			}
-			bool hasAllClinics=(!Security.CurUser.ClinicIsRestricted && checkAllClin.Checked);
+			//true if the all clinics checkbox is checked and the selected clinics contains every ClinicNum, including the 'Unassigned' ClinicNum of 0,
+			//all hidden clinics, and the user cannot be restricted.  'All' clinics means all in the list, which may not be all clinics.
+			List<long> listSelectedClinicNums=listClinics.Select(x => x.ClinicNum).ToList();
+			bool hasAllClinics=checkAllClin.Checked && listSelectedClinicNums.Contains(0)
+				&& Clinics.GetDeepCopy().Select(x => x.ClinicNum).All(x => x.In(listSelectedClinicNums));
 			DataSet ds=RpProdInc.GetMonthlyData(dateFrom,dateTo,listProvs,listClinics,radioWriteoffPay.Checked,checkAllProv.Checked,hasAllClinics
 				,radioWriteoffBoth.Checked,checkUnearned.Checked);
 			DataTable dt=ds.Tables["Total"];
@@ -1344,7 +1353,11 @@ namespace OpenDental {
 					}
 				}
 			}
-			bool hasAllClinics=(!Security.CurUser.ClinicIsRestricted && checkAllClin.Checked);
+			//true if the all clinics checkbox is checked and the selected clinics contains every ClinicNum, including the 'Unassigned' ClinicNum of 0,
+			//all hidden clinics, and the user cannot be restricted.  'All' clinics means all in the list, which may not be all clinics.
+			List<long> listSelectedClinicNums=listClinics.Select(x => x.ClinicNum).ToList();
+			bool hasAllClinics=checkAllClin.Checked && listSelectedClinicNums.Contains(0)
+				&& Clinics.GetDeepCopy().Select(x => x.ClinicNum).All(x => x.In(listSelectedClinicNums));
 			DataSet ds=RpProdInc.GetAnnualData(dateFrom,dateTo,listProvs,listClinics,radioWriteoffPay.Checked,checkAllProv.Checked,hasAllClinics
 				,radioWriteoffBoth.Checked,checkUnearned.Checked);
 			DataTable dt=ds.Tables["Total"];
