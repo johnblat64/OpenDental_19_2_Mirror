@@ -644,17 +644,19 @@ namespace OpenDentBusiness{
 			return null;
 		}
 
-		///<summary>Gets all ClaimProcs for the current procedure.</summary>
-		public static List<ClaimProc> GetForProcs(List<long> listProcNums) {
+		///<summary>Gets all ClaimProcs for the list of ProcNums, optionally filtered by list of statuses.</summary>
+		public static List<ClaimProc> GetForProcs(List<long> listProcNums,List<ClaimProcStatus> listStatuses=null) {
+			if(listProcNums.IsNullOrEmpty()) {
+				return new List<ClaimProc>();
+			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<ClaimProc>>(MethodBase.GetCurrentMethod(),listProcNums);
+				return Meth.GetObject<List<ClaimProc>>(MethodBase.GetCurrentMethod(),listProcNums,listStatuses);
 			}
-			List<ClaimProc> listClaimProcs=new List<ClaimProc>();
-			if(listProcNums==null || listProcNums.Count < 1) {
-				return listClaimProcs;
+			string command=$"SELECT * FROM claimproc WHERE ProcNum IN({string.Join(",",listProcNums)})";
+			if(!listStatuses.IsNullOrEmpty()) {
+				command+=$" AND Status IN ({string.Join(",",listStatuses.Select(x => POut.Int((int)x)))})";
 			}
-			string command="SELECT * FROM claimproc WHERE ProcNum IN("+string.Join(",",listProcNums)+")";
-			return Crud.ClaimProcCrud.SelectMany(command);
+			return ClaimProcCrud.SelectMany(command);
 		}
 
 		///<summary> </summary>

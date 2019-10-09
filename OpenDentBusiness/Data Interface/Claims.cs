@@ -287,29 +287,14 @@ namespace OpenDentBusiness{
 		}
 
 		public static List<Claim> GetClaimsFromClaimNums(List<long> listClaimNums) {
-			DataTable claimTable=GetClaimTableFromClaimNums(listClaimNums);
-			List<Claim> list=Crud.ClaimCrud.TableToList(claimTable);
-			return list;
-		}
-
-		public static DataTable GetClaimTableFromClaimNums(List<long> listClaimNums) {
+			if(listClaimNums.IsNullOrEmpty()) {
+				return new List<Claim>();
+			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetTable(MethodBase.GetCurrentMethod(),listClaimNums);
+				return Meth.GetObject<List<Claim>>(MethodBase.GetCurrentMethod(),listClaimNums);
 			}
-			if(listClaimNums.Count==0) {
-				return new DataTable();
-			}
-			string command="SELECT * FROM claim WHERE ClaimNum IN (";
-			string claimNums="";//used twice
-			for(int i = 0;i<listClaimNums.Count;i++) {
-				if(i>0) {
-					claimNums+=",";
-				}
-				claimNums+=listClaimNums[i];
-			}
-			command+=claimNums+")";
-			DataTable table=Db.GetTable(command);
-			return table;
+			string command=$"SELECT * FROM claim WHERE ClaimNum IN ({string.Join(",",listClaimNums)})";
+			return ClaimCrud.SelectMany(command);
 		}
 
 		///<summary>Gets all claims for the specified patient. But without any attachments.</summary>
@@ -525,9 +510,6 @@ namespace OpenDentBusiness{
 		///If a claim in the database is not found for a specific x12claim, then a value of 0 will be placed into the return list for that x12claim.
 		///Each matched claim will either begin with the specified claimIdentifier, or will be for the patient name and subscriber ID specified.</summary>
 		public static List <long> GetClaimFromX12(List <X12ClaimMatch> listX12claims) {
-			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<long>>(MethodBase.GetCurrentMethod(),listX12claims);
-			}
 			if(listX12claims.Count==0) {
 				return null;
 			}
@@ -581,25 +563,10 @@ namespace OpenDentBusiness{
 				}
 			}
 			#endregion
-			#region Build big list of claims based on date range and claimfee range so we can run matching logic below.
-			//We always require the claim fee and dates of service to match, then we use other criteria below to wisely choose from the shorter list of claims.
-			//The list of claims with matching fee and date of service should be very short.  Worst case, the list would contain all of the appointments for a few days if every claim had the same fee (rare).
-			string command="SELECT claim.ClaimNum,claim.ClaimIdentifier,claim.ClaimStatus,ROUND(ClaimFee,2) ClaimFee,claim.DateService,"
-					+"patient.LName,patient.FName,inssub.SubscriberID "
-				+"FROM claim "
-				+"INNER JOIN patient ON patient.PatNum=claim.PatNum "
-				+"INNER JOIN inssub ON inssub.InsSubNum=claim.InsSubNum AND claim.PlanNum=inssub.PlanNum "
-				+"WHERE "+DbHelper.DtimeToDate("DateService")+">="+POut.Date(dateMin)+" AND "+DbHelper.DtimeToDate("DateService")+"<="+POut.Date(dateMax)+" "
-				+"AND ROUND(ClaimFee,2)>="+POut.Double(feeMin)+" AND ROUND(ClaimFee,2)<="+POut.Double(feeMax);
-			DataTable tableClaims=Db.GetTable(command);
-			Dictionary<DateTime,List<DataRow>> dictClaims=new Dictionary<DateTime, List<DataRow>>();
-			foreach(DataRow row in tableClaims.Rows) {
-				DateTime key=PIn.Date(row["DateService"].ToString());
-				if(!dictClaims.ContainsKey(key)) {
-					dictClaims.Add(key,new List<DataRow>());
-				}
-				dictClaims[key].Add(row);
-			}
+			#region Get List of Claims For Date and Fee Ranges
+			Dictionary<DateTime,List<DataRow>> dictClaims=GetClaimTable(dateMin,dateMax,feeMin,feeMax).Select()
+				.GroupBy(x => PIn.Date(x["DateService"].ToString()))
+				.ToDictionary(x => x.Key,x => x.ToList());
 			#endregion
 			#region Get claimProcs for given 835 procNums that are associated to a claim.
 			List<long> listAllEraProcNums=dictMatchesPerClaimId
@@ -611,9 +578,7 @@ namespace OpenDentBusiness{
 			listClaimProcStatuses.Add(ClaimProcStatus.Preauth);
 			listClaimProcStatuses.Add(ClaimProcStatus.CapClaim);
 			listClaimProcStatuses.Add(ClaimProcStatus.CapComplete);
-			List<ClaimProc> listAllClaimProcs=ClaimProcs.GetForProcs(listAllEraProcNums)//Only runs query if list contains items.
-				.Where(x => x.Status.In(listClaimProcStatuses))
-				.ToList();
+			List<ClaimProc> listAllClaimProcs=ClaimProcs.GetForProcs(listAllEraProcNums,listClaimProcStatuses);//Only runs query if procNumList not empty
 			List<ClaimProc> listAccountClaimProcs=listAllClaimProcs.Where(x => x.Status!=ClaimProcStatus.Preauth).ToList();
 			List<ClaimProc> listTreatPlanClaimProcs=listAllClaimProcs.Where(x => x.Status==ClaimProcStatus.Preauth).ToList();
 			List<PatPlan> listPatPlans=PatPlans.GetListByInsSubNums(listAllClaimProcs.Select(x => x.InsSubNum).ToList());//Only runs query if list contains items.
@@ -621,17 +586,14 @@ namespace OpenDentBusiness{
 			List <long> listClaimNums=new List<long>(new long[listX12claims.Count]);//Done this way to guarantee that each claimnum is initialized to 0.
 			//For each provided etrans, we look at 1 group such that the key is the claimIdentifier and the value is the list of all claim matches assocaited to the claimIdentifier.
 			//This means that each entry in the list of claim matches should share many fields like, claimIdentifier, patient FName, patient LName and subscriber ID.
-			int matchCount=0;
 			foreach(long etransNum in dictMatchesPerClaimId.Keys) {//Consider a single etrans at a time.
 				foreach(string claimIdentifier in dictMatchesPerClaimId[etransNum].Keys) {//Claims that are split by procedure from the carrier's side are grouped together by claimIdentifier above.
 					X12ClaimMatch xclaim=dictMatchesPerClaimId[etransNum][claimIdentifier].First();//Just use the first 835 claim to try and match because all fields we use should be identical. 
 					List<long> listEraProcNums=dictMatchesPerClaimId[etransNum][claimIdentifier].SelectMany(x => x.List835Procs.Select(y => y.ProcNum)).ToList();//All identified procNums reported from 835.
 					//Begin with basic filtering by date of service and claim total fee.
 					List <DataRow> listDbClaims=new List<DataRow>();
-					for(DateTime d=xclaim.DateServiceStart;d<=xclaim.DateServiceEnd;d=d.AddDays(1)) {
-						if(dictClaims.ContainsKey(d)) {
-							listDbClaims.AddRange(dictClaims[d].FindAll(x => PIn.Double(x["ClaimFee"].ToString())==dictTotalClaimFee[etransNum][claimIdentifier]));
-						}
+					foreach(DateTime d in dictClaims.Keys.Where(x => x>=xclaim.DateServiceStart && x<=xclaim.DateServiceEnd)) {
+						listDbClaims.AddRange(dictClaims[d].FindAll(x => PIn.Double(x["ClaimFee"].ToString())==dictTotalClaimFee[etransNum][claimIdentifier]));
 					}
 					#region 835 ProcNum matching in conjunction with PlanNum and Ordinal matching.  Helps distinctly identify primary vs secondary claims.
 					if(xclaim.List835Procs.Count>0 && xclaim.List835Procs.First().MatchingVersion.In(EraProcMatchingFormat.X,EraProcMatchingFormat.Y)) {
@@ -650,7 +612,7 @@ namespace OpenDentBusiness{
 								);
 								break;
 							case EraProcMatchingFormat.Y:
-							//Matching 'y(procNum)/(ordinal)/(partial InsPlan.planNum)' format.
+								//Matching 'y(procNum)/(ordinal)/(partial InsPlan.planNum)' format.
 								dictClaimProcs=listAllClaimProcs//Keys are ClaimNum from database and values are list of claimprocs for claim.
 									.Where(x => listEraProcNums.Contains(x.ProcNum)
 										&& x.PlanNum.ToString().EndsWith(eraProc.PartialPlanNum.ToString())
@@ -691,6 +653,12 @@ namespace OpenDentBusiness{
 									continue;
 								}
 								listIndiciesForIdentifier.Add(i);//Match based on claim identifier, claim date of service, claim fee and given procNums.
+								if(listIndiciesForIdentifier.Count>1) {//don't need to continue looping if we find more than 1
+									break;
+								}
+							}
+							if(listIndiciesForIdentifier.Count>1) {
+								break;
 							}
 						}
 						if(listIndiciesForIdentifier.Count==1) {//A single match based on claim identifier, claim date of service, claim fee and given procNums.
@@ -731,7 +699,6 @@ namespace OpenDentBusiness{
 					if(listClaimProcs.Count>0) {//Successfully found internal claimProcs.
 						long claimNumKey=listClaimProcs.First().ClaimNum;
 						if(listClaimProcs.All(x => x.ClaimNum==claimNumKey)) {//All claimNums must match.
-							matchCount++;
 							foreach(X12ClaimMatch match in dictMatchesPerClaimId[etransNum][claimIdentifier]) {
 								int index=listX12claims.IndexOf(match);
 								listClaimNums[index]=claimNumKey;
@@ -870,6 +837,23 @@ namespace OpenDentBusiness{
 				}//end foreach claim identifier
 			}//end foreach etrans/835
 			return listClaimNums;
+		}
+
+		///<summary>We always require the claim fee and dates of service to match, then we use additional criteria to wisely choose from the shorter list
+		///of claims.  The list of claims with matching fee and date of service should be very short.  Worst case, the list would contain all of the
+		///claims for a few days if every claim had the same fee (rare).</summary>
+		public static DataTable GetClaimTable(DateTime dateMin,DateTime dateMax,double feeMin,double feeMax) {
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				return Meth.GetTable(MethodBase.GetCurrentMethod(),dateMin,dateMax,feeMin,feeMax);
+			}
+			string command=$@"SELECT claim.ClaimNum,claim.ClaimIdentifier,claim.ClaimStatus,ROUND(ClaimFee,2) ClaimFee,claim.DateService,patient.LName,
+				patient.FName,inssub.SubscriberID
+				FROM claim
+				INNER JOIN patient ON patient.PatNum=claim.PatNum
+				INNER JOIN inssub ON inssub.InsSubNum=claim.InsSubNum AND claim.PlanNum=inssub.PlanNum
+				WHERE {DbHelper.BetweenDates("DateService",dateMin,dateMax)}
+				AND ROUND(ClaimFee,2) BETWEEN {POut.Double(feeMin)} AND {POut.Double(feeMax)}";
+			return Db.GetTable(command);
 		}
 
 		///<summary>Returns the number of received claims attached to specified insplan.</summary>

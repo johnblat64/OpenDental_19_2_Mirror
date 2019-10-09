@@ -66,7 +66,6 @@ namespace OpenDental {
 			}
 			#endregion
 			RefreshAndFillGrid();//Will not run query, simply initilizes the grid.
-			gridMain.AllowSortingByColumn=true;
 		}
 
 		///<summary>Called when we want to refresh form list and data. Also calls FillGrid().
@@ -179,8 +178,8 @@ namespace OpenDental {
 			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Patient Name"),250));
 			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Carrier Name"),190));
 			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Status"),80));
-			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Date"),80));
-			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Amount"),80));
+			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Date"),80,GridSortingStrategy.DateParse));
+			gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Amount"),80,GridSortingStrategy.AmountParse));
 			if(PrefC.HasClinicsEnabled) {
 				gridMain.Columns.Add(new ODGridColumn(Lan.g("TableEtrans835s","Clinic"),70));
 			}

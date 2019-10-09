@@ -232,13 +232,12 @@
 			// 
 			// gridMain
 			// 
+			this.gridMain.AllowSortingByColumn = true;
 			this.gridMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridMain.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridMain.HasAddButton = false;
 			this.gridMain.HasDropDowns = false;
-			this.gridMain.HasMultilineHeaders = false;
 			this.gridMain.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
 			this.gridMain.HeaderHeight = 15;
 			this.gridMain.HScrollVisible = false;

@@ -452,12 +452,11 @@ namespace OpenDentBusiness{
 
 		///<summary>There can be multiple PatPlans returned for a single InsSubNum.</summary>
 		public static List<PatPlan> GetListByInsSubNums(List<long> listInsSubNums) {
+			if(listInsSubNums.IsNullOrEmpty()) {
+				return new List<PatPlan>();
+			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<PatPlan>>(MethodBase.GetCurrentMethod(),listInsSubNums);
-			}
-			List<PatPlan> listPatPlans=new List<PatPlan>();
-			if(listInsSubNums==null || listInsSubNums.Count<1) {
-				return listPatPlans;
 			}
 			string command="SELECT * FROM patplan WHERE InsSubNum IN("+string.Join(",",listInsSubNums)+")";
 			return Crud.PatPlanCrud.SelectMany(command);
