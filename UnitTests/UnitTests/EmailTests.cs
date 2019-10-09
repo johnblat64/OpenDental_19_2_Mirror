@@ -117,7 +117,7 @@ multiple lines
 				new Tuple<string,string>("",""),
 			};
 			foreach(Tuple<string,string> test in listTestSubjects) {
-				Assert.AreEqual(test.Item2,EmailMessages.ProcessMimeSubject(test.Item1));
+				Assert.AreEqual(test.Item2,EmailMessages.ProcessInlineEncodedText(test.Item1));
 			}
 		}
 

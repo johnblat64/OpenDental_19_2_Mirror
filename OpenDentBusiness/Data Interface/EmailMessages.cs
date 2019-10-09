@@ -1732,7 +1732,7 @@ namespace OpenDentBusiness {
 		private static EmailMessage ConvertMessageToEmailMessage(Health.Direct.Common.Mail.Message message,bool hasAttachments,bool isOutbound) {
 			//No need to check RemotingRole; no call to db.
 			EmailMessage emailMessage=new EmailMessage();
-			emailMessage.FromAddress=message.FromValue.Trim();
+			emailMessage.FromAddress=ProcessInlineEncodedText(message.FromValue.Trim());
 			if(message.DateValue!=null) {//Is null when sending, but should not be null when receiving.
 				//The received email message date must be in a very specific format and must match the RFC822 standard.  Is a required field for RFC822.  http://tools.ietf.org/html/rfc822
 				//We show the datetime that the email landed onto the email server instead of the datetime that the email was downloaded.
@@ -1760,10 +1760,10 @@ namespace OpenDentBusiness {
 			else {//Sending the email.
 				emailMessage.MsgDateTime=DateTime.Now;
 			}
-			emailMessage.Subject=SubjectTidy(ProcessMimeSubject(message.SubjectValue));
-			emailMessage.ToAddress=POut.String(message.ToValue).Trim();//ToValue can be null if recipients were CC or BCC only.
-			emailMessage.CcAddress=POut.String(message.CcValue).Trim();
-			emailMessage.BccAddress=POut.String(message.BccValue).Trim();
+			emailMessage.Subject=SubjectTidy(ProcessInlineEncodedText(message.SubjectValue));
+			emailMessage.ToAddress=ProcessInlineEncodedText(POut.String(message.ToValue).Trim());//ToValue can be null if recipients were CC or BCC only.
+			emailMessage.CcAddress=ProcessInlineEncodedText(POut.String(message.CcValue).Trim());
+			emailMessage.BccAddress=ProcessInlineEncodedText(POut.String(message.BccValue).Trim());
 			//Think of the mime structure as a tree.
 			//We want to treat one part and multi-part emails the same way below, so we make our own list of leaf node mime parts (mime parts which have no children, also know as single part).
 			List<Health.Direct.Common.Mime.MimeEntity> listMimePartLeafNodes=GetMimeLeafNodes(message);
@@ -1933,13 +1933,13 @@ namespace OpenDentBusiness {
 
 		///<summary>Decodes the subject line of an email, which may contain non-ascii characters, either due to base64 or quoted-printable encoding.
 		///</summary>
-		public static string ProcessMimeSubject(string text) {
-			string subject=text;
-			//str must be in "=?bodycharset?[B or Q]?input?=" format for Attachment to properly decode non-ascii chars.  This is the case for the email subject
-			//line, but not for the body, which is why we decode the body differently.  
+		public static string ProcessInlineEncodedText(string text) {
+			string subject=text??"";
+			//str must be in "=?bodycharset?[B,Q,iso-8859-1,etc]?input?=" format for Attachment to properly decode non-ascii chars.  This is the case for 
+			//the email subject line, and to/from/cc/bcc addresses but not for the body, which is why we decode the body differently.  
 			//Ex. =?UTF-8?B?RndkOiDCoiDDhiAxMjM0NSDDpiDDvyBzb21lIGFzY2lpIGNoYXJzIMOCIMOD?= decodes to "Fwd: ¢ Æ 12345 æ ÿ some ascii chars Â Ã"
 			//=?UTF-8?Q?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?= decodes to "nu¤ Â À ¢"
-			subject=Regex.Replace(subject,"=\\?.*\\?[BQ]{1}\\?.+\\?="
+			subject=Regex.Replace(subject,@"=\?([^?]+)\?([^?]+)\?([^?])+\?="
 				,new MatchEvaluator((match) => Attachment.CreateAttachmentFromString("",match.Value)?.Name));
 			return subject;
 		}
