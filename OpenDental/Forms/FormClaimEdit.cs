@@ -2728,6 +2728,23 @@ namespace OpenDental{
 				MsgBox.Show(this,"Please fix data entry errors first.");
 				return false;
 			}
+			//We are not sure how these text boxes can have invalid values, but we have received many bug submissions.
+			try {
+				PIn.Byte(textOrthoTotalM.Text);
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
+				MsgBox.Show(this,"Please enter a valid value for Ortho Months Total.");
+				return false;
+			}
+			try {
+				PIn.Byte(textOrthoRemainM.Text);
+			}
+			catch(Exception ex) {
+				ex.DoNothing();
+				MsgBox.Show(this,"Please enter a valid value for Ortho Months Remaining.");
+				return false;
+			}
 			bool isSentOrReceived=comboClaimStatus.SelectedIndex.In(4,5);//sent,received
 			ClaimIsValidState state=ClaimL.ClaimIsValid(textDateService.Text,ClaimCur.ClaimType,isSentOrReceived,textDateSent.Text,_listClaimProcsForClaim
 				,ClaimCur.PlanNum,PlanList,textNote.Text,ClaimCur.UniformBillType,(ClaimCorrectionType)comboCorrectionType.SelectedIndex
