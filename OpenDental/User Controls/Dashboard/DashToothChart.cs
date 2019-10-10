@@ -56,11 +56,8 @@ namespace OpenDental {
 		}
 
 		private Image GetToothChart(long patNum,TreatPlan treatPlan,List<Procedure> listProcs=null) {
-			if(treatPlan!=null) {
+			if(treatPlan!=null && treatPlan.ListProcTPs.IsNullOrEmpty()) {
 				listProcs=listProcs??Procedures.Refresh(patNum);
-				//Only include current and past procedures, such that this ToothChart will display in the Patient Dashboard with the same charted procedures
-				//as when the Chart Module refreshes.
-				listProcs=listProcs.FindAll(x => x.ProcDate.Date<=DateTime.Today);
 				treatPlan.ListProcTPs=GetTreatProcTPs(listProcs);
 			}
 			List<Procedure> listProcsFiltered=SheetPrinting.FilterProceduresForToothChart(listProcs,treatPlan,true);
