@@ -90,16 +90,14 @@ namespace OpenDental{
 			if(FromVersion >= ConvertDatabases.LatestVersion) {
 				return true;//no conversion necessary
 			}
-#if TRIALONLY
 			//Trial users should never be able to update a database.
-			if(PrefC.GetString(PrefName.RegistrationKey)!="") {//Allow databases with no reg key to update.  Needed by our conversion department.
+			if(ODBuild.IsTrial() && PrefC.GetString(PrefName.RegistrationKey)!="") {//Allow databases with no reg key to update.  Needed by our conversion department.
 				FormOpenDental.ExitCode=191;//Trial versions cannot connect to live databases
 				if(!isSilent) {
 					MsgBox.Show(this,"Trial versions cannot connect to live databases.  Please run the Setup.exe in the AtoZ folder to reinstall your original version.");
 				}
 				return false;
 			}
-#endif
 			string webServiceServerName=PrefC.GetString(PrefName.WebServiceServerName);
 			//If the WebServiceServerName name is not set and they are using dynamic mode, continue on to download the binaries in CheckProgramVersion.
 			//Or, if they do have the WebServiceServerName set and this is not the computer, continue on to CheckProgramVersion.

@@ -1266,13 +1266,13 @@ namespace OpenDental{
 
 		///<summary>Remember, this button is not even visible if SelectionModeOnly.</summary>
 		private void butAddPt_Click(object sender, System.EventArgs e){
-			#if(TRIALONLY)
+			if(ODBuild.IsTrial()) { 
 				MsgBox.Show(this,"Trial version.  Maximum 30 patients");
 				if(Patients.GetNumberPatients()>30){
 					MsgBox.Show(this,"Maximum reached");
 					return;
 				}
-			#endif
+			}
 			if(textLName.Text=="" && textFName.Text=="" && textChartNumber.Text==""){
 				MessageBox.Show(Lan.g(this,"Not allowed to add a new patient until you have done a search to see if that patient already exists. "
 					+"Hint: just type a few letters into the Last Name box above.")); 
@@ -1313,13 +1313,13 @@ namespace OpenDental{
 		}
 
 		private void butAddAll_Click(object sender,EventArgs e) {
-			#if(TRIALONLY)
+			if(ODBuild.IsTrial()) { 
 				MsgBox.Show(this,"Trial version.  Maximum 30 patients");
 				if(Patients.GetNumberPatients()>30){
 					MsgBox.Show(this,"Maximum reached");
 					return;
 				}
-			#endif
+			}
 			if(textLName.Text=="" && textFName.Text=="" && textChartNumber.Text==""){
 				MessageBox.Show(Lan.g(this,"Not allowed to add a new patient until you have done a search to see if that patient already exists. Hint: just type a few letters into the Last Name box above.")); 
 				return;

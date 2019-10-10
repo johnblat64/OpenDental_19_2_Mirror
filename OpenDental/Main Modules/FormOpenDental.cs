@@ -2971,19 +2971,17 @@ namespace OpenDental{
 				#endif
 				FillComboTriageCoordinator();
 			}
-			#if !TRIALONLY
-				if(PrefC.GetDate(PrefName.BackupReminderLastDateRun).AddMonths(1)<DateTime.Today) {
-					FormBackupReminder FormBR=new FormBackupReminder();
-					FormBR.ShowDialog();
-					if(FormBR.DialogResult==DialogResult.OK){
-						Prefs.UpdateDateT(PrefName.BackupReminderLastDateRun,DateTimeOD.Today);
-					}
-					else{
-						Application.Exit();
-						return;
-					}
+			if(!ODBuild.IsTrial() && PrefC.GetDate(PrefName.BackupReminderLastDateRun).AddMonths(1)<DateTime.Today) {
+				FormBackupReminder FormBR=new FormBackupReminder();
+				FormBR.ShowDialog();
+				if(FormBR.DialogResult==DialogResult.OK){
+					Prefs.UpdateDateT(PrefName.BackupReminderLastDateRun,DateTimeOD.Today);
 				}
-			#endif
+				else{
+					Application.Exit();
+					return;
+				}
+			}
 			FillPatientButton(null);
 			ProcessCommandLine(CommandLineArgs);
 			ODException.SwallowAnyException(() => {

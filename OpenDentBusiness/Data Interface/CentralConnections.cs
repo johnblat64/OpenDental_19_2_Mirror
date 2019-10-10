@@ -177,11 +177,12 @@ namespace OpenDentBusiness{
 			catch(Exception) {
 				//Common error: root element is missing
 				centralConnection.ServerName="localhost";
-#if(TRIALONLY)
-				centralConnection.DatabaseName="demo";
-#else
-				centralConnection.DatabaseName="opendental";
-#endif
+				if(ODBuild.IsTrial()) {
+					centralConnection.DatabaseName="demo";
+				}
+				else { 
+					centralConnection.DatabaseName="opendental";
+				}
 				centralConnection.MySqlUser="root";
 			}
 		}

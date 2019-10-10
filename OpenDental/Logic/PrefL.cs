@@ -453,14 +453,12 @@ namespace OpenDental {
 			//At this point we know 100% it's going to be an upgrade
 			else if(storedVersion<currentVersion 
 				&& (updateServerName=="" || ODEnvironment.IdIsThisComputer(updateServerName.ToLower()))) {
-#if TRIALONLY
-				if(PrefC.GetString(PrefName.RegistrationKey)!="") {//Allow databases with no reg key to continue.  Needed by our conversion department.
+				if(ODBuild.IsTrial() && PrefC.GetString(PrefName.RegistrationKey)!="") {//Allow databases with no reg key to continue.  Needed by our conversion department.
 					//Trial users should never be able to update a database, not even the ProgramVersion preference.
 					MsgBox.Show("PrefL","Trial versions cannot connect to live databases.  Please run the Setup.exe in the AtoZ folder to reinstall your original version.");
 					FormOpenDental.ExitCode=398;//Trial versions does not support updating databases.
 					return false;//Should not get to this line.  Just in case.
 				}
-#endif
 				//This has been commented out because it was deemed unnecessary: 10/10/14 per Jason and Derek
 				//There are two different situations where this might happen.
 				//if(PrefC.GetString(PrefName.UpdateInProgressOnComputerName)==""){//1. Just performed an update from this workstation on another database.

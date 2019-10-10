@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Windows.Forms;
+using CodeBase;
 using OpenDentBusiness;
 
 namespace OpenDental{
@@ -233,7 +234,7 @@ namespace OpenDental{
 		#endregion
 
 		private void FormProcTools_Load(object sender,EventArgs e) {
-			#if TRIALONLY
+			if(ODBuild.IsTrial()) {
 				checkTcodes.Checked=false;
 				checkNcodes.Checked=false;
 				checkDcodes.Checked=false;
@@ -247,7 +248,7 @@ namespace OpenDental{
 				checkProcButtons.Enabled=false;
 				checkApptProcsQuickAdd.Enabled=false;
 				checkRecallTypes.Enabled=false;
-			#endif
+			}
 			if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 				//Tcodes remain enabled
 				//Ncodes remain enabled

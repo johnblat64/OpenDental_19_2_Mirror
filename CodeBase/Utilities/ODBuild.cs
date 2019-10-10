@@ -34,5 +34,14 @@ namespace CodeBase {
 #endif
 		}
 
+		///<summary>Returns true if current build is for the trial version only.</summary>
+		public static bool IsTrial() {
+#if TRIALONLY
+			return true;
+#else
+			return false;
+#endif
+		}
+
 	}
 }
