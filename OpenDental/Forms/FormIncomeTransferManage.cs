@@ -36,7 +36,78 @@ namespace OpenDental {
 		}
 
 		private void FormIncomeTransferManage_Load(object sender,EventArgs e) {
+			if(Security.IsAuthorized(Permissions.PaymentCreate,true)) {
+				TransferUnallocatedToUnearned();
+			}
 			Init(false);
+		}
+
+		///<summary></summary>
+		private void TransferUnallocatedToUnearned() {
+			_listSplitsCur=new List<PaySplit>();
+			_listSplitsAssociated=new List<PaySplits.PaySplitAssociated>();
+			List<PaySplit> listSplitsForPats=PaySplits.GetForPats(_famCur.ListPats.Select(x => x.PatNum).ToList());
+			if(listSplitsForPats.IsNullOrEmpty()) {
+				return;
+			}
+			//Pass in an invalid payNum of 0 which will get set correctly later if there are in fact splits to transfer.
+			TransferUnallocatedSplitToUnearned(listSplitsForPats,0);
+			if(_listSplitsCur.Count==0) {
+				return;
+			}
+			if(!_listSplitsCur.Sum(x => x.SplitAmt).IsZero()) {
+				//Display the UnearnedType and the SplitAmt for each split in the list.
+				string splitInfo=string.Join("\r\n  ",_listSplitsCur
+					.Select(x => $"SplitAmt: {x.SplitAmt}"));
+				//Show the sum of all splits first and then give a breakdown of each individual split.
+				string details=$"Sum of unallocatedTransfers.ListSplitsCur: {_listSplitsCur.Sum(x => x.SplitAmt)}\r\n"
+					+$"Individual Split Info:\r\n  {splitInfo}";
+				FriendlyException.Show("Error transferring unallocated paysplits.  Please call support.",new ApplicationException(details),"Close");
+				//Close the window and do not let the user create transfers because something is wrong.
+				DialogResult=DialogResult.Cancel;
+				Close();
+				return;
+			}
+			//There are unallocated paysplits that need to be transferred to unearned.
+			long unallocatedPayNum=CreateAndInsertUnallocatedPayment();
+			foreach(PaySplit split in _listSplitsCur) {
+				split.PayNum=unallocatedPayNum;//Set the PayNum because it was purposefully set to 0 above to save queries.
+				PaySplits.Insert(split);
+			}
+			foreach(PaySplits.PaySplitAssociated splitAssociated in _listSplitsAssociated) {
+				if(splitAssociated.PaySplitLinked!=null && splitAssociated.PaySplitOrig!=null) {
+					PaySplits.UpdateFSplitNum(splitAssociated.PaySplitOrig.SplitNum,splitAssociated.PaySplitLinked.SplitNum);
+				}
+			}
+			_listSplitsCur.Clear();//will get re-initialized in init, but just to be sure, clear here to remove what we just inserted.
+			_listSplitsAssociated.Clear();
+			SecurityLogs.MakeLogEntry(Permissions.PaymentCreate,_patCur.PatNum
+				,$"Unallocated splits automatically transferred to unearned for payment {unallocatedPayNum}.");
+		}
+		
+		///<summary>Method to encapsulate the creation of a new payment that is specifically meant to store payment information for the unallocated
+		///payment transfer that can *sometimes* happen upon loading this window.</summary>
+		private long CreateAndInsertUnallocatedPayment() {
+			//user clicked ok and has permisson to save splits to the database. 
+			Payment unallocatedTransferPayment=new Payment();
+			unallocatedTransferPayment.PatNum=_patCur.PatNum;
+			unallocatedTransferPayment.PayDate=DateTime.Today;
+			unallocatedTransferPayment.ClinicNum=0;
+			if(PrefC.HasClinicsEnabled) {//if clinics aren't enabled default to 0
+				unallocatedTransferPayment.ClinicNum=Clinics.ClinicNum;
+				if((PayClinicSetting)PrefC.GetInt(PrefName.PaymentClinicSetting)==PayClinicSetting.PatientDefaultClinic) {
+					unallocatedTransferPayment.ClinicNum=_patCur.ClinicNum;
+				}
+				else if((PayClinicSetting)PrefC.GetInt(PrefName.PaymentClinicSetting)==PayClinicSetting.SelectedExceptHQ) {
+					unallocatedTransferPayment.ClinicNum=(Clinics.ClinicNum==0 ? _patCur.ClinicNum : Clinics.ClinicNum);
+				}
+			}
+			unallocatedTransferPayment.DateEntry=DateTime.Today;
+			unallocatedTransferPayment.PaymentSource=CreditCardSource.None;
+			unallocatedTransferPayment.PayAmt=0;
+			unallocatedTransferPayment.PayType=0;
+			long payNum=Payments.Insert(unallocatedTransferPayment);
+			return payNum;
 		}
 
 		///<summary>Performs all of the Load functionality.  Public so it can be called from unit tests.</summary>
@@ -312,31 +383,8 @@ namespace OpenDental {
 
 		///<summary>Creates micro-allocations intelligently based on most to least matching criteria of selected charges.</summary>
 		private void CreateTransfers(List<AccountEntry> listPosCharges,List<AccountEntry> listNegCharges,List<AccountEntry> listAccountEntries) {
-			List<AccountEntry> listPosChargeChanges=CreateUnearnedLoop(listPosCharges,_paymentCur.PayNum,listAccountEntries);
-			foreach(AccountEntry charge in listPosChargeChanges) {
-				if(!charge.AccountEntryNum.In(listPosCharges.Select(x => x.AccountEntryNum).ToList())) {
-					listPosCharges.Add(charge);//money may have been added back to an adj or proc that was previously paid
-				}
-			}
-			listPosCharges=listPosCharges.OrderBy(x => x.Date).ToList();
-			List<PaySplit> listSplitsAll=PaySplits.GetForPats(_famCur.ListPats.Select(x => x.PatNum).ToList());
-			listSplitsAll.AddRange(_listPaySplitsCreatedFromUnearned);//splits that were just created from the unearned loop.
-			_listPaySplitsCreatedFromUnearned.Clear();//clear it out so it can be used again for the unallocated loop. 
-			List<AccountEntry> listNewEntries=TransferUnallocatedSplitToUnearned(listSplitsAll,_paymentCur.PayNum);
-			//update account entry's amount ends based on transfers we may have made.
-			AdjustAccountEntryAmtEnds(listPosCharges,_listPaySplitsCreatedFromUnearned);
-			listPosCharges.RemoveAll(x => x.AmountEnd.IsEqual(0));
-			AdjustAccountEntryAmtEnds(listNegCharges,_listPaySplitsCreatedFromUnearned);
-			listNegCharges.RemoveAll(x => x.AmountEnd.IsEqual(0));
-			foreach(AccountEntry entry in listNewEntries) {
-				if(entry.AmountEnd>0) {
-					listPosCharges.Add(entry);
-				}
-				else if(entry.AmountEnd<0) {
-					listNegCharges.Add(entry);
-				}
-			}
-			listPosCharges=listPosCharges.OrderBy(x => x.Date).ToList();//re-order since we may have just changed it. 
+			//No logic that manipulates these lists should happen before the regular transfer. If necessary (like fixing incorrect unearned)
+			//they will need to be made as DBMs instead or wait for another logic overhaul. 
 			CreatePayplanLoop(listPosCharges,listNegCharges,listAccountEntries);
 			CreateTransferLoop(listPosCharges,listNegCharges,listAccountEntries);
 		}

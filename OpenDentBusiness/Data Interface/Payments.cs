@@ -290,12 +290,18 @@ namespace OpenDentBusiness{
 		#region Delete
 		///<summary>Deletes the payment as well as all splits.
 		///Surround with try catch, throws an exception if trying to delete a payment attached to a deposit.</summary>
-		public static void Delete(Payment pay){
+		public static void Delete(Payment pay) {
+			Delete(pay.PayNum);
+		}
+
+		///<summary>Deletes the payment as well as all splits.
+		///Surround with try catch, throws an exception if trying to delete a payment attached to a deposit.</summary>
+		public static void Delete(long payNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),pay);
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),payNum);
 				return;
 			}
-			string command="SELECT DepositNum,PayAmt FROM payment WHERE PayNum="+POut.Long(pay.PayNum);
+			string command="SELECT DepositNum,PayAmt FROM payment WHERE PayNum="+POut.Long(payNum);
 			DataTable table=Db.GetTable(command);
 			if(table.Rows.Count==0){
 				return;
@@ -305,12 +311,12 @@ namespace OpenDentBusiness{
 			{
 				throw new ApplicationException(Lans.g("Payments","Not allowed to delete a payment attached to a deposit."));
 			}
-			command= "DELETE from payment WHERE PayNum = "+POut.Long(pay.PayNum);
+			command= "DELETE from payment WHERE PayNum = "+POut.Long(payNum);
  			Db.NonQ(command);
 			//this needs to be improved to handle EstBal
-			command= "DELETE from paysplit WHERE PayNum = "+POut.Long(pay.PayNum);
+			command= "DELETE from paysplit WHERE PayNum = "+POut.Long(payNum);
 			Db.NonQ(command);
-			command="UPDATE recurringcharge SET PayNum=0 WHERE PayNum="+POut.Long(pay.PayNum);
+			command="UPDATE recurringcharge SET PayNum=0 WHERE PayNum="+POut.Long(payNum);
 			Db.NonQ(command);
 		}
 		#endregion
