@@ -761,6 +761,7 @@ namespace OpenDental{
 						break;
 				}
 			}
+			textAttachmentID.Text=ClaimCur.AttachmentID;
 			textAttachID.Text=ClaimCur.AttachmentID;
 			//medical/inst
 			textBillType.Text=ClaimCur.UniformBillType;
@@ -2510,10 +2511,14 @@ namespace OpenDental{
 			else if(clearinghouseClin.IsAttachmentSendAllowed && clearinghouseClin.CommBridge==EclaimsCommBridge.ClaimConnect) {
 				//No general missing data, but can send attachments electronically.  Check the clearinghouse for missing data.
 				try {
+					Action actionOnOk=() => {
+						//Fill the form out in case the ClaimCur object was changed (i.e. AttachmentId changed)
+						this.InvokeIfRequired(FillForm);
+					};
 					ClaimConnect.ValidateClaimResponse response=ClaimConnect.ValidateClaim(ClaimCur,true);
 					if(response.IsAttachmentRequired) {
 						if(MsgBox.Show(this,MsgBoxButtons.YesNo,"An attachment is required for this claim. Would you like to open the claim attachment form?")) {
-							FormClaimAttachment.Open(ClaimCur);
+							FormClaimAttachment.Open(ClaimCur,actionOnOk);
 							return;
 						}
 						else if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Would you like to continue sending the claim?")) {

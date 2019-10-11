@@ -23,9 +23,10 @@ namespace OpenDental {
 		private List<ClaimConnect.ImageAttachment> _listImageAttachments;
 		private static ODThread _threadFormClaimAttach=null;
 		///<summary>Initialize the form and refresh the claim we are adding attachments to.</summary>
+
 		private FormClaimAttachment(Claim claim) {
 			InitializeComponent();
-			_claimCur=claim.Copy();
+			_claimCur=claim;
 			_listImageAttachments=new List<ClaimConnect.ImageAttachment>();
 		}
 
@@ -41,7 +42,7 @@ namespace OpenDental {
 		}
 
 		///<summary></summary>
-		public static void Open(Claim claim) {
+		public static void Open(Claim claim,Action actionOkClick = null) {
 			//Show a dialog if the user tries to open more than one claim at a time
 			if(_threadFormClaimAttach!=null) {
 				MsgBox.Show("A claim attachment window is already open.");
@@ -49,7 +50,9 @@ namespace OpenDental {
 			}
 			_threadFormClaimAttach=new ODThread(new ODThread.WorkerDelegate((ODThread o) => {
 				FormClaimAttachment formCA=new FormClaimAttachment(claim);
-				formCA.ShowDialog();
+				if(formCA.ShowDialog()==DialogResult.OK) {
+					actionOkClick?.Invoke();
+				}
 			}));
 			//This thread needs to be STA because FormClaimAttachment will have the ability to open child forms,
 			//which will need to block FormClaimAttachment while it is open.
