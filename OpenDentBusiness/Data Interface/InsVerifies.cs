@@ -413,7 +413,7 @@ namespace OpenDentBusiness{
 				$"dateTimeStart={dateTimeStart}\r\n"+
 				$"dateTimeEnd={dateTimeEnd}\r\n"+
 				$"dateTimeLastPatEligibility={dateTimeLastPatEligibility}\r\n"+
-				$"dateTimeLastPlanBenefits={dateTimeLastPlanBenefits}",LogLevel.Verbose);
+				$"dateTimeLastPlanBenefits={dateTimeLastPlanBenefits}",LogLevel.Verbose,"InsVerifyBatch");
 			List<InsVerifyGridObject> listInsVerify=GetVerifyGridList(dateTimeStart,dateTimeEnd,dateTimeLastPatEligibility,dateTimeLastPlanBenefits
 				,new List<long>(){ -1 }//All clinics
 				,new List<long>(){ 0 }//All regions
@@ -423,7 +423,7 @@ namespace OpenDentBusiness{
 				,excludePatVerifyWhenNoIns
 				,excludePatClones
 			);
-			logger?.WriteLine($"{listInsVerify.Count} insverify grid objects",LogLevel.Verbose);
+			logger?.WriteLine($"{listInsVerify.Count} insverify grid objects",LogLevel.Verbose,"InsVerifyBatch");
 			Dictionary<long,Carrier> dictTrustedCarriers=null;//Key: CarrierNum, Value: Carrier
 			Dictionary<long,InsSub> dictInsSubs=null;//Key: InsSubNum, Value: InsSub
 			Dictionary<long,InsPlan> dictInsPlans=null;//Key: PlanNum, Value: InsPlan
@@ -440,61 +440,69 @@ namespace OpenDentBusiness{
 			}
 			List<InsVerify> listInsVerifies=new List<InsVerify>();
 			foreach(InsVerifyGridObject insVerifyObj in listInsVerify) {
-				listInsVerifies.Add(insVerifyObj.PatInsVerify);
-				if(insVerifyObj.IsOnlyInsRow() || !dictTrustedCarriers.ContainsKey(insVerifyObj.PatInsVerify.CarrierNum)){
-					insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Skipped;
-					continue;
-				}
-				//Either only PatInsVerify or Both.
-				//When Both we only request and verify the PatIns.
-				string errorStatus="";
-				Etrans etransRequest=null;
-				if(isTest) {
-					//270 request placeholder
-					etransRequest=new Etrans();
-					//Example 271 response
-					etransRequest.AckEtrans=new Etrans();
-					//Valid test response copied from ClaimConnect.Benefits270(..) comment.
-					etransRequest.AckEtrans.MessageText="ISA*00*          *00*          *30*330989922      *29*AA0989922      *030606*0936*U*00401*000013966*0*T*:~GS*HB*330989922*AA0989922*20030606*0936*13966*X*004010X092~ST*271*0001~BHT*0022*11*ASX012145WEB*20030606*0936~HL*1**20*1~NM1*PR*2*ACME INC*****PI*12345~HL*2*1*21*1~NM1*1P*1*PROVLAST*PROVFIRST****SV*5558006~HL*3*2*22*0~TRN*2*100*1330989922~NM1*IL*1*SMITH*JOHN*B***MI*123456789~REF*6P*XYZ123*GROUPNAME~REF*18*2484568*TEST PLAN NAME~N3*29 FREMONT ST*~N4*PEACE*NY*10023~DMG*D8*19570515*M~DTP*307*RD8*19910712-19920525~EB*1*FAM*30~SE*17*0001~GE*1*13966~IEA*1*000013966~";
-					isTest=false;//Testing only checks for one successful request, all others are suppose to result in either an error or should be skipped.
-				}
-				else {
-					etransRequest=x270Controller.TryInsVerifyRequest(insVerifyObj.PatInsVerify,dictInsPlans[insVerifyObj.PatInsVerify.PlanNum]
-						,dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum],dictInsSubs[insVerifyObj.PatInsVerify.InsSubNum],out errorStatus
-					);//Can be null
-					logger?.WriteLine($"PatNum:{insVerifyObj.PatInsVerify.PatNum} error status:{errorStatus}",LogLevel.Verbose);
-				}
-				if(errorStatus.IsNullOrEmpty()) {//No error yet.
-					if(etransRequest==null) {//Can happen when an AAA segment is returned.
-						errorStatus=Lans.g("InsVerifyService","Unexpected carrier response.");
+				try {
+					listInsVerifies.Add(insVerifyObj.PatInsVerify);
+					if(insVerifyObj.IsOnlyInsRow() || !dictTrustedCarriers.ContainsKey(insVerifyObj.PatInsVerify.CarrierNum)) {
+						if(insVerifyObj.PatInsVerify!=null) {//We've seen this be null before for a real customer. For now only effect is tied to unit test. Safe to skip if null.
+							insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Skipped;
+						}
+						continue;
 					}
-					else {//Success, no errors so far and etrans returned
-						#region Verify Plan End dates
-						//AckEtrans and MessageText are not DB columns but are always set in x270.RequestBenefits(...). This is done to avoid queries.
-						X271 x271=new X271(etransRequest.AckEtrans.MessageText);
-						//Sets errorStatus if validation failed, otherwise blank string.
-						if(x271.IsValidForBatchVerification(dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum].IsCoinsuranceInverted,out errorStatus)){
-							List<DTP271> listPlanEndDates=x271.GetListDtpSubscriber().FindAll(x => x.Segment.Get(1)=="347");//347 => Plan End.
-							if(listPlanEndDates.Count>0) {
-								DateTime planEndDate=X12Parse.ToDate(listPlanEndDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectonic_Click(...)
-								if(planEndDate<DateTime.Today) {
-									errorStatus=Lans.g("InsVerifyService","Inactive coverage");
+					//Either only PatInsVerify or Both.
+					//When Both we only request and verify the PatIns.
+					string errorStatus="";
+					Etrans etransRequest=null;
+					if(isTest) {
+						//270 request placeholder
+						etransRequest=new Etrans();
+						//Example 271 response
+						etransRequest.AckEtrans=new Etrans();
+						//Valid test response copied from ClaimConnect.Benefits270(..) comment.
+						etransRequest.AckEtrans.MessageText="ISA*00*          *00*          *30*330989922      *29*AA0989922      *030606*0936*U*00401*000013966*0*T*:~GS*HB*330989922*AA0989922*20030606*0936*13966*X*004010X092~ST*271*0001~BHT*0022*11*ASX012145WEB*20030606*0936~HL*1**20*1~NM1*PR*2*ACME INC*****PI*12345~HL*2*1*21*1~NM1*1P*1*PROVLAST*PROVFIRST****SV*5558006~HL*3*2*22*0~TRN*2*100*1330989922~NM1*IL*1*SMITH*JOHN*B***MI*123456789~REF*6P*XYZ123*GROUPNAME~REF*18*2484568*TEST PLAN NAME~N3*29 FREMONT ST*~N4*PEACE*NY*10023~DMG*D8*19570515*M~DTP*307*RD8*19910712-19920525~EB*1*FAM*30~SE*17*0001~GE*1*13966~IEA*1*000013966~";
+						isTest=false;//Testing only checks for one successful request, all others are suppose to result in either an error or should be skipped.
+					}
+					else {
+						etransRequest=x270Controller.TryInsVerifyRequest(insVerifyObj.PatInsVerify,dictInsPlans[insVerifyObj.PatInsVerify.PlanNum]
+							,dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum],dictInsSubs[insVerifyObj.PatInsVerify.InsSubNum],out errorStatus
+						);//Can be null
+						logger?.WriteLine($"PatNum:{insVerifyObj.PatInsVerify.PatNum} error status:{errorStatus}",LogLevel.Verbose,"InsVerifyBatch");
+					}
+					if(errorStatus.IsNullOrEmpty()) {//No error yet.
+						if(etransRequest==null) {//Can happen when an AAA segment is returned.
+							errorStatus=Lans.g("InsVerifyService","Unexpected carrier response.");
+						}
+						else {//Success, no errors so far and etrans returned
+							#region Verify Plan End dates
+							//AckEtrans and MessageText are not DB columns but are always set in x270.RequestBenefits(...). This is done to avoid queries.
+							X271 x271=new X271(etransRequest.AckEtrans.MessageText);
+							//Sets errorStatus if validation failed, otherwise blank string.
+							if(x271.IsValidForBatchVerification(dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum].IsCoinsuranceInverted,out errorStatus)){
+								List<DTP271> listPlanEndDates=x271.GetListDtpSubscriber().FindAll(x => x.Segment.Get(1)=="347");//347 => Plan End.
+								if(listPlanEndDates.Count>0) {
+									DateTime planEndDate=X12Parse.ToDate(listPlanEndDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectonic_Click(...)
+									if(planEndDate<DateTime.Today) {
+										errorStatus=Lans.g("InsVerifyService","Inactive coverage");
+									}
 								}
 							}
+							#endregion
 						}
-						#endregion
+					}
+					if(errorStatus.IsNullOrEmpty()) {
+						InsVerifyOnVerify(insVerifyObj);
+						insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Success;
+					}
+					else {//Error occured
+						InsVerifySetStatus(insVerifyObj,errorStatusDefNum,errorStatus);
+						insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Error;
 					}
 				}
-				if(errorStatus.IsNullOrEmpty()){
-					InsVerifyOnVerify(insVerifyObj);
-					insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Success;
-				}
-				else{//Error occured
-					InsVerifySetStatus(insVerifyObj,errorStatusDefNum,errorStatus);
-					insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Error;
+				catch(Exception ex) {
+					logger?.WriteLine($"Exception was thrown on patnum: {insVerifyObj.GetPatNum()}",LogLevel.Verbose,"InsVerifyBatch");
+					logger?.WriteLine($"Exception text: {ex.StackTrace}",LogLevel.Verbose,"InsVerifyBatch");
 				}
 			}
-			logger?.WriteLine("BatchPatInsVerify has ended...",LogLevel.Verbose);
+			logger?.WriteLine("BatchPatInsVerify has ended...",LogLevel.Verbose,"InsVerifyBatch");
 			return listInsVerifies;
 		}
 
