@@ -168,7 +168,7 @@ namespace OpenDentBusiness{
 				//If the procedure is deleted, also delete the procvisitmulti to reduce clutter.
 				listPmvs.Remove(pmv);//Remove pmv from listpmvs.
 				if(pmv.ProcMultiVisitNum==pmv.GroupProcMultiVisitNum && !listPmvs.IsNullOrEmpty()) {//If the group points to the pmv to be removed and the group still exists.
-					long replacementGPMVNum=listPmvs.First().GroupProcMultiVisitNum;
+					long replacementGPMVNum=listPmvs.First().ProcMultiVisitNum;
 					UpdateGroupProcMultiVisitNumForGroup(pmv.ProcMultiVisitNum,replacementGPMVNum);
 					foreach (ProcMultiVisit procMulti in listPmvs) {//Replace all group numbers.
 						procMulti.GroupProcMultiVisitNum=replacementGPMVNum;
