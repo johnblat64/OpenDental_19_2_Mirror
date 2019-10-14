@@ -9690,7 +9690,6 @@ namespace OpenDental {
 			}//n selected teeth
 			//this was requiring too many irrelevant queries and going too slowly   //ModuleSelected(PatCur.PatNum);			
 			ToothInitialList=ToothInitials.Refresh(PatCur.PatNum);
-			FillToothChart(false);
 			ClearButtons();
 			FillProgNotes();
 			textProcCode.Text="";
