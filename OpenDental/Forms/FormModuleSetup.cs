@@ -3963,7 +3963,7 @@ namespace OpenDental{
 			this.labelIcdCodeDefault.Name = "labelIcdCodeDefault";
 			this.labelIcdCodeDefault.Size = new System.Drawing.Size(326, 15);
 			this.labelIcdCodeDefault.TabIndex = 203;
-			this.labelIcdCodeDefault.Text = "Default ICD-10 code for new procedures";
+			this.labelIcdCodeDefault.Text = "Default ICD-10 code for new procedures and when set complete";
 			this.labelIcdCodeDefault.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// textICD9DefaultForNewProcs
@@ -5407,7 +5407,7 @@ namespace OpenDental{
 			if(checkDxIcdVersion.Checked) {
 				icdVersion=10;
 			}
-			labelIcdCodeDefault.Text=Lan.g(this,"Default ICD")+"-"+icdVersion+" "+Lan.g(this,"code for new procedures");
+			labelIcdCodeDefault.Text=Lan.g(this,"Default ICD")+"-"+icdVersion+" "+Lan.g(this,"code for new procedures and when set complete");
 		}
 
 		private void checkDxIcdVersion_Click(object sender,EventArgs e) {

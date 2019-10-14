@@ -2921,6 +2921,7 @@ namespace OpenDental {
 				_procCur.DateEntryC=DateTime.Now;//this triggers it to set to server time NOW().
 				if(_procCur.DiagnosticCode=="") {
 					_procCur.DiagnosticCode=PrefC.GetString(PrefName.ICD9DefaultForNewProcs);
+					_procCur.IcdVersion=PrefC.GetByte(PrefName.DxIcdVersion);
 				}
 			}
 			// textDateTP.Text is blank upon load if date in DB is before 1/1/1880. We don't want to update this if the DateTP box is left blank.

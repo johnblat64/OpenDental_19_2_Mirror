@@ -3275,6 +3275,7 @@ namespace OpenDentBusiness {
 					procCur.DateEntryC=DateTime.Now;//this triggers it to set to server time NOW().
 					if(procCur.DiagnosticCode=="") {
 						procCur.DiagnosticCode=PrefC.GetString(PrefName.ICD9DefaultForNewProcs);
+						procCur.IcdVersion=PrefC.GetByte(PrefName.DxIcdVersion);
 					}
 				}
 				procCur.PlaceService=(PlaceOfService)PrefC.GetLong(PrefName.DefaultProcedurePlaceService);

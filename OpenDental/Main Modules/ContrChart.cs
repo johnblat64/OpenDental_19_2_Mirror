@@ -11597,6 +11597,7 @@ namespace OpenDental {
 					procNew.DateEntryC=DateTime.Now;//Should this be server date?
 					if(procNew.DiagnosticCode=="") {
 						procNew.DiagnosticCode=PrefC.GetString(PrefName.ICD9DefaultForNewProcs);
+						procNew.IcdVersion=PrefC.GetByte(PrefName.DxIcdVersion);
 					}
 					//broken appointment procedure codes shouldn't trigger DateFirstVisit update.
 					if(ProcedureCodes.GetStringProcCode(procNew.CodeNum).In("D9986","D9987")) {
