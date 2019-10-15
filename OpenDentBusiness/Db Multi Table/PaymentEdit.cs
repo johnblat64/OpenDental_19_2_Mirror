@@ -696,13 +696,8 @@ namespace OpenDentBusiness {
 						break;
 					}
 				}
-				if(splitCur.FSplitNum!=0 && splitCur.SplitAmt<0) {//Go through the same list of splits to find associations (via FSplitNum)
-					PaySplit split=listSplitsCurrentAndHistoric.FirstOrDefault(x => x.SplitNum==splitCur.FSplitNum);
-					if(split!=null) {
-						split.SplitAmt+=splitCur.SplitAmt;
-						splitCur.SplitAmt=0;
-					}
-				}
+				//Do not subtract amount from split or parent split here since we are looping through them and may be modifying split value that hasn't
+				//been evaluated yet. If this code absolutely needs to be added back, make to only have it execute when it is not an income transfer.
 			}
 			return listAccountCharges;
 		}
