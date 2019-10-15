@@ -116,6 +116,18 @@ namespace OpenDental {
 			if(_sheetDefCur.SheetType==SheetTypeEnum.Screening) {
 				butAddProc.Visible=true;
 			}
+			if(radioYes.Checked) {
+				//If checkbox's text is not the default of "Yes", display the customized text in override box
+				if(SheetFieldDefCur.UiLabelMobileRadioButton!=radioYes.Text) {
+					textMobileCheckOverride.Text=SheetFieldDefCur.UiLabelMobileRadioButton;
+				}
+			}
+			else if(radioNo.Checked) {
+				//If checkbox's text is not the default of "No", display the customized text in override box
+				if(SheetFieldDefCur.UiLabelMobileRadioButton!=radioNo.Text) {
+					textMobileCheckOverride.Text=SheetFieldDefCur.UiLabelMobileRadioButton;
+				}
+			}
 		}
 
 		private void FormSheetFieldCheckBox_Shown(object sender,EventArgs e) {
@@ -180,6 +192,8 @@ namespace OpenDental {
 			labelYesNo.Visible=false;
 			butAddAllergy.Visible=false;
 			butAddProblem.Visible=false;
+			labelMobileCheckOverride.Visible=false;
+			textMobileCheckOverride.Visible=false;
 			if(!_hasSelectedFieldName) {
 				return;
 			}
@@ -196,6 +210,9 @@ namespace OpenDental {
 						labelMedical.Text="Allergies";
 						FillListMedical(MedicalListType.allergy);
 						butAddAllergy.Visible=true;
+						//Only show mobile override option if field name is an allergy and the form it's on is mobile allowed sheet
+						labelMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+						textMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 						break;
 					case "problem":
 						labelMedical.Visible=true;
@@ -207,6 +224,9 @@ namespace OpenDental {
 						FillListMedical(MedicalListType.problem);
 						butAddProblem.Location=butAddAllergy.Location;
 						butAddProblem.Visible=true;
+						//Only show mobile override option if field name is problem and the form it's on is mobile allowed sheet
+						labelMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+						textMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 						break;
 				}
 			}
@@ -390,11 +410,17 @@ namespace OpenDental {
 				}
 				if(radioNo.Checked || fieldName.StartsWith("checkMed")) {
 					radioButtonValue="N";
-					radioItemValue="No";
+					radioItemValue="No"; //Default
+					if(!textMobileCheckOverride.Text.IsNullOrEmpty()) {
+						radioItemValue=textMobileCheckOverride.Text;
+					}
 				}
 				else {
 					radioButtonValue="Y";
-					radioItemValue="Yes";
+					radioItemValue="Yes"; //Default
+					if(!textMobileCheckOverride.Text.IsNullOrEmpty()) {
+						radioItemValue=textMobileCheckOverride.Text;
+					}
 				}
 			}
 			#endregion
