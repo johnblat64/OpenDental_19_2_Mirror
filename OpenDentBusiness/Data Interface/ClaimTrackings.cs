@@ -189,6 +189,7 @@ namespace OpenDentBusiness{
 		public static void CopyToClaim(long claimOrigNum,long claimDestNum) {
 			GetForClaim(claimOrigNum).ForEach(x => {
 				x.ClaimNum=claimDestNum;
+				x.Note=$"Split claim original entry timestamp: {x.DateTimeEntry.ToString()}\r\n{x.Note}";
 				Insert(x);
 			});
 		}
