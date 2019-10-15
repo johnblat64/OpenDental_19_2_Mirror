@@ -662,8 +662,12 @@ namespace OpenDentBusiness {
 						splitForCollection.AccountEntryAmtPaid=(decimal)splitCur.SplitAmt;
 						chargeCur.AmountEnd-=(decimal)splitCur.SplitAmt;
 						chargeCur.SplitCollection.Add(splitForCollection);
-						AccountEntry negEntry=listAccountCharges.Find(x => x.GetType()==typeof(PaySplit) && x.PriKey==splitCur.SplitNum);
-						if(negEntry!=null) {
+						List<AccountEntry> listPaySplitAccountEntries=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit));
+						AccountEntry negEntry=listPaySplitAccountEntries.FirstOrDefault(x => x.PriKey==splitCur.SplitNum);
+						List<PaySplit> listChildrenForNegEntry=listPaySplitAccountEntries.Select(x => (PaySplit)x.Tag).ToList();
+						bool hasChildren=listChildrenForNegEntry.Any(x => x.FSplitNum!=0 && x.FSplitNum==negEntry.PriKey);
+						if(negEntry!=null && (((PaySplit)negEntry.Tag).UnearnedType==0 || hasChildren))	{
+							//only can get in here if the payspilt is not unearned OR it is unearned but it has children (i.e. it is not the final allocation). 
 							negEntry.AmountStart=0;
 							negEntry.AmountEnd=0;
 						}
