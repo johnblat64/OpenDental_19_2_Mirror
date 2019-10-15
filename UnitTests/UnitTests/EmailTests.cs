@@ -121,6 +121,82 @@ multiple lines
 			}
 		}
 
+				///<summary>Ensures that Email Reply correctly decodes any HTML encoded characters in the response EmailMessage.</summary>
+		[TestMethod]
+		public void EmailMessages_CreateReply_HtmlEncoding() {
+			EmailMessage receivedEmail=EmailMessageT.CreateEmailMessage(0,fromAddress:"opendentaltestemail@gmail.com",toAddress:"opendentalman@gmail.com"
+				,recipientAddress:"abc@123.com",subject:"=?UTF-8?Q?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?=");
+			receivedEmail.RawEmailIn=@"MIME-Version: 1.0
+Date: Thu, 10 Oct 2019 06:27:02 -0700
+Message-ID: <CAALTEpk8yAUh7pO=FzgCy0r0b20Fi5vefw_8yhRvstMfTvRtAQ@mail.gmail.com>
+Subject: & subject
+From: =?UTF-8?Q?Bobby_Wiggleh=C3=81rt?= <opendentaltestemail@gmail.com>
+To: Bobby Wigglehart <opendentaltestemail@gmail.com>
+Content-Type: multipart/alternative; boundary=""0000000000005e7d3705948e5be6""
+X-Antivirus: AVG (VPS 191009-2, 10/09/2019), Inbound message
+X-Antivirus-Status: Clean
+
+--0000000000005e7d3705948e5be6
+Content-Type: text/plain; charset=""UTF-8""
+
+non-breaking space  
+less than <
+greater than >
+ampersand &
+
+--0000000000005e7d3705948e5be6
+Content-Type: text/html; charset=""UTF-8""
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D""ltr"">non-breaking space &nbsp;<div>less than &lt;</div><div>greater than &gt;</div><div>ampersand &amp;=C2=A0</div></div>
+
+--0000000000005e7d3705948e5be6--";
+			EmailMessage replyEmail=EmailMessages.CreateReply(receivedEmail,null);
+			Assert.AreEqual(receivedEmail.FromAddress,replyEmail.ToAddress);
+			Assert.AreEqual(receivedEmail.RecipientAddress,replyEmail.FromAddress);
+			Assert.AreEqual("RE: nu¤ Â À ¢",replyEmail.Subject);
+			Assert.AreEqual("\r\n\r\n\r\nOn 01/01/0001 12:00:00 AM opendentaltestemail@gmail.com sent:\r\n>non-breaking space  less than <greater than >ampersand &"
+				,replyEmail.BodyText);
+		}
+
+		///<summary>Ensures that Email Reply correctly decodes any HTML encoded characters in the response EmailMessage.</summary>
+		[TestMethod]
+		public void EmailMessages_CreateForward_HtmlEncoding() {
+			EmailMessage receivedEmail=EmailMessageT.CreateEmailMessage(0,fromAddress:"opendentaltestemail@gmail.com",toAddress:"opendentalman@gmail.com"
+				,subject:"=?UTF-8?Q?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?=");
+			receivedEmail.RawEmailIn=@"MIME-Version: 1.0
+Date: Thu, 10 Oct 2019 06:27:02 -0700
+Message-ID: <CAALTEpk8yAUh7pO=FzgCy0r0b20Fi5vefw_8yhRvstMfTvRtAQ@mail.gmail.com>
+Subject: & subject
+From: =?UTF-8?Q?Bobby_Wiggleh=C3=81rt?= <opendentaltestemail@gmail.com>
+To: Bobby Wigglehart <opendentaltestemail@gmail.com>
+Content-Type: multipart/alternative; boundary=""0000000000005e7d3705948e5be6""
+X-Antivirus: AVG (VPS 191009-2, 10/09/2019), Inbound message
+X-Antivirus-Status: Clean
+
+--0000000000005e7d3705948e5be6
+Content-Type: text/plain; charset=""UTF-8""
+
+non-breaking space  
+less than <
+greater than >
+ampersand &
+
+--0000000000005e7d3705948e5be6
+Content-Type: text/html; charset=""UTF-8""
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D""ltr"">non-breaking space &nbsp;<div>less than &lt;</div><div>greater than &gt;</div><div>ampersand &amp;=C2=A0</div></div>
+
+--0000000000005e7d3705948e5be6--";
+			EmailAddress emailAddress=new EmailAddress() { EmailUsername="abc@123.com" };
+			EmailMessage forwardEmail=EmailMessages.CreateForward(receivedEmail,emailAddress);
+			Assert.AreEqual(emailAddress.EmailUsername,forwardEmail.FromAddress);
+			Assert.AreEqual("FWD: nu¤ Â À ¢",forwardEmail.Subject);
+			Assert.AreEqual("\r\n\r\n\r\nOn 01/01/0001 12:00:00 AM opendentaltestemail@gmail.com sent:\r\n>non-breaking space  less than <greater than >ampersand &"
+				,forwardEmail.BodyText);
+		}
+
 			#region FindAndReplaceImageTagsWithAttachedImage_Tests
 		///<summary>A test to ensure the regex is functional in FindAndReplaceImageTagsWithAttachedImage(...) when there is no image in the email
 		///but there is HTML tags.</summary>
