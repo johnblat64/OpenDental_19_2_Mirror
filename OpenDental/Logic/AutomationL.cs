@@ -160,6 +160,9 @@ namespace OpenDental {
 						if(aptTypeCur!=null) {
 							aptNew.ColorOverride=aptTypeCur.AppointmentTypeColor;
 							aptNew.Pattern=aptTypeCur.Pattern;
+							if (aptNew.Pattern=="") {
+								aptNew.Pattern="/XXXX/";
+							}
 							List<Procedure> listProcs=Appointments.ApptTypeMissingProcHelper(aptNew,aptTypeCur,new List<Procedure>());
 							Procedures.UpdateAptNums(listProcs.Select(x => x.ProcNum).ToList(),aptNew.AptNum,aptNew.AptStatus==ApptStatus.Planned);
 						}
