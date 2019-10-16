@@ -664,12 +664,14 @@ namespace OpenDentBusiness {
 						chargeCur.SplitCollection.Add(splitForCollection);
 						List<AccountEntry> listPaySplitAccountEntries=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit));
 						AccountEntry negEntry=listPaySplitAccountEntries.FirstOrDefault(x => x.PriKey==splitCur.SplitNum);
-						List<PaySplit> listChildrenForNegEntry=listPaySplitAccountEntries.Select(x => (PaySplit)x.Tag).ToList();
-						bool hasChildren=listChildrenForNegEntry.Any(x => x.FSplitNum!=0 && x.FSplitNum==negEntry.PriKey);
-						if(negEntry!=null && (((PaySplit)negEntry.Tag).UnearnedType==0 || hasChildren))	{
-							//only can get in here if the payspilt is not unearned OR it is unearned but it has children (i.e. it is not the final allocation). 
-							negEntry.AmountStart=0;
-							negEntry.AmountEnd=0;
+						if(negEntry!=null) {
+							List<PaySplit> listChildrenForNegEntry=listPaySplitAccountEntries.Select(x => (PaySplit)x.Tag).ToList();
+							bool hasChildren=listChildrenForNegEntry.Any(x => x.FSplitNum!=0 && x.FSplitNum==negEntry.PriKey);
+							if(((PaySplit)negEntry.Tag).UnearnedType==0 || hasChildren)	{
+								//only can get in here if the payspilt is not unearned OR it is unearned but it has children (i.e. it is not the final allocation). 
+								negEntry.AmountStart=0;
+								negEntry.AmountEnd=0;
+							}
 						}
 						break;
 					}
