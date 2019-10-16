@@ -337,12 +337,13 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Throws exceptions.
-		///When etrans.Etype is associated to a Canadian EType, this runs multiple queries to set etrans.CarrierTransCounter and etrans.CarrierTransCounter2.
-		///Otherwise returns without making any changes.
+		///When etrans.Etype is associated to a Canadian request EType, this runs multiple queries to set etrans.CarrierTransCounter and
+		///etrans.CarrierTransCounter2.  Otherwise returns without making any changes.
 		///The etrans.CarrierNum, etrans.CarrierNum2 and etrans.Etype columns must be set prior to running this.</summary>
 		public static void SetCanadianEtransFields(Etrans etrans,bool hasSecondary=true) {
-			if(!etrans.Etype.In(EtransType.Claim_CA,EtransType.ClaimCOB_CA,EtransType.Predeterm_CA,EtransType.PredetermEOB_CA,EtransType.Claim_Ramq)) {
-				return;//If not for a Canadian etrans claim type then nothing to do.
+			if(!etrans.Etype.In(EtransType.Claim_CA,EtransType.Eligibility_CA,EtransType.ClaimReversal_CA,EtransType.Predeterm_CA
+				,EtransType.RequestOutstand_CA,EtransType.RequestSumm_CA,EtransType.RequestPay_CA,EtransType.ClaimCOB_CA,EtransType.Claim_Ramq)) {
+				return;
 			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				Meth.GetVoid(MethodBase.GetCurrentMethod(),etrans,hasSecondary);
