@@ -709,6 +709,10 @@ namespace OpenDental{
 					return;
 				}
 			}
+			if(listHasChanged){
+				//update all computers including this one:
+				DataValid.SetInvalid(InvalidType.ClearHouses);
+			}
 			//validate that the default dental clearinghouse is not type mismatched.
 			Clearinghouse chDent=Clearinghouses.GetClearinghouse(PrefC.GetLong(PrefName.ClearinghouseDefaultDent));
 			if(chDent!=null) {
@@ -728,10 +732,6 @@ namespace OpenDental{
 						return;
 					}
 				}
-			}
-			if(listHasChanged){
-				//update all computers including this one:
-				DataValid.SetInvalid(InvalidType.ClearHouses);
 			}
 		}
 
