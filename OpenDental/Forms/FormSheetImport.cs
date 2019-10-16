@@ -331,14 +331,7 @@ namespace OpenDental {
 						row.OldValDisplay=PatCur.Birthdate.ToShortDateString();
 					}
 					row.OldValObj=PatCur.Birthdate;
-					//Parse the birthdate field using our websheet_preference for this practice if this sheet was a WebForm, otherwise, use the current 
-					//computer's region/language settings.
-					if(SheetCur.IsWebForm) {
-						row.NewValObj=OpenDentBusiness.WebTypes.WebForms.WebForms_Sheets.ParseDateWebForms(fieldVal);
-					}
-					else {
-						row.NewValObj=PIn.Date(fieldVal);
-					}
+					row.NewValObj=SheetFields.GetBirthDate(fieldVal,SheetCur.IsWebForm,SheetCur.IsCemtTransfer);
 					if(string.IsNullOrWhiteSpace(fieldVal)) {//Patient entered blank date, consider this to be valid blank date.
 						row.NewValDisplay="";
 						row.ImpValDisplay="";

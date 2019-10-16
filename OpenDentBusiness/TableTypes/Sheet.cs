@@ -138,6 +138,16 @@ namespace OpenDentBusiness{
 			}
 		}
 
+		///<summary>Returns true if the sheet is a CEMT Transfer.</summary>
+		public bool IsCemtTransfer {
+			get {
+				//The rules applied here should coincide with Sheets.GetTransferSheets()
+				return (SheetType==SheetTypeEnum.PatientForm 
+					&& SheetFields!=null 
+					&& SheetFields.Any(x => x.FieldName.ToLower()=="istransfer"));
+			}
+		}
+
 		/*Parameters are not serialized as part of a sheet because it causes serialization to fail.
 		///<summary>Used only for serialization purposes</summary>
 		[XmlElement("Parameters",typeof(SheetParameter[]))]

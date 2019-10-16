@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using CodeBase;
 
@@ -131,6 +132,20 @@ namespace OpenDentBusiness{
 			}
 			return f1.YPos.CompareTo(f2.YPos);
 			//return f1.SheetFieldNum.CompareTo(f2.SheetFieldNum);
+		}
+
+		///<summary></summary>
+		public static DateTime GetBirthDate(string strDate,bool isWebForm,bool isCemtTransfer,string cultureName="") {
+			DateTime dateTime;
+			//Parse the birthdate field using our websheet_preference for this practice if this sheet was a WebForm, otherwise, use the current 
+			//computer's region/language settings.
+			if(isWebForm && !isCemtTransfer) {
+				dateTime=WebTypes.WebForms.WebForms_Sheets.ParseDateWebForms(strDate,cultureName);
+			}
+			else {
+				dateTime=PIn.Date(strDate);
+			}
+			return dateTime;
 		}
 
 		///<summary>Re-orders the SheetFieldType enum to a drawing order. Images should be drawn first, then drawings, then lines, then rectangles, etc...</summary>

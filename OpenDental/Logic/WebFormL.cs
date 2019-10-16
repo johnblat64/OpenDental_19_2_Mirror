@@ -411,7 +411,7 @@ namespace OpenDental {
 						// this loop is used to fill a field that may generate mutiple values for a single field in the patient.
 						//for example the field gender has 2 eqivalent sheet fields in the SheetFields
 						foreach(WebForms_SheetField webFormsSheetField in listWebFormsSheetFields) {
-							FillPatientFields(newPat,field,webFormsSheetField.FieldValue,webFormsSheetField.RadioButtonValue,cultureName);
+							FillPatientFields(newPat,field,webFormsSheetField.FieldValue,webFormsSheetField.RadioButtonValue,cultureName,isWebForm,false);
 						}
 					}
 				}
@@ -421,7 +421,7 @@ namespace OpenDental {
 						// this loop is used to fill a field that may generate mutiple values for a single field in the patient.
 						//for example the field gender has 2 eqivalent sheet fields in the SheetFields
 						foreach(SheetField sheetField in listSheetFields) {
-							FillPatientFields(newPat,field,sheetField.FieldValue,sheetField.RadioButtonValue,"");
+							FillPatientFields(newPat,field,sheetField.FieldValue,sheetField.RadioButtonValue,"",isWebForm,sheet.IsCemtTransfer);
 						}
 					}
 				}
@@ -508,12 +508,13 @@ namespace OpenDental {
 		}
 
 		/// <summary>
-		private static void FillPatientFields(Patient newPat,FieldInfo field,String SheetWebFieldValue,String RadioButtonValue,string cultureName) {
+		private static void FillPatientFields(Patient newPat,FieldInfo field,string SheetWebFieldValue,string RadioButtonValue,string cultureName,
+			bool isWebForm,bool isCemtTransfer) 
+		{
 			try {
 				switch(field.Name) {
 					case "Birthdate":
-						DateTime birthDate=WebForms_Sheets.ParseDateWebForms(SheetWebFieldValue,cultureName);
-						field.SetValue(newPat,birthDate);
+						field.SetValue(newPat,SheetFields.GetBirthDate(SheetWebFieldValue,isWebForm,isCemtTransfer,cultureName:cultureName));
 						break;
 					case "Gender":
 						if(RadioButtonValue=="Male") {
