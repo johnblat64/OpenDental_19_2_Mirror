@@ -254,6 +254,7 @@ namespace OpenDental{
 			this.Name = "FormIncomeTransferManage";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "Income Transfer Manager";
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormIncomeTransferManage_FormClosing);
 			this.Load += new System.EventHandler(this.FormIncomeTransferManage_Load);
 			this.ResumeLayout(false);
 			this.PerformLayout();

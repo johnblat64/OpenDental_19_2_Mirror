@@ -26,6 +26,8 @@ namespace OpenDental {
 		///<summary>To be clear and make the distinction that these splits were created from the transfer unallocated logic and need to be handled in
 		///a unique way to be able to determine the account entries linked to them that need to be modified.</summary>
 		private List<PaySplit> _listPaySplitsCreatedFromUnearned=new List<PaySplit>();
+		///<summary>Gets set when an unallocated transfer has been made automatically and inserted upon entering this window.</summary>
+		private long _unallocatedPayNum=0;
 
 		public FormIncomeTransferManage(Family famCur,Patient patCur,Payment payCur) {
 			_famCur=famCur;
@@ -69,9 +71,9 @@ namespace OpenDental {
 				return;
 			}
 			//There are unallocated paysplits that need to be transferred to unearned.
-			long unallocatedPayNum=CreateAndInsertUnallocatedPayment();
+			_unallocatedPayNum=CreateAndInsertUnallocatedPayment();
 			foreach(PaySplit split in _listSplitsCur) {
-				split.PayNum=unallocatedPayNum;//Set the PayNum because it was purposefully set to 0 above to save queries.
+				split.PayNum=_unallocatedPayNum;//Set the PayNum because it was purposefully set to 0 above to save queries.
 				PaySplits.Insert(split);
 			}
 			foreach(PaySplits.PaySplitAssociated splitAssociated in _listSplitsAssociated) {
@@ -82,7 +84,7 @@ namespace OpenDental {
 			_listSplitsCur.Clear();//will get re-initialized in init, but just to be sure, clear here to remove what we just inserted.
 			_listSplitsAssociated.Clear();
 			SecurityLogs.MakeLogEntry(Permissions.PaymentCreate,_patCur.PatNum
-				,$"Unallocated splits automatically transferred to unearned for payment {unallocatedPayNum}.");
+				,$"Unallocated splits automatically transferred to unearned for payment {_unallocatedPayNum}.");
 		}
 		
 		///<summary>Method to encapsulate the creation of a new payment that is specifically meant to store payment information for the unallocated
@@ -1119,6 +1121,16 @@ namespace OpenDental {
 				MessageBox.Show(strErrorMsg);
 			}
 			DialogResult=DialogResult.OK;
+		}
+
+		private void FormIncomeTransferManage_FormClosing(object sender,FormClosingEventArgs e) {
+			if(DialogResult!=DialogResult.OK && _unallocatedPayNum!=0) {
+				//user is canceling out of the window and an unallocated transfer was made.
+				ODException.SwallowAnyException(() => {
+					Payments.Delete(_unallocatedPayNum);
+					SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatic transfer deleted for payNum: {_unallocatedPayNum}.");
+				});
+			}
 		}
 	}
 }
