@@ -418,11 +418,12 @@ namespace OpenDentBusiness{
 			#endregion
 		}
 
-		///<summary>Only used by Canadian code right now.  CAUTION!  This does not update the EtransMessageTextNum field of an object in memory without a refresh.</summary>
-		public static void SetMessage(long etransNum,string messageText) {
+		///<summary>Inserts EtransMessageText row with given messageText then updates the etrans.EtransMessageTextNum in the DB based on given etransNum.
+		///CAUTION: This does not update the EtransMessageTextNum field of an object in memory.
+		///Instead it returns the inserted EtransMessageTextNum, this should be used to update the in memory object if needed.</summary>
+		public static long SetMessage(long etransNum,string messageText) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),etransNum,messageText);
-				return;
+				return Meth.GetLong(MethodBase.GetCurrentMethod(),etransNum,messageText);
 			}
 			EtransMessageText msg=new EtransMessageText();
 			msg.MessageText=messageText;
@@ -431,6 +432,7 @@ namespace OpenDentBusiness{
 			string command= "UPDATE etrans SET EtransMessageTextNum="+POut.Long(msg.EtransMessageTextNum)+" "
 				+"WHERE EtransNum = '"+POut.Long(etransNum)+"'";
 			Db.NonQ(command);
+			return msg.EtransMessageTextNum;
 		}
 
 		///<summary>Deletes the etrans entry and changes the status of the claim back to W.  If it encounters an entry that's not a claim, it skips it for now.  Later, it will handle all types of undo.  It will also check Canadian claims to prevent alteration if an ack or EOB has been received.</summary>

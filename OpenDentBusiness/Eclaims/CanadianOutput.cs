@@ -840,10 +840,11 @@ namespace OpenDentBusiness.Eclaims {
 					}
 				}
 				Etranss.Insert(etransAck);
-				Etranss.SetMessage(etransAck.EtransNum,result);
+				//Update etransAck and etrans here with EtransMessageTextNum as these objects are sometimes used again later to update the DB.
+				etransAck.EtransMessageTextNum=Etranss.SetMessage(etransAck.EtransNum,result);
 				etrans.AckEtransNum=etransAck.EtransNum;
 				Etranss.Update(etrans);
-				Etranss.SetMessage(etrans.EtransNum,strb.ToString());
+				etrans.EtransMessageTextNum=Etranss.SetMessage(etrans.EtransNum,strb.ToString());
 				etransAcks.Add(etransAck);
 				if(errorMsg!="") {
 					throw new ApplicationException(errorMsg);
