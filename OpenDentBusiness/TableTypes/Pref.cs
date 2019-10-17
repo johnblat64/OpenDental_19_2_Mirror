@@ -1616,6 +1616,10 @@ namespace OpenDentBusiness {
 		UpdateWebProxyUserName,
 		UpdateWebsitePath,
 		UpdateWindowShowsClassicView,
+		///<summary>Hidden preference, no UI to enable this feature, but is present in all databases.  Boolean.
+		///Set to true to make file selection windows use the flag ".ShowHelp=true;".
+		///Added as attemped fix to stop lockups when importing images.</summary>
+		UseAlternateOpenFileDialogWindow,
 		UseBillingAddressOnClaims,
 		///<summary>Enum:ToothNumberingNomenclature 0=Universal(American), 1=FDI, 2=Haderup, 3=Palmer</summary>
 		UseInternationalToothNumbers,

@@ -1724,5 +1724,13 @@ namespace OpenDentBusiness {
 			#endregion Move Trojan Express Collect to Program Link
 		}
 
+		private static void To19_2_36() {
+			//Add hidden pref UseAlternateOpenFileDialogWindow if it hasn't been added.
+			string command = "SELECT * FROM preference WHERE preference.PrefName = 'UseAlternateOpenFileDialogWindow'";
+			if(Db.GetTable(command).Rows.Count == 0) {
+				command="INSERT INTO preference(PrefName,ValueString) VALUES('UseAlternateOpenFileDialogWindow','0')"; //Default to false.
+				Db.NonQ(command);
+			}
+		}
 	}
 }
