@@ -536,7 +536,7 @@ namespace UnitTests.Payments_Tests {
 			PaymentEdit.InitData initData=PaymentEdit.Init(loadData.ListAssociatedPatients,Patients.GetFamily(pat.PatNum),new Family { },incomeTransfer2
 					,loadData.ListSplits,new List<AccountEntry>(),pat.PatNum,isIncomeTxfr:true,loadData:loadData);
 			//Everything should be paid off.
-			Assert.AreEqual(0,initData.AutoSplitData.ListAccountCharges.FindAll(x => x.AmountStart!=0).Count);
+			Assert.AreEqual(0,initData.AutoSplitData.ListAutoSplits.Count);
 		}
 
 		///<summary>Make sure that payment logic takes into account base units.</summary>
@@ -829,67 +829,6 @@ namespace UnitTests.Payments_Tests {
 
 		}
 
-		///<summary>Make sure if there are claims paid by total that they are implicitly used by a valid transfer (neg split -> pos split).</summary>
-		[TestMethod]
-		public void PaymentEdit_ImplicitlyLinkClaimsPaidByTotalTransfers() {
-			//Make procedure for Provider A worth 50.
-			//Make claimproc paid by total for Provider B for 50.
-			//Perform an income transfer - It should display the claimproc as a source of income and the procedure as a destination.
-			//Create the income transfer (manually create a -50 for Prov B, and create a +50 on procedure for ProvA)
-			//Once complete, perform an income transfer again - There should be no targets for transfer since the procedure is paid properly and claimproc is counteracted by transfer.
-			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
-			long provA=ProviderT.CreateProvider("ProvA");
-			long provB=ProviderT.CreateProvider("ProvB");
-			Procedure proc=ProcedureT.CreateProcedure(pat,"D1120",ProcStat.C,"",50,provNum:provA);
-			Carrier carrier=CarrierT.CreateCarrier("ABC");
-			InsPlan plan=InsPlanT.CreateInsPlan(carrier.CarrierNum);
-			InsSub insSub=InsSubT.CreateInsSub(pat.PatNum,plan.PlanNum);
-			ClaimProcT.AddInsPaidAsTotal(pat.PatNum,plan.PlanNum,provB,50,insSub.InsSubNum,0,0);
-			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur,new List<AccountEntry>(),true,false);
-			//Make sure that the logic creates two charges - One for the procedure (original, start, and end are 100) and one for the claimproc paid by total (original, start, and end are -50).
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==50 && x.AmountEnd==50).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(ClaimProc) && x.AmountOriginal==-50 && x.AmountStart==-50 && x.AmountEnd==-50).Count);
-			//Create income transfer manually (cuz test)
-			PaySplit negSplit=PaySplitT.CreateSplit(proc.ClinicNum,pat.PatNum,payCur.PayNum,0,proc.ProcDate,0,provB,-50,0);//Negative split for claimproc
-			PaySplit posSplit=PaySplitT.CreateSplit(proc.ClinicNum,pat.PatNum,payCur.PayNum,0,proc.ProcDate,proc.ProcNum,provA,50,0);//Positive split for correct provider on the procedure
-			Payment payCur2=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur2,new List<AccountEntry>(),true,false);
-			//Make sure that the logic creates two charges - One for the procedure (original, start, and end are 100) and one for the claimproc paid by total (original, start, and end are -50).
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==0 && x.AmountEnd==0).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(ClaimProc) && x.AmountOriginal==-50 && x.AmountStart==0 && x.AmountEnd==0 && x.ProvNum==provB).Count);
-		}
-
-		///<summary>Make sure if there are unattached adjustments that they are implicitly used by a valid previous transfer (neg split -> pos split).</summary>
-		[TestMethod]
-		public void PaymentEdit_ImplicitlyLinkAdjustmentTransfers() {
-			//Make procedure for Provider A worth 50.
-			//Make unattached negative adjustment Provider B for 50.
-			//Perform an income transfer - It should display the adjustment as a source of income and the procedure as a destination.
-			//Create the income transfer (manually create a -50 for Prov B, and create a +50 on procedure for ProvA)
-			//Once complete, perform an income transfer again - There should be nothing since the procedure is paid properly and the transfer should counteract the adjustment.
-			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
-			long provA=ProviderT.CreateProvider("ProvA");
-			long provB=ProviderT.CreateProvider("ProvB");
-			Procedure proc=ProcedureT.CreateProcedure(pat,"D1120",ProcStat.C,"",50,provNum:provA);
-			Adjustment adjust=AdjustmentT.MakeAdjustment(pat.PatNum,-50,proc.ProcDate,provNum:provB);
-			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur,new List<AccountEntry>(),true,false);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==50 && x.AmountEnd==50).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountOriginal==-50 && x.AmountStart==-50 && x.AmountEnd==-50).Count);
-			//Create income transfer manually (cuz test)
-			PaySplit negSplit=PaySplitT.CreateSplit(proc.ClinicNum,pat.PatNum,payCur.PayNum,0,proc.ProcDate,0,provB,-50,0);//Negative split for adjustment
-			PaySplit posSplit=PaySplitT.CreateSplit(proc.ClinicNum,pat.PatNum,payCur.PayNum,0,proc.ProcDate,proc.ProcNum,provA,50,0);//Positive split for correct provider on the procedure
-			Payment payCur2=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur2,new List<AccountEntry>(),true,false);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==0 && x.AmountEnd==0).Count);//Proc has been paid
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountOriginal==-50 && x.AmountStart==0 && x.AmountEnd==0 && x.ProvNum==provB).Count);
-		}
-
 		///<summary>Make sure if a procedure has been paid by an incorrect provider and a negative unallocated split was made to counteract that payment that
 		///the procedure shows as owing money still.</summary>
 		[TestMethod]
@@ -920,33 +859,9 @@ namespace UnitTests.Payments_Tests {
 			//The user needs to either unattach the paysplit on the procedure, attach the negative split on the procedure, or delete both splits.
 		}
 
-		///<summary>Make sure if there are counteracting adjustments on a procedure that they counteract each other for income transfers (are not valid sources of transfer).</summary>
-		[TestMethod]
-		public void PaymentEdit_AdjustmentTransfersCounteractEachOther() {
-			//Make a procedure for Provider A
-			//Add a positive adjustment on the procedure for Provider B 
-			//Add a negative adjustment on the procedure for Provider B
-			//Add a positive adjustment on the procedure for Provider A  (this mimics an Adjustment "production transfer" due to original adjustment being erroneous)
-			//When an income transfer is created it should not show the Positive and Negative adjustments for Provider B (they are not valid transfer targets).
-			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
-			long provA=ProviderT.CreateProvider("ProvA");
-			long provB=ProviderT.CreateProvider("ProvB");
-			Procedure proc=ProcedureT.CreateProcedure(pat,"D1120",ProcStat.C,"",50,provNum:provA);
-			Adjustment adjust1=AdjustmentT.MakeAdjustment(pat.PatNum,50,proc.ProcDate,procNum:proc.ProcNum,provNum:provB);
-			Adjustment adjust2=AdjustmentT.MakeAdjustment(pat.PatNum,-50,proc.ProcDate,procNum:proc.ProcNum,provNum:provB);
-			Adjustment adjust3=AdjustmentT.MakeAdjustment(pat.PatNum,50,proc.ProcDate,procNum:proc.ProcNum,provNum:provA);
-			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur,new List<AccountEntry>(),true,false);
-			//Make sure that the logic creates two charges - One for the procedure (original, start, and end are 100) and one for the claimproc paid by total (original, start, and end are -50).
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==100 && x.AmountEnd==100).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountOriginal==-50 && x.AmountStart==0 && x.AmountEnd==0 && x.ProvNum==provB).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountOriginal==50 && x.AmountStart==0 && x.AmountEnd==0 && x.ProvNum==provB).Count);
-		}
-
 		///<summary>In income transfer mode, if there are negative unallocated splits, they should be implicitly used by other sources of income (and not show as valid xfer sources).</summary>
 		[TestMethod]
-		public void PaymentEdit_NegSplitsImplicitlyUsedByPosSources() {
+		public void PaymentEdit_ConstructLinkChargeCredits_NegSplitsImplicitlyUsedByPosSources() {
 			//Make a payment for Provider A for -50 (a charge)
 			//Make an unattached claimproc for Provider A for 50
 			//Perform an income transfer - It should show both the claimproc and the paysplit valued as 0 (they counteract each other)
@@ -960,28 +875,8 @@ namespace UnitTests.Payments_Tests {
 			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
 			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
 				payCur,new List<AccountEntry>(),true,false);
-			//Make sure that both entries (PaySplit and ClaimProc) are both reduced to 0
-			Assert.AreEqual(0,results.ListAccountCharges.FindAll(x => x.AmountEnd!=0).Count);
-		}
-
-		///<summary>In income transfer mode, unattached adjustments and claims paid by total should counteract each other (and not show as valid sources of xfer).</summary>
-		[TestMethod]
-		public void PaymentEdit_UnattachedAdjustsAndClaimprocsCounteract() {
-			//Make an unattached adjustment for 50 (a charge)
-			//Make an unattached claimproc for 50
-			//Perform an income transfer - It should show both the adjustment and claimproc valued as 0 (they counteract each other)
-			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
-			long provA=ProviderT.CreateProvider("ProvA");
-			Carrier carrier=CarrierT.CreateCarrier("ABC");
-			InsPlan plan=InsPlanT.CreateInsPlan(carrier.CarrierNum);
-			InsSub insSub=InsSubT.CreateInsSub(pat.PatNum,plan.PlanNum);
-			ClaimProcT.AddInsPaidAsTotal(pat.PatNum,plan.PlanNum,provA,50,insSub.InsSubNum,0,0);
-			Adjustment adjust1=AdjustmentT.MakeAdjustment(pat.PatNum,50,DateTime.Today,provNum:provA);
-			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur,new List<AccountEntry>(),true,false);
-			//Make sure that both entries (PaySplit and ClaimProc) are both reduced to 0
-			Assert.AreEqual(0,results.ListAccountCharges.FindAll(x => x.AmountEnd!=0).Count);
+			Assert.AreEqual(0,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(ClaimProc)).Count);
+			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.AmountEnd==50).Count);//PaySplits are opposite signed as account charges. 
 		}
 
 		///<summary>If there is an adjustment that needs paying, autosplit logic should attach the paysplit to the adjustment. (treat it like a proc)</summary>
@@ -1068,38 +963,6 @@ namespace UnitTests.Payments_Tests {
 				payCur,new List<AccountEntry>(),true,false);
 			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountEnd==25).Count);
 			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountEnd==0).Count);
-		}
-
-
-		///<summary>Make sure if there are unattached adjustments that they are implicitly used by a valid previous transfer (neg split -> pos split).</summary>
-		[TestMethod]
-		public void PaymentEdit_ImplicitlyLinkAdjustmentPaySplitTransfers() {
-			//Make procedure for Provider A worth 50.
-			//Make unattached negative adjustment Provider B for 50.
-			//Perform an income transfer - It should display the adjustment as a source of income and the procedure as a destination.
-			//Create the income transfer (manually create a -50 for Prov B, and create a +50 on procedure for ProvA)
-			//Once complete, perform an income transfer again - There should be nothing since the procedure is paid properly and the transfer should 
-			//counteract the adjustment.
-			//This is also a special unit test that is mostly for 18.4. 19.1 and beyond may not need this test because of explicit adjustment linking. 
-			Patient pat=PatientT.CreatePatient(MethodBase.GetCurrentMethod().Name);
-			long provA=ProviderT.CreateProvider("ProvA");
-			Adjustment adjust=AdjustmentT.MakeAdjustment(pat.PatNum,50,DateTime.Today.AddDays(-2),provNum:provA);
-			Payment pay=PaymentT.MakePaymentNoSplits(pat.PatNum,50,DateTime.Today.AddDays(-1));
-			Payments.Insert(pay);
-			PaySplit originalSplit=PaySplitT.CreateSplit(0,pat.PatNum,pay.PayNum,0,DateTime.Today.AddDays(-1),0,provA,50,0,0);
-			Payment payCur=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
-				payCur,new List<AccountEntry>(),true,false);
-			//Create income transfer manually
-			PaySplit negSplit=PaySplitT.CreateSplit(0,pat.PatNum,payCur.PayNum,0,DateTime.Today,0,provA,-50,0,0,originalSplit.SplitNum);//offset for original
-			PaySplit posSplit=PaySplitT.CreateSplit(0,pat.PatNum,payCur.PayNum,0,DateTime.Today,0,provA,50,0,0,negSplit.SplitNum);//final allocation
-			Payment payCur2=PaymentT.MakePaymentNoSplits(pat.PatNum,0);
-			results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),payCur2
-				,new List<AccountEntry>(),true,false);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.AmountOriginal==50 && x.AmountStart==0 && x.AmountEnd==0).Count);//Adjustment has been paid
-			Assert.AreEqual(2,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountOriginal==-50 && x.AmountStart==0 
-				&& x.AmountEnd==0 && x.ProvNum==provA).Count);//two because of the original, and the allocation.
-			Assert.AreEqual(0,results.ListAccountCharges.Sum(x => x.AmountEnd));
 		}
 
 		[TestMethod]

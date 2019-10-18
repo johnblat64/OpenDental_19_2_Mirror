@@ -124,7 +124,9 @@ namespace OpenDentBusiness {
 					data.ListPaySplits.RemoveAt(i);
 				}
 			}
-			data.ListInsPayAsTotal=ClaimProcs.GetByTotForPats(listPatNums);//Claimprocs paid as total, might contain ins payplan payments.
+			if(!isIncomeTransfer) {
+				data.ListInsPayAsTotal=ClaimProcs.GetByTotForPats(listPatNums);//Claimprocs paid as total, might contain ins payplan payments.
+			}
 			data.ListPayPlans=PayPlans.GetForPats(listPatNums,patNum);//Used to figure out how much we need to pay off procs with, also contains ins payplans
 			data.ListPayPlanCharges=new List<PayPlanCharge>();
 			data.ListPaySplitsPayPlan=new List<PaySplit>();
@@ -153,11 +155,6 @@ namespace OpenDentBusiness {
 			List<Procedure> listProcs=constructChargesData.ListProcsCompleted;//filled from db. List of completed procs for patient(s).
 			List<Adjustment> listAdjustments=constructChargesData.ListAdjustments;
 			List<ClaimProc> listInsPays=constructChargesData.ListInsPayAsTotal;//Claimprocs paid as total, might contain ins payplan payments.
-			if(isIncomeTxfr) {
-				//Add claimprocs for the completed procedures if in income xfer mode.
-				listInsPays.AddRange(ClaimProcs.GetForProcs(listProcs.Select(x => x.ProcNum).ToList())
-					.FindAll(x => x.Status.In(ClaimProcStatus.NotReceived,ClaimProcStatus.Received,ClaimProcStatus.Supplemental,ClaimProcStatus.CapClaim)));
-			}
 			//Used to figure out how much we need to pay off procs with, also contains insurance payplans.
 			List<PayPlan> listPayPlans=constructChargesData.ListPayPlans;
 			List<PayPlanCharge> listPayPlanCharges=constructChargesData.ListPayPlanCharges;
@@ -177,327 +174,18 @@ namespace OpenDentBusiness {
 			retVal.ListAccountCharges=PaymentEdit.ExplicitlyLinkCredits(retVal,listSplitsCurrentAndHistoric,listClaimProcs.Where(x => x.ProcNum!=0).ToList()
 				,listAdjustments.Where(x => x.ProcNum!=0).ToList(),listPayPlans,isIncomeTxfr);
 			#endregion
+			#region Net Unearned Amounts
+			retVal.ListAccountCharges=LinkUnearnedForPatProvClinicUnearnedType(retVal.ListAccountCharges);
+			#endregion
 			#region Implicitly Link Credits
 			if(!isIncomeTxfr) {//If this payment is an income transfer, do NOT use unallocated income to pay off charges.
-				PaymentEdit.PayResults implicitResult=PaymentEdit.ImplicitlyLinkCredits(constructChargesData.ListPaySplits,listAdjustments,listInsPays
+				PayResults implicitResult=ImplicitlyLinkCredits(constructChargesData.ListPaySplits,listAdjustments,listInsPays
 					,retVal.ListAccountCharges,listSplitsCur,listEntriesLoading,retVal.Payment,patCurNum,isPreferCurPat);
 				retVal.ListAccountCharges=implicitResult.ListAccountCharges;
 				retVal.ListSplitsCur=implicitResult.ListSplitsCur;
 				retVal.Payment=implicitResult.Payment;
 			}
 			#endregion Implicitly Link Credits
-			#region Income Transfer PostProcessing
-			if(isIncomeTxfr) {
-				//This section is concerned with "implicitly" linking items together that may have been used as a transfer in the past or used on the same charge item (procedure).
-				//Due to the nature of how we link some things but not others (notably Adjustments and Claimprocs are not linked)
-				//we have to make educated guesses on how or where things are used.  The one thing that we rely on throughout this process is matching
-				//the patient/provider/clinic on all items used to counteract each other.  
-				//An Example - The user performed a transfer in the past due to a positive adjustment for Provider A and an available paysplit for Provider B
-				//The transfer would make a negative paysplit for Provider B and a positive paysplit for Provider A so both providers now have a net 0 balance.
-				//We do not (yet) link adjustments and paysplits.  When performing an transfer at a later date, the splits for Provider B counteract each other
-				//due to being linked so neither show as valid sources of transfer, but we also need to guess that the split and adjustment for Provider A should counteract
-				//each other.  The conditions for counteracting adjustment and paysplit are simply that for Provider A  there is a source of credit (the paysplit)
-				//and there is a charge that is not on a procedure (the adjustment) that match pat/prov/clinic.  It could be that a manual split and no actual
-				//transfer was done in the past, but we have no way of knowing.
-				//Use claimprocs and adjustments on procedure to modify its value as long as pat/prov/clinic match.
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {//Adjustment/Claimproc pat/prov/clinic match the linked proc pat/prov/clinic.
-					if(entry.GetType()!=typeof(Adjustment) && entry.GetType()!=typeof(ClaimProc)) {
-						continue;
-					}
-					if(entry.AmountEnd==0) {
-						continue;
-					}
-					if(entry.GetType()==typeof(Adjustment) && ((Adjustment)entry.Tag).ProcNum==0) {
-						continue;
-					}
-					if(entry.GetType()==typeof(ClaimProc) && ((ClaimProc)entry.Tag).ProcNum==0) {
-						continue;
-					}
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {
-						if(entry2.GetType()!=typeof(Procedure)) {
-							continue;
-						}
-						if(entry.GetType()==typeof(ClaimProc) && entry2.PriKey!=((ClaimProc)entry.Tag).ProcNum) {
-							continue;
-						}
-						if(entry.GetType()==typeof(Adjustment) && entry2.PriKey!=((Adjustment)entry.Tag).ProcNum) {
-							continue;
-						}
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {
-							continue;
-						}
-						//This claimproc/adjustment is attached to the procedure.  Put the value on the procedure.
-						entry2.AmountStart+=entry.AmountEnd;
-						entry2.AmountEnd+=entry.AmountEnd;
-						entry.AmountStart-=entry.AmountStart;
-						entry.AmountEnd-=entry.AmountEnd;
-					}
-				}
-				//Use claimprocs or adjustments of opposing signs to counteract each other as long as they're on the same procedure and pat/prov/clinic match.
-				//Adjustment/Claimproc pat/prov/clinic match the other Adjustment/Claimproc pat/prov/clinic and both are linked to the same proc.
-				//This section is slightly different than the above (even though they seem very similar).  This one is concerned about entries on the same procedure,
-				//the above is concerned with the procedure itself.
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {
-					if(entry.GetType()!=typeof(Adjustment) && entry.GetType()!=typeof(ClaimProc)) {
-						continue;
-					}
-					if(entry.AmountEnd==0) {
-						continue;
-					}
-					if(entry.GetType()==typeof(Adjustment) && ((Adjustment)entry.Tag).ProcNum==0) {
-						continue;
-					}
-					if(entry.GetType()==typeof(ClaimProc) && ((ClaimProc)entry.Tag).ProcNum==0) {
-						continue;
-					}
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {
-						if(entry==entry2) {
-							continue;
-						}
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {
-							continue;
-						}
-						if(entry2.AmountEnd==0) {
-							continue;
-						}
-						if(Math.Sign(entry.AmountEnd)==Math.Sign(entry2.AmountEnd)) {//That are opposite sign of adjustment/claimproc
-							continue;
-						}
-						if(entry2.GetType()!=typeof(Adjustment) && entry2.GetType()!=typeof(ClaimProc)) {
-							continue;
-						}
-						//Annoying Cases Because Typing Can't Be Variable
-						long procNum1=(entry.GetType()==typeof(ClaimProc)?((ClaimProc)entry.Tag).ProcNum:((Adjustment)entry.Tag).ProcNum);
-						long procNum2=(entry2.GetType()==typeof(ClaimProc)?((ClaimProc)entry2.Tag).ProcNum:((Adjustment)entry2.Tag).ProcNum);
-						if(procNum1!=procNum2) {
-							continue;
-						}
-						decimal amt=Math.Min(Math.Abs(entry.AmountEnd),Math.Abs(entry2.AmountEnd));//Make sure these operations are sign agnostic
-						entry.AmountStart-=(Math.Sign(entry.AmountStart))*amt;
-						entry.AmountEnd-=(Math.Sign(entry.AmountEnd))*amt;
-						entry2.AmountStart-=(Math.Sign(entry2.AmountStart))*amt;
-						entry2.AmountEnd-=(Math.Sign(entry2.AmountEnd))*amt;
-					}
-				}
-				//Find all splits that are valid for counteracting claims paid by total
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {
-					if(entry.GetType()!=typeof(ClaimProc)) {
-						continue;
-					}
-					if(entry.AmountEnd==0) {
-						continue;
-					}
-					//The entry we have is an adjustment or claimproc that haven't been fully used.  They could be the target for transfer.
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {//Find splits that could have been used to transfer.
-						if(entry2.GetType()!=typeof(PaySplit)) {//Find only paysplits.
-							continue;
-						}
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {//That have matching pat/prov/clinic
-							continue;
-						}
-						if(entry2.AmountEnd==0) {//That haven't been used fully
-							continue;
-						}
-						if(Math.Sign(entry.AmountEnd)==Math.Sign(entry2.AmountEnd)) {//That are opposite sign of adjustment/claimproc
-							continue;
-						}
-						if(((PaySplit)entry2.Tag).FSplitNum!=0) {//That aren't part of a paysplit transfer
-							continue;
-						}
-						if(!retVal.ListAccountCharges.Exists(x => x.GetType()==typeof(PaySplit) && ((PaySplit)x.Tag).FSplitNum==entry2.PriKey)) {//And that have an allocating split.
-							continue;
-						}
-						//Entry2 is the counteracting item in an income transfer to a transfer source that couldn't be hard linked (Adjustment/Claim paid by total)
-						decimal amt=Math.Min(Math.Abs(entry.AmountEnd),Math.Abs(entry2.AmountEnd));//Make sure these operations are sign agnostic
-						entry.AmountStart-=(Math.Sign(entry.AmountStart))*amt;
-						entry.AmountEnd-=(Math.Sign(entry.AmountEnd))*amt;
-						entry2.AmountStart-=(Math.Sign(entry2.AmountStart))*amt;
-						entry2.AmountEnd-=(Math.Sign(entry2.AmountEnd))*amt;
-					}
-				}
-				//Find negative splits (positive account entries) that aren't part of a previous transfer and counteract them with sources of income.
-				//We do this because charge paysplits can't be officially "paid" in any way, so we use other sources of credit to counteract it.
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {
-					if(entry.GetType()!=typeof(PaySplit)) {//Find only paysplits
-						continue;
-					}
-					if(entry.AmountEnd<=0) {//That are charges (negative splits but positive AccountEntries)
-						continue;
-					}
-					if(((PaySplit)entry.Tag).ProcNum!=0) {//That aren't attached to procedures
-						continue;
-					}
-					if(retVal.ListAccountCharges.Exists(x => x.GetType()==typeof(PaySplit) && ((PaySplit)x.Tag).FSplitNum==entry.PriKey)) {//And don't have an allocating split.
-						continue;
-					}
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {
-						if(entry2==entry) {
-							continue;
-						}
-						if(entry2.GetType()==typeof(Procedure)) {
-							continue;
-						}
-						if(entry2.GetType()==typeof(PaySplit) && ((PaySplit)entry2.Tag).ProcNum!=0) {
-							continue;
-						}
-						if(entry2.GetType()==typeof(Adjustment) && ((Adjustment)entry2.Tag).ProcNum!=0) {
-							continue;
-						}
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {
-							continue;
-						}
-						if(entry2.AmountEnd==0) {
-							continue;
-						}
-						if(Math.Sign(entry.AmountEnd)==Math.Sign(entry2.AmountEnd)) {//We want only opposite signed entries
-							continue;
-						}
-						//Entry2 is the counteracting item in an income transfer to a transfer source that couldn't be hard linked (Adjustment/Claim paid by total)
-						decimal amt=Math.Min(Math.Abs(entry.AmountEnd),Math.Abs(entry2.AmountEnd));//Make sure these operations are sign agnostic
-						entry.AmountStart-=(Math.Sign(entry.AmountStart))*amt;
-						entry.AmountEnd-=(Math.Sign(entry.AmountEnd))*amt;
-						entry2.AmountStart-=(Math.Sign(entry2.AmountStart))*amt;
-						entry2.AmountEnd-=(Math.Sign(entry2.AmountEnd))*amt;
-					}
-				}
-				//Use unattached adjustments/claimprocs of opposite sign and same pat/prov/clinic to counteract each other.
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {
-					if(entry.GetType()!=typeof(Adjustment) && entry.GetType()!=typeof(ClaimProc)) {//Find only adjustments and claimprocs
-						continue;
-					}
-					if(entry.AmountEnd==0) {//That have an amount
-						continue;
-					}
-					if(entry.GetType()==typeof(Adjustment) && ((Adjustment)entry.Tag).ProcNum!=0) {//That aren't attached to procedures
-						continue;
-					}
-					if(entry.GetType()==typeof(ClaimProc) && ((ClaimProc)entry.Tag).ProcNum!=0) {
-						continue;
-					}
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {
-						if(entry2==entry) {
-							continue;
-						}
-						if(entry2.GetType()!=typeof(Adjustment) && entry2.GetType()!=typeof(ClaimProc)) {
-							continue;
-						}
-						if(entry2.GetType()==typeof(Adjustment) && ((Adjustment)entry2.Tag).ProcNum!=0) {
-							continue;
-						}
-						if(entry2.GetType()==typeof(ClaimProc) && ((ClaimProc)entry2.Tag).ProcNum!=0) {
-							continue;
-						}
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {
-							continue;
-						}
-						if(entry2.AmountEnd==0) {
-							continue;
-						}
-						if(Math.Sign(entry.AmountEnd)==Math.Sign(entry2.AmountEnd)) {//We want only opposite signed entries
-							continue;
-						}
-						//Entry2 is an opposing Adjustment item that couldn't be hard linked
-						decimal amt=Math.Min(Math.Abs(entry.AmountEnd),Math.Abs(entry2.AmountEnd));//Make sure these operations are sign agnostic
-						entry.AmountStart-=(Math.Sign(entry.AmountStart))*amt;
-						entry.AmountEnd-=(Math.Sign(entry.AmountEnd))*amt;
-						entry2.AmountStart-=(Math.Sign(entry2.AmountStart))*amt;
-						entry2.AmountEnd-=(Math.Sign(entry2.AmountEnd))*amt;
-					}
-				}
-				#region Implicitly Link Unattached Adjustment/Claimproc to Unattached PaySplit
-				//Use unattached paysplits to pay off unattached adjustments/claimprocs with same pat/prov/clinic to counteract each other.
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {
-					if(entry.GetType()!=typeof(Adjustment) && entry.GetType()!=typeof(ClaimProc)) {//Find only adjustments and claimprocs
-						continue;
-					}
-					if(entry.AmountEnd==0) {//That have an amount
-						continue;
-					}
-					if(entry.GetType()==typeof(Adjustment) && ((Adjustment)entry.Tag).ProcNum!=0) {//That aren't attached to procedures
-						continue;
-					}
-					if(entry.GetType()==typeof(ClaimProc) && ((ClaimProc)entry.Tag).ProcNum!=0) {
-						continue;
-					}
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {
-						if(entry2==entry) {
-							continue;
-						}
-						if(entry2.GetType()!=typeof(PaySplit)) {
-							continue;
-						}
-						if(((PaySplit)entry2.Tag).ProcNum!=0) {
-							continue;
-						}
-						#region Split Chain Filter
-						//Split Chain: Original -> Offset -> Allocation
-						if(((PaySplit)entry2.Tag).FSplitNum==0) {
-							continue;//Do not use original splits for implicit linking.
-						}
-						if((retVal.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit)
-							 && ((PaySplit)x.Tag).FSplitNum==((PaySplit)entry2.Tag).SplitNum).Count>0)) {
-							continue;//Do not use middle offsetting splits for implicit linking. 
-						}
-						#endregion
-						//Now we have the split that is the last link in the allocation chain.
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {
-							continue;
-						}
-						if(entry2.AmountEnd==0) {
-							continue;
-						}
-						if(Math.Sign(entry.AmountEnd)==Math.Sign(entry2.AmountEnd)) {//We want only opposite signed entries
-							continue;
-						}
-						//Entry2 is an opposing PaySplit item that couldn't be hard linked
-						decimal amt = Math.Min(Math.Abs(entry.AmountEnd),Math.Abs(entry2.AmountEnd));//Make sure these operations are sign agnostic
-						entry.AmountStart-=(Math.Sign(entry.AmountStart))*amt;
-						entry.AmountEnd-=(Math.Sign(entry.AmountEnd))*amt;
-						entry2.AmountStart-=(Math.Sign(entry2.AmountStart))*amt;
-						entry2.AmountEnd-=(Math.Sign(entry2.AmountEnd))*amt;
-					}
-				}
-				//Payment splits that are on the same procedure should counteract each other as long as pat/prov/clinic match (even if they have no FSplitNum to each other)
-				//(For instance if there is a procedure that has two splits, a positive and negative, for same pat/prov/clinic that don't match proc's pat/prov/clinic)
-				foreach(AccountEntry entry in retVal.ListAccountCharges) {
-					if(entry.GetType()!=typeof(PaySplit)) {//Find only paysplits
-						continue;
-					}
-					if(entry.AmountEnd==0) {//That have an amount
-						continue;
-					}
-					if(((PaySplit)entry.Tag).ProcNum==0) {//And has a procedure
-						continue;
-					}
-					foreach(AccountEntry entry2 in retVal.ListAccountCharges) {
-						if(entry2==entry) {
-							continue;
-						}
-						if(entry2.GetType()!=typeof(PaySplit)) {//Find only paysplits
-							continue;
-						}
-						if(entry2.PatNum!=entry.PatNum || entry2.ProvNum!=entry.ProvNum || entry2.ClinicNum!=entry.ClinicNum) {//On the same pat/prov/clinic
-							continue;
-						}
-						if(entry2.AmountEnd==0) {//With an amount
-							continue;
-						}
-						if(Math.Sign(entry.AmountEnd)==Math.Sign(entry2.AmountEnd)) {//That is opposite signed
-							continue;
-						}
-						if(((PaySplit)entry2.Tag).ProcNum!=((PaySplit)entry.Tag).ProcNum) {//And on same procedure
-							continue;
-						}
-						decimal amt=Math.Min(Math.Abs(entry.AmountEnd),Math.Abs(entry2.AmountEnd));//Make sure these operations are sign agnostic
-						entry.AmountStart-=(Math.Sign(entry.AmountStart))*amt;
-						entry.AmountEnd-=(Math.Sign(entry.AmountEnd))*amt;
-						entry2.AmountStart-=(Math.Sign(entry2.AmountStart))*amt;
-						entry2.AmountEnd-=(Math.Sign(entry2.AmountEnd))*amt;
-					}
-				}
-				#endregion
-			}
-			#endregion Income Transfer PostProcessing
 			return retVal;
 		}
 
@@ -550,10 +238,9 @@ namespace OpenDentBusiness {
 			//Any payment plan credits for procedures should get applied to that procedure and removed from the credit total bucket.
 			foreach(AccountEntry chargeCur in listAccountCharges) {
 				if(chargeCur.Tag.GetType() == typeof(Procedure)) {
-					if(!isIncomeTransfer) {
-						chargeCur.AmountStart=(decimal)ClaimProcs.GetPatPortion((Procedure)chargeCur.Tag,listClaimProcs,listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey));
-						chargeCur.AmountEnd=chargeCur.AmountStart;
-					}
+					chargeCur.AmountStart=(decimal)ClaimProcs.GetPatPortion((Procedure)chargeCur.Tag,listClaimProcs,
+						listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey));
+					chargeCur.AmountEnd=chargeCur.AmountStart;
 					decimal sumCreditsForProc=0;
 					if(isIncomeTransfer) {
 						sumCreditsForProc=(decimal)listPayPlanCharges
@@ -700,6 +387,36 @@ namespace OpenDentBusiness {
 				}
 				//Do not subtract amount from split or parent split here since we are looping through them and may be modifying split value that hasn't
 				//been evaluated yet. If this code absolutely needs to be added back, make to only have it execute when it is not an income transfer.
+			}
+			return listAccountCharges;
+		}
+
+		///<summary>This method applies positive and negative unearned to each other so the sum is correct before making any transfers.
+		///This method assumes that explicit linking has been done before it is called so the unallocated splits no longer have any value (if any)
+		///Without this method when a procedure, postive unearned, and negative unearned are on an account the postive would be applied to the procedure,
+		///leaving a negative on the account. We want the positive and negative to cancel each other out before any transfers are made.</summary>
+		public static List<AccountEntry> LinkUnearnedForPatProvClinicUnearnedType(List<AccountEntry> listAccountCharges) {
+			List<AccountEntry> listUnearned=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && ((PaySplit)x.Tag).UnearnedType!=0);
+			List<AccountEntry> listPositiveUnearned=listUnearned.FindAll(x => x.AmountEnd > 0);//negative paysplit (like from refunds)
+			List<AccountEntry> listNegativeUnearned=listUnearned.FindAll(x => x.AmountEnd < 0);//regular positve paysplits
+			foreach(AccountEntry positiveEntry in listPositiveUnearned) {
+				foreach(AccountEntry negativeEntry in listNegativeUnearned) {
+					if(positiveEntry.AmountEnd.IsEqual(0)) {
+						continue;//no more money to apply.
+					}
+					if(positiveEntry.ProvNum!=negativeEntry.ProvNum 
+						|| positiveEntry.PatNum!=negativeEntry.PatNum 
+						|| positiveEntry.ClinicNum!=negativeEntry.ClinicNum	
+						|| ((PaySplit)positiveEntry.Tag).UnearnedType!=((PaySplit)negativeEntry.Tag).UnearnedType) 
+					{
+						continue;
+					}
+					decimal amount=Math.Min(Math.Abs(positiveEntry.AmountEnd),Math.Abs(negativeEntry.AmountEnd));
+					positiveEntry.AmountStart-=amount;
+					positiveEntry.AmountEnd-=amount;
+					negativeEntry.AmountEnd+=amount;
+					negativeEntry.AmountStart+=amount;
+				}
 			}
 			return listAccountCharges;
 		}
