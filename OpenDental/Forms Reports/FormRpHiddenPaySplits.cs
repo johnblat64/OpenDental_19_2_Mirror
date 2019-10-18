@@ -137,7 +137,8 @@ namespace OpenDental{
 				listClinicNums=listBoxClinic.SelectedTags<Clinic>().Select(x => x.ClinicNum).ToList();
 			}
 			DataTable table=new DataTable();
-			table=RpHiddenPaySplits.GetReportData(listProvNums,listUnearnedTypeDefNums,listClinicNums,PrefC.HasClinicsEnabled);
+			table=RpHiddenPaySplits.GetReportData(listProvNums,listUnearnedTypeDefNums,listClinicNums,PrefC.HasClinicsEnabled
+				,odDateRangePicker.GetDateTimeFrom(),odDateRangePicker.GetDateTimeTo());
 			Font font=new Font("Tahoma",9);
 			Font fontBold=new Font("Tahoma",9,FontStyle.Bold);
 			Font fontTitle=new Font("Tahoma",17,FontStyle.Bold);
