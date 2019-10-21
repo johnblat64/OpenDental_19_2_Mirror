@@ -739,7 +739,7 @@ namespace OpenDental{
 				long clinicNum=PIn.Long(_tableRecalls.Rows[gridMain.SelectedIndices[i]]["ClinicNum"].ToString());
 				//If this practice has clinics enabled for Web Sched, then they will not have Web Sched enabled for clinic num 0. They will need to assign
 				//patients to a clinic in order to send Web Sched. We will prompt them below to assign them.
-				if(clinicNum==0 && !_listClinicNumsWebSched.Contains(0)) {
+				if(needsToBeSignedUp && clinicNum==0 && !_listClinicNumsWebSched.Contains(0)) {
 					skippedClinic0++;
 					gridMain.SetSelected(gridMain.SelectedIndices[i],false);
 					continue;
