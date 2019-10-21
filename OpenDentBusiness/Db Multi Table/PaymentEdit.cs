@@ -169,7 +169,8 @@ namespace OpenDentBusiness {
 			#endregion
 			#region Explicitly Link Credits
 			SplitCollection listSplitsCurrentAndHistoric=new SplitCollection();
-			listSplitsCurrentAndHistoric.AddRange(constructChargesData.ListPaySplits);
+			//This ordering is necessary so parents come before their children when explicitly linking credits.
+			listSplitsCurrentAndHistoric.AddRange(constructChargesData.ListPaySplits.OrderBy(x => x.DatePay).ThenBy(x => x.FSplitNum).ToList());
 			listSplitsCurrentAndHistoric.AddRange(listSplitsCur.Where(x => x.SplitNum==0).Select(y => y.Copy()).ToList());
 			retVal.ListAccountCharges=PaymentEdit.ExplicitlyLinkCredits(retVal,listSplitsCurrentAndHistoric,listClaimProcs.Where(x => x.ProcNum!=0).ToList()
 				,listAdjustments.Where(x => x.ProcNum!=0).ToList(),listPayPlans,isIncomeTxfr);
