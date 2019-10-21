@@ -401,6 +401,7 @@ namespace OpenDentBusiness {
 			bool wasChargeAttempted;
 			StringBuilder strBuilderResultText;
 			double amount;
+			long xWebResponseNum=0;
 			StringBuilder receipt;
 			CreditCardSource ccSource;
 			if(_useXChargeClientProgram) {
@@ -410,11 +411,11 @@ namespace OpenDentBusiness {
 			}
 			else {
 				wasChargeAttempted=ProcessCardXWebDTG(chargeData,forceDuplicates,strBuilderResultFile,out strBuilderResultText,
-					out amount,out receipt);
+					out amount,out receipt,out xWebResponseNum);
 				ccSource=CreditCardSource.XWeb;
 			}
 			if(wasChargeAttempted) {
-				CreatePayment(patCur,chargeData,strBuilderResultText.ToString(),amount,receipt.ToString(),ccSource);
+				CreatePayment(patCur,chargeData,strBuilderResultText.ToString(),amount,receipt.ToString(),ccSource,xWebResponseNum:xWebResponseNum);
 			}
 		}
 
@@ -602,7 +603,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Charges the card using the XWeb Direct to Gateway API. Returns true if the charge was successfully attempted.</summary>
 		private bool ProcessCardXWebDTG(RecurringChargeData chargeData,bool forceDuplicates,StringBuilder strBuilderResultFile,
-			out StringBuilder strBuilderResultText,out double amount,out StringBuilder receipt) 
+			out StringBuilder strBuilderResultText,out double amount,out StringBuilder receipt,out long xWebResponseNum) 
 		{
 			receipt=new StringBuilder();//Automated payments won't have receipts
 			strBuilderResultText=new StringBuilder();
@@ -619,11 +620,13 @@ namespace OpenDentBusiness {
 					response.PayNote+="\r\n"+Lans.g(this,"Response from XWeb:")+" "+response.XWebResponseCode.ToString();
 				}
 				strBuilderResultText.Append(response.GetFormattedNote(true));
+				xWebResponseNum=response.XWebResponseNum;
 				return true;
 			}
 			catch(Exception ex) {
 				MarkFailed(chargeData,"Unable to charge card.\r\nError Message: "+ex.Message,LogLevel.Error);
 				amount=0;
+				xWebResponseNum=0;
 				if(ex is ODException) {
 					return false;
 				}
@@ -896,7 +899,9 @@ namespace OpenDentBusiness {
 
 		///<summary>Inserts a payment and paysplit, called after processing a payment through either X-Charge or PayConnect. selectedIndex is the current 
 		///selected index of the gridMain row this payment is for.</summary>
-		protected void CreatePayment(Patient patCur,RecurringChargeData recCharge,string note,double amount,string receipt,CreditCardSource ccSource) {
+		protected void CreatePayment(Patient patCur,RecurringChargeData recCharge,string note,double amount,string receipt,CreditCardSource ccSource,
+			long xWebResponseNum=0)
+		{
 			Payment paymentCur=new Payment();
 			paymentCur.DateEntry=_nowDateTime.Date;
 			if(PrefC.IsODHQ && PrefC.GetBool(PrefName.BillingUseBillingCycleDay)) {
@@ -937,6 +942,13 @@ namespace OpenDentBusiness {
 			SecurityLogs.MakeLogEntry(Permissions.PaymentCreate,paymentCur.PatNum,patCur.GetNameLF()+", "
 				+paymentCur.PayAmt.ToString("c")+", "+Lans.g(_lanThis,"created from the Recurring Charges List"));
 			recCharge.RecurringCharge.PayNum=paymentCur.PayNum;
+			if(xWebResponseNum>0) {
+				XWebResponse xWebResponse=XWebResponses.GetOne(xWebResponseNum);
+				if(xWebResponse!=null) {
+					xWebResponse.PaymentNum=paymentCur.PayNum;
+					XWebResponses.Update(xWebResponse);
+				}
+			}
 			long provNumPayPlan=recCharge.ProvNum;//for payment plans only
 			//Regular payments need to apply to the provider that the family owes the most money to.
 			//Also get provNum for provider owed the most if the card is for a payplan and for other repeating charges and they will be charged for both
