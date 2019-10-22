@@ -239,14 +239,24 @@ namespace OpenDentBusiness {
 			//Any payment plan credits for procedures should get applied to that procedure and removed from the credit total bucket.
 			foreach(AccountEntry chargeCur in listAccountCharges) {
 				if(chargeCur.Tag.GetType() == typeof(Procedure)) {
-					List<Adjustment> listAdjustments=new List<Adjustment>();
-					if(!isIncomeTransfer) {//don't have adjustments affect the patient portion in income transfer mode because they show as separate line items
-						listAdjustments=listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey); 
+					List<Adjustment> listAdjustmentsForProc=new List<Adjustment>();//list of adjustments that will be directly applied to the procedure
+					if(isIncomeTransfer) {//Only apply adjustments that have matching pat/prov/clinic values to the procedure.
+						listAdjustmentsForProc=listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey && x.ProvNum==chargeCur.ProvNum && x.PatNum==chargeCur.PatNum 
+							&& x.ClinicNum==chargeCur.ClinicNum);
 					}
-					chargeCur.AmountStart=ClaimProcs.GetPatPortion((Procedure)chargeCur.Tag,listClaimProcs,listAdjustments);
+					else {//Not transfer. Use adjustments to directly modify procedure value regardless
+						listAdjustmentsForProc=listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey);
+					}
+					chargeCur.AmountStart=ClaimProcs.GetPatPortion((Procedure)chargeCur.Tag,listClaimProcs,listAdjustmentsForProc);
 					chargeCur.AmountEnd=chargeCur.AmountStart;
 					decimal sumCreditsForProc=0;
 					if(isIncomeTransfer) {
+						List<long> listValidAdjNums=listAdjustmentsForProc.Select(x => x.AdjNum).ToList();
+						foreach(AccountEntry adjEntry in listAccountCharges.FindAll(x => x.GetType()==typeof(Adjustment) && x.PriKey.In(listValidAdjNums))) {
+							//remove value from the adjustment entries since they were just applied to the procedure in GetPatPortion()
+							adjEntry.AmountStart=0;
+							adjEntry.AmountEnd=0;
+						}
 						sumCreditsForProc=(decimal)listPayPlanCharges
 						.Where(x => x.ChargeType==PayPlanChargeType.Credit && x.ProcNum==chargeCur.PriKey && x.ProvNum==chargeCur.ProvNum 
 							&& x.PatNum==chargeCur.PatNum && x.ClinicNum==chargeCur.ClinicNum)
