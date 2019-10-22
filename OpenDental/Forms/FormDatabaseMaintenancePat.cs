@@ -150,6 +150,7 @@ namespace OpenDental {
 				try {
 					gridCur.ScrollToIndexBottom((int)row.RowNum-1);
 					UpdateResultTextForRow((int)row.RowNum,Lan.g("FormDatabaseMaintenance","Running")+"...",gridCur);
+					gridCur.SetSelected(selectedIndices,true);//Reselect all rows that were originally selected.
 					result=(string)((MethodInfo)row.Tag).Invoke(null,parameters.ToArray());
 					if(modeCur==DbmMode.Fix) {
 						DatabaseMaintenances.UpdateDateLastRun(((MethodInfo)row.Tag).Name);

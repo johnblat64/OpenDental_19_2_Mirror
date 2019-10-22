@@ -4832,9 +4832,8 @@ namespace OpenDentBusiness {
 						log+=Lans.g("FormDatabaseMaintenance","List of patients who will need insurance information reentered:")+"\r\n";
 					}
 					for(int i = 0;i<table.Rows.Count;i++) {//Create simple InsPlans and InsSubs for each claim to replace the missing ones.
-						//make sure a plan does not exist from a previous insert in this loop
-						command="SELECT COUNT(*) FROM insplan WHERE PlanNum=" + table.Rows[i]["PlanNum"].ToString()
-							+PatientAndClauseHelper(patNumSpecific,"insplan");
+														   //make sure a plan does not exist from a previous insert in this loop
+						command="SELECT COUNT(*) FROM insplan WHERE PlanNum=" + table.Rows[i]["PlanNum"].ToString();
 						if(Db.GetCount(command)=="0") {
 							InsPlan plan=new InsPlan();
 							plan.PlanNum=PIn.Long(table.Rows[i]["PlanNum"].ToString());//reuse the existing FK
@@ -4848,7 +4847,7 @@ namespace OpenDentBusiness {
 						}
 						long patNum=PIn.Long(table.Rows[i]["PatNum"].ToString());
 						//make sure an inssub does not exist from a previous insert in this loop
-						command="SELECT COUNT(*) FROM inssub WHERE InsSubNum=" + table.Rows[i]["InsSubNum"].ToString()+PatientAndClauseHelper(patNumSpecific,"inssub");
+						command="SELECT COUNT(*) FROM inssub WHERE InsSubNum=" + table.Rows[i]["InsSubNum"].ToString();
 						if(Db.GetCount(command)=="0") {
 							InsSub sub=new InsSub();
 							sub.InsSubNum=PIn.Long(table.Rows[i]["InsSubNum"].ToString());//reuse the existing FK
