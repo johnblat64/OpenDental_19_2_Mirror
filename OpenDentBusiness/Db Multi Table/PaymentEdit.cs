@@ -239,8 +239,11 @@ namespace OpenDentBusiness {
 			//Any payment plan credits for procedures should get applied to that procedure and removed from the credit total bucket.
 			foreach(AccountEntry chargeCur in listAccountCharges) {
 				if(chargeCur.Tag.GetType() == typeof(Procedure)) {
-					chargeCur.AmountStart=(decimal)ClaimProcs.GetPatPortion((Procedure)chargeCur.Tag,listClaimProcs,
-						listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey));
+					List<Adjustment> listAdjustments=new List<Adjustment>();
+					if(!isIncomeTransfer) {//don't have adjustments affect the patient portion in income transfer mode because they show as separate line items
+						listAdjustments=listAdjusts.FindAll(x => x.ProcNum==chargeCur.PriKey); 
+					}
+					chargeCur.AmountStart=ClaimProcs.GetPatPortion((Procedure)chargeCur.Tag,listClaimProcs,listAdjustments);
 					chargeCur.AmountEnd=chargeCur.AmountStart;
 					decimal sumCreditsForProc=0;
 					if(isIncomeTransfer) {
