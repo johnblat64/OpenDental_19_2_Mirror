@@ -306,9 +306,10 @@ namespace OpenDental{
 				RecallListSort sortBy=(RecallListSort)comboSort.SelectedIndex;
 				RecallListShowNumberReminders showReminders=(RecallListShowNumberReminders)comboNumberReminders.SelectedIndex;
 				bool checkGroupFamilesChecked=checkGroupFamilies.Checked;
+				long clinicNum=PrefC.HasClinicsEnabled ? comboClinic.SelectedClinicNum : -1;
 				_getRecallTable=new Func<DataTable>(() => {
 					//Storing this as a Func so that we can make the exact same call before sending Web Sched.
-					return Recalls.GetRecallList(fromDate,toDate,checkGroupFamilesChecked,provNum,comboClinic.SelectedClinicNum,siteNum,sortBy,showReminders,
+					return Recalls.GetRecallList(fromDate,toDate,checkGroupFamilesChecked,provNum,clinicNum,siteNum,sortBy,showReminders,
 						doShowReminded:checkShowReminded.Checked);
 				});
 				_tableRecalls=_getRecallTable();
