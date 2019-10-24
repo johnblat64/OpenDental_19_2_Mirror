@@ -3021,7 +3021,7 @@ namespace OpenDentBusiness {
 			//the frequency period. If this would put them over the limit then continue past the zero out the claimproc and continue. 
 			//If no frequency information has been set then skip this logic for the current claimproc.
 			//It is assumed for now that all benefits for a group will have the same quantity and quantityqualifier
-			List<Benefit> listBensForGroup=GetAllLimitationsForGroups(benefitList,planCur,procCode);
+			List<Benefit> listBensForGroup=GetAllLimitationsForGroups(benefitList.FindAll(x => x.PlanNum==planCur.PlanNum),planCur,procCode);
 			//Look at its frequency, then look through loopList to see if the frequency has been met
 			foreach(Benefit ben in listBensForGroup) {
 				if(ben.PlanNum!=planCur.PlanNum) {
