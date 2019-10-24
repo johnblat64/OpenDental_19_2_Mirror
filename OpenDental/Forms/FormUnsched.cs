@@ -579,7 +579,8 @@ namespace OpenDental{
 					}
 					bool showBrokenAppts;
 					showBrokenAppts=checkBrokenAppts.Checked;
-					_listUnschedApt=Appointments.RefreshUnsched(order,provNum,siteNum,showBrokenAppts,comboClinic.SelectedClinicNum,
+					long clinicNum=PrefC.HasClinicsEnabled ? comboClinic.SelectedClinicNum : -1;
+					_listUnschedApt=Appointments.RefreshUnsched(order,provNum,siteNum,showBrokenAppts,clinicNum,
 						codeRangeFilter.StartRange,codeRangeFilter.EndRange,dateRangePicker.GetDateTimeFrom(),dateRangePicker.GetDateTimeTo());
 					UnscheduleListEvent.Fire(ODEventType.UnscheduledList,Lans.g(this,"Filling the Unscheduled List grid..."));
 					int scrollVal=grid.ScrollValue;
