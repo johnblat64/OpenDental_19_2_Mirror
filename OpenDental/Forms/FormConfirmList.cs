@@ -662,7 +662,8 @@ namespace OpenDental{
 						showHygienePrescheduled=true;
 					}
 					Def apptConfirmedType=((ODBoxItem<Def>)comboViewStatus.SelectedItem).Tag;
-					Table=Appointments.GetConfirmList(dateFrom,dateTo,provNum,comboClinic.SelectedClinicNum,showRecalls,showNonRecalls,
+					long clinicNum=PrefC.HasClinicsEnabled ? comboClinic.SelectedClinicNum : -1;
+					Table=Appointments.GetConfirmList(dateFrom,dateTo,provNum,clinicNum,showRecalls,showNonRecalls,
 						showHygienePrescheduled,apptConfirmedType.DefNum);
 					ConfirmationListEvent.Fire(ODEventType.ConfirmationList,Lans.g(this,"Filling the Confirmation List grid..."));
 					int scrollVal=gridMain.ScrollValue;
