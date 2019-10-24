@@ -940,7 +940,8 @@ namespace OpenDental {
 						butText.Enabled=false;
 					}
 					List<ApptStatus> listAppStatuses=comboAptStatus.ListSelectedItems.OfType<ODBoxItem<ApptStatus>>().Select(x => x.Tag).ToList();
-					_listASAPs=Appointments.RefreshASAP(provNum,siteNum,comboClinic.SelectedClinicNum,listAppStatuses,codeRangeFilter.StartRange,
+					long clinicNum=PrefC.HasClinicsEnabled ? comboClinic.SelectedClinicNum : -1;
+					_listASAPs=Appointments.RefreshASAP(provNum,siteNum,clinicNum,listAppStatuses,codeRangeFilter.StartRange,
 						codeRangeFilter.EndRange);
 					ASAPEvent.Fire(ODEventType.ASAP,Lans.g(this,"Filling Appointment ASAP grid..."));
 					int scrollVal=gridAppts.ScrollValue;
@@ -1146,8 +1147,9 @@ namespace OpenDental {
 					if(!PrefC.GetBool(PrefName.EasyHidePublicHealth) && comboSite.SelectedIndex!=0) {
 						siteNum=_listSites[comboSite.SelectedIndex-1].SiteNum;
 					}
+					long clinicNum=PrefC.HasClinicsEnabled ? comboClinic.SelectedClinicNum : -1;
 					RecallListShowNumberReminders showReminders=(RecallListShowNumberReminders)comboNumberReminders.SelectedIndex;
-					DataTable tableRecalls=Recalls.GetRecallList(fromDate,toDate,checkGroupFamilies.Checked,provNum,comboClinic.SelectedClinicNum,
+					DataTable tableRecalls=Recalls.GetRecallList(fromDate,toDate,checkGroupFamilies.Checked,provNum,clinicNum,
 						siteNum,RecallListSort.DueDate,showReminders,true,codeRangeFilter.StartRange,codeRangeFilter.EndRange);
 					List<Recall> listRecalls=Recalls.GetMultRecalls(tableRecalls.Rows.OfType<DataRow>().Select(x => PIn.Long(x["RecallNum"]
 						.ToString())).ToList());
