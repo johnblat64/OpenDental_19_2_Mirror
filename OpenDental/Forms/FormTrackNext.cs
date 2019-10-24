@@ -489,7 +489,8 @@ namespace OpenDental{
 			if(!PrefC.GetBool(PrefName.EasyHidePublicHealth) && comboSite.SelectedIndex!=0) {
 				siteNum=_listSites[comboSite.SelectedIndex-1].SiteNum;
 			}
-			_listPlannedAppts=Appointments.RefreshPlannedTracker(order,provNum,siteNum,comboClinic.SelectedClinicNum,codeRangeFilter.StartRange,
+			long clinicNum=PrefC.HasClinicsEnabled ? comboClinic.SelectedClinicNum : -1;
+			_listPlannedAppts=Appointments.RefreshPlannedTracker(order,provNum,siteNum,clinicNum,codeRangeFilter.StartRange,
 				codeRangeFilter.EndRange,dateRangePicker.GetDateTimeFrom(),dateRangePicker.GetDateTimeTo());
 		}
 
