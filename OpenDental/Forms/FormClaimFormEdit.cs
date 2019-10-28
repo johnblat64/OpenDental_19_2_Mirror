@@ -691,7 +691,9 @@ namespace OpenDental{
 					listItems.Items.Add(_claimFormCur.Items[i].ImageFileName);
 				}
 			}
-			listItems.ColumnWidth=_claimFormCur.Items.Max(x => TextRenderer.MeasureText(x.FieldName,listItems.Font).Width);
+			if(_claimFormCur.Items.Count>0) {
+				listItems.ColumnWidth=_claimFormCur.Items.Max(x => TextRenderer.MeasureText(x.FieldName,listItems.Font).Width);
+			}
 		}
 
 		private void panelClaimForm_Paint(object sender, System.Windows.Forms.PaintEventArgs e) {
