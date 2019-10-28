@@ -3304,11 +3304,12 @@ namespace OpenDental {
 		void menuItemProv_Click(object sender,EventArgs e) {
 			//throw new NotImplementedException();
 			Appointment apt=Appointments.GetOneApt(pinBoard.SelectedAppt.AptNum);
-			Appointment oldApt=apt.Copy();
 			if(apt==null) {
+				pinBoard.ClearSelected();
 				MessageBox.Show("Appointment not found.");
 				return;
 			}
+			Appointment oldApt=apt.Copy();
 			long provNum=apt.ProvNum;
 			if(apt.IsHygiene) {
 				provNum=apt.ProvHyg;
