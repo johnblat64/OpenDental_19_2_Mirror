@@ -3995,7 +3995,7 @@ namespace OpenDental {
 							break;
 						}
 						bool isTsiPayment=(TsiTransLogs.IsTransworldEnabled(PatCur.ClinicNum)
-							&& Patients.IsGuarCollections(PatCur.Guarantor)
+							&& Patients.IsGuarCollections(PatCur.Guarantor,includeSuspended:false)
 							&& !MsgBox.Show(this,MsgBoxButtons.YesNo,"The guarantor of this family has been sent to TSI for a past due balance.  "
 								+"Is the payment you are applying directly from the debtor or guarantor?\r\n\r\n"
 								+"Yes - this payment is directly from the debtor/guarantor\r\n\r\n"
