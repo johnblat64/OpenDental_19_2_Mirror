@@ -245,8 +245,7 @@ namespace OpenDental{
 							break;
 						}							
 						double amt=Math.Min(brokenProcAmount,split.SplitAmt);
-						split.SplitAmt=amt;
-						Payments.CreateTransferForTpProcs(proc,new List<PaySplit>{split},brokenProcedure);
+						Payments.CreateTransferForTpProcs(proc,new List<PaySplit>{split},brokenProcedure,amt);
 						brokenProcAmount-=amt;
 					}
 				}
