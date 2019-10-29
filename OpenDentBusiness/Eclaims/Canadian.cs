@@ -1007,7 +1007,7 @@ namespace OpenDentBusiness.Eclaims {
 		public static Etrans CreateEtransForSendClaim(long claimNum,long patNum,long clearinghouseNum,EtransType etype) {
 			Etrans etrans=Etranss.CreateEtransForClaim(claimNum,patNum,clearinghouseNum,etype,batchNumber:0,Security.CurUser.UserNum);
 			try {
-				Etranss.SetCanadianEtransFields(etrans);//etrans.CarrierNum, etrans.CarrierNum2 and etrans.EType all set prior to calling this.
+				etrans=Etranss.SetCanadianEtransFields(etrans);//etrans.CarrierNum, etrans.CarrierNum2 and etrans.EType all set prior to calling this.
 			}
 			catch(Exception ex){
 				BugSubmissions.SubmitException(ex);//Inform HQ if this ever happens.

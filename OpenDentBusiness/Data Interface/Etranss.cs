@@ -331,7 +331,7 @@ namespace OpenDentBusiness{
 			etrans.UserNum=userNum;
 			etrans.BatchNumber=0;
 			//Get next OfficeSequenceNumber-----------------------------------------------------------------------------------------
-			SetCanadianEtransFields(etrans,hasSecondary);
+			etrans=SetCanadianEtransFields(etrans,hasSecondary);
 			Insert(etrans);
 			return GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
 		}
@@ -340,14 +340,14 @@ namespace OpenDentBusiness{
 		///When etrans.Etype is associated to a Canadian request EType, this runs multiple queries to set etrans.CarrierTransCounter and
 		///etrans.CarrierTransCounter2.  Otherwise returns without making any changes.
 		///The etrans.CarrierNum, etrans.CarrierNum2 and etrans.Etype columns must be set prior to running this.</summary>
-		public static void SetCanadianEtransFields(Etrans etrans,bool hasSecondary=true) {
+		public static Etrans SetCanadianEtransFields(Etrans etrans,bool hasSecondary=true) {
 			if(!etrans.Etype.In(EtransType.Claim_CA,EtransType.Eligibility_CA,EtransType.ClaimReversal_CA,EtransType.Predeterm_CA
-				,EtransType.RequestOutstand_CA,EtransType.RequestSumm_CA,EtransType.RequestPay_CA,EtransType.ClaimCOB_CA,EtransType.Claim_Ramq)) {
-				return;
+				,EtransType.RequestOutstand_CA,EtransType.RequestSumm_CA,EtransType.RequestPay_CA,EtransType.ClaimCOB_CA,EtransType.Claim_Ramq)) 
+			{
+				return etrans;
 			}
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				Meth.GetVoid(MethodBase.GetCurrentMethod(),etrans,hasSecondary);
-				return;
+				return Meth.GetObject<Etrans>(MethodBase.GetCurrentMethod(),etrans,hasSecondary);
 			}
 			etrans.OfficeSequenceNumber=0;
 			//find the next officeSequenceNumber
@@ -389,7 +389,7 @@ namespace OpenDentBusiness{
 			etrans.CarrierTransCounter++;
 			#endregion CarrierTransCounter
 			if(!hasSecondary || etrans.CarrierNum2==0) {
-				return;
+				return etrans;
 			}
 			#region CarrierTransCounter2
 			etrans.CarrierTransCounter2=1;
@@ -416,6 +416,7 @@ namespace OpenDentBusiness{
 			}
 			etrans.CarrierTransCounter2++;
 			#endregion
+			return etrans;
 		}
 
 		///<summary>Inserts EtransMessageText row with given messageText then updates the etrans.EtransMessageTextNum in the DB based on given etransNum.
@@ -491,7 +492,7 @@ namespace OpenDentBusiness{
 				return Meth.GetObject<Etrans>(MethodBase.GetCurrentMethod(),claimNum,patNum,clearinghouseNum,etype,batchNumber,userNum);
 			}
 			Etrans etrans=CreateEtransForClaim(claimNum,patNum,clearinghouseNum,etype,batchNumber,userNum);
-			SetCanadianEtransFields(etrans);//etrans.CarrierNum, etrans.CarrierNum2 and etrans.EType all set prior to calling this.
+			etrans=SetCanadianEtransFields(etrans);//etrans.CarrierNum, etrans.CarrierNum2 and etrans.EType all set prior to calling this.
 			Claims.SetClaimSent(claimNum);
 			Insert(etrans);
 			return GetEtrans(etrans.EtransNum);//Since the DateTimeTrans is set upon insert, we need to read the record again in order to get the date.
