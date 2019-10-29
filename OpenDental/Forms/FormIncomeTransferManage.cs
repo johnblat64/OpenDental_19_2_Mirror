@@ -1114,8 +1114,10 @@ namespace OpenDental {
 					PaySplits.UpdateFSplitNum(split.PaySplitOrig.SplitNum,split.PaySplitLinked.SplitNum);
 				}
 			}
-			SecurityLogs.MakeLogEntry(Permissions.PaymentCreate,_paymentCur.PatNum,Patients.GetLim(_paymentCur.PatNum).GetNameLF()
+			if(_listSplitsCur.Count>0) {//only make log when a payment with splits was made. 
+				SecurityLogs.MakeLogEntry(Permissions.PaymentCreate,_paymentCur.PatNum,Patients.GetLim(_paymentCur.PatNum).GetNameLF()
 				+", "+_paymentCur.PayAmt.ToString("c"));
+			}
 			string strErrorMsg=Ledgers.ComputeAgingForPaysplitsAllocatedToDiffPats(_patCur.PatNum,_listSplitsCur);
 			if(!string.IsNullOrEmpty(strErrorMsg)) {
 				MessageBox.Show(strErrorMsg);
