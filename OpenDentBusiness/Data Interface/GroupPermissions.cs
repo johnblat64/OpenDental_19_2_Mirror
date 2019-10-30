@@ -388,7 +388,7 @@ namespace OpenDentBusiness{
 				case Permissions.ProcedureNoteFull:
 				case Permissions.ProcedureNoteUser:
 				//case Permissions.ReferralAdd:
-				case Permissions.InsPlanChangeSubsc:
+				//case Permissions.InsPlanChangeSubsc:
 				//case Permissions.RefAttachAdd:
 				//case Permissions.RefAttachDelete:
 				//case Permissions.CarrierCreate:
