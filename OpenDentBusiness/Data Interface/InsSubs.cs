@@ -438,7 +438,7 @@ namespace OpenDentBusiness{
 					Family fam=Patients.GetFamily(patNum);
 					Patient pat=fam.GetPatient(patNum);
 					List<ClaimProc> listClaimProcs=ClaimProcs.Refresh(patNum);
-					List<Procedure> listProcs=Procedures.Refresh(patNum);
+					List<Procedure> listProcs=Procedures.GetProcsByStatusForPat(patNum,ProcStat.TP,ProcStat.TPi);
 					listPatPlans=PatPlans.Refresh(patNum);
 					List<InsSub> listInsSubs=InsSubs.RefreshForFam(fam);
 					List<InsPlan> listInsPlans=InsPlans.RefreshForSubList(listInsSubs);
