@@ -968,6 +968,11 @@ namespace OpenDental{
 		}
 
 		private void butRecalc_Click(object sender, System.EventArgs e) {
+			if(PatPlans.GetCountForPatAndInsSub(ClaimCur.InsSubNum,ClaimCur.PatNum)==0) {//If the plan has been dropped
+				//Don't let the user recalculate estimates.  Our estimate calculation code would zero all claimproc insurance estimate amounts.
+				MsgBox.Show(this,"You cannot recalculate estimates for an insurance plan that has been dropped.");
+				return;
+			}
 			if(!ClaimIsValid()){
 				return;
 			}
