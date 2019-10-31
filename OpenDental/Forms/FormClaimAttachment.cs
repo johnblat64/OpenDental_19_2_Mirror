@@ -40,6 +40,17 @@ namespace OpenDental {
 			FillGrid();
 			ODProgress.ShowAction(()=> {ValidateClaimHelper();},"Communicating with DentalXChange...");
 		}
+		
+		private void FormClaimAttachment_Shown(object sender,EventArgs e) {
+			//Check for if the attachmentID is already in use. If so inform the user they need to redo their attachments.
+			if(textClaimStatus.Text.ToUpper().Contains("ATTACHMENT ID HAS BEEN ASSOCIATED TO A DIFFERENT CLAIM")
+				|| textClaimStatus.Text.ToUpper().Contains("HAS ALREADY BEEN DELIVERED TO THE PAYER"))
+			{
+				MessageBox.Show("The attachment ID is associated to another claim. Please redo your attachments.");
+				_claimCur.AttachmentID="";
+				ODProgress.ShowAction(()=> { ValidateClaimHelper(); },"Re-validating the claim...");
+			}
+		}
 
 		///<summary></summary>
 		public static void Open(Claim claim,Action actionOkClick = null) {

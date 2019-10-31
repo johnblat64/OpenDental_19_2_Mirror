@@ -223,6 +223,7 @@
 			this.Name = "FormClaimAttachment";
 			this.Text = "Claim Attachments";
 			this.Load += new System.EventHandler(this.FormClaimAttachment_Load);
+			this.Shown += new System.EventHandler(this.FormClaimAttachment_Shown);
 			this.contextMenuStrip1.ResumeLayout(false);
 			this.groupBoxAttachment.ResumeLayout(false);
 			this.ResumeLayout(false);
