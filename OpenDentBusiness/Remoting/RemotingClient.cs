@@ -315,7 +315,7 @@ namespace OpenDentBusiness {
 				exception=(DtoException)DataTransferObject.Deserialize(result);
 			}
 			catch(Exception e) {
-				throw new Exception("Error deserializing: "+result,e);
+				throw new AggregateException("Error deserializing result from server.",new Exception("Result: "+result),e,ex);
 			}
 			return ThrowExceptionForDto(exception);
 		}

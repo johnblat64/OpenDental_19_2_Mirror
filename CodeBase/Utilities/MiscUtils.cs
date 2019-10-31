@@ -236,26 +236,34 @@ namespace CodeBase {
 		///<summary>Returns exception string that includes the threadName if provided and exception type and up to 5 inner exceptions.
 		///Used for both bugSubmissions and the MsgBoxCopyPaste shown to customers when a UE occurs.</summary>
 		public static string GetExceptionText(Exception e,string threadName=null) {
-			return "Unhandled exception"+(string.IsNullOrEmpty(threadName) ?"":" from "+threadName)+":  "
+			string text="Unhandled exception"+(string.IsNullOrEmpty(threadName) ?"":" from "+threadName)+":  "
 					+(string.IsNullOrEmpty(e.Message)?"No Exception Message":e.Message+"\r\n")
 					+(string.IsNullOrEmpty(e.GetType().ToString())?"No Exception Type":e.GetType().ToString())+"\r\n"
-					+(string.IsNullOrEmpty(e.StackTrace)?"No StackTrace":e.StackTrace)
-					+InnerExceptionToString(e);//New lines handled in method.
+					+(string.IsNullOrEmpty(e.StackTrace)?"No StackTrace":e.StackTrace);
+			if(e is AggregateException) {
+				foreach(Exception innerEx in ((AggregateException)e).InnerExceptions) {
+					text+=InnerExceptionToString(innerEx);
+				}
+			}
+			else {
+				text+=InnerExceptionToString(e.InnerException);//New lines handled in method.
+			}
+			return text;
 		}
 
 		///<summary>Formats the inner exception (and all its inner exceptions) as a readable string. Okay to pass in an exception with no inner 
 		///exception.</summary>
 		///<param name="depth">The recursive depth of the current method call.</param>
-		public static string InnerExceptionToString(Exception ex,int depth = 0) {
-			if(ex.InnerException==null
+		public static string InnerExceptionToString(Exception innerEx,int depth=0) {
+			if(innerEx==null
 				|| depth>=5)//Limit to 5 inner exceptions to prevent infinite recursion
 			{
 				return "";
 			}
 			return "\r\n-------------------------------------------\r\n"
-				+"Inner exception:  "+ex.InnerException.Message+"\r\n"+ex.InnerException.GetType().ToString()+"\r\n"
-				+ex.InnerException.StackTrace
-				+InnerExceptionToString(ex.InnerException,++depth);
+				+"Inner exception:  "+innerEx.Message+"\r\n"+innerEx.GetType().ToString()+"\r\n"
+				+innerEx.StackTrace
+				+InnerExceptionToString(innerEx.InnerException,++depth);
 		}
 
 		///<summary>Gets the innermost InnerException that is not null. Recursive.</summary>
