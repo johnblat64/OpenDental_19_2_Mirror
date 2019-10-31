@@ -310,7 +310,13 @@ namespace OpenDentBusiness {
 				//even if caught. However, it does not when a different exception is thrown within a catch.
 				return ex;
 			}
-			DtoException exception=(DtoException)DataTransferObject.Deserialize(result);
+			DtoException exception;
+			try {
+				exception=(DtoException)DataTransferObject.Deserialize(result);
+			}
+			catch(Exception e) {
+				throw new Exception("Error deserializing: "+result,e);
+			}
 			return ThrowExceptionForDto(exception);
 		}
 
