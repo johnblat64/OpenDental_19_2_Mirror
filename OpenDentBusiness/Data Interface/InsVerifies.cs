@@ -236,7 +236,7 @@ namespace OpenDentBusiness{
 					whereClinic+=")) ";
 				}
 			}
-			else {//Specific Clinic
+			else if(listClinicNums.Count>0) {//Specific Clinic
 				whereClinic="AND clinic.IsInsVerifyExcluded=0 AND clinic.ClinicNum IN("+string.Join(",",listClinicNums.Select(x => POut.Long(x)))+") ";
 				if(!listRegionDefNums.Contains(0) && !listRegionDefNums.Contains(-1) && listRegionDefNums.Count>0) {//Specific region
 					whereClinic+=" AND clinic.Region IN("+string.Join(",",listRegionDefNums.Select(x => POut.Long(x)))+") ";

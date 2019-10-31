@@ -14,7 +14,7 @@ namespace OpenDental {
 		///<summary>0 represents "Unassign".</summary>
 		private long _assignUserNum;
 		///<summary>-1 represents "All", and 0 represents "Unassigned".</summary>
-		private List<long> _listClinicNumsVerifyClinicsFilter=new List<long>() { -1 };
+		private List<long> _listClinicNumsVerifyClinicsFilter=new List<long>();
 		///<summary>-1 and 0 represent "All".</summary>
 		private List<long> _listDefNumsVerifyRegionsFilter=new List<long>() { -1 };
 		private long _defNumVerifyStatusFilter;
@@ -55,6 +55,9 @@ namespace OpenDental {
 		}
 
 		private void FormInsVerificationList_Load(object sender,EventArgs e) {
+			if(PrefC.HasClinicsEnabled) {
+				_listClinicNumsVerifyClinicsFilter.Add(-1);//-1 represents "All"
+			}
 			SetFilterControlsAndAction(() => FillGrids(),
 				textPatientEnrollmentDays,textInsBenefitEligibilityDays,textAppointmentScheduledDays,textVerifyCarrier);
 			if(PrefC.GetBool(PrefName.InsVerifyDefaultToCurrentUser)) {
@@ -314,7 +317,9 @@ namespace OpenDental {
 			}
 			DateTime dateTimeLastPatEligibility=DateTime.Today.AddDays(-PIn.Int(textPatientEnrollmentDays.Text));
 			DateTime dateTimeLastPlanBenefits=DateTime.Today.AddDays(-PIn.Int(textInsBenefitEligibilityDays.Text));
-			List<InsVerifyGridObject> listGridObjs=InsVerifies.GetVerifyGridList(dateTimeStart,dateTimeEnd,dateTimeLastPatEligibility,dateTimeLastPlanBenefits,_listClinicNumsVerifyClinicsFilter,_listDefNumsVerifyRegionsFilter,_defNumVerifyStatusFilter,_verifyUserNum,textVerifyCarrier.Text,excludePatVerifyWhenNoIns,excludePatClones);
+			List<InsVerifyGridObject> listGridObjs=InsVerifies.GetVerifyGridList(dateTimeStart,dateTimeEnd,dateTimeLastPatEligibility,dateTimeLastPlanBenefits,
+				_listClinicNumsVerifyClinicsFilter,_listDefNumsVerifyRegionsFilter,_defNumVerifyStatusFilter,_verifyUserNum,textVerifyCarrier.Text,
+				excludePatVerifyWhenNoIns,excludePatClones);
 			foreach(InsVerifyGridObject gridObjCur in listGridObjs) {
 				listGridRows.Add(new InsVerifyGridRow(gridObjCur,_dictStatusDefs,_listUsersInRegion,isAssignGrid));
 			}
