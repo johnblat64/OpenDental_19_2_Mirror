@@ -4794,7 +4794,7 @@ namespace OpenDentBusiness {
 					numFixed=0;
 					#region claim.PlanNum (2/4) PlanNum zero, invalid InsSubNum
 					//Will leave orphaned claimprocs. No finanicals to check.
-					command="SELECT claim.ClaimNum FROM claim WHERE PlanNum=0 AND ClaimStatus IN ('PreAuth','W','U') "
+					command="SELECT claim.ClaimNum FROM claim WHERE PlanNum=0 AND ClaimStatus IN ('PreAuth','W','U','H') "
 						+"AND NOT EXISTS(SELECT * FROM inssub WHERE inssub.InsSubNum=claim.InsSubNum)"
 						+PatientAndClauseHelper(patNumSpecific,"claim");
 					DataTable tableClaimNums=Db.GetTable(command);
@@ -4809,7 +4809,7 @@ namespace OpenDentBusiness {
 						listSecurityLogs.ForEach(x => listDbmLogs.Add(new DbmLog(Security.CurUser.UserNum,x.SecurityLogNum,DbmLogFKeyType.Securitylog,
 							DbmLogActionType.Update,methodName,"Set FKey to 0 from InsSubNumMismatchPlanNum.")));
 					}
-					where="WHERE PlanNum=0 AND ClaimStatus IN('PreAuth','W','U') AND NOT EXISTS(SELECT * FROM inssub WHERE inssub.InsSubNum=claim.InsSubNum)"
+					where="WHERE PlanNum=0 AND ClaimStatus IN('PreAuth','W','U','H') AND NOT EXISTS(SELECT * FROM inssub WHERE inssub.InsSubNum=claim.InsSubNum)"
 						+PatientAndClauseHelper(patNumSpecific,"claim");
 					command="SELECT ClaimNum FROM claim "+where;
 					listClaimNums=Db.GetListLong(command);
