@@ -232,7 +232,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns the full URL according to the route given.</summary>
 		private string GetApiUrl(ApiRoute route) {
-			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PDMPURL,"https://www.ilpmp.org/il/rxhistoryAdp/getReport/htmlFormat");
+			string apiUrl=Introspection.GetOverride(Introspection.IntrospectionEntity.PDMPURL,"https://www.ilpmp.org/rxhistorySumAdp/getReport");
 			if(ODBuild.IsDebug()) {
 				apiUrl="https://openid.logicoy.com/ilpdmp/test/getReport";
 			}
