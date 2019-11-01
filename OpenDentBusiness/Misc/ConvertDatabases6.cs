@@ -1732,5 +1732,10 @@ namespace OpenDentBusiness {
 				Db.NonQ(command);
 			}
 		}
+
+		private static void To19_2_42() {
+			LargeTableHelper.AlterLargeTable("claimproc","ClaimProcNum",
+					new List<Tuple<string,string>> { Tuple.Create("IsTransfer","tinyint NOT NULL") });
+		}
 	}
 }

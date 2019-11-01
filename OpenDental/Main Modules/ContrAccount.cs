@@ -3249,6 +3249,9 @@ namespace OpenDental {
 				table=DataSetMain.Tables["account"];
 			}
 			for(int i=0;i<table.Rows.Count;i++) {
+				if(PIn.Bool(table.Rows[i]["IsTransfer"].ToString())==true) {
+					continue;
+				}
 				row=new ODGridRow();
 				for(int f=0;f<fieldsForMainGrid.Count;f++) {
 					switch(fieldsForMainGrid[f].InternalName) {

@@ -28,6 +28,14 @@ namespace OpenDental {
 		private List<PaySplit> _listPaySplitsCreatedFromUnearned=new List<PaySplit>();
 		///<summary>Gets set when an unallocated transfer has been made automatically and inserted upon entering this window.</summary>
 		private long _unallocatedPayNum=0;
+		///<summary>Stores the list of claimpay transfers that were inserted into the database upon success.</summary>
+		private List<long> _listInsertedClaimProcs=new List<long>();
+
+		private List<long> _listFamilyPatNums {
+			get {
+				return _famCur.ListPats.Select(x => x.PatNum).ToList();
+			}
+		}
 
 		public FormIncomeTransferManage(Family famCur,Patient patCur,Payment payCur) {
 			_famCur=famCur;
@@ -40,6 +48,7 @@ namespace OpenDental {
 		private void FormIncomeTransferManage_Load(object sender,EventArgs e) {
 			if(Security.IsAuthorized(Permissions.PaymentCreate,true)) {
 				TransferUnallocatedToUnearned();
+				TransferClaimsPayAsTotal();//intentionally checked by the payment create permission even though it is claim supplementals (InsPayCreate).
 			}
 			Init(false);
 		}
@@ -48,7 +57,7 @@ namespace OpenDental {
 		private void TransferUnallocatedToUnearned() {
 			_listSplitsCur=new List<PaySplit>();
 			_listSplitsAssociated=new List<PaySplits.PaySplitAssociated>();
-			List<PaySplit> listSplitsForPats=PaySplits.GetForPats(_famCur.ListPats.Select(x => x.PatNum).ToList());
+			List<PaySplit> listSplitsForPats=PaySplits.GetForPats(_listFamilyPatNums);
 			if(listSplitsForPats.IsNullOrEmpty()) {
 				return;
 			}
@@ -85,6 +94,41 @@ namespace OpenDental {
 			_listSplitsAssociated.Clear();
 			SecurityLogs.MakeLogEntry(Permissions.PaymentCreate,_patCur.PatNum
 				,$"Unallocated splits automatically transferred to unearned for payment {_unallocatedPayNum}.");
+		}
+
+		private void TransferClaimsPayAsTotal() {
+			List<ClaimProc> listValidClaimsTransferred=null;
+			List<PayAsTotal> listError=null;
+			try {
+				ClaimProcs.TransferClaimsAsTotalToProcedures(_listFamilyPatNums,out listValidClaimsTransferred,out listError);
+			}
+			catch(ApplicationException ex) {
+				FriendlyException.Show(ex.Message,ex);
+				return;
+			}
+			if(listValidClaimsTransferred!=null && listValidClaimsTransferred.Count > 0) {//valid and items were created
+				_listInsertedClaimProcs=listValidClaimsTransferred.Select(x => x.ClaimProcNum).ToList();
+				SecurityLogs.MakeLogEntry(Permissions.ClaimProcReceivedEdit,_patCur.PatNum,"Automatic transfer of claims pay as total from income transfer.");
+			}
+			else if(listError!=null && listError.Count > 0) {
+				//There are invalid claims pay by total on this account. User is not allowed to continue to perform transfers.
+				butTransfer.Enabled=false;
+				butOK.Enabled=false;
+				string errorMessage=Lan.g(this,$"Claim pay as total needs to match at least one patient, provider, and clinic combination to be valid for " 
+					+"transferring to procedures.");
+				errorMessage+="\r\n";
+				errorMessage+=Lan.g(this,"The following claim pay as totals must be fixed before the income transfer manager can be used:\r\n\r\n");
+				foreach(PayAsTotal invalidClaimAsTotal in listError.OrderBy(x => x.DateEntry)) {
+					errorMessage+=$"{invalidClaimAsTotal.DateEntry.ToShortDateString()} {Lan.g(this,"Patient:")} {Patients.GetNameFL(invalidClaimAsTotal.PatNum)}, " 
+						+$"{Lan.g(this,"Provider:")} {Providers.GetAbbr(invalidClaimAsTotal.ProvNum)}";
+					if(PrefC.HasClinicsEnabled) {
+						errorMessage+=$", {Lan.g(this,"Clinic:")} {Clinics.GetAbbr(invalidClaimAsTotal.ClinicNum)}";
+					}
+					errorMessage+="\r\n";
+				}
+				MsgBoxCopyPaste box=new MsgBoxCopyPaste(errorMessage);
+				box.Show(this);
+			}
 		}
 		
 		///<summary>Method to encapsulate the creation of a new payment that is specifically meant to store payment information for the unallocated
@@ -1126,12 +1170,20 @@ namespace OpenDental {
 		}
 
 		private void FormIncomeTransferManage_FormClosing(object sender,FormClosingEventArgs e) {
-			if(DialogResult!=DialogResult.OK && _unallocatedPayNum!=0) {
-				//user is canceling out of the window and an unallocated transfer was made.
-				ODException.SwallowAnyException(() => {
-					Payments.Delete(_unallocatedPayNum);
-					SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatic transfer deleted for payNum: {_unallocatedPayNum}.");
-				});
+			if(DialogResult!=DialogResult.OK) {
+				if(_unallocatedPayNum!=0) {
+					//user is canceling out of the window and an unallocated transfer was made.
+					ODException.SwallowAnyException(() => {
+						Payments.Delete(_unallocatedPayNum);
+						SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatic transfer deleted for payNum: {_unallocatedPayNum}.");
+					});
+				}
+				if(_listInsertedClaimProcs.Count > 0) {
+					ODException.SwallowAnyException(() => {
+						ClaimProcs.DeleteMany(_listInsertedClaimProcs);
+						SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatically transferred claimprocs deleted.");
+					});
+				}
 			}
 		}
 	}

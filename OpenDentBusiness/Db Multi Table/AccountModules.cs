@@ -675,6 +675,7 @@ namespace OpenDentBusiness {
 			table.Columns.Add("description");
 			//table.Columns.Add("extraDetail");
 			table.Columns.Add("InvoiceNum"); //statementNum for procedures attached to invoices
+			table.Columns.Add("IsTransfer");//notes when a claimproc is from a claimproc transfer
 			table.Columns.Add("patient");
 			table.Columns.Add("PatNum",typeof(long));
 			table.Columns.Add("paymentsOnObj");
@@ -878,7 +879,7 @@ namespace OpenDentBusiness {
 				+"SUM(CASE WHEN claimproc.PayPlanNum!=0 THEN InsPayAmt ELSE 0 END) InsPayAmtPayPlan,"
 				+"MAX(claimproc.PatNum) PatNum,MAX(claimproc.ProcDate) ProcDate,"//MAX functions added to preserve behavior in Oracle.
 				//+"MAX(ProvNum) ProvNum,
-				+"SUM(WriteOff) WriteOff_, "
+				+"SUM(WriteOff) WriteOff_,IsTransfer, "
 				//js 1/28/13  The following line has been the source of many complaints in the past.  
 				//When it was claim.ProvBill, it didn't match daily payment report or the account Claim row entry.
 				//When it was MAX(claimproc.ProvNum), the user had no control over it because it was one prov at random.
@@ -964,6 +965,7 @@ namespace OpenDentBusiness {
 					//Indicate to the user that they need to finalize this payment before reports will be accurate.
 					row["description"]+="\r\n"+Lans.g("AccountModule","PAYMENT NEEDS TO BE FINALIZED");
 				}
+				row["IsTransfer"]=PIn.Bool(rawClaimPayRow["IsTransfer"].ToString());
 				long patNumCur=PIn.Long(rawClaimPayRow["PatNum"].ToString());
 				row["patient"]=GetPatName(patNumCur,fam,doIncludePatLName);
 				row["PatNum"]=patNumCur;

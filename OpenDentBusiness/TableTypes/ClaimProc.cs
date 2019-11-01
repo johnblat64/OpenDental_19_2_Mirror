@@ -111,6 +111,8 @@ namespace OpenDentBusiness{
 		public DateTime DateSuppReceived;
 		///<summary>Date of the first claimPayment for this claim.</summary>
 		public DateTime DateInsFinalized;
+		///<summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim pay as total.</summary>
+		public bool IsTransfer;
 
 		///<summary>Returns a copy of this ClaimProc.</summary>
 		public ClaimProc Copy(){

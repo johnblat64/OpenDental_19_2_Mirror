@@ -90,6 +90,38 @@ namespace OpenDentBusiness{
 			};
 		}
 
+		///<summary>Attempts to group up pay as totals on each claim and return at most, 1 pay as total per claim group. This is to balance the
+		///pay as totals so we do not transfer after a transfer has already been performed. Returns a list of PayAsTotals that can be transferred. 
+		///Throws exceptions.</summary>
+		private static List<PayAsTotal> GetOutstandingClaimPayByTotal(List<long> listFamilyPatNums) {
+			//No remoting role check; no call to db
+			List<ClaimProc> listClaimPayByTotals=GetByTotForPats(listFamilyPatNums);
+			if(listClaimPayByTotals.Count == 0) {
+				return new List<PayAsTotal>();
+			}
+			List<PayAsTotal> listOutstandingAsTotals=new List<PayAsTotal>();//will hold claims pay by total that have not yet been transferred.
+			Dictionary<long,List<ClaimProc>> dictClaimsAsTotalByClaim=listClaimPayByTotals.GroupBy(x => x.ClaimNum).ToDictionary(x => x.Key,y => y.ToList());
+			foreach(long key in dictClaimsAsTotalByClaim.Keys) {//foreach claim
+				var groupedClaimProcs=dictClaimsAsTotalByClaim[key].GroupBy(x => new { x.PatNum,x.ProvNum,x.ClinicNum });//group by pat/prov/clinic
+				foreach(var group in groupedClaimProcs) {//loop through the groups to get sum of what needs to be transferred.
+					List<ClaimProc> listForGroup=group.ToList();
+					double summedInsPay=listForGroup.Sum(x => x.InsPayAmt);
+					double summedWriteOff=listForGroup.Sum(x => x.WriteOff);
+					if(summedInsPay.IsZero() && summedWriteOff.IsZero()) {
+						continue;//these claims as total have already been transferred, or didn't have value. Nothing to do, move on to the next.
+					}
+					//else there is an imbalance that needs to be transferred
+					//will not get saved to the DB, just placeholder (mostly for the amounts)
+					listOutstandingAsTotals.Add(new PayAsTotal(listForGroup.First().Copy(),summedInsPay,summedWriteOff));
+				}	
+			}
+			if(listOutstandingAsTotals.Count > listClaimPayByTotals.Count) {
+				//fail loudly so we don't transfer more splits than what is necessary. 
+				throw new ApplicationException("Error encountered while transferring. Please call support.");
+			}
+			return listOutstandingAsTotals;
+		}
+
 		#endregion
 
 		#region Modification Methods
@@ -107,6 +139,120 @@ namespace OpenDentBusiness{
 			//Not using Crud.InsertMany because we need to set the PrimaryKeys
 			listInsert.ForEach(x => Insert(x));
 			return listInsert;
+		}
+
+		///<summary>Finds all the claim pay by totals for this family and attempts to transfer them to their respective procedures. 
+		///If successful, listInsertedClaimProcs will not be null and the supplemental claimprocs will be inserted into the database. 
+		///If unsuccessful, listInvalidPayAsTotals will contain a list of all the pay as totals the user needs to manually fix and no supplemental
+		///claimprocs will be inserted ///Throws exceptions.</summary>
+		public static void TransferClaimsAsTotalToProcedures(List<long> listFamilyPatNums,out List<ClaimProc> listInsertedClaimProcs,
+			out List<PayAsTotal> listInvalidPayAsTotals)
+		{
+			//No remoting role check; out parameters.
+			listInsertedClaimProcs=new List<ClaimProc>();
+			listInvalidPayAsTotals=null;
+			List<PayAsTotal> listClaimsAsTotalForFamily=GetOutstandingClaimPayByTotal(listFamilyPatNums);//Gets all claims as total not yet transferred
+			if(listClaimsAsTotalForFamily.Count == 0) {
+				return;
+			}
+			List<Procedure> listProcsForFamily=Procedures.GetCompleteForPats(listFamilyPatNums);
+			//Purposefully getting claim procs of all statuses (including received).
+			List<ClaimProc> listClaimProcs=GetForProcs(listProcsForFamily.Select(x => x.ProcNum).ToList());
+			foreach(PayAsTotal payAsTotal in listClaimsAsTotalForFamily) {
+				double insPayAmtToAllocate=payAsTotal.SummedInsPayAmt;//can be negative
+				double writeOffAmtToAllocate=payAsTotal.SummedWriteOff;
+				//find all the claimprocs (guaranteed to have a procedure) that match the claim pay by total pat/prov/clinic on this claim
+				List<ClaimProc> listValidClaimProcsForAsTotalPayment=listClaimProcs.FindAll(x => x.ClaimNum==payAsTotal.ClaimNum
+					&& x.PatNum==payAsTotal.PatNum 
+					&& x.ProvNum==payAsTotal.ProvNum 
+					&& x.ClinicNum==payAsTotal.ClinicNum);
+				if(listValidClaimProcsForAsTotalPayment.IsNullOrEmpty()) {
+					if(listInvalidPayAsTotals==null) {
+						listInvalidPayAsTotals=new List<PayAsTotal>();
+						listInsertedClaimProcs=null;//Make it apparent to calling methods that there are invalid entries that need attention.
+					}
+					listInvalidPayAsTotals.Add(payAsTotal);//might want to make this more informational later.
+				}
+				//don't bother with the logic for any valid ones since they will not insert. Just continue building a list of invalid for fixing.
+				if(listInvalidPayAsTotals!=null) {
+					continue;
+				}
+				//at least one procedure is valid to be transferred to (even if over paid). Make offsetting supplemental payment for claim as total
+				ClaimProc supplementalOffset=CreateSuppClaimProcForTransfer(payAsTotal);
+				supplementalOffset.InsPayAmt=payAsTotal.SummedInsPayAmt*-1;
+				supplementalOffset.WriteOff=payAsTotal.SummedWriteOff*-1;
+				listInsertedClaimProcs.Add(supplementalOffset);
+				List<ClaimProc> listClaimProcsCreatedForClaim=new List<ClaimProc>();
+				#region 1st layer, apply InsPay and WriteOff up to the InsPayEst and WriteOffEst amt
+				foreach(ClaimProc procClaimProc in listValidClaimProcsForAsTotalPayment) {//pay only up to the insurance estimate for this first round through.
+					if(insPayAmtToAllocate.IsZero() && writeOffAmtToAllocate.IsZero()) {
+						break;
+					}
+					//create a positive supplemental payment to be made for this procedure
+					ClaimProc claimPayForProc=CreateSuppClaimProcForTransfer(procClaimProc);
+					double insPayAmt=0;
+					double writeOffAmt=0;
+					if(procClaimProc.InsPayEst!=0 && insPayAmtToAllocate!=0) {//estimated payment exists and there is money to allocate
+						insPayAmt=Math.Min(insPayAmtToAllocate,procClaimProc.InsPayEst);
+					}
+					if(procClaimProc.WriteOffEst!=-1 && writeOffAmtToAllocate!=0) {//estimated writeoff exists and there is money to allocate
+						writeOffAmt=Math.Min(writeOffAmtToAllocate,procClaimProc.WriteOffEst);
+					}
+					claimPayForProc.InsPayAmt=insPayAmt;
+					claimPayForProc.WriteOff=writeOffAmt;
+					insPayAmtToAllocate-=insPayAmt;
+					writeOffAmtToAllocate-=writeOffAmt;
+					listInsertedClaimProcs.Add(claimPayForProc);//add even if 0 amounts so they can be used in the next level.
+					listClaimProcsCreatedForClaim.Add(claimPayForProc);
+				}
+				#endregion
+				//there is still money to allocate after giving all of the valid procs funding up to their estimate.
+				if(!insPayAmtToAllocate.IsZero() || !writeOffAmtToAllocate.IsZero()) {//negatives are okay when original pay as total was negative
+					#region 2nd layer, apply InsPay and Writeoff up to the procFee. 
+					foreach(ClaimProc claimPayForProc in listClaimProcsCreatedForClaim) {
+						if(insPayAmtToAllocate.IsZero() && writeOffAmtToAllocate.IsZero()) {
+							break;
+						}
+						Procedure procForClaimProc=listProcsForFamily.FirstOrDefault(x => x.ProcNum==claimPayForProc.ProcNum);//get the procFee
+						if(procForClaimProc==null) {
+							continue;//highly unlikely. But if it can't be found, move on to the rest.
+						}
+						double amountRemainingOnProc=procForClaimProc.ProcFeeTotal-claimPayForProc.InsPayAmt-claimPayForProc.WriteOff;
+						if(amountRemainingOnProc.IsLessThanOrEqualToZero()) {
+							continue;
+						}
+						double amt=Math.Min(amountRemainingOnProc,insPayAmtToAllocate);
+						claimPayForProc.InsPayAmt+=amt;
+						insPayAmtToAllocate-=amt;
+						amountRemainingOnProc-=amt;
+						if(amountRemainingOnProc!=0 && writeOffAmtToAllocate!=0) {//we paid the insPayAmt but there is still room to apply a write off
+							amt=Math.Min(amountRemainingOnProc,writeOffAmtToAllocate);
+							claimPayForProc.WriteOff+=amt;
+							writeOffAmtToAllocate-=amt;
+						}
+					}
+					#endregion
+					#region 3rd layer, apply all left over InsPay and WriteOff amount to the first procedure
+					if(!insPayAmtToAllocate.IsZero() || !writeOffAmtToAllocate.IsZero()) {
+						//money is STILL remaining on this claimpayment even after allocating up to procedure fee. 
+						//put the rest of the money on the first procedure and let the income transfer manager figure the rest out later.
+						listClaimProcsCreatedForClaim[0].InsPayAmt+=insPayAmtToAllocate;
+						listClaimProcsCreatedForClaim[0].WriteOff+=writeOffAmtToAllocate;
+					}
+					#endregion
+				}
+			}
+			if(listInvalidPayAsTotals==null) {
+				listInsertedClaimProcs.RemoveAll(x => x.InsPayAmt.IsZero() && x.WriteOff.IsZero());
+				if(!listInsertedClaimProcs.Sum(x => x.InsPayAmt).IsZero() || !listInsertedClaimProcs.Sum(x => x.WriteOff).IsZero()) {
+					listInsertedClaimProcs=null;
+					throw new ApplicationException("Transfer returned a value other than 0. Please call support.");
+				}
+				listInsertedClaimProcs=InsertMany(listInsertedClaimProcs);
+			}
+			else {
+				listInsertedClaimProcs=null;//Make it apparent to calling methods that there are invalid entries that need attention.
+			}
 		}
 
 		#endregion
@@ -144,6 +290,51 @@ namespace OpenDentBusiness{
 			retVal.InsSubNum=insSubNum;
 			return retVal;
 		}
+
+		///<summary>Creates a new claimproc based off of the existing claimproc passed in.</summary>
+		public static ClaimProc CreateSuppClaimProcForTransfer(ClaimProc existingClaimProc) {
+			//No need to check RemotingRole; no call to db.
+			ClaimProc newClaimProc=new ClaimProc();//or set to copy
+			newClaimProc.Status=ClaimProcStatus.Supplemental;
+			newClaimProc.PatNum=existingClaimProc.PatNum;
+			newClaimProc.ProcNum=existingClaimProc.ProcNum;//will be 0 for as total offset, and a procNum when creating supplemental for procedures.
+			newClaimProc.ClaimNum=existingClaimProc.ClaimNum;
+			newClaimProc.ClinicNum=existingClaimProc.ClinicNum;
+			newClaimProc.DateEntry=DateTime.Today;
+			newClaimProc.ProcDate=existingClaimProc.ProcDate;
+			newClaimProc.PayPlanNum=existingClaimProc.PayPlanNum;
+			//This causes another line item to be created when set. We do not want these transfers to show on statements so we want it to be minval.
+			//newClaimProc.DateCP=DateTime.MinValue;
+			newClaimProc.PlanNum=existingClaimProc.PlanNum;
+			newClaimProc.ProvNum=existingClaimProc.ProvNum;
+			newClaimProc.InsSubNum=existingClaimProc.InsSubNum;
+			newClaimProc.CodeSent=existingClaimProc.CodeSent;
+			newClaimProc.IsTransfer=true;
+			return newClaimProc;
+		}
+
+		///<summary>Creates a new claimproc based off of the existing claimproc passed in. Made as offset supplemental for the original.</summary>
+		public static ClaimProc CreateSuppClaimProcForTransfer(PayAsTotal existingClaimProc) {
+			//No need to check RemotingRole; no call to db.
+			ClaimProc newClaimProc=new ClaimProc();//or set to copy
+			newClaimProc.Status=ClaimProcStatus.Supplemental;
+			newClaimProc.PatNum=existingClaimProc.PatNum;
+			newClaimProc.ProcNum=existingClaimProc.ProcNum;//will be 0 for as total offset, and a procNum when creating supplemental for procedures.
+			newClaimProc.ClaimNum=existingClaimProc.ClaimNum;
+			newClaimProc.ClinicNum=existingClaimProc.ClinicNum;
+			newClaimProc.DateEntry=DateTime.Today;
+			newClaimProc.ProcDate=existingClaimProc.ProcDate;
+			newClaimProc.PayPlanNum=existingClaimProc.PayPlanNum;
+			//This causes another line item to be created when set. We do not want these transfers to show on statements so we want it to be minval.
+			//newClaimProc.DateCP=DateTime.MinValue;
+			newClaimProc.PlanNum=existingClaimProc.PlanNum;
+			newClaimProc.ProvNum=existingClaimProc.ProvNum;
+			newClaimProc.InsSubNum=existingClaimProc.InsSubNum;
+			newClaimProc.CodeSent=existingClaimProc.CodeSent;
+			newClaimProc.IsTransfer=true;
+			return newClaimProc;
+		}
+
 		#endregion
 
 
@@ -2378,6 +2569,40 @@ namespace OpenDentBusiness{
 
 		public override string ToString() {
 			return StrProcCode+" "+Status.ToString()+" "+Amount.ToString()+" ded:"+Deduct.ToString();
+		}
+	}
+
+	///<summary>Class to represent PayAsTotal claimprocs. This is used specifically with ClaimProc pay as total transfers where we create
+	///a singular PayAsTotal to represent a group of summed pay as totals, which is where the SummedInsPayAmt and SummedInsWriteOff comes from.</summary>
+	public class PayAsTotal {
+		public long ClaimNum;
+		public long PatNum;
+		public long ProvNum;
+		public long ClinicNum;
+		public double SummedInsPayAmt;
+		public double SummedWriteOff;
+		public string CodeSent;
+		public long InsSubNum;
+		public long PlanNum;
+		public long PayPlanNum;
+		public long ProcNum;
+		public DateTime ProcDate;
+		public DateTime DateEntry;
+
+		public PayAsTotal(ClaimProc claimProc,double summedInsPayAmt,double summedWriteOff) {
+			ClaimNum=claimProc.ClaimNum;
+			PatNum=claimProc.PatNum;
+			ProvNum=claimProc.ProvNum;
+			ClinicNum=claimProc.ClinicNum;
+			SummedInsPayAmt=summedInsPayAmt;
+			SummedWriteOff=summedWriteOff;
+			CodeSent=claimProc.CodeSent;
+			InsSubNum=claimProc.InsSubNum;
+			PlanNum=claimProc.PlanNum;
+			PayPlanNum=claimProc.PayPlanNum;
+			ProcNum=claimProc.ProcNum;
+			ProcDate=claimProc.ProcDate;
+			DateEntry=claimProc.DateEntry;
 		}
 	}
 
