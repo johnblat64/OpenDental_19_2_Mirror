@@ -48,7 +48,7 @@ namespace OpenDental {
 
 		private void butMerge_Click(object sender,EventArgs e) {
 			if(_planFrom.DiscountPlanNum==_planInto.DiscountPlanNum) {
-				MsgBox.Show(this,"You must select two different Discount Plans to merge");
+				MsgBox.Show(this,"You must select two different Discount Plans to merge.");
 				return;
 			}
 			if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Merge the Discount Plan at the bottom into the Discount Plan shown at the top?")) {
