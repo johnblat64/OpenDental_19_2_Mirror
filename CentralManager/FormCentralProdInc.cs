@@ -645,7 +645,8 @@ namespace CentralManager {
 			_dateFrom=PIn.Date(textDateFrom.Text);
 			_dateTo=PIn.Date(textDateTo.Text);
 			List<DataSet> listProdData=new List<DataSet>();
-			List<Provider> listProvs=new List<Provider>();
+			//Keep track of all providers per connection.
+			Dictionary<string,List<Provider>> dictConnectionProviders=new Dictionary<string,List<Provider>>();
 			List<string> listServerNames=new List<string>();
 			string strFailedConn="";
 			for(int i=0;i<ConnList.Count;i++) {
@@ -666,7 +667,7 @@ namespace CentralManager {
 				else {
 					listServerNames.Add(connString);
 					listProdData.Add(data);
-					listProvs.AddRange(listConnProvs);
+					dictConnectionProviders[connString]=listConnProvs;
 				}
 				listThreads[i].QuitSync(Timeout.Infinite);
 			}
@@ -682,6 +683,10 @@ namespace CentralManager {
 			for(int i=0;i<listProdData.Count;i++) {
 				DataTable dt=listProdData[i].Tables["Clinic"];
 				DataTable dtTot=listProdData[i].Tables["Total"].Copy();
+				//Add the "Connection" column to the dtTotal DataTable.
+				dtTot.Columns.Add(new DataColumn("Connection"));
+				//Set the "Connection" value equal to the current connection string. This will be used when calculating the summary totals for each provider.
+				dtTot.Select().ForEach(x => x["Connection"]=listServerNames[i]);
 				dtTot.TableName=dtTot.TableName+"_"+i;
 				dsTotal.Tables.Add(dtTot);
 				query=report.AddQuery(dt,listServerNames[i],"Clinic",SplitByKind.Value,1,true);
@@ -712,58 +717,61 @@ namespace CentralManager {
 			decimal insincome;
 			decimal totalincome;
 			dtTotal=dsTotal.Tables[0].Clone();
-			for(int i=0;i<listProvs.Count;i++) {
-				Provider provCur=listProvs[i];
-				DataRow row=dtTotal.NewRow();
-				row[0]=provCur.Abbr;
-				production=0;
-				adjust=0;
-				inswriteoff=0;
-				totalproduction=0;
-				ptincome=0;
-				unearnedPtIncome=0;
-				insincome=0;
-				totalincome=0;
-				bool hasAnyAmount=false;
-				for(int j=0;j<dsTotal.Tables.Count;j++) {
-					for(int k=0;k<dsTotal.Tables[j].Rows.Count;k++) {
-						if(dsTotal.Tables[j].Rows[k][0].ToString()==provCur.Abbr
-							&& (PIn.Decimal(dsTotal.Tables[j].Rows[k]["Production"].ToString())!=0
-							|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["Adjustments"].ToString())!=0
-							|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["WriteOff"].ToString())!=0
-							|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["Pt Income"].ToString())!=0
-							|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["Ins Income"].ToString())!=0)) 
-						{
-							production+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Production"].ToString());
-							adjust+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Adjustments"].ToString());
-							inswriteoff+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["WriteOff"].ToString());//Writeoffs stored as negative number
-							ptincome+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Pt Income"].ToString());
-							if(checkShowUnearned.Checked) {
-								unearnedPtIncome+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Unearned Pt Income"].ToString());
+			foreach(string connectionString in dictConnectionProviders.Keys) {
+				//Go through each provider for this connection string anc calculate the totals. 
+				foreach(Provider provCur in dictConnectionProviders[connectionString]) {
+					DataRow row=dtTotal.NewRow();
+					row[0]=provCur.Abbr;
+					production=0;
+					adjust=0;
+					inswriteoff=0;
+					totalproduction=0;
+					ptincome=0;
+					unearnedPtIncome=0;
+					insincome=0;
+					totalincome=0;
+					bool hasAnyAmount=false;
+					for(int j=0;j<dsTotal.Tables.Count;j++) {
+						for(int k=0;k<dsTotal.Tables[j].Rows.Count;k++) {
+							if(dsTotal.Tables[j].Rows[k]["Provider"].ToString()==provCur.Abbr
+								&& dsTotal.Tables[j].Rows[k]["Connection"].ToString()==connectionString
+								&& (PIn.Decimal(dsTotal.Tables[j].Rows[k]["Production"].ToString())!=0
+								|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["Adjustments"].ToString())!=0
+								|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["WriteOff"].ToString())!=0
+								|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["Pt Income"].ToString())!=0
+								|| PIn.Decimal(dsTotal.Tables[j].Rows[k]["Ins Income"].ToString())!=0)) 
+							{
+								production+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Production"].ToString());
+								adjust+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Adjustments"].ToString());
+								inswriteoff+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["WriteOff"].ToString());//Writeoffs stored as negative number
+								ptincome+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Pt Income"].ToString());
+								if(checkShowUnearned.Checked) {
+									unearnedPtIncome+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Unearned Pt Income"].ToString());
+								}
+								insincome+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Ins Income"].ToString());
+								hasAnyAmount=true;
 							}
-							insincome+=PIn.Decimal(dsTotal.Tables[j].Rows[k]["Ins Income"].ToString());
-							hasAnyAmount=true;
 						}
 					}
-				}
-				totalproduction=production+adjust+inswriteoff;
-				totalincome=ptincome+insincome+unearnedPtIncome;
-				row[1]=production.ToString("n");
-				row[2]=adjust.ToString("n");
-				row[3]=inswriteoff.ToString("n");
-				row[4]=totalproduction.ToString("n");
-				row[5]=ptincome.ToString("n");
-				if(checkShowUnearned.Checked) {
-					row[6]=unearnedPtIncome.ToString("n");
-					row[7]=insincome.ToString("n");
-					row[8]=totalincome.ToString("n");
-				}
-				else {
-					row[6]=insincome.ToString("n");
-					row[7]=totalincome.ToString("n");
-				}
-				if(hasAnyAmount) {
-					dtTotal.Rows.Add(row);
+					totalproduction=production+adjust+inswriteoff;
+					totalincome=ptincome+insincome+unearnedPtIncome;
+					row[1]=production.ToString("n");
+					row[2]=adjust.ToString("n");
+					row[3]=inswriteoff.ToString("n");
+					row[4]=totalproduction.ToString("n");
+					row[5]=ptincome.ToString("n");
+					if(checkShowUnearned.Checked) {
+						row[6]=unearnedPtIncome.ToString("n");
+						row[7]=insincome.ToString("n");
+						row[8]=totalincome.ToString("n");
+					}
+					else {
+						row[6]=insincome.ToString("n");
+						row[7]=totalincome.ToString("n");
+					}
+					if(hasAnyAmount) {
+						dtTotal.Rows.Add(row);
+					}
 				}
 			}
 			query=report.AddQuery(dtTotal,"Totals","",SplitByKind.None,2,true);
@@ -801,7 +809,7 @@ namespace CentralManager {
 				conn.ConnectionStatus="OFFLINE";
 				return;
 			}
-			List<Provider> listProvs=Providers.GetProvsNoCache();
+			List<Provider> listProvs=GetProvidersForReports(checkShowUnearned.Checked);
 			List<Clinic> listClinics=Clinics.GetClinicsNoCache();
 			Clinic unassigned=new Clinic();
 			unassigned.ClinicNum=0;
@@ -819,7 +827,7 @@ namespace CentralManager {
 				conn.ConnectionStatus="OFFLINE";
 				return;
 			}
-			List<Provider> listProvs=Providers.GetProvsNoCache();
+			List<Provider> listProvs=GetProvidersForReports(checkShowUnearned.Checked);
 			List<Clinic> listClinics=Clinics.GetClinicsNoCache();
 			Clinic unassigned=new Clinic();
 			unassigned.ClinicNum=0;
@@ -837,7 +845,7 @@ namespace CentralManager {
 				conn.ConnectionStatus="OFFLINE";
 				return;
 			}
-			List<Provider> listProvs=Providers.GetProvsNoCache();
+			List<Provider> listProvs=GetProvidersForReports(checkShowUnearned.Checked);
 			List<Clinic> listClinics=Clinics.GetClinicsNoCache();
 			Clinic unassigned=new Clinic();
 			unassigned.ClinicNum=0;
@@ -862,7 +870,7 @@ namespace CentralManager {
 				conn.ConnectionStatus="OFFLINE";
 				return;
 			}
-			List<Provider> listProvs=Providers.GetProvsNoCache();
+			List<Provider> listProvs=GetProvidersForReports(checkShowUnearned.Checked);
 			List<Clinic> listClinics=Clinics.GetClinicsNoCache();
 			Clinic unassigned=new Clinic();
 			unassigned.ClinicNum=0;
@@ -877,6 +885,15 @@ namespace CentralManager {
 			}
 			listProdData=RpProdInc.GetProviderDataForClinics(_dateFrom,_dateTo,listProvs,listClinics,true,true,checkShowUnearned.Checked,writeoffCalcType,true);
 			odThread.Tag=new object[] { listProdData,conn,listProvs };
+		}
+
+		///<summary>Returns a list of all providers from the database. Does not use cache.</summary>
+		private List<Provider> GetProvidersForReports(bool includedUnearnedProv) {
+			List<Provider> listProvs=Providers.GetProvsNoCache();
+			if(includedUnearnedProv) { 
+				listProvs.Insert(0,Providers.GetUnearnedProv());
+			}
+			return listProvs;
 		}
 
 		private void butOK_Click(object sender,EventArgs e) {
