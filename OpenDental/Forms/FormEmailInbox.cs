@@ -233,13 +233,14 @@ namespace OpenDental {
 			int emailMessagesTotalCount=0;
 			Text="Email Inbox for "+AddressCur.EmailUsername+" - Receiving new email...";
 			bool hasMoreEmail=true;
+			List<string> listSkipMsgUids=new List<string>();
 			while(hasMoreEmail) {
 				if(_hasClosed) {
 					throw new ODException("Email inbox has been closed.",ODException.ErrorCodes.FormClosed);
 				}
 				List<EmailMessage> emailMessages=new List<EmailMessage>();
 				try {
-					emailMessages=EmailMessages.ReceiveFromInbox(1,AddressCur);
+					emailMessages=EmailMessages.ReceiveFromInbox(1,AddressCur,ref listSkipMsgUids);
 				}
 				catch(Exception ex) {
 					MessageBox.Show(Lan.g(this,"Error receiving email messages")+": "+ex.Message);

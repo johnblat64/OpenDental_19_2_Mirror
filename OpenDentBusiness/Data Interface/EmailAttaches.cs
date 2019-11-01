@@ -111,7 +111,7 @@ namespace OpenDentBusiness{
 				//The caller wants a specific actualFileName.  Use the given name as is.
 				emailAttach.ActualFileName=FileAtoZ.CombinePaths(subDir,actualFileName);
 			}
-			string attachFilePath=FileAtoZ.CombinePaths(attachDir,emailAttach.ActualFileName);
+			string attachFilePath=FileAtoZ.CombinePaths(attachDir,ODFileUtils.CleanFileName(emailAttach.ActualFileName));
 			if(FileAtoZ.Exists(attachFilePath)) {
 				throw new ApplicationException("Email attachment could not be saved because a file with the same name already exists.");
 			}

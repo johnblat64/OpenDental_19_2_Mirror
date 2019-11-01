@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UnitTestsCore;
 using OpenDental;
 using System.Reflection;
+using System.Globalization;
 
 namespace UnitTests.Email_Tests {
 	[TestClass]
@@ -107,21 +108,42 @@ multiple lines
 
 		///<summary>Ensures email subject lines with various formatting and special characters (ascii vs non-ascii) are interpreted correctly.</summary>
 		[TestMethod]
-		public void EmailMessages_ProcessMimeSubject_VariousFormats() {
+		public void EmailMessages_ProcessInlineEncodedText_VariousFormats() {
 			List<Tuple<string,string>> listTestSubjects=new List<Tuple<string,string>>() {
 				//Raw,Expected
+				//UTF-8 Base64 encoded string with non-ascii characters.
 				new Tuple<string,string>("=?UTF-8?B?RndkOiDCoiDDhiAxMjM0NSDDpiDDvyBzb21lIGFzY2lpIGNoYXJzIMOCIMOD?=","Fwd: ¢ Æ 12345 æ ÿ some ascii chars Â Ã"),
+				//UTF-8 QuotedPrintable encoded string with non-ascii charaters.
 				new Tuple<string,string>("=?UTF-8?Q?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?=","nu¤ Â À ¢"),
+				//UTF-8 QuotedPrintable string embedded within a larger string.
 				new Tuple<string,string>("[FWD: test =?UTF-8?Q?=3D=33D=20more=20text=20=3D=5D?=","[FWD: test =3D more text =]"),
+				//Plain text string.
 				new Tuple<string,string>("regular old plain text subject line","regular old plain text subject line"),
+				//Empty string.
 				new Tuple<string,string>("",""),
+				//Multiple inline UTF-8 QuotedPrintable encoded strings.
+				new Tuple<string,string>("=?utf-8?Q?RE:_Half_year_dental_check-up_at?==?utf-8?Q?_Super_&_Clean_Teeth_for_=C3=81_Team?=with regular text in between=?utf-8?Q?_Third_Clause?="
+					,"RE: Half year dental check-up at Super & Clean Teeth for Á Teamwith regular text in between Third Clause"),
+				//Multiple inline encoded strings with a variety of formats.
+				new Tuple<string, string>(@"=?utf-8?Q?encodedtext?= =?iso-8859-1?q?this=20is=20some=20text?=
+=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?=
+    =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?=",@"encodedtext this is some text
+If you can read this yo
+    u understand the example."),
+				//Normal plaintext email address
+				new Tuple<string, string>("service@open-dent.com","service@open-dent.com"),
+				//Aliased email address, with UTF-8 QuotedPrintable inline encoded string.
+				new Tuple<string,string>("=?UTF-8?Q?Bobby_Wiggleh=C3=81rt?= <opendentaltestemail@gmail.com>"
+				,"Bobby WigglehÁrt <opendentaltestemail@gmail.com>"),
+				//using a 'c' instead of 'B' (Base64) or 'Q' (Quoted Printable)
+				new Tuple<string,string>("=?UTF-8?c?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?=","nu¤ Â À ¢"),
 			};
 			foreach(Tuple<string,string> test in listTestSubjects) {
 				Assert.AreEqual(test.Item2,EmailMessages.ProcessInlineEncodedText(test.Item1));
 			}
 		}
 
-				///<summary>Ensures that Email Reply correctly decodes any HTML encoded characters in the response EmailMessage.</summary>
+		///<summary>Ensures that Email Reply correctly decodes any HTML encoded characters in the response EmailMessage.</summary>
 		[TestMethod]
 		public void EmailMessages_CreateReply_HtmlEncoding() {
 			EmailMessage receivedEmail=EmailMessageT.CreateEmailMessage(0,fromAddress:"opendentaltestemail@gmail.com",toAddress:"opendentalman@gmail.com"
@@ -155,7 +177,7 @@ Content-Transfer-Encoding: quoted-printable
 			Assert.AreEqual(receivedEmail.FromAddress,replyEmail.ToAddress);
 			Assert.AreEqual(receivedEmail.RecipientAddress,replyEmail.FromAddress);
 			Assert.AreEqual("RE: nu¤ Â À ¢",replyEmail.Subject);
-			Assert.AreEqual("\r\n\r\n\r\nOn 01/01/0001 12:00:00 AM opendentaltestemail@gmail.com sent:\r\n>non-breaking space  less than <greater than >ampersand &"
+			Assert.AreEqual("\r\n\r\n\r\nOn "+DateTime.MinValue.ToString()+" opendentaltestemail@gmail.com sent:\r\n>non-breaking space  less than <greater than >ampersand &"
 				,replyEmail.BodyText);
 		}
 
@@ -193,11 +215,11 @@ Content-Transfer-Encoding: quoted-printable
 			EmailMessage forwardEmail=EmailMessages.CreateForward(receivedEmail,emailAddress);
 			Assert.AreEqual(emailAddress.EmailUsername,forwardEmail.FromAddress);
 			Assert.AreEqual("FWD: nu¤ Â À ¢",forwardEmail.Subject);
-			Assert.AreEqual("\r\n\r\n\r\nOn 01/01/0001 12:00:00 AM opendentaltestemail@gmail.com sent:\r\n>non-breaking space  less than <greater than >ampersand &"
+			Assert.AreEqual("\r\n\r\n\r\nOn "+DateTime.MinValue.ToString()+" opendentaltestemail@gmail.com sent:\r\n>non-breaking space  less than <greater than >ampersand &"
 				,forwardEmail.BodyText);
 		}
 
-			#region FindAndReplaceImageTagsWithAttachedImage_Tests
+		#region FindAndReplaceImageTagsWithAttachedImage_Tests
 		///<summary>A test to ensure the regex is functional in FindAndReplaceImageTagsWithAttachedImage(...) when there is no image in the email
 		///but there is HTML tags.</summary>
 		[TestMethod]
@@ -241,5 +263,286 @@ Content-Transfer-Encoding: quoted-printable
 			Assert.AreEqual(expectedLocalPath,actualLocalPath);
 		}
 		#endregion
+
+		///<summary>Assert that an extra space prior to the day portion of the "Date:" header can be parsed.
+		///E.g. typical format is "Sat, 1 Nov 1997 09:55:06 -0600" but some emails come in like "Sat,  1 Nov 1997 09:55:06 -0600"</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_DateExtraSpace() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Sat,  1 Nov 1997 09:55:06 -0600
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.AreEqual(new DateTime(1997,11,1,15,55,06),emailMessage.MsgDateTime.ToUniversalTime());//The time "09:55:06 -0600" is "15:55:06" UTC.
+		}
+
+		///<summary>Assert that a single digit in the hour portion of the "Date:" header can be parsed.
+		///E.g. typical format is "Sat, 1 Nov 1997 09:55:06 -0600" but some emails come in like "Sat, 1 Nov 1997 9:55:06 -0600"</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_DateSingleDigitHour() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Sat, 1 Nov 1997 9:55:06 -0600
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.AreEqual(new DateTime(1997,11,1,15,55,06),emailMessage.MsgDateTime.ToUniversalTime());//The time "09:55:06 -0600" is "15:55:06" UTC.
+		}
+
+		///<summary>Assert that the abbreviated time zone at the end of the "Date:" header can be parsed.
+		///E.g. typical format(s) are is "Thu, 11 Feb 2016 06:58:09 -0600" but some emails come in like "Thu, 11 Feb 2016 06:58:09 CST"
+		///NOTE: The abbreviated time zone is not supported by DateTime.ParseExact so CST will not be considered when parsing.</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_DateTimeZoneAbbreviation() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Thu, 11 Feb 2016 06:58:09 CST
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			//The abbreviated time zone is not supported by DateTime.ParseExact so do not assert the UTC version of emailMessage.MsgDateTime.
+			Assert.AreEqual(new DateTime(2016,02,11,06,58,09),emailMessage.MsgDateTime);
+		}
+
+		///<summary>Assert that a mime part with a Content-Disposition of "attachment" does not require the "name:" directive.
+		///E.g. typical format(s) of the Content-Disposition header are:
+		///Content-Disposition: attachment
+		///Content-Disposition: attachment; name="fieldName"
+		///Content-Disposition: attachment; name="fieldName"; filename="filename.jpg"</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_MimePartAttachmentNoName() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Thu, 11 Feb 2016 06:58:09 CST
+Message-ID: <1234@local.machine.example>
+Content-Type: multipart/mixed; boundary=""B1""
+
+This is a multi-part message in MIME format.
+--B1
+Content-Type: multipart/alternative; boundary=""B2""
+MIME-Version: 1.0
+
+--B2
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Hello from Argentina!
+
+--B2
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+This is a message just to say hello.
+So, ""Hello"".
+
+--B2--
+--B1
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=""map_of_Argentina.gif""
+
+R01GOD1hJQA1AKIAAP/////78P/omn19fQAAAAAAAAAAAAAAACwAAAAAJQA1AAAD7Qi63P5w
+wEmjBCLrnQnhYCgM1wh+pkgqqeC9XrutmBm7hAK3tP31gFcAiFKVQrGFR6kscnonTe7FAAad
+GugmRu3CmiBt57fsVq3Y0VFKnpYdxPC6M7Ze4crnnHum4oN6LFJ1bn5NXTN7OF5fQkN5WYow
+BEN2dkGQGWJtSzqGTICJgnQuTJN/WJsojad9qXMuhIWdjXKjY4tenjo6tjVssk2gaWq3uGNX
+U6ZGxseyk8SasGw3J9GRzdTQky1iHNvcPNNI4TLeKdfMvy0vMqLrItvuxfDW8ubjueDtJufz
+7itICBxISKDBgwgTKjyYAAA7
+--B1--";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.IsNotNull(emailMessage.Attachments);
+			Assert.AreEqual(emailMessage.Attachments.Count,1);
+		}
+
+		///<summary>Assert that poorly chosen boundaries do not cause the mime parts to fail to parse.
+		///E.g. There was an email with several boundaries and they each boundary contained the first boundary:
+		///boundary #1 = D775FB8094F7C52EF0C994F5B1152B71
+		///boundary #2 = D775FB8094F7C52EF0C994F5B1152B712
+		///boundary #3 = D775FB8094F7C52EF0C994F5B1152B713</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_InvalidBoundaries() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Thu, 11 Feb 2016 06:58:09 CST
+Message-ID: <1234@local.machine.example>
+Content-Type: multipart/mixed; boundary=""B1""
+
+This is a multi-part message in MIME format.
+--B1
+Content-Type: multipart/alternative; boundary=""B12""
+MIME-Version: 1.0
+
+--B12
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Hello from Argentina!
+
+--B12
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+This is a message just to say hello.
+So, ""Hello"".
+
+--B12--
+--B1
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=""map_of_Argentina.gif""
+
+R01GOD1hJQA1AKIAAP/////78P/omn19fQAAAAAAAAAAAAAAACwAAAAAJQA1AAAD7Qi63P5w
+wEmjBCLrnQnhYCgM1wh+pkgqqeC9XrutmBm7hAK3tP31gFcAiFKVQrGFR6kscnonTe7FAAad
+GugmRu3CmiBt57fsVq3Y0VFKnpYdxPC6M7Ze4crnnHum4oN6LFJ1bn5NXTN7OF5fQkN5WYow
+BEN2dkGQGWJtSzqGTICJgnQuTJN/WJsojad9qXMuhIWdjXKjY4tenjo6tjVssk2gaWq3uGNX
+U6ZGxseyk8SasGw3J9GRzdTQky1iHNvcPNNI4TLeKdfMvy0vMqLrItvuxfDW8ubjueDtJufz
+7itICBxISKDBgwgTKjyYAAA7
+--B1--";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.IsNotNull(emailMessage.Attachments);
+			Assert.AreEqual(emailMessage.Attachments.Count,1);
+		}
+
+		///<summary>Assert that the invalid character ';' within the "To:" header does not cause an error.
+		///When all recipients are in the bcc field, some clients (gmail) input "undisclosed-recipients:;" into the "To:" header.</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_UndisclosedRecipients() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: undisclosed-recipients:;
+Bcc: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Sat,  1 Nov 1997 09:55:06 -0600
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.AreEqual(emailMessage.ToAddress,"");
+		}
+
+		///<summary>Assert that the invalid character ';' within the "To:" header does not cause an error.
+		///When all recipients are in the bcc field, some clients input "undisclosed recipients:;" into the "To:" header.</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_UndisclosedRecipients_NoHyphen() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: undisclosed recipients:;
+Bcc: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Sat,  1 Nov 1997 09:55:06 -0600
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.AreEqual(emailMessage.ToAddress,"");
+		}
+
+		///<summary>Assert that the invalid character ';' within the "To:" header does not cause an error.
+		///When all recipients are in the bcc field, some clients input "undisclosed-recipients: ;" into the "To:" header.</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_UndisclosedRecipients_ExtraSpace() {
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+To: undisclosed-recipients: ;
+Bcc: Mary Smith <mary@example.net>
+Subject: Saying Hello
+Date: Sat,  1 Nov 1997 09:55:06 -0600
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: "jdoe@machine.example"),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.AreEqual(emailMessage.ToAddress,"");
+		}
+
+		///<summary>Assert that emails with no recipients can be parsed.
+		///Some clients (Apple mail) remove all address fields (To, cc, bcc) from the header.</summary>
+		[TestMethod]
+		public void EmailMessages_ProcessRawEmailMessageIn_UndisclosedRecipients_NoRecipients() {
+			string emailUserName="jdoe@machine.example";
+			string strRawEmail=@"From: John Doe <jdoe@machine.example>
+Subject: Saying Hello
+Date: Sat,  1 Nov 1997 09:55:06 -0600
+Message-ID: <1234@local.machine.example>
+
+This is a message just to say hello.
+So, ""Hello"".";
+			EmailMessage emailMessage=null;
+			try {
+				emailMessage=EmailMessages.ProcessRawEmailMessageIn(strRawEmail,0,
+					EmailAddressT.CreateEmailAddress(emailUserName: emailUserName),false);
+			}
+			catch(Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+			Assert.AreEqual(emailUserName,emailMessage.BccAddress);//We have specific code to fake a BCC with the current emailUserName.
+		}
+
 	}
 }

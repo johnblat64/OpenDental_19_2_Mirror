@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -859,7 +860,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Fetches up to fetchCount number of messages from a POP3 server.  Set fetchCount=0 for all messages.  Typically, fetchCount is 0 or 1.
 		///Example host name, pop3.live.com. Port is Normally 110 for plain POP3, 995 for SSL POP3.</summary>
-		public static List<EmailMessage> ReceiveFromInbox(int receiveCount,EmailAddress emailAddressInbox) {
+		public static List<EmailMessage> ReceiveFromInbox(int receiveCount,EmailAddress emailAddressInbox,ref List<string> listSkipMsgUids) {
 			List<EmailMessage> retVal=new List<EmailMessage>();
 			if(_listCurrentlyReceivingEmailAddressNums.Select(x => x.EmailAddressNum).Contains(emailAddressInbox.EmailAddressNum)) {
 				return retVal;//Already in the process of receving email. This can happen if the user clicks the refresh button at the same time the main polling thread is receiving.
@@ -867,7 +868,7 @@ namespace OpenDentBusiness {
 			_listCurrentlyReceivingEmailAddressNums.Add(emailAddressInbox);
 			try {
 				lock(emailAddressInbox) {
-					retVal=ReceiveFromInboxThreadSafe(receiveCount,emailAddressInbox);
+					retVal=ReceiveFromInboxThreadSafe(receiveCount,emailAddressInbox,ref listSkipMsgUids);
 				}
 			}
 			catch(Exception) {
@@ -880,8 +881,9 @@ namespace OpenDentBusiness {
 		}
 
 		///<summary>Fetches up to fetchCount number of messages from a POP3 server.  Set fetchCount=0 for all messages.  Typically, fetchCount is 0 or 1.
-		///Example host name, pop3.live.com. Port is Normally 110 for plain POP3, 995 for SSL POP3.</summary>
-		private static List<EmailMessage> ReceiveFromInboxThreadSafe(int receiveCount,EmailAddress emailAddressInbox) {
+		///Example host name, pop3.live.com. Port is Normally 110 for plain POP3, 995 for SSL POP3.
+		///listSkipMsgUids will have every 'new' attempted msg uid added to it to improve efficiency the next time it is invoked.</summary>
+		private static List<EmailMessage> ReceiveFromInboxThreadSafe(int receiveCount,EmailAddress emailAddressInbox,ref List<string> listSkipMsgUids) {
 			//No need to check RemotingRole; no call to db.
 			List<EmailMessage> retVal=new List<EmailMessage>();
 			//This code is modified from the example at: http://hpop.sourceforge.net/exampleFetchAllMessages.php
@@ -928,9 +930,35 @@ namespace OpenDentBusiness {
 							continue;//Skip emails which have already been downloaded.
 						}
 					}
+					if(!listSkipMsgUids.IsNullOrEmpty() && listSkipMsgUids.Contains(strMsgUid)) {
+						continue;
+					}
+					if(listSkipMsgUids!=null) {
+						listSkipMsgUids.Add(strMsgUid);
+					}
 					//At this point, we know that the email is one which we have not downloaded yet.
+					OpenPop.Mime.Message openPopMsg;
 					try {
-						OpenPop.Mime.Message openPopMsg=client.GetMessage(msgIndex);//This is where the entire raw email is downloaded.
+						openPopMsg=client.GetMessage(msgIndex);//This is where the entire raw email is downloaded.
+					}
+					catch(Exception ex) {
+						//Certain error messages should be treated as "downloaded" so that we do not waste time trying to download these email messages again.
+						if(ex.Message=="The specified media type is invalid."
+							|| ex.Message=="Invalid length for a Base-64 char array or string."
+							|| ex.Message.StartsWith("'binary' is not a supported encoding name. "
+								+"For information on defining a custom encoding, see the documentation for the Encoding.RegisterProvider method.")
+							|| ex.Message.StartsWith("'Cp1252' is not a supported encoding name. "
+								+"For information on defining a custom encoding, see the documentation for the Encoding.RegisterProvider method."))
+						{
+							EmailMessageUid emailMessageUid=new EmailMessageUid();
+							emailMessageUid.RecipientAddress=emailAddressInbox.EmailUsername.Trim();
+							emailMessageUid.MsgId=strMsgUid;
+							EmailMessageUids.Insert(emailMessageUid);//Remember Uid was downloaded, to avoid email duplication the next time the inbox is refreshed.
+							listDownloadedMsgUidStrs.Add(strMsgUid);
+						}
+						continue;
+					}
+					try {
 						bool isEmailFromInbox=true;
 						if(openPopMsg.Headers.From.ToString().ToLower().Contains(emailAddressInbox.EmailUsername.Trim().ToLower())) {//The email Recipient and email From addresses are the same.
 							//The email Recipient and email To or CC or BCC addresses are the same.  We have verified that a user can send an email to themself using only CC or BCC.
@@ -981,9 +1009,56 @@ namespace OpenDentBusiness {
 			//No need to check RemotingRole; no call to db.
 			Health.Direct.Agent.IncomingMessage inMsg=null;
 			string lastErrorMsg="";
+			#region Scrub Boundaries
+			//Find all of the boundaries within the raw email and force them to be unique
+			//Some third parties will format their boundaries in a way that that does not parse correctly. E.g.:
+			//boundary #1 = D775FB8094F7C52EF0C994F5B1152B71
+			//boundary #2 = D775FB8094F7C52EF0C994F5B1152B712
+			//boundary #3 = D775FB8094F7C52EF0C994F5B1152B713
+			//etc.
+			List<string> listBoundaries=new List<string>();
+			foreach(Match match in Regex.Matches(strRawEmailIn,@"boundary=""(.*)""")) {
+				if(!match.Success || match.Groups.Count < 2) {
+					continue;
+				}
+				listBoundaries.Add(match.Groups[1].Value);
+			}
+			bool hasValidBoundaries=true;
+			foreach(string boundary in listBoundaries) {
+				if(listBoundaries.Any(x => x!=boundary && x.StartsWith(boundary))) {
+					hasValidBoundaries=false;
+					break;
+				}
+			}
+			//Replace all of the boundaries if any show up more than 4 times which indicates that they are not unique enough and need to be replaced.
+			if(!hasValidBoundaries) {
+				foreach(string boundary in listBoundaries) {
+					//Replace this boundary within the raw email string with a better formatted boundary.
+					//There are three explicit ways to utilize the boundary and we will replace each one with:
+					//#1:  boundary="[uniqueBoundaryID]"
+					//#2:  --[uniqueBoundaryID]
+					//#3:  --[uniqueBoundaryID]--
+					/******************************************************************************************
+						Boundary syntax via https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html is as follows:
+						boundary := 0*69<bchars> bcharsnospace
+						bchars := bcharsnospace / " "
+						bcharsnospace := DIGIT / ALPHA / "'" / "(" / ")" /
+														"+" / "_" / "," / "-" / "." /
+														"/" / ":" / "=" / "?"
+					*******************************************************************************************/
+					//Generate a GUID and use ToString("N") which returns 32 hexadecimal digits with no formatting.
+					//https://docs.microsoft.com/en-us/dotnet/api/system.guid.tostring?view=netframework-4.5.2
+					string boundaryNew=Guid.NewGuid().ToString("N");
+					strRawEmailIn=Regex.Replace(strRawEmailIn,$@"boundary=""{boundary}""",$@"boundary=""{boundaryNew}""");
+					strRawEmailIn=Regex.Replace(strRawEmailIn,$"\r\n--{boundary}\r\n",$"\r\n--{boundaryNew}\r\n");
+					strRawEmailIn=Regex.Replace(strRawEmailIn,$"\r\n--{boundary}--",$"\r\n--{boundaryNew}--");
+				}
+			}
+			#endregion
 			for(int i=0;i<5;i++) {//We will exit if unknown error or if previous error was the same as current error.
 				try {
 					inMsg=new Health.Direct.Agent.IncomingMessage(strRawEmailIn);//Used to parse all email (encrypted or not).
+					break;
 				}
 				catch(Exception ex) {
 					if(ex.Message==lastErrorMsg) {//Our last attempt to fix the issue failed.
@@ -998,13 +1073,13 @@ namespace OpenDentBusiness {
 					}
 					else if(ex.Message=="An invalid character was found in the mail header: ';'.") {
 						//When all recipients are in the bcc field, some clients (gmail) inputs "undisclosed-recipients:;" into the TO field, which causes an error to be thrown.
-						strRawEmailIn=Regex.Replace(strRawEmailIn,@"undisclosed-recipients:;","",RegexOptions.IgnoreCase);//Remove "undisclosed-recipients".
+						strRawEmailIn=Regex.Replace(strRawEmailIn,@"undisclosed[ -]*recipients:[\t ]*;","",RegexOptions.IgnoreCase);//Remove "undisclosed-recipients".
 					}
 					else if(ex.Message=="Error=NoRecipients") {
 						//When all recipients are in the bcc field, some clients (Apple mail) remove all address fields (To, cc, bcc) from the header, which causes an error to be thrown.
 						//the code below attempts to add a bcc field with the user's email into the header (seems to work for emails coming from Apple mail)
 						strRawEmailIn=Regex.Replace(strRawEmailIn,@"Subject: ",
-							"Bcc: "+emailAddressInbox?.EmailUsername??"Failed to match email address"+"\r\nSubject: ",RegexOptions.IgnoreCase);
+							"Bcc: "+(emailAddressInbox?.EmailUsername??"Failed to match email address")+"\r\nSubject: ",RegexOptions.IgnoreCase);
 					}
 					else {
 						throw new ApplicationException("Failed to parse raw email message.\r\n"+ex.Message);
@@ -1740,20 +1815,43 @@ namespace OpenDentBusiness {
 				if(message.DateValue.EndsWith("GMT")) {//Examples: Tue, 09 Sep 2014 23:16:36 GMT
 					emailMessage.MsgDateTime=DateTime.Parse(message.DateValue);
 				}
-				else if(message.DateValue.Contains(",")) {//The day-of-week, comma and following space are optional. Examples: "Tue, 3 Dec 2013 17:10:37 +0000", "Tue, 12 Nov 2013 17:10:37 +0000 (UTC)"
-					try {
-						emailMessage.MsgDateTime=DateTime.ParseExact(message.DateValue.Substring(0,31),"ddd, d MMM yyyy HH:mm:ss zzz",System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat);
+				else {
+					//Different email providers send the Date in formats that don't exactly match the RFC standard.
+					//This regular expression was created based off of all of the different types of date formats that have been officially whitnessed.
+					//It is not based off of the RFC 2822 standard, as one would want to do.
+					//A new unit test should be added for any scenarios where a 'valid' message.DateValue cannot parse correctly.
+					string datePattern=@"^\s*(\S+,)?\s*(\d{1,2})\s*(\S+)\s*(\d{4,5})\s+(\d{1,2}):(\d{1,2})(:\d{1,2})?\s*([\+\-]\d+:?\d*)?(\s*\S+)?\s*$";
+					Match m=Regex.Match(message.DateValue,datePattern);
+					if(m.Success) {
+						string dayOfWeekName=m.Result("$1");//Mon, Tue, Wed, etc.
+						string dayOfMonthNum=m.Result("$2");
+						string monthName=m.Result("$3");
+						string yearNum=m.Result("$4");
+						string hourNum=m.Result("$5");
+						string minuteNum=m.Result("$6");
+						string secondNum=m.Result("$7");
+						string utcOffset=m.Result("$8");
+						string timeZoneAbbr=m.Result("$9");//ex UTC, GMT, CST, MDT, etc.
+						string dateFormat="d MMM yyyy HH:mm";
+						string dateValueConverted=$"{dayOfMonthNum} {monthName} {yearNum} {hourNum.PadLeft(2,'0')}:{minuteNum.PadLeft(2,'0')}";
+						if(!string.IsNullOrWhiteSpace(secondNum)) {
+							dateFormat+=":ss";
+							dateValueConverted+=$":{secondNum.TrimStart(':').PadLeft(2,'0')}";
+						}
+						if(!string.IsNullOrWhiteSpace(utcOffset)) {
+							dateFormat+=" zzz";
+							dateValueConverted+=$" {utcOffset}";
+						}
+						if(!DateTime.TryParseExact(dateValueConverted,dateFormat,CultureInfo.CurrentCulture.DateTimeFormat,DateTimeStyles.None,
+							out emailMessage.MsgDateTime))
+						{
+							throw new ApplicationException("DateValue was not recognized as a valid DateTime.\r\n"
+								+$"message.DateValue: {message.DateValue}\r\n"
+								+$"dateValueConverted: {dateValueConverted}");
+						}
 					}
-					catch {
-						emailMessage.MsgDateTime=DateTime.ParseExact(message.DateValue.Substring(0,30),"ddd, d MMM yyyy HH:mm:ss zzz",System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat);
-					}
-				}
-				else {//Examples: "3 Dec 2013 17:10:37 -0800", "12 Nov 2013 17:10:37 -0800 (UTC)"
-					try {
-						emailMessage.MsgDateTime=DateTime.ParseExact(message.DateValue.Substring(0,26),"d MMM yyyy HH:mm:ss zzz",System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat);
-					}
-					catch {
-						emailMessage.MsgDateTime=DateTime.ParseExact(message.DateValue.Substring(0,25),"d MMM yyyy HH:mm:ss zzz",System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat);
+					else {
+						throw new ApplicationException("DateValue was not recognized as a valid DateTime: "+message.DateValue);
 					}
 				}
 			}
@@ -1817,7 +1915,7 @@ namespace OpenDentBusiness {
 			//If an encrypted attachment is present (smime.p7m), then ensure the message content type correctly indicates an encrypted message.
 			for(int i=0;i<listMimeAttachParts.Count;i++) {
 				Health.Direct.Common.Mime.MimeEntity mimePartAttach=listMimeAttachParts[i];
-				if(mimePartAttach.ParsedContentType.Name.ToLower()=="smime.p7m") {//encrypted attachment
+				if(mimePartAttach.ParsedContentType.Name!=null && mimePartAttach.ParsedContentType.Name.ToLower()=="smime.p7m") {//encrypted attachment
 					message.ContentType="application/pkcs7-mime; name=smime.p7m; boundary="+strTextPartBoundary+";";
 					break;
 				}
@@ -1836,7 +1934,22 @@ namespace OpenDentBusiness {
 					if(arrayData==null) {//Plain attachment.
 						arrayData=Encoding.UTF8.GetBytes(mimePartAttach.Body.Text);
 					}
-					EmailAttach emailAttach=EmailAttaches.CreateAttach(mimePartAttach.ParsedContentType.Name,"",arrayData,isOutbound);
+					string displayFileName=mimePartAttach.ParsedContentType.Name;
+					//If the name directive was not set, check for the filename directive.
+					//The filename is always optional and must not be used blindly by the application: path information should be stripped, and conversion to 
+					//the server file system rules should be done. This parameter provides mostly indicative information. When used in combination with 
+					//Content-Disposition: attachment, it is used as the default filename for an eventual "Save As" dialog presented to the user.
+					if(string.IsNullOrEmpty(displayFileName) 
+						&& !string.IsNullOrWhiteSpace(mimePartAttach.ContentDisposition) 
+						&& mimePartAttach.ContentDisposition.Contains("filename"))
+					{
+						//E.g. Content-Disposition: attachment; filename="cool.html" should suggest saving under the "cool.html" filename (by default).
+						Match match=Regex.Match(mimePartAttach.ContentDisposition,@"filename[\t ]*=[\t ]*""(.*)""");
+						if(match.Success && match.Groups!=null && match.Groups.Count > 1) {
+							displayFileName=ODFileUtils.CleanFileName(match.Groups[1].Value);
+						}
+					}
+					EmailAttach emailAttach=EmailAttaches.CreateAttach(displayFileName,"",arrayData,isOutbound);
 					emailMessage.Attachments.Add(emailAttach);//The attachment EmailMessageNum is set when the emailMessage is inserted/updated below.
 				}
 			}
@@ -2298,7 +2411,8 @@ namespace OpenDentBusiness {
 			emailAddress.ServerPortIncoming=PrefC.GetInt(PrefName.EHREmailPort);
 			emailAddress.EmailUsername=PrefC.GetString(PrefName.EHREmailFromAddress);
 			emailAddress.EmailPassword=PrefC.GetString(PrefName.EHREmailPassword);
-			List<EmailMessage> emailMessages=ReceiveFromInbox(1,emailAddress);
+			List<string> listSkipMsgUids=new List<string>();
+			List<EmailMessage> emailMessages=ReceiveFromInbox(1,emailAddress,ref listSkipMsgUids);
 			if(emailMessages.Count==0) {
 				throw new Exception("Inbox empty.");
 			}
