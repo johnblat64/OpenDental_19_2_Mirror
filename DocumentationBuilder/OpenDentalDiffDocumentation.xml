@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
-<database version="19.2.36.0">
+<database version="19.2.42.0">
     <table name="benefit">
         <summary></summary>
         <column order="12" name="SecDateTEntry" type="datetime">
@@ -53,6 +53,12 @@
         </column>
         <column order="82" name="IsOutsideLab" type="tinyint(4)">
             <summary>Used in 1500 Medical Claim Form field 20.  Place an 'X' the 'Yes' if true and the 'No' if false.</summary>
+        </column>
+    </table>
+    <table name="claimproc">
+        <summary></summary>
+        <column order="45" name="IsTransfer" type="tinyint(4)">
+            <summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim pay as total.</summary>
         </column>
     </table>
     <table name="creditcard">

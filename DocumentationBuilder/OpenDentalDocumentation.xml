@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDocumentation.xsl"?>
-<database version="19.2.36.0">
+<database version="19.2.42.0">
     <table name="account">
         <summary>Used in the accounting section in chart of accounts.  Not related to patient accounts in any way.</summary>
         <column order="0" name="AccountNum" type="bigint(20)">
@@ -2069,6 +2069,9 @@
         </column>
         <column order="44" name="DateInsFinalized" type="date">
             <summary>Date of the first claimPayment for this claim.</summary>
+        </column>
+        <column order="45" name="IsTransfer" type="tinyint(4)">
+            <summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim pay as total.</summary>
         </column>
     </table>
     <table name="claimsnapshot">
