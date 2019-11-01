@@ -916,6 +916,9 @@ namespace OpenDentBusiness {
 			decimal writeoff;
 			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AccountColors);
 			foreach(DataRow rawClaimPayRow in rawClaimPay.Rows) {//0 rows if isInvoice or is LimitedStatement with no procs
+				if(PIn.Bool(rawClaimPayRow["IsTransfer"].ToString())==true) {//we may want to add a boolean to control this later
+					continue;
+				}
 				row=table.NewRow();
 				row["AbbrDesc"]="";//fill this later
 				row["AdjNum"]=0;
