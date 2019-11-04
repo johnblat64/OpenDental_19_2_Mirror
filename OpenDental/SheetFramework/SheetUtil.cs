@@ -1482,6 +1482,7 @@ namespace OpenDental{
 						DateTime.MinValue,//dateTimeSort
 						Lans.g("Statements","No Account Activity"),//"description"
 						"", //"InvoiceNum"
+						0,//IsTransfer
 						p.FName,//"patient"
 						p.PatNum,//"PatNum"
 						"",//"paymentsOnObj"
