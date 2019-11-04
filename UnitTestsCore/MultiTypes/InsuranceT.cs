@@ -66,6 +66,25 @@ namespace UnitTestsCore {
 			}
 		}
 
+		public PatPlan MedPatPlan {
+			get {
+				return ListPatPlans.FirstOrDefault(x => x.Ordinal==PatPlans.GetOrdinal(PriSecMed.Medical,ListPatPlans,ListInsPlans,ListInsSubs));
+			}
+		}
+
+		public InsSub MedInsSub {
+			get {
+				long subNum=PatPlans.GetInsSubNum(ListPatPlans,PatPlans.GetOrdinal(PriSecMed.Medical,ListPatPlans,ListInsPlans,ListInsSubs));
+				return InsSubs.GetSub(subNum,ListInsSubs);
+			}
+		}
+
+		public InsPlan MedInsPlan {
+			get {
+				return InsPlans.GetPlan(MedInsSub.PlanNum,ListInsPlans);
+			}
+		}
+
 		public void AddInsurance(Patient pat,string carrierName,string planType="",long feeSchedNum=0,int ordinal=1,bool isMedical=false,
 			EnumCobRule cobRule=EnumCobRule.Basic,long copayFeeSchedNum=0,int monthRenew=0,string subscriberID="1234") 
 		{

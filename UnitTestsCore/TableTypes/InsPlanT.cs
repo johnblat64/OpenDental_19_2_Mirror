@@ -8,7 +8,7 @@ namespace UnitTestsCore {
 
 		///<summary>Creates an insurance plan with the default fee schedule of 53.</summary>
 		public static InsPlan CreateInsPlan(long carrierNum,EnumCobRule cobRule=EnumCobRule.Basic,long feeSched=53,
-			long allowedFeeSched=0,long copayFeeSched=0) 
+			long allowedFeeSched=0,long copayFeeSched=0,bool isMedical=false)
 		{
 			InsPlan plan=new InsPlan();
 			plan.CarrierNum=carrierNum;
@@ -17,6 +17,7 @@ namespace UnitTestsCore {
 			plan.AllowedFeeSched=allowedFeeSched;
 			plan.CopayFeeSched=copayFeeSched;
 			plan.CobRule=cobRule;
+			plan.IsMedical=isMedical;
 			InsPlans.Insert(plan);
 			return plan;
 		}

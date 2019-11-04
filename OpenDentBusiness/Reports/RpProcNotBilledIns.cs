@@ -27,7 +27,8 @@ namespace OpenDentBusiness {
 				+"CASE WHEN procmultivisit.ProcMultiVisitNum IS NULL "
 					+"THEN '"+Lans.g("enumProcStat",ProcStat.C.ToString())+"' ELSE '"+Lans.g("enumProcStat",ProcStatExt.InProcess)+"' END Stat,"
 				+"procedurelog.ProcDate,procedurecode.Descript,procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits) procFee,"
-				+"procedurelog.ProcNum,procedurelog.ClinicNum,patient.PatNum,insplan.PlanNum,MAX(COALESCE(insplan.IsMedical,0)) isMedical "
+				+"procedurelog.ProcNum,procedurelog.ClinicNum,patient.PatNum,insplan.PlanNum,MAX(insplan.IsMedical) isMedical,"
+				+"CASE WHEN MIN(insplan.IsMedical)=0 THEN 1 ELSE 0 END hasDental "
 				+"FROM patient "
 				+"INNER JOIN procedurelog ON procedurelog.PatNum = patient.PatNum "
 					+"AND procedurelog.ProcFee>0 "
@@ -59,14 +60,14 @@ namespace OpenDentBusiness {
 			//This problem can be resolved by putting the insplan.IsMedical=0 check into the LEFT JOIN clause and performing a corresponding NULL check.
 			//However, the "OR insplan.PlanNum IS NULL" complicates the query enough to where it is easier to just put the old WHERE clause outside.
 			//This sub query trick improved the following report for a large office from ~55 seconds to ~5 seconds.
-			if(!includeMedProcs) {
-				query+="WHERE (procnotbilled.isMedical=0 ";
-				if(showProcsBeforeIns) {
-					query+="OR procnotbilled.PlanNum IS NULL ";
-				}
-				query+=") ";
+			query+="WHERE (procnotbilled.hasDental=1 ";//Always include procedures when the patient has dental insurance.
+			if(includeMedProcs) {
+				query+="OR procnotbilled.isMedical=1 ";
 			}
-			query+="ORDER BY LName,FName,PatNum,ProcDate";
+			if(showProcsBeforeIns) {
+				query+="OR procnotbilled.PlanNum IS NULL ";
+			}
+			query+=") ORDER BY LName,FName,PatNum,ProcDate";
 			return Db.GetTable(query);
 		}
 
