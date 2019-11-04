@@ -124,6 +124,7 @@
   <ItemGroup>
     <Compile Include="UnitTests\ClinicPrefHelperTests.cs" />
     <Compile Include="UnitTests\DataActionTests.cs" />
+    <Compile Include="UnitTests\EmailAttachTests.cs" />
     <Compile Include="UnitTests\RpProcNotBilledInsTests.cs" />
     <Compile Include="UnitTests\SecurityLogsTests.cs" />
     <Compile Include="UnitTests\SignatureBoxWrapperTests.cs" />

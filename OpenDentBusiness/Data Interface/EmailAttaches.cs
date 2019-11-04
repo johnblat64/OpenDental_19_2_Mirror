@@ -83,6 +83,7 @@ namespace OpenDentBusiness{
 			//No need to check RemotingRole; no call to db.
 			EmailAttach emailAttach=new EmailAttach();
 			emailAttach.DisplayedFileName=displayedFileName;
+			actualFileName=ODFileUtils.CleanFileName(actualFileName);//Clean the actual file name for the OS.
 			if(String.IsNullOrEmpty(emailAttach.DisplayedFileName)) {
 				//This could only happen for malformed incoming emails, but should not happen.  Name uniqueness is virtually guaranteed below.
 				//The actual file name will not have an extension, so the user will be asked to pick the program to open the attachment with when
@@ -104,14 +105,14 @@ namespace OpenDentBusiness{
 					//Display name is tacked onto actual file name last as to ensure file extensions are the same.
 					emailAttach.ActualFileName=FileAtoZ.CombinePaths(subDir,
 						DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks.ToString()
-							+"_"+MiscUtils.CreateRandomAlphaNumericString(4)+"_"+emailAttach.DisplayedFileName);
+							+"_"+MiscUtils.CreateRandomAlphaNumericString(4)+"_"+ODFileUtils.CleanFileName(emailAttach.DisplayedFileName));
 				}
 			}
 			else {
 				//The caller wants a specific actualFileName.  Use the given name as is.
 				emailAttach.ActualFileName=FileAtoZ.CombinePaths(subDir,actualFileName);
 			}
-			string attachFilePath=FileAtoZ.CombinePaths(attachDir,ODFileUtils.CleanFileName(emailAttach.ActualFileName));
+			string attachFilePath=FileAtoZ.CombinePaths(attachDir,emailAttach.ActualFileName);
 			if(FileAtoZ.Exists(attachFilePath)) {
 				throw new ApplicationException("Email attachment could not be saved because a file with the same name already exists.");
 			}
