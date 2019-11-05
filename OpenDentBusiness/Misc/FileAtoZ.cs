@@ -14,6 +14,14 @@ namespace OpenDentBusiness.FileIO {
 	///location or it will download/upload from the cloud. All methods are synchronous.</summary>
 	public class FileAtoZ {
 
+		///<summary>Creates the specified directory.  Throws exceptions.</summary>
+		public static void CreateDirectory(string folder) {
+			if(CloudStorage.IsCloudStorage) {
+				return;//There is no need to create directories in cloud mode.  Folders automatically get created when creating files.
+			}
+			Directory.CreateDirectory(folder);
+		}
+
 		///<summary>Returns the string contents of the file. Sychronous for cloud storage.</summary>
 		public static string ReadAllText(string fileName) {
 			if(CloudStorage.IsCloudStorage) {
@@ -109,6 +117,15 @@ namespace OpenDentBusiness.FileIO {
 			}
 			else {//Not cloud
 				File.Copy(sourceFileName,destinationFileName,doOverwrite);
+			}
+		}
+
+		public static void Move(string sourceFileFullPath,string destinationFileFullPath) {
+			if(CloudStorage.IsCloudStorage) {
+				CloudStorage.Move(sourceFileFullPath,destinationFileFullPath,hasExceptions: true);
+			}
+			else {
+				File.Move(sourceFileFullPath,destinationFileFullPath);
 			}
 		}
 

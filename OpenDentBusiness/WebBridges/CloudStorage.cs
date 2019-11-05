@@ -12,6 +12,20 @@ using System.Threading;
 namespace OpenDentBusiness {
 	public class CloudStorage {
 
+		public static char DirectorySeparatorChar {
+			get {
+				switch(PrefC.AtoZfolderUsed) {
+					case DataStorageType.DropboxAtoZ:
+					case DataStorageType.SftpAtoZ:
+						return '/';
+					case DataStorageType.InDatabase:
+					case DataStorageType.LocalAtoZ:
+					default:
+						return Path.DirectorySeparatorChar;
+				}
+			}
+		}
+
 		public const string LanThis="CloudStorage";
 
 		public static bool IsCloudStorage {

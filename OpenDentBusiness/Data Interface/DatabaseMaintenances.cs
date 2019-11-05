@@ -1,5 +1,6 @@
 ﻿using CodeBase;
 using DataConnectionBase;
+using OpenDentBusiness.FileIO;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9560,6 +9561,61 @@ HAVING cnt>1";
 					+Lans.g("DatabaseMaintenance","Email messages that failed to be cleaned up")+": "+errorCount.ToString();
 			}
 			return strResults;
+		}
+
+		///<summary>This method will move any email attachment files from the root EmailAttachments directory that start with 'In_' or 'Out_'
+		///and will move them into their corresponding In or Out sub directories.</summary>
+		public static string CleanUpAttachmentsRootDirectiory() {
+			StringBuilder strBuildResult=new StringBuilder();
+			try {
+				char separator=CloudStorage.DirectorySeparatorChar;
+				string attachPath=EmailAttaches.GetAttachPath();
+				List<string> listFileNames=FileAtoZ.GetFilesInDirectory(attachPath);
+				strBuildResult.AppendLine($"Total files in folder '{attachPath}': {listFileNames.Count}");
+				List<string> listInFileNames=listFileNames.FindAll(x => x.Split(separator).Last().StartsWith("In_"));
+				strBuildResult.AppendLine($"Total files starting with 'In_': {listInFileNames.Count}");
+				List<string> listOutFileNames=listFileNames.FindAll(x => x.Split(separator).Last().StartsWith("Out_"));
+				strBuildResult.AppendLine($"Total files starting with 'Out_': {listOutFileNames.Count}");
+				if(!FileAtoZ.DirectoryExists(FileAtoZ.CombinePaths(attachPath,"In"))) {
+					FileAtoZ.CreateDirectory(FileAtoZ.CombinePaths(attachPath,"In"));
+				}
+				if(!FileAtoZ.DirectoryExists(FileAtoZ.CombinePaths(attachPath,"Out"))) {
+					FileAtoZ.CreateDirectory(FileAtoZ.CombinePaths(attachPath,"Out"));
+				}
+				int countMoved=0;
+				int countErrors=0;
+				foreach(string fileName in listInFileNames) {
+					try {
+						string fileNameNew=fileName.Replace($"{separator}In_",$"{separator}In{separator}");
+						FileAtoZ.Move(fileName,fileNameNew);
+						countMoved++;
+					}
+					catch(Exception ex) {
+						strBuildResult.AppendLine($"  Error moving {fileName}: {ex.Message}");
+						countErrors++;
+					}
+				}
+				foreach(string fileName in listOutFileNames) {
+					try {
+						string fileNameNew=fileName.Replace($"{separator}Out_",$"{separator}Out{separator}");
+						FileAtoZ.Move(fileName,fileNameNew);
+						countMoved++;
+					}
+					catch(Exception ex) {
+						strBuildResult.AppendLine($"  Error moving {fileName}: {ex.Message}");
+						countErrors++;
+					}
+				}
+				strBuildResult.AppendLine($"Total files successfully moved: {countMoved}");
+				if(countErrors > 0) {
+					strBuildResult.AppendLine($"Total errors: {countErrors}");
+					strBuildResult.AppendLine($"    Please fix the above errors and try again or call support.");
+				}
+			}
+			catch(Exception ex) {
+				strBuildResult.Append($"There was an error cleaning up email attachments:\r\n{ex.Message}");
+			}
+			return strBuildResult.ToString().Trim();
 		}
 
 		///<summary>Similar to InsPlans.ComputeEstimatesForPatNums(...)</summary>

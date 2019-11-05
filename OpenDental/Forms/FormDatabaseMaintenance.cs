@@ -99,6 +99,8 @@ namespace OpenDental {
 		private CheckBox checkShowHidden;
 		private Label label12;
 		private UI.Button butFamilyBalance;
+		private Label label13;
+		private UI.Button butEmailAttaches;
 
 		/// <summary>Flag to have the RunDBM thread exit early. This should ONLY be set within the main thread and read by the worker thread.</summary>
 		private volatile bool _isCancelled;
@@ -197,6 +199,8 @@ namespace OpenDental {
 			this.label9 = new System.Windows.Forms.Label();
 			this.butRawEmails = new OpenDental.UI.Button();
 			this.labelSkipCheckTable = new System.Windows.Forms.Label();
+			this.label13 = new System.Windows.Forms.Label();
+			this.butEmailAttaches = new OpenDental.UI.Button();
 			this.contextMenuStrip1.SuspendLayout();
 			this.tabControlDBM.SuspendLayout();
 			this.tabChecks.SuspendLayout();
@@ -215,7 +219,7 @@ namespace OpenDental {
 			this.butClose.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butClose.CornerRadius = 4F;
 			this.butClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.butClose.Location = new System.Drawing.Point(737, 619);
+			this.butClose.Location = new System.Drawing.Point(737, 654);
 			this.butClose.Name = "butClose";
 			this.butClose.Size = new System.Drawing.Size(75, 26);
 			this.butClose.TabIndex = 1;
@@ -509,8 +513,6 @@ namespace OpenDental {
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridMain.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridMain.ContextMenuStrip = this.contextMenuStrip1;
-			this.gridMain.EditableEnterMovesDown = false;
-			this.gridMain.HasAddButton = false;
 			this.gridMain.HasDropDowns = false;
 			this.gridMain.HasMultilineHeaders = true;
 			this.gridMain.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
@@ -594,7 +596,7 @@ namespace OpenDental {
 			this.tabControlDBM.Location = new System.Drawing.Point(12, 12);
 			this.tabControlDBM.Name = "tabControlDBM";
 			this.tabControlDBM.SelectedIndex = 0;
-			this.tabControlDBM.Size = new System.Drawing.Size(810, 592);
+			this.tabControlDBM.Size = new System.Drawing.Size(810, 627);
 			this.tabControlDBM.TabIndex = 0;
 			// 
 			// tabChecks
@@ -681,8 +683,6 @@ namespace OpenDental {
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridHidden.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridHidden.ContextMenuStrip = this.contextMenuStrip1;
-			this.gridHidden.EditableEnterMovesDown = false;
-			this.gridHidden.HasAddButton = false;
 			this.gridHidden.HasDropDowns = false;
 			this.gridHidden.HasMultilineHeaders = true;
 			this.gridHidden.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
@@ -827,8 +827,6 @@ namespace OpenDental {
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridOld.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridOld.ContextMenuStrip = this.contextMenuStrip1;
-			this.gridOld.EditableEnterMovesDown = false;
-			this.gridOld.HasAddButton = false;
 			this.gridOld.HasDropDowns = false;
 			this.gridOld.HasMultilineHeaders = true;
 			this.gridOld.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
@@ -850,6 +848,8 @@ namespace OpenDental {
 			// tabTools
 			// 
 			this.tabTools.BackColor = System.Drawing.SystemColors.Control;
+			this.tabTools.Controls.Add(this.label13);
+			this.tabTools.Controls.Add(this.butEmailAttaches);
 			this.tabTools.Controls.Add(this.label12);
 			this.tabTools.Controls.Add(this.butFamilyBalance);
 			this.tabTools.Controls.Add(this.label11);
@@ -881,13 +881,13 @@ namespace OpenDental {
 			this.tabTools.Location = new System.Drawing.Point(4, 22);
 			this.tabTools.Name = "tabTools";
 			this.tabTools.Padding = new System.Windows.Forms.Padding(3);
-			this.tabTools.Size = new System.Drawing.Size(802, 566);
+			this.tabTools.Size = new System.Drawing.Size(802, 601);
 			this.tabTools.TabIndex = 1;
 			this.tabTools.Text = "Tools";
 			// 
 			// label12
 			// 
-			this.label12.Location = new System.Drawing.Point(150, 536);
+			this.label12.Location = new System.Drawing.Point(150, 568);
 			this.label12.Name = "label12";
 			this.label12.Size = new System.Drawing.Size(455, 20);
 			this.label12.TabIndex = 61;
@@ -902,7 +902,7 @@ namespace OpenDental {
 			this.butFamilyBalance.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butFamilyBalance.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butFamilyBalance.CornerRadius = 4F;
-			this.butFamilyBalance.Location = new System.Drawing.Point(30, 533);
+			this.butFamilyBalance.Location = new System.Drawing.Point(30, 565);
 			this.butFamilyBalance.Name = "butFamilyBalance";
 			this.butFamilyBalance.Size = new System.Drawing.Size(114, 26);
 			this.butFamilyBalance.TabIndex = 60;
@@ -911,7 +911,7 @@ namespace OpenDental {
 			// 
 			// label11
 			// 
-			this.label11.Location = new System.Drawing.Point(150, 504);
+			this.label11.Location = new System.Drawing.Point(150, 536);
 			this.label11.Name = "label11";
 			this.label11.Size = new System.Drawing.Size(631, 20);
 			this.label11.TabIndex = 59;
@@ -926,7 +926,7 @@ namespace OpenDental {
 			this.butPayPlanPayments.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butPayPlanPayments.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butPayPlanPayments.CornerRadius = 4F;
-			this.butPayPlanPayments.Location = new System.Drawing.Point(30, 501);
+			this.butPayPlanPayments.Location = new System.Drawing.Point(30, 533);
 			this.butPayPlanPayments.Name = "butPayPlanPayments";
 			this.butPayPlanPayments.Size = new System.Drawing.Size(114, 26);
 			this.butPayPlanPayments.TabIndex = 58;
@@ -979,7 +979,7 @@ namespace OpenDental {
 			// 
 			// label10
 			// 
-			this.label10.Location = new System.Drawing.Point(150, 472);
+			this.label10.Location = new System.Drawing.Point(150, 504);
 			this.label10.Name = "label10";
 			this.label10.Size = new System.Drawing.Size(631, 20);
 			this.label10.TabIndex = 53;
@@ -993,7 +993,7 @@ namespace OpenDental {
 			this.butRecalcEst.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butRecalcEst.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butRecalcEst.CornerRadius = 4F;
-			this.butRecalcEst.Location = new System.Drawing.Point(30, 469);
+			this.butRecalcEst.Location = new System.Drawing.Point(30, 501);
 			this.butRecalcEst.Name = "butRecalcEst";
 			this.butRecalcEst.Size = new System.Drawing.Size(114, 26);
 			this.butRecalcEst.TabIndex = 52;
@@ -1041,7 +1041,7 @@ namespace OpenDental {
 			// 
 			this.labelSkipCheckTable.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.labelSkipCheckTable.ForeColor = System.Drawing.Color.Red;
-			this.labelSkipCheckTable.Location = new System.Drawing.Point(587, 626);
+			this.labelSkipCheckTable.Location = new System.Drawing.Point(587, 661);
 			this.labelSkipCheckTable.Name = "labelSkipCheckTable";
 			this.labelSkipCheckTable.Size = new System.Drawing.Size(144, 16);
 			this.labelSkipCheckTable.TabIndex = 2;
@@ -1049,18 +1049,41 @@ namespace OpenDental {
 			this.labelSkipCheckTable.TextAlign = System.Drawing.ContentAlignment.TopCenter;
 			this.labelSkipCheckTable.Visible = false;
 			// 
+			// label13
+			// 
+			this.label13.Location = new System.Drawing.Point(150, 473);
+			this.label13.Name = "label13";
+			this.label13.Size = new System.Drawing.Size(631, 20);
+			this.label13.TabIndex = 65;
+			this.label13.Text = "Moves email attachment files into the correct In or Out folders.";
+			this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// butEmailAttaches
+			// 
+			this.butEmailAttaches.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butEmailAttaches.Autosize = true;
+			this.butEmailAttaches.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butEmailAttaches.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butEmailAttaches.CornerRadius = 4F;
+			this.butEmailAttaches.Location = new System.Drawing.Point(30, 469);
+			this.butEmailAttaches.Name = "butEmailAttaches";
+			this.butEmailAttaches.Size = new System.Drawing.Size(114, 26);
+			this.butEmailAttaches.TabIndex = 64;
+			this.butEmailAttaches.Text = "Email Attaches";
+			this.butEmailAttaches.Click += new System.EventHandler(this.butEmailAttaches_Click);
+			// 
 			// FormDatabaseMaintenance
 			// 
 			this.AcceptButton = this.butCheck;
 			this.CancelButton = this.butClose;
-			this.ClientSize = new System.Drawing.Size(834, 657);
+			this.ClientSize = new System.Drawing.Size(834, 692);
 			this.Controls.Add(this.labelSkipCheckTable);
 			this.Controls.Add(this.tabControlDBM);
 			this.Controls.Add(this.butClose);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
-			this.MinimumSize = new System.Drawing.Size(850, 696);
+			this.MinimumSize = new System.Drawing.Size(850, 731);
 			this.Name = "FormDatabaseMaintenance";
 			this.ShowInTaskbar = false;
 			this.Text = "Database Maintenance";
@@ -1427,6 +1450,25 @@ namespace OpenDental {
 				eventType:typeof(DatabaseMaintEvent),
 				odEventType:ODEventType.DatabaseMaint);
 			MessageBox.Show(results);
+		}
+
+		private void butEmailAttaches_Click(object sender,EventArgs e) {
+			if(!MsgBox.Show(this,MsgBoxButtons.YesNo
+				,"This tool is only necessary to run if utilizing the email feature.\r\n"
+				+"Run this tool if there are files that start with 'In_' or 'Out_' within the AtoZ EmailAttachments folder.  "
+				+"The issue is evident when trying to view an attachment and a file not found error occurs.\r\n\r\n"
+				+"This tool could take a long time to finish, do you wish to continue?")) {
+				return;
+			}
+			string results="";
+			ODProgress.ShowAction(() => results=DatabaseMaintenances.CleanUpAttachmentsRootDirectiory(),
+				actionException: ex => {
+					results=Lan.g(this,"There was an error cleaning up email attachments:")+"\r\n"+ex.Message;
+				},
+				eventType: typeof(DatabaseMaintEvent),
+				odEventType: ODEventType.DatabaseMaint);
+			MsgBoxCopyPaste msgBoxCopyPaste=new MsgBoxCopyPaste(results);
+			msgBoxCopyPaste.Show();
 		}
 
 		private void butRecalcEst_Click(object sender,EventArgs e) {
