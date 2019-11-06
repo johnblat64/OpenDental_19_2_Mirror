@@ -82,7 +82,12 @@ namespace OpenDental {
 		}
 
 		private void butOK_Click(object sender,EventArgs e) {
-			SelectedAdjustment=_listAdjustmentsFiltered[gridMain.GetSelectedIndex()];
+			int index=gridMain.GetSelectedIndex();
+			if(index<0) {
+				MsgBox.Show("You must select an adjustment.");
+				return;
+			}
+			SelectedAdjustment=_listAdjustmentsFiltered[index];
 			DialogResult=DialogResult.OK;
 		}
 
