@@ -102,7 +102,7 @@ namespace OpenDentBusiness {
 					Abbr="Unassigned"
 				};
 				//find CarrierCur. GetCarrier uses the H List if possible.
-				CarrierCur=Carriers.GetCarrierByName(carrierCur)??new Carrier();
+				CarrierCur=Carriers.GetCarrierByName(carrierCur)??new Carrier() { CarrierName=carrierCur };
 				ClaimPaymentCur=claimPay;
 				ClaimCur=claim;
 				Date=date;
