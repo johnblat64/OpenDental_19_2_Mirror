@@ -2836,6 +2836,8 @@ namespace OpenDental{
 					MsgBox.Show(this,"This database is temporarily unavailable.  Please connect instead to your alternate database at the other location.");
 					chooseDatabaseModel.NoShow=YN.No;//This ensures they will get a choose db window next time through the loop.
 					ReplicationServers.Server_id=-1;
+					formSplash.Close();
+					formSplash=new FormSplash();//force the splash screen to show again.
 					continue;
 				}
 				break;
