@@ -683,6 +683,9 @@ namespace OpenDental{
 				});
 			LayoutToolBar();//redundant?
 			tabShowSort.TabPages.Remove(tabPagePrint);//We may add this back in gridPlans_CellClick.
+			if(Programs.UsingEcwTightOrFullMode()) {
+				butPlannedAppt.Visible=false;
+			}
 		}
 
 		///<summary>Called every time local data is changed from any workstation.  Refreshes priority lists and lays out the toolbar.</summary>

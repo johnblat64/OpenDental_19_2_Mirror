@@ -3530,6 +3530,9 @@ namespace OpenDental {
 			if(Programs.UsingOrion) {
 				tabProc.SelectedTab=tabPatInfo;
 			}
+			if(UsingEcwTightOrFull()) {
+				tabProc.TabPages.Remove(tabPlanned);
+			}
 			Plugins.HookAddCode(this,"ContrChart.InitializeOnStartup_end",PatCur);
 		}
 
@@ -3807,7 +3810,7 @@ namespace OpenDental {
 		}
 
 		private void PlannedApptPromptHelper() {
-			if(PatCur==null || !PrefC.GetBool(PrefName.ShowPlannedAppointmentPrompt)) {
+			if(PatCur==null || !PrefC.GetBool(PrefName.ShowPlannedAppointmentPrompt) || UsingEcwTightOrFull()) {
 				return;
 			}
 			List<string> listExcludedCodes=CovCats.GetValidCodesForEbenCat(EbenefitCategory.Diagnostic)
