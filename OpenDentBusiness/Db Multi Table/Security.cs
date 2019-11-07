@@ -209,7 +209,8 @@ namespace OpenDentBusiness{
 				|| perm==Permissions.ProcDelete//because older versions did not set the DateEntryC.
 				|| perm==Permissions.ImageDelete//In case an image has a creation date of DateTime.MinVal.
 				|| perm==Permissions.PerioEdit//In case perio chart exam has a creation date of DateTime.MinValue.
-				|| perm==Permissions.PreAuthSentEdit)//older versions did not have SecDateEntry
+				|| perm==Permissions.PreAuthSentEdit//older versions did not have SecDateEntry
+				|| perm==Permissions.ClaimProcReceivedEdit)//
 			{
 				if(date.Year<1880	&& dateLimit.Year<1880) {
 					return true;
