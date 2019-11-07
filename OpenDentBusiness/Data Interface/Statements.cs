@@ -66,12 +66,13 @@ namespace OpenDentBusiness{
 			table.Columns.Add("StatementNum");
 			table.Columns.Add("SuperFamily");
 			table.Columns.Add("ClinicNum");
-			string command="SELECT patient.BalTotal,BillingType,FName,patient.InsEst,statement.IsSent,"
+			string command="SELECT guar.BalTotal,patient.BillingType,patient.FName,guar.InsEst,statement.IsSent,"
 				+"IFNULL(MAX(s2.DateSent),"+POut.Date(DateTime.MinValue)+") LastStatement,"
-				+"LName,MiddleI,statement.Mode_,PayPlanDue,Preferred,"
+				+"patient.LName,patient.MiddleI,statement.Mode_,guar.PayPlanDue,patient.Preferred,"
 				+"statement.PatNum,statement.StatementNum,statement.SuperFamily,patient.ClinicNum "
 				+"FROM statement "
 				+"LEFT JOIN patient ON statement.PatNum=patient.PatNum "
+				+"LEFT JOIN patient guar ON guar.PatNum=patient.Guarantor "
 				+"LEFT JOIN statement s2 ON s2.PatNum=patient.PatNum "
 				+"AND s2.IsSent=1 ";
 			if(PrefC.GetBool(PrefName.BillingIgnoreInPerson)) {
@@ -90,14 +91,14 @@ namespace OpenDentBusiness{
 			if(clinicNums.Count>0) {
 				command+="AND patient.ClinicNum IN ("+string.Join(",",clinicNums)+") ";
 			}
-			command+="GROUP BY patient.BalTotal,BillingType,FName,patient.InsEst,statement.IsSent,"
-				+"LName,MiddleI,statement.Mode_,PayPlanDue,Preferred,"
+			command+="GROUP BY guar.BalTotal,patient.BillingType,patient.FName,guar.InsEst,statement.IsSent,"
+				+"patient.LName,patient.MiddleI,statement.Mode_,guar.PayPlanDue,patient.Preferred,"
 				+"statement.PatNum,statement.StatementNum,statement.SuperFamily "; 
 			if(orderBy==0){//BillingType
-				command+="ORDER BY definition.ItemOrder,LName,FName,MiddleI,PayPlanDue";
+				command+="ORDER BY definition.ItemOrder,patient.LName,patient.FName,patient.MiddleI,guar.PayPlanDue";
 			}
 			else{
-				command+="ORDER BY LName,FName";
+				command+="ORDER BY patient.LName,patient.FName";
 			}
 			DataTable rawTable=Db.GetTable(command);
 			double balTotal;
