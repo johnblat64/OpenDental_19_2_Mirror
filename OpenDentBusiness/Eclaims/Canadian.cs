@@ -182,8 +182,9 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			else if(claim.ClaimType=="PreAuth") {
 				if(!carrier.CanadianSupportedTypes.HasFlag(CanSupTransTypes.PredeterminationSinglePage_03) && 
-					!carrier.CanadianSupportedTypes.HasFlag(CanSupTransTypes.PredeterminationMultiPage_03))
-				{
+					!carrier.CanadianSupportedTypes.HasFlag(CanSupTransTypes.PredeterminationMultiPage_03)
+					&& carrier.ElectID!="610099")//ClaimSecure says to iTrans that they support PreAuths, iTrans has not reflected this in their carrier json.
+				{//We will consider removing carrier specific cases here in the future.
 					throw new ApplicationException(Lans.g("Canadian","This carrier does not accept electronic Pre Authorizations (predeterminations)."));
 				}
 			}
