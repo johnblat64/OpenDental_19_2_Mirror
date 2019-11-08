@@ -847,7 +847,9 @@ namespace OpenDentBusiness.Eclaims {
 				etrans.EtransMessageTextNum=Etranss.SetMessage(etrans.EtransNum,strb.ToString());
 				etransAcks.Add(etransAck);
 				if(errorMsg!="") {
-					throw new ApplicationException(errorMsg);
+					//Do not let this one error prevent us from downloading the remaining items from the inbox.
+					//The error message was recorded in the etransAck if the user cares to research what happened.
+					continue;
 				}
 				if(fieldInputter==null) {//happens in version 02 when a terminating message containing the text "NO MORE ITEMS" is received.
 					break;
