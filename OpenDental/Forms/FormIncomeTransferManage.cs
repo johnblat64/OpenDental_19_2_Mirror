@@ -98,9 +98,8 @@ namespace OpenDental {
 
 		private void TransferClaimsPayAsTotal() {
 			List<ClaimProc> listValidClaimsTransferred=null;
-			List<PayAsTotal> listError=null;
 			try {
-				ClaimProcs.TransferClaimsAsTotalToProcedures(_listFamilyPatNums,out listValidClaimsTransferred,out listError);
+				listValidClaimsTransferred=ClaimProcs.TransferClaimsAsTotalToProcedures(_listFamilyPatNums);
 			}
 			catch(ApplicationException ex) {
 				FriendlyException.Show(ex.Message,ex);
@@ -109,25 +108,6 @@ namespace OpenDental {
 			if(listValidClaimsTransferred!=null && listValidClaimsTransferred.Count > 0) {//valid and items were created
 				_listInsertedClaimProcs=listValidClaimsTransferred.Select(x => x.ClaimProcNum).ToList();
 				SecurityLogs.MakeLogEntry(Permissions.ClaimProcReceivedEdit,_patCur.PatNum,"Automatic transfer of claims pay as total from income transfer.");
-			}
-			else if(listError!=null && listError.Count > 0) {
-				//There are invalid claims pay by total on this account. User is not allowed to continue to perform transfers.
-				butTransfer.Enabled=false;
-				butOK.Enabled=false;
-				string errorMessage=Lan.g(this,$"Claim pay as total needs to match at least one patient, provider, and clinic combination to be valid for " 
-					+"transferring to procedures.");
-				errorMessage+="\r\n";
-				errorMessage+=Lan.g(this,"The following claim pay as totals must be fixed before the income transfer manager can be used:\r\n\r\n");
-				foreach(PayAsTotal invalidClaimAsTotal in listError.OrderBy(x => x.DateEntry)) {
-					errorMessage+=$"{invalidClaimAsTotal.DateEntry.ToShortDateString()} {Lan.g(this,"Patient:")} {Patients.GetNameFL(invalidClaimAsTotal.PatNum)}, " 
-						+$"{Lan.g(this,"Provider:")} {Providers.GetAbbr(invalidClaimAsTotal.ProvNum)}";
-					if(PrefC.HasClinicsEnabled) {
-						errorMessage+=$", {Lan.g(this,"Clinic:")} {Clinics.GetAbbr(invalidClaimAsTotal.ClinicNum)}";
-					}
-					errorMessage+="\r\n";
-				}
-				MsgBoxCopyPaste box=new MsgBoxCopyPaste(errorMessage);
-				box.Show(this);
 			}
 		}
 		

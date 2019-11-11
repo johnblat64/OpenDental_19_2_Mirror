@@ -92,10 +92,11 @@ namespace OpenDentBusiness{
 
 		///<summary>Attempts to group up pay as totals on each claim and return at most, 1 pay as total per claim group. This is to balance the
 		///pay as totals so we do not transfer after a transfer has already been performed. Returns a list of PayAsTotals that can be transferred. 
-		///Throws exceptions.</summary>
+		///Does not currently support capitation claims.  Throws exceptions.</summary>
 		private static List<PayAsTotal> GetOutstandingClaimPayByTotal(List<long> listFamilyPatNums) {
 			//No remoting role check; no call to db
-			List<ClaimProc> listClaimPayByTotals=GetByTotForPats(listFamilyPatNums);
+			List<ClaimProc> listClaimPayByTotals=GetByTotForPats(listFamilyPatNums)
+				.Where(x => !x.Status.In(ClaimProcStatus.CapClaim,ClaimProcStatus.CapComplete,ClaimProcStatus.CapEstimate)).ToList();
 			if(listClaimPayByTotals.Count == 0) {
 				return new List<PayAsTotal>();
 			}
@@ -142,18 +143,15 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Finds all the claim pay by totals for this family and attempts to transfer them to their respective procedures. 
-		///If successful, listInsertedClaimProcs will not be null and the supplemental claimprocs will be inserted into the database. 
-		///If unsuccessful, listInvalidPayAsTotals will contain a list of all the pay as totals the user needs to manually fix and no supplemental
-		///claimprocs will be inserted ///Throws exceptions.</summary>
-		public static void TransferClaimsAsTotalToProcedures(List<long> listFamilyPatNums,out List<ClaimProc> listInsertedClaimProcs,
-			out List<PayAsTotal> listInvalidPayAsTotals)
+		///If successful, listInsertedClaimProcs will be inserted into the database. Does not currently support capitation claims.
+		///Throws exceptions.</summary>
+		public static List<ClaimProc> TransferClaimsAsTotalToProcedures(List<long> listFamilyPatNums)
 		{
 			//No remoting role check; out parameters.
-			listInsertedClaimProcs=new List<ClaimProc>();
-			listInvalidPayAsTotals=null;
+			List<ClaimProc> listInsertedClaimProcs=new List<ClaimProc>();
 			List<PayAsTotal> listClaimsAsTotalForFamily=GetOutstandingClaimPayByTotal(listFamilyPatNums);//Gets all claims as total not yet transferred
 			if(listClaimsAsTotalForFamily.Count == 0) {
-				return;
+				return listInsertedClaimProcs;
 			}
 			List<Procedure> listProcsForFamily=Procedures.GetCompleteForPats(listFamilyPatNums);
 			//Purposefully getting claim procs of all statuses (including received).
@@ -161,24 +159,8 @@ namespace OpenDentBusiness{
 			foreach(PayAsTotal payAsTotal in listClaimsAsTotalForFamily) {
 				double insPayAmtToAllocate=payAsTotal.SummedInsPayAmt;//can be negative
 				double writeOffAmtToAllocate=payAsTotal.SummedWriteOff;
-				//find all the claimprocs (guaranteed to have a procedure) that match the claim pay by total pat/prov/clinic on this claim
-				List<ClaimProc> listValidClaimProcsForAsTotalPayment=listClaimProcs.FindAll(x => x.ClaimNum==payAsTotal.ClaimNum
-					&& x.PatNum==payAsTotal.PatNum 
-					&& x.ProvNum==payAsTotal.ProvNum 
-					&& x.ClinicNum==payAsTotal.ClinicNum);
-				if(listValidClaimProcsForAsTotalPayment.IsNullOrEmpty()) {
-					if(listInvalidPayAsTotals==null) {
-						listInvalidPayAsTotals=new List<PayAsTotal>();
-						listInsertedClaimProcs=null;//Make it apparent to calling methods that there are invalid entries that need attention.
-					}
-					listInvalidPayAsTotals.Add(payAsTotal);//might want to make this more informational later.
-				}
-				//don't bother with the logic for any valid ones since they will not insert. Just continue building a list of invalid for fixing.
-				if(listInvalidPayAsTotals!=null) {
-					continue;
-				}
-				//at least one procedure is valid to be transferred to (even if over paid). Make offsetting supplemental payment for claim as total
-				ClaimProc supplementalOffset=CreateSuppClaimProcForTransfer(payAsTotal);
+				List<ClaimProc> listValidClaimProcsForAsTotalPayment=listClaimProcs.FindAll(x => x.ClaimNum==payAsTotal.ClaimNum);
+				ClaimProc supplementalOffset=CreateSuppClaimProcForTransfer(payAsTotal);//Make offsetting supplemental payment for claim as total
 				supplementalOffset.InsPayAmt=payAsTotal.SummedInsPayAmt*-1;
 				supplementalOffset.WriteOff=payAsTotal.SummedWriteOff*-1;
 				listInsertedClaimProcs.Add(supplementalOffset);
@@ -188,21 +170,36 @@ namespace OpenDentBusiness{
 					if(insPayAmtToAllocate.IsZero() && writeOffAmtToAllocate.IsZero()) {
 						break;
 					}
-					//create a positive supplemental payment to be made for this procedure
-					ClaimProc claimPayForProc=CreateSuppClaimProcForTransfer(procClaimProc);
 					double insPayAmt=0;
 					double writeOffAmt=0;
-					if(procClaimProc.InsPayEst!=0 && insPayAmtToAllocate!=0) {//estimated payment exists and there is money to allocate
-						insPayAmt=Math.Min(insPayAmtToAllocate,procClaimProc.InsPayEst);
+					//create a positive supplemental payment to be made for this procedure if one does not already exist (multiple claim pay as totals)
+					ClaimProc claimPayForProc=listInsertedClaimProcs.FirstOrDefault(x => x.ClaimNum==payAsTotal.ClaimNum && x.ProcNum==procClaimProc.ProcNum);
+					if(claimPayForProc==null) {
+						claimPayForProc=CreateSuppClaimProcForTransfer(procClaimProc);
+						if(procClaimProc.InsPayEst!=0 && insPayAmtToAllocate!=0) {//estimated payment exists and there is money to allocate
+							insPayAmt=Math.Min(insPayAmtToAllocate,procClaimProc.InsPayEst);
+						}
+						if(procClaimProc.WriteOffEst!=-1 && writeOffAmtToAllocate!=0) {//estimated writeoff exists and there is money to allocate
+							writeOffAmt=Math.Min(writeOffAmtToAllocate,procClaimProc.WriteOffEst);
+						}
 					}
-					if(procClaimProc.WriteOffEst!=-1 && writeOffAmtToAllocate!=0) {//estimated writeoff exists and there is money to allocate
-						writeOffAmt=Math.Min(writeOffAmtToAllocate,procClaimProc.WriteOffEst);
+					else {
+						double estimateRemaining=procClaimProc.InsPayEst-claimPayForProc.InsPayAmt;
+						double writeOffEstRemaining=procClaimProc.WriteOffEst-claimPayForProc.WriteOff;
+						if(procClaimProc.InsPayEst!=0 && insPayAmtToAllocate!=0) {//estimated payment exists and there is money to allocate
+							insPayAmt=Math.Min(estimateRemaining,Math.Min(insPayAmtToAllocate,procClaimProc.InsPayEst));
+						}
+						if(procClaimProc.WriteOffEst!=-1 && writeOffAmtToAllocate!=0) {//estimated writeoff exists and there is money to allocate
+							writeOffAmt=Math.Min(writeOffEstRemaining,Math.Min(writeOffAmtToAllocate,procClaimProc.WriteOffEst));
+						}
 					}
-					claimPayForProc.InsPayAmt=insPayAmt;
-					claimPayForProc.WriteOff=writeOffAmt;
+					claimPayForProc.InsPayAmt+=insPayAmt;
+					claimPayForProc.WriteOff+=writeOffAmt;
 					insPayAmtToAllocate-=insPayAmt;
 					writeOffAmtToAllocate-=writeOffAmt;
-					listInsertedClaimProcs.Add(claimPayForProc);//add even if 0 amounts so they can be used in the next level.
+					if(!listInsertedClaimProcs.Contains(claimPayForProc)) {
+						listInsertedClaimProcs.Add(claimPayForProc);//add even if 0 amounts so they can be used in the next level.
+					}
 					listClaimProcsCreatedForClaim.Add(claimPayForProc);
 				}
 				#endregion
@@ -242,17 +239,13 @@ namespace OpenDentBusiness{
 					#endregion
 				}
 			}
-			if(listInvalidPayAsTotals==null) {
-				listInsertedClaimProcs.RemoveAll(x => x.InsPayAmt.IsZero() && x.WriteOff.IsZero());
-				if(!listInsertedClaimProcs.Sum(x => x.InsPayAmt).IsZero() || !listInsertedClaimProcs.Sum(x => x.WriteOff).IsZero()) {
-					listInsertedClaimProcs=null;
-					throw new ApplicationException("Transfer returned a value other than 0. Please call support.");
-				}
-				listInsertedClaimProcs=InsertMany(listInsertedClaimProcs);
+			listInsertedClaimProcs.RemoveAll(x => x.InsPayAmt.IsZero() && x.WriteOff.IsZero());
+			if(!listInsertedClaimProcs.Sum(x => x.InsPayAmt).IsZero() || !listInsertedClaimProcs.Sum(x => x.WriteOff).IsZero()) {
+				listInsertedClaimProcs=null;
+				throw new ApplicationException("Transfer returned a value other than 0. Please call support.");
 			}
-			else {
-				listInsertedClaimProcs=null;//Make it apparent to calling methods that there are invalid entries that need attention.
-			}
+			listInsertedClaimProcs=InsertMany(listInsertedClaimProcs);
+			return listInsertedClaimProcs;
 		}
 
 		#endregion
