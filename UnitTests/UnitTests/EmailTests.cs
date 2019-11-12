@@ -102,7 +102,7 @@ multiple lines
 			};
 			Encoding encoding=Encoding.GetEncoding("utf-8");
 			foreach(Tuple<string,bool,string> test in listTestSubjects) {
-				Assert.AreEqual(test.Item3,EmailMessages.DecodeBodyText("=",test.Item1,test.Item2,encoding));
+				Assert.AreEqual(test.Item3,EmailMessages.DecodeBodyText("=",test.Item1,encoding));
 			}
 		}
 
@@ -137,6 +137,14 @@ If you can read this yo
 				,"Bobby WigglehÁrt <opendentaltestemail@gmail.com>"),
 				//using a 'c' instead of 'B' (Base64) or 'Q' (Quoted Printable)
 				new Tuple<string,string>("=?UTF-8?c?nu=C2=A4=20=C3=82=20=C3=80=20=C2=A2?=","nu¤ Â À ¢"),
+				//Assert that an email message containing any characters that cannot be represented by a byte do not cause parsing to fail.
+				//E.g. the typical hyphen character is '-' but some email will contain '–' which causes an "Arithmetic operation resulted in an overflow." UE.
+				//The failure happens when we try to decode the body text of the email for non-ascii characters by casting each char to a byte.
+				new Tuple<string,string>("=?UTF-8?Q?hyphen: -  EN Dash: –?=","hyphen: -  EN Dash: –"),
+				//Assert that the same email message containing hex characters parses into the human-readable format ('=E2=80=93' equates to '–').
+				new Tuple<string,string>("=?UTF-8?Q?=68=79=70=68=65=6E=3A=20=2D=20=20=45=4E=20=44=61=73=68=3A=20=E2=80=93?=","hyphen: -  EN Dash: –"),
+				//Assert that Cp1252 (Windows-1252) encoded text can be parsed.
+				new Tuple<string,string>("=?Cp1252?Q?Oregon=92s_rain=92s_refreshing?=","Oregon’s rain’s refreshing"),
 			};
 			foreach(Tuple<string,string> test in listTestSubjects) {
 				Assert.AreEqual(test.Item2,EmailMessages.ProcessInlineEncodedText(test.Item1));
