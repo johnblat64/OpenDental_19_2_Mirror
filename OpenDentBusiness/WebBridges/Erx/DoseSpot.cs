@@ -1166,15 +1166,15 @@ namespace OpenDentBusiness {
 		private static string GetPhoneAndType(Patient pat,int ordinal,out string phoneType) {
 			List<string> listTypes=new List<string>();
 			List<string> listPhones=new List<string>();
-			if(pat.HmPhone!="") {
+			if(IsPhoneNumberValid(pat.HmPhone)) {
 				listTypes.Add("Home");
 				listPhones.Add(pat.HmPhone);
 			}
-			if(pat.WirelessPhone!="") {
+			if(IsPhoneNumberValid(pat.WirelessPhone)) {
 				listTypes.Add("Cell");
 				listPhones.Add(pat.WirelessPhone);
 			}
-			if(pat.WkPhone!="") {
+			if(IsPhoneNumberValid(pat.WkPhone)) {
 				listTypes.Add("Work");
 				listPhones.Add(pat.WkPhone);
 			}
