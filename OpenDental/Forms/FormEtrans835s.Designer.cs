@@ -84,6 +84,7 @@
 			this.textCarrier.Size = new System.Drawing.Size(161, 21);
 			this.textCarrier.TabIndex = 105;
 			this.textCarrier.Text = "";
+			this.textCarrier.Multiline = false;
 			// 
 			// comboClinics
 			// 
@@ -177,6 +178,7 @@
 			this.textCheckTrace.Size = new System.Drawing.Size(161, 21);
 			this.textCheckTrace.TabIndex = 10;
 			this.textCheckTrace.Text = "";
+			this.textCheckTrace.Multiline=false;
 			// 
 			// butClose
 			// 

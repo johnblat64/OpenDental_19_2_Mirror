@@ -197,7 +197,7 @@ namespace OpenDental {
 			foreach(Etrans etrans in _listAllEtrans) {
 				X835 x835=_dictEtrans835s[etrans.EtransNum];
 				#region Filter: Carrier Name
-				if(carrierName!="" && !x835.PayerName.ToLower().Contains(carrierName.ToLower())) {
+				if(carrierName!="" && !x835.PayerName.ToLower().Contains(carrierName.ToLower().Trim())) {
 					continue;
 				}
 				#endregion
@@ -215,7 +215,7 @@ namespace OpenDental {
 				}
 				#endregion
 				#region Filter: Check and Trace Value
-				if(checkTraceNum!="" && !x835.TransRefNum.Contains(checkTraceNum)) {//Trace Number does not match
+				if(checkTraceNum!="" && !x835.TransRefNum.ToLower().Contains(checkTraceNum.ToLower().Trim())) {//Trace Number does not match
 					continue;
 				}
 				#endregion
