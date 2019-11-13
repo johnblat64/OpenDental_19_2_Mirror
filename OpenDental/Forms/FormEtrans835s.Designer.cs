@@ -310,6 +310,7 @@
 			this.Name = "FormEtrans835s";
 			this.Text = "Electronic EOBs - ERA 835s";
 			this.Load += new System.EventHandler(this.FormEtrans835s_Load);
+			this.Shown += new System.EventHandler(this.FormEtrans835s_Shown);
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();
 			this.ResumeLayout(false);

@@ -65,6 +65,10 @@ namespace OpenDental {
 				listStatus.SetSelected(listStatus.Items.Count-1,isSelected);
 			}
 			#endregion
+		}
+
+		private void FormEtrans835s_Shown(object sender,EventArgs e) {
+			//This must be in Shown due to the progress bar forcing this window behind other windows.
 			RefreshAndFillGrid();//Will not run query, simply initilizes the grid.
 		}
 
