@@ -22,6 +22,8 @@ namespace OpenDental {
 		///<summary>Can be 0 for "Headquarters" or non clinic users.</summary>
 		private long _clinicNumCur;
 		private bool _hasProgramPropertyChanged;
+		//The local path override for this computer when opening the form.  Used to check if programproperty needs to be updated/inserted.
+		private string _pathOverrideOld;
 
 		public FormXDRSetup() {
 			InitializeComponent();
@@ -111,7 +113,8 @@ namespace OpenDental {
 			pictureBox.Image=PIn.Bitmap(_progCur.ButtonImage);
 			try {
 				textInfoFile.Text=_infoFilePath.PropertyValue;
-				textOverride.Text=ProgramProperties.GetLocalPathOverrideForProgram(_progCur.ProgramNum);
+				_pathOverrideOld=ProgramProperties.GetLocalPathOverrideForProgram(_progCur.ProgramNum);
+				textOverride.Text=_pathOverrideOld;
 				if(_dictLocationIDs.ContainsKey(_clinicNumCur)) {
 					textLocationID.Text=_dictLocationIDs[_clinicNumCur].PropertyValue;
 				}
@@ -185,7 +188,8 @@ namespace OpenDental {
 				};
 				ToolButItems.Insert(toolButItemCur);
 			}
-			if(!string.IsNullOrWhiteSpace(textOverride.Text)) {
+			if(_pathOverrideOld!=textOverride.Text) {//If there was no previous override _pathOverrideOld will be empty string.
+				_hasProgramPropertyChanged=true;
 				ProgramProperties.InsertOrUpdateLocalOverridePath(_progCur.ProgramNum,textOverride.Text);
 			}
 			UpdateProgramProperty(_patNumOrChartNum,POut.Bool(radioChart.Checked));//Will need to be enhanced if another radio button ever gets added.
