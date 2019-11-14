@@ -194,6 +194,7 @@ namespace CentralManager {
 					}
 				}
 				CentralUserods.Sync(listCentralUserData[i].ListUsers,listRemoteUsers);
+				listRemoteUsers=Userods.GetUsersNoCache();//Refresh users as we may have just added new ones making this list stale.
 				CentralGroupPermissions.Sync(listCentralUserData[i].ListGroupPermissions,listGroupPerms);
 			}
 			//Sync usergroup attaches
