@@ -80,7 +80,7 @@ namespace OpenDentBusiness {
 				//For example, if using version 14.3.23, it would look for MyPlugin14.3.dll. 
 				//If that file is found, it would replace MyPlugin.dll with the contents of MyPlugin14.3.dll, and then it would load MyPlugin.dll as normal.
 				if(dllPath.Contains("[VersionMajMin]")) {
-					Version vers=new Version(Application.ProductVersion);
+					Version vers=Assembly.GetAssembly(typeof(Db)).GetName().Version;
 					string dllPathWithVersion=dllPath.Replace("[VersionMajMin]",vers.Major.ToString()+"."+vers.Minor.ToString());
 					dllPath=dllPath.Replace("[VersionMajMin]","");//now stripped clean
 					if(File.Exists(dllPathWithVersion)) {
