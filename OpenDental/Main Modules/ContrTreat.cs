@@ -3530,6 +3530,16 @@ namespace OpenDental{
 				if(!Providers.GetIsSec(proc.ProvNum)) {
 					ClaimCur.ProvTreat=proc.ProvNum;
 				}
+				ProcedureCode procCode=ProcedureCodes.GetProcCode(proc.CodeNum);
+				//Check to see if the selected procedure is for Ortho and if the customer has preferences set to automatically check the "Is For Ortho" checkbox
+				if(!ClaimCur.IsOrtho && PrefC.GetBool(PrefName.OrthoClaimMarkAsOrtho)) {//If it's already marked as Ortho (from a previous procedure), skip this
+					CovCat orthoCategory=CovCats.GetFirstOrDefault(x => x.EbenefitCat==EbenefitCategory.Orthodontics,true);
+					if(orthoCategory!=null) {
+						if(CovSpans.IsCodeInSpans(procCode.ProcCode,CovSpans.GetWhere(x => x.CovCatNum==orthoCategory.CovCatNum).ToArray()))	{
+							ClaimCur.IsOrtho=true;
+						}
+					}
+				}
 			}
 			//Make sure that all procedures share the same place of service and clinic.
 			long procClinicNum=-1;
