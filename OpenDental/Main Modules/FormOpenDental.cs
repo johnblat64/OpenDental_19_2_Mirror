@@ -3660,10 +3660,10 @@ namespace OpenDental{
 			menuItemCustomReports.MenuItems.Clear();
 			//Try to load custom reports, but only if using the A to Z folders.
 			if(PrefC.AtoZfolderUsed==DataStorageType.LocalAtoZ) {
-				string imagePath=ImageStore.GetPreferredAtoZpath();
-				string reportFolderName=PrefC.GetString(PrefName.ReportFolderName);
-				string reportDir=ODFileUtils.CombinePaths(imagePath,reportFolderName);
 				try {
+					string imagePath=ImageStore.GetPreferredAtoZpath();
+					string reportFolderName=PrefC.GetString(PrefName.ReportFolderName);
+					string reportDir=ODFileUtils.CombinePaths(imagePath,reportFolderName);
 					if(Directory.Exists(reportDir)) {
 						DirectoryInfo infoDir=new DirectoryInfo(reportDir);
 						FileInfo[] filesRdl=infoDir.GetFiles("*.rdl");
@@ -3673,13 +3673,15 @@ namespace OpenDental{
 						}
 					}
 				}
-				catch {
+				catch(Exception ex) {
+					ex.DoNothing();
 					MsgBox.Show(this,"Failed to retrieve custom reports.");
 				}
 			}
 			if(menuItemCustomReports.MenuItems.Count==0) {
 				menuItemCustomReports.Visible=false;
-			}else{
+			}
+			else {
 				menuItemCustomReports.Visible=true;
 			}
 		}
