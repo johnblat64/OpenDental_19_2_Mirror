@@ -12194,8 +12194,12 @@ namespace OpenDental {
 				selectedImageTab=tabControlImages.SelectedIndex;
 				return;
 			}
-			Rectangle rect=tabControlImages.GetTabRect(selectedImageTab);
-			if(rect.Contains(e.X,e.Y)){//clicked on the already selected tab
+			bool isTabAlreadySelected=false;
+			if(selectedImageTab.Between(0,tabControlImages.TabCount-1)) {
+				Rectangle rect=tabControlImages.GetTabRect(selectedImageTab);
+				isTabAlreadySelected=rect.Contains(e.X,e.Y);
+			}
+			if(isTabAlreadySelected){
 				if(panelImages.Visible){
 					panelImages.Visible=false;
 				}
