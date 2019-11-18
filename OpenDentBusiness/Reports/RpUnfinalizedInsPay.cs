@@ -38,6 +38,7 @@ namespace OpenDentBusiness {
 						+@"WHERE claimproc.ClaimPaymentNum = 0 AND claimproc.InsPayAmt != 0 
 							AND claimproc.Status IN("+POut.Int((int)ClaimProcStatus.Received)+","
 							+POut.Int((int)ClaimProcStatus.Supplemental)+","+POut.Int((int)ClaimProcStatus.CapClaim)+@") 
+							AND claimproc.IsTransfer=0 
 						GROUP BY claimproc.ClaimNum	
 			) partialpay";
 			DataTable table=ReportsComplex.RunFuncOnReportServer(()=> Db.GetTable(command));
