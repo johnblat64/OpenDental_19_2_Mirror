@@ -66,7 +66,7 @@ namespace OpenDental{
 			this.checkPatientFormsShowConsent.Name = "checkPatientFormsShowConsent";
 			this.checkPatientFormsShowConsent.Size = new System.Drawing.Size(333, 17);
 			this.checkPatientFormsShowConsent.TabIndex = 199;
-			this.checkPatientFormsShowConsent.Text = "Patient Forms window  show consent forms";
+			this.checkPatientFormsShowConsent.Text = "Patient Forms window show consent forms";
 			// 
 			// FormSheetSetup
 			// 
