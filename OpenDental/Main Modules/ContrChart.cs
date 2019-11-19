@@ -12125,7 +12125,10 @@ namespace OpenDental {
 			Pen penOrange=new Pen(Color.FromArgb(250,176,3),2);
 			Pen penDkOrange=new Pen(Color.FromArgb(227,119,4));
 			SolidBrush brBlack=new SolidBrush(Color.Black);
-			int selected=tabControlImages.TabPages.IndexOf(tabControlImages.SelectedTab);
+			int selected=-1;
+			if(tabControlImages.SelectedTab!=null) {
+				selected=tabControlImages.TabPages.IndexOf(tabControlImages.SelectedTab);
+			}
 			Rectangle bounds=e.Bounds;
 			Rectangle rect=new Rectangle(bounds.X+2,bounds.Y+1,bounds.Width-5,bounds.Height-4);
 			if(e.Index==selected){
