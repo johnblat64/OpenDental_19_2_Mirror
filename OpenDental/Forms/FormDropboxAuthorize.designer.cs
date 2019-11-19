@@ -25,11 +25,11 @@ namespace OpenDental{
 		private void InitializeComponent() {
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormDropboxAuthorize));
 			this.splitContainer = new OpenDental.SplitContainerNoFlicker();
-			this.browserOAuth = new System.Windows.Forms.WebBrowser();
 			this.butCancel = new OpenDental.UI.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.butOK = new OpenDental.UI.Button();
 			this.textAccessToken = new System.Windows.Forms.TextBox();
+			this.labelAuthorizeInfo = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
 			this.splitContainer.Panel1.SuspendLayout();
 			this.splitContainer.Panel2.SuspendLayout();
@@ -47,7 +47,7 @@ namespace OpenDental{
 			// 
 			// splitContainer.Panel1
 			// 
-			this.splitContainer.Panel1.Controls.Add(this.browserOAuth);
+			this.splitContainer.Panel1.Controls.Add(this.labelAuthorizeInfo);
 			// 
 			// splitContainer.Panel2
 			// 
@@ -56,20 +56,9 @@ namespace OpenDental{
 			this.splitContainer.Panel2.Controls.Add(this.butOK);
 			this.splitContainer.Panel2.Controls.Add(this.textAccessToken);
 			this.splitContainer.Panel2MinSize = 40;
-			this.splitContainer.Size = new System.Drawing.Size(932, 585);
-			this.splitContainer.SplitterDistance = 534;
+			this.splitContainer.Size = new System.Drawing.Size(522, 108);
+			this.splitContainer.SplitterDistance = 64;
 			this.splitContainer.TabIndex = 80;
-			// 
-			// browserOAuth
-			// 
-			this.browserOAuth.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.browserOAuth.Location = new System.Drawing.Point(3, 3);
-			this.browserOAuth.MinimumSize = new System.Drawing.Size(20, 20);
-			this.browserOAuth.Name = "browserOAuth";
-			this.browserOAuth.Size = new System.Drawing.Size(926, 528);
-			this.browserOAuth.TabIndex = 4;
 			// 
 			// butCancel
 			// 
@@ -79,7 +68,7 @@ namespace OpenDental{
 			this.butCancel.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butCancel.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butCancel.CornerRadius = 4F;
-			this.butCancel.Location = new System.Drawing.Point(845, 13);
+			this.butCancel.Location = new System.Drawing.Point(435, 6);
 			this.butCancel.Name = "butCancel";
 			this.butCancel.Size = new System.Drawing.Size(76, 23);
 			this.butCancel.TabIndex = 2;
@@ -89,7 +78,7 @@ namespace OpenDental{
 			// label1
 			// 
 			this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.label1.Location = new System.Drawing.Point(9, 16);
+			this.label1.Location = new System.Drawing.Point(9, 9);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(133, 19);
 			this.label1.TabIndex = 79;
@@ -104,7 +93,7 @@ namespace OpenDental{
 			this.butOK.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butOK.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
 			this.butOK.CornerRadius = 4F;
-			this.butOK.Location = new System.Drawing.Point(764, 13);
+			this.butOK.Location = new System.Drawing.Point(354, 6);
 			this.butOK.Name = "butOK";
 			this.butOK.Size = new System.Drawing.Size(76, 23);
 			this.butOK.TabIndex = 3;
@@ -114,19 +103,28 @@ namespace OpenDental{
 			// textAccessToken
 			// 
 			this.textAccessToken.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.textAccessToken.Location = new System.Drawing.Point(142, 15);
+			this.textAccessToken.Location = new System.Drawing.Point(142, 8);
 			this.textAccessToken.Name = "textAccessToken";
 			this.textAccessToken.Size = new System.Drawing.Size(199, 20);
 			this.textAccessToken.TabIndex = 78;
 			// 
+			// labelAuthorizeInfo
+			// 
+			this.labelAuthorizeInfo.Location = new System.Drawing.Point(12, 11);
+			this.labelAuthorizeInfo.Name = "labelAuthorizeInfo";
+			this.labelAuthorizeInfo.Size = new System.Drawing.Size(499, 43);
+			this.labelAuthorizeInfo.TabIndex = 1;
+			this.labelAuthorizeInfo.Text = "A browser should open to authorize your account with Dropbox.  Please enter the c" +
+    "ode below once prompted to by Dropbox.";
+			// 
 			// FormDropboxAuthorize
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-			this.ClientSize = new System.Drawing.Size(934, 586);
+			this.ClientSize = new System.Drawing.Size(524, 109);
 			this.Controls.Add(this.splitContainer);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-			this.MaximumSize = new System.Drawing.Size(950, 625);
-			this.MinimumSize = new System.Drawing.Size(540, 325);
+			this.MaximumSize = new System.Drawing.Size(540, 148);
+			this.MinimumSize = new System.Drawing.Size(540, 125);
 			this.Name = "FormDropboxAuthorize";
 			this.Text = "Authorize Dropbox";
 			this.Load += new System.EventHandler(this.FormDropboxAuthorize_Load);
@@ -143,9 +141,9 @@ namespace OpenDental{
 
 		private OpenDental.UI.Button butOK;
 		private OpenDental.UI.Button butCancel;
-		private System.Windows.Forms.WebBrowser browserOAuth;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.TextBox textAccessToken;
 		private SplitContainerNoFlicker splitContainer;
+		private System.Windows.Forms.Label labelAuthorizeInfo;
 	}
 }

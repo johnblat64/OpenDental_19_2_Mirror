@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using WebServiceSerializer;
@@ -18,11 +14,10 @@ namespace OpenDental {
 		}
 
 		private void FormDropboxAuthorize_Load(object sender,EventArgs e) {
-			browserOAuth.Dock=DockStyle.Fill;
 			try {
 				string url=WebSerializer.DeserializePrimitiveOrThrow<string>(
 						WebServiceMainHQProxy.GetWebServiceMainHQInstance().BuildOAuthUrl(PrefC.GetString(PrefName.RegistrationKey),OAuthApplicationNames.Dropbox.ToString()));
-				browserOAuth.Navigate(new Uri(url));
+				System.Diagnostics.Process.Start(url);
 			}
 			catch(Exception ex) {
 				MessageBox.Show(Lan.g(this,"Error:")+"  "+ex.Message);
