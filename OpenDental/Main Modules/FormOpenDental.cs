@@ -9167,6 +9167,9 @@ namespace OpenDental{
 		///<summary>Checks to see if the currently logged-in user needs to reset their password.
 		///If they do, then this method will force the user to reset the password otherwise the program will exit.</summary>
 		private void CheckForPasswordReset() {
+			if(Security.CurUser==null) {
+				return;//There are a lot of bug submissions where we are trying to check if a null user needs a password reset.
+			}
 			if(Security.CurUser.IsPasswordResetRequired) {
 				FormUserPassword FormUP=new FormUserPassword(false,Security.CurUser.UserName,true);
 				FormUP.ShowDialog();
