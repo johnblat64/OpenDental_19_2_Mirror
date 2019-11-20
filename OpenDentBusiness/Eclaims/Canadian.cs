@@ -1529,7 +1529,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			if(!File.Exists(outputFile)) {
 				if(isItrans) {
-					errorMsg=Lans.g("Canadian","No response from iCAService. Ensure that the iCAService is started and the iCA folder has the necessary permissions.");
+					errorMsg=Lans.g("Canadian","No response from iCAService (ITRANS) or ICDService (ITRANS 2.0). Ensure that the correct service for your version of ITRANS is started and the corresponding folder has the necessary permissions.");
 				}
 				else if(isClaimstream) {
 					errorMsg=Lans.g("Canadian","No response from the CCDWS service. Ensure that the CCDWS service is started and the ccd folder has the necessary permissions.");
