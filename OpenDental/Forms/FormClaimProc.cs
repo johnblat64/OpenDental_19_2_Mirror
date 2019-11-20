@@ -118,6 +118,10 @@ namespace OpenDental {
 
 		///<summary>Same as calling FormClaimProcEdit_Load().  Used in unit test 28.</summary>
 		public void Initialize() {
+			//Check to see if the Claim is a transfer, if TRUE disable all but Cancel and Delete buttons
+			if(ClaimProcCur.IsTransfer) {
+				this.DisableForm(new Control[]{butCancel,butDelete});
+			}
 			if(ClaimProcCur.ClaimNum>0) {
 				Claim claim=Claims.GetClaim(ClaimProcCur.ClaimNum);
 				if(claim==null) {
