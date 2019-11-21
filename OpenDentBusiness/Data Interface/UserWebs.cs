@@ -365,7 +365,9 @@ namespace OpenDentBusiness{
 		///If PlainTextPassword (Item2) is empty then assume new password generation was not necessary.
 		///Will insert a new UserWeb if none found for this Patient. Will leave UserWeb.PasswordHash blank. 
 		///Call UpdateNewPatientPortalCredentials() using results of this method if you want to save password to db.</summary>
-		public static Tuple<UserWeb,string,PasswordContainer> GetNewPatientPortalCredentials(Patient pat) {
+		///<param name="passwordOverride">If a password has already been generated for this patient, pass it in here so that the password returned
+		///will match.</param>
+		public static Tuple<UserWeb,string,PasswordContainer> GetNewPatientPortalCredentials(Patient pat,string passwordOverride="") {
 			//No need to check RemotingRole; no call to db.
 			if(string.IsNullOrEmpty(PrefC.GetString(PrefName.PatientPortalURL))) {
 				return null;//Haven't set up patient portal yet.
@@ -408,7 +410,7 @@ namespace OpenDentBusiness{
 				//PP invites will often times call this method and get this far but not actually want to save the new creds to the db.
 				//For that reason we won't actually update the db with the new password here. 
 				//The caller of this method will need to call ProcessNewPatientPortalCredentialsOut() if they really want this new password to persist to the db.
-				passwordPlainText=UserWebs.GenerateRandomPassword(8);
+				passwordPlainText=passwordOverride=="" ? UserWebs.GenerateRandomPassword(8) : passwordOverride;
 				loginDetails=Authentication.GenerateLoginDetails(passwordPlainText,HashTypes.SHA3_512);
 			}			
 			return new Tuple<UserWeb, string, PasswordContainer>(userWeb,passwordPlainText,loginDetails);
