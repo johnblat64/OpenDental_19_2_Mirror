@@ -765,6 +765,7 @@ namespace OpenDental{
 			this.Controls.Add(this.splitContainer1);
 			this.DoubleBuffered = true;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.MinimumSize = new System.Drawing.Size(100, 735);
 			this.Name = "FormSheetDefEdit";
 			this.Text = "Edit Sheet Def";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormSheetDefEdit_FormClosing);
