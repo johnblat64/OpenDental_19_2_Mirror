@@ -254,7 +254,14 @@ namespace OpenDentBusiness.Eclaims {
 			string strResponse="";
 			try {
 				Dentalxchange2016.textResponse response = service.lookupEligibility(cred,request);
-				strResponse=response.Content;
+				if(response.Content==null) {
+					strResponse="This customer is being denied service by Claim Connect with the following error:\r\n"
+						+response.Status.code + " - " +response.Status.description+"\r\n"
+						+ "Servers may need a few hours before ready to accept new user information.";
+				}
+				else {
+					strResponse=response.Content;
+				}
 			}
 			catch(SoapException ex) {
 				strResponse="If this is a new customer, this error might be due to an invalid Username or Password.  Servers may need a few hours before ready to accept new user information.\r\n"
