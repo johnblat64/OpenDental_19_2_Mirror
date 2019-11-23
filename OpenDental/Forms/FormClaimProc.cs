@@ -1125,11 +1125,21 @@ namespace OpenDental {
 			}
 		}
 
-		///<summary>Remember that this will never even happen unless this is just an estimate because the delete button will not be enabled.</summary>
+		///<summary>Claimprocs with various statuses can be deleted,
+		///except certain specific scenarios where the user does not have permission (multiple different permissions are considered).</summary>
 		private void butDelete_Click(object sender, System.EventArgs e) {
-			if(MessageBox.Show(Lan.g(this,"Delete this estimate?"),""
-				,MessageBoxButtons.OKCancel)!=DialogResult.OK){
-				return;
+			if(ClaimProcCur.IsTransfer) {
+				if(MessageBox.Show(Lan.g(this,"This Claim Procedure is part of an income transfer."+"\r\n"
+					+"Deleting this claim procedure will delete all of the income transfers for this claim.  Continue?"),""
+					,MessageBoxButtons.OKCancel)!=DialogResult.OK)	
+				{
+					return;
+				}
+			} 
+			else {
+				if(MessageBox.Show(Lan.g(this,"Delete this estimate?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
+					return;
+				}
 			}
 			try {
 				ClaimProcs.DeleteAfterValidating(ClaimProcCur);

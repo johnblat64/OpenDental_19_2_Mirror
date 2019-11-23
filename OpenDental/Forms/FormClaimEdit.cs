@@ -1422,6 +1422,9 @@ namespace OpenDental{
 			else if(FormCP.DialogResult!=DialogResult.OK) {
 				return false;
 			}
+			if(claimProc.DoDelete) {
+				_listClaimProcsForClaim.Remove(claimProc);
+			}
 			if(claimProc.Status!=ClaimProcStatus.NotReceived) {
 				return true;
 			}
