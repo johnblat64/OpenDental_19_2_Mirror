@@ -138,10 +138,12 @@ namespace OpenDental{
 				return;
 			}
 			int caret=SelectionStart;
-			if(e.KeyChar=='+'){
+			//Only allow a user to add days to the date when the dateDisplay is less than DateTime.MaxValue to avoid UE
+			if(e.KeyChar=='+' && dateDisplayed.Date<DateTime.MaxValue.Date){//Must compare based on date, otherwise hrs can be off
 				dateDisplayed=dateDisplayed.AddDays(1);
 			}
-			if(e.KeyChar=='-'){
+			//Only allow a user to subtract days to the date when the dateDisplay is greater than DateTime.MinValue to avoid UE
+			if(e.KeyChar=='-' && dateDisplayed.Date>DateTime.MinValue.Date){//Must compare based on date, otherwise hrs can be off
 				dateDisplayed=dateDisplayed.AddDays(-1);
 			}
 			Text=dateDisplayed.ToShortDateString();
@@ -168,10 +170,12 @@ namespace OpenDental{
 				return;
 			}
 			int caret=SelectionStart;
-			if(e.KeyCode==Keys.Up){
+			//Only allow a user to add days to the date when the dateDisplay is less than DateTime.MaxValue to avoid UE
+			if(e.KeyCode==Keys.Up && dateDisplayed.Date<DateTime.MaxValue.Date){//Must compare based on date, otherwise hrs can be off
 				dateDisplayed=dateDisplayed.AddDays(1);
 			}
-			if(e.KeyCode==Keys.Down){
+			//Only allow a user to subtract days to the date when the dateDisplay is greater than DateTime.MinValue to avoid UE
+			if(e.KeyCode==Keys.Down && dateDisplayed.Date>DateTime.MinValue.Date){//Must compare based on date, otherwise hrs can be off
 				dateDisplayed=dateDisplayed.AddDays(-1);
 			}
 			Text=dateDisplayed.ToShortDateString();
