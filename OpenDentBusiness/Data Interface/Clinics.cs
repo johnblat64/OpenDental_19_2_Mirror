@@ -812,7 +812,7 @@ namespace OpenDentBusiness{
 			ReplaceTags.ReplaceOneTag(template,"[OfficeName]",officeName,isHtmlEmail);
 			ReplaceTags.ReplaceOneTag(template,"[OfficeAddress]",officeAddr,isHtmlEmail);
 			if(doReplaceDisclaimer) {
-				ReplaceTags.ReplaceOneTag(template,"[EmailDisclaimer]",OpenDentBusiness.EmailMessages.GetEmailDisclaimer(clinic.ClinicNum),isHtmlEmail);
+				ReplaceTags.ReplaceOneTag(template,"[EmailDisclaimer]",OpenDentBusiness.EmailMessages.GetEmailDisclaimer(clinic?.ClinicNum??0),isHtmlEmail);
 			}
 		}
 	}
