@@ -5115,7 +5115,8 @@ namespace OpenDental {
 			menuItemDoseSpotTransactionErrors.Text="Transaction Errors";
 			//Has valid counts to display to the user.  There may have been an error, but if we have valid counts we should show them to the user.
 			if(countRefillRequests>=0 && countErrors>=0 && countPendingPrescriptions>=0) {
-				_butErx.NotificationText=Math.Min(99,countRefillRequests+countErrors+countPendingPrescriptions).ToString();
+				int numberOfNotifications=Math.Min(99,countRefillRequests+countErrors+countPendingPrescriptions);
+				_butErx.NotificationText=(numberOfNotifications==0) ? "" : numberOfNotifications.ToString();
 				menuItemDoseSpotPendingPescr.Text+=" ("+countPendingPrescriptions+")";
 				menuItemDoseSpotRefillReqs.Text+=" ("+countRefillRequests+")";
 				menuItemDoseSpotTransactionErrors.Text+=" ("+countErrors+")";
