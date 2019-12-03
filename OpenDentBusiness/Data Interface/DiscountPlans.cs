@@ -97,7 +97,8 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<string>>(MethodBase.GetCurrentMethod(),planNum);
 			}
-			string command="SELECT LName,FName FROM patient WHERE DiscountPlanNum="+POut.Long(planNum);
+			string command="SELECT LName,FName FROM patient WHERE DiscountPlanNum="+POut.Long(planNum)+" "+
+				"AND PatStatus NOT IN("+POut.Int((int)PatientStatus.Deleted)+","+POut.Int((int)PatientStatus.Deceased)+") ";
 			//No Preferred or MiddleI needed because this logic needs to match FormInsPlan.
 			return Db.GetTable(command).Select().Select(x => Patients.GetNameLFnoPref(x["LName"].ToString(),x["FName"].ToString(),"")).ToList();
 		}
@@ -110,7 +111,8 @@ namespace OpenDentBusiness{
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetInt(MethodBase.GetCurrentMethod(),planNum);
 			}
-			string command="SELECT COUNT(PatNum) FROM patient WHERE DiscountPlanNum="+POut.Long(planNum);
+			string command="SELECT COUNT(PatNum) FROM patient WHERE DiscountPlanNum="+POut.Long(planNum)+" "+
+				"AND PatStatus NOT IN("+POut.Int((int)PatientStatus.Deleted)+","+POut.Int((int)PatientStatus.Deceased)+") ";
 			return PIn.Int(Db.GetCount(command));
 		}
 
@@ -125,6 +127,7 @@ namespace OpenDentBusiness{
 			}
 			string command="SELECT DiscountPlanNum,COUNT(PatNum) PatCount FROM patient " +
 				"WHERE DiscountPlanNum IN ("+string.Join(",",listPlanNums)+") " +
+				"AND PatStatus NOT IN("+POut.Int((int)PatientStatus.Deleted)+","+POut.Int((int)PatientStatus.Deceased)+") "+
 				"GROUP BY DiscountPlanNum";
 			return Db.GetTable(command).Select()
 				.ToSerializableDictionary(x => PIn.Long(x["DiscountPlanNum"].ToString()),x => PIn.Int(x["PatCount"].ToString()));
