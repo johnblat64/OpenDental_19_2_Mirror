@@ -1155,7 +1155,7 @@ namespace OpenDental{
 					//deselect the ones that do not have email addresses specified
 					int skipped=0;
 					for(int i=_gridCur.SelectedIndices.Length-1;i>=0;i--) {
-						PatRowTag tag=(PatRowTag)_gridCur.Rows[i].Tag;
+						PatRowTag tag=(PatRowTag)_gridCur.Rows[_gridCur.SelectedIndices[i]].Tag;
 						if(string.IsNullOrWhiteSpace(tag.Email)) {
 							skipped++;
 							_gridCur.SetSelected(_gridCur.SelectedIndices[i],false);
