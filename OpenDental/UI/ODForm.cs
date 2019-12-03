@@ -476,7 +476,7 @@ namespace OpenDental {
 		private void FilterActionCommit() {
 			Exception ex=null;
 			//Synchronously invoke the "Refresh"/filter action function for the form on the main thread and invoke to prevent thread access violation exceptions.
-			this.Invoke(()=> {
+			this.InvokeIfNotDisposed(()=> {
 				//Only invoke if action handler has been set.
 				try {
 					_filterAction?.Invoke();
