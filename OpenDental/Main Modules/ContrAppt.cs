@@ -5736,11 +5736,7 @@ namespace OpenDental {
 					appt=Appointments.GetOneApt(ContrApptSingle.ClickedAptNum);
 					if(ApptIsNull(appt)) { return; }
 					Patient pat=Patients.GetPat(appt.PatNum);
-					string message=PrefC.GetString(PrefName.ConfirmTextMessage);
-					message=message.Replace("[NameF]",pat.GetNameFirst());
-					message=message.Replace("[NameFL]",pat.GetNameFL());
-					message=message.Replace("[date]",appt.AptDateTime.ToString(PrefC.PatientCommunicationDateFormat));
-					message=message.Replace("[time]",appt.AptDateTime.ToShortTimeString());
+					string message=SmsToMobiles.BuildConfirmSmsMessage(pat,appt.AptDateTime);
 					bool wasTextSent=FormOpenDental.S_OnTxtMsg_Click(pat.PatNum,message);
 					if(wasTextSent) {
 						Appointments.SetConfirmed(appt,PrefC.GetLong(PrefName.ConfirmStatusTextMessaged));

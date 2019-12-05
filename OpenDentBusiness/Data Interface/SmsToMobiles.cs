@@ -127,6 +127,16 @@ namespace OpenDentBusiness{
 			return ret;
 		}
 
+		///<summary>Builds a confirmation sms's message text based on the appropriate preference, given patient, and given date.</summary>
+		public static string BuildConfirmSmsMessage(Patient pat,DateTime apptDateTime) {
+			string message=PrefC.GetString(PrefName.ConfirmTextMessage);
+			message=message.Replace("[NameF]",pat.GetNameFirstOrPreferred());
+			message=message.Replace("[NameFL]",pat.GetNameFirstOrPrefL());
+			message=message.Replace("[date]",apptDateTime.ToString(PrefC.PatientCommunicationDateFormat));
+			message=message.Replace("[time]",apptDateTime.ToShortTimeString());
+			return message;
+		}
+
 		public static bool SendSmsSingle(SmsToMobile sms) {
 			return SendSms(new List<SmsToMobile> { sms });
 		}

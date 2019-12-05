@@ -1022,12 +1022,7 @@ namespace OpenDental{
 				pat.TxtMsgOk=YN.Yes;
 				Patients.Update(pat,patOld);
 			}
-			string message;
-			message=PrefC.GetString(PrefName.ConfirmTextMessage);
-			message=message.Replace("[NameF]",pat.GetNameFirst());
-			message=message.Replace("[NameFL]",pat.GetNameFL());
-			message=message.Replace("[date]",AptCur.AptDateTime.ToShortDateString());
-			message=message.Replace("[time]",AptCur.AptDateTime.ToShortTimeString());
+			string message=SmsToMobiles.BuildConfirmSmsMessage(pat,AptCur.AptDateTime);
 			FormTxtMsgEdit FormTME=new FormTxtMsgEdit();
 			FormTME.PatNum=pat.PatNum;
 			FormTME.WirelessPhone=pat.WirelessPhone;
