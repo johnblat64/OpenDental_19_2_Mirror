@@ -815,7 +815,7 @@ namespace OpenDentBusiness {
 			if(componentsToLoad.ShowFormPat) {
 				#region formpat
 				command = "SELECT FormDateTime,FormPatNum "
-				+ "FROM formpat WHERE PatNum ='" + POut.Long(patNum) + "' ORDER BY FormDateTime";
+					+ "FROM formpat WHERE PatNum =" + POut.Long(patNum) + " ORDER BY FormDateTime";
 				DataTable rawForm = dcon.GetTable(command);
 				for(int i = 0;i < rawForm.Rows.Count;i++) {
 					row = table.NewRow();
