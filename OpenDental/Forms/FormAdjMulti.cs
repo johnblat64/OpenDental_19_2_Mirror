@@ -41,6 +41,11 @@ namespace OpenDental {
 		}
 		
 		private void FormMultiAdj_Load(object sender,EventArgs e) {
+			if(!Security.IsAuthorized(Permissions.AdjustmentCreate,true) && !Security.IsAuthorized(Permissions.AdjustmentEditZero,true)) {
+				MessageBox.Show(Lans.g("Security","Not authorized for")+"\r\n"+GroupPermissions.GetDesc(Permissions.AdjustmentCreate));
+				DialogResult=DialogResult.Cancel;
+				return;
+			}
 			dateAdjustment.Text=DateTime.Today.ToShortDateString();
 			_rigorousAdjustments=PrefC.GetInt(PrefName.RigorousAdjustments);
 			FillListBoxAdjTypes();
@@ -581,6 +586,18 @@ namespace OpenDental {
 			}
 			if(hasNegAmt && !MsgBox.Show(this,MsgBoxButtons.OKCancel,"Remaining amount on a procedure is negative.  Continue?","Overpaid Procedure Warning")){
 				return;
+			}
+			if(!Security.IsAuthorized(Permissions.AdjustmentCreate,true)) {//User does not have full edit permission.
+				//Therefore the user only has the ability to edit $0 adjustments (see Load()).
+				foreach(MultiAdjEntry row in _listGridEntries) {
+					if(row.Adj==null) {//skip over Procedure rows
+						continue;
+					}
+					if(!row.Adj.AdjAmt.IsZero()) {
+						MsgBox.Show(this,"Amount has to be 0.00 due to security permission.");
+						return;
+					}
+				}
 			}
 			List<string> listAdjustmentAmounts=new List<string>();
 			foreach(MultiAdjEntry row in _listGridEntries) {
