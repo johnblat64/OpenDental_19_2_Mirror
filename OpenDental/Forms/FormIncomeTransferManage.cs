@@ -28,8 +28,8 @@ namespace OpenDental {
 		private List<PaySplit> _listPaySplitsCreatedFromUnearned=new List<PaySplit>();
 		///<summary>Gets set when an unallocated transfer has been made automatically and inserted upon entering this window.</summary>
 		private long _unallocatedPayNum=0;
-		///<summary>Stores the list of claimpay transfers that were inserted into the database upon success.</summary>
-		private List<long> _listInsertedClaimProcs=new List<long>();
+		///<summary>Stores the claimpay transfer (combination of claimprocs and paysplits) that was inserted into the database upon success.</summary>
+		private ClaimTransferResult _claimTransferResult;
 
 		private List<long> _listFamilyPatNums {
 			get {
@@ -97,16 +97,14 @@ namespace OpenDental {
 		}
 
 		private void TransferClaimsPayAsTotal() {
-			List<ClaimProc> listValidClaimsTransferred=null;
 			try {
-				listValidClaimsTransferred=ClaimProcs.TransferClaimsAsTotalToProcedures(_listFamilyPatNums);
+				_claimTransferResult=ClaimProcs.TransferClaimsAsTotalToProcedures(_listFamilyPatNums);
 			}
 			catch(ApplicationException ex) {
 				FriendlyException.Show(ex.Message,ex);
 				return;
 			}
-			if(listValidClaimsTransferred!=null && listValidClaimsTransferred.Count > 0) {//valid and items were created
-				_listInsertedClaimProcs=listValidClaimsTransferred.Select(x => x.ClaimProcNum).ToList();
+			if(_claimTransferResult!=null && _claimTransferResult.ListInsertedClaimProcs.Count > 0) {//valid and items were created
 				SecurityLogs.MakeLogEntry(Permissions.ClaimProcReceivedEdit,_patCur.PatNum,"Automatic transfer of claims pay as total from income transfer.");
 			}
 		}
@@ -1150,21 +1148,36 @@ namespace OpenDental {
 		}
 
 		private void FormIncomeTransferManage_FormClosing(object sender,FormClosingEventArgs e) {
-			if(DialogResult!=DialogResult.OK) {
-				if(_unallocatedPayNum!=0) {
-					//user is canceling out of the window and an unallocated transfer was made.
+			if(DialogResult==DialogResult.OK) {
+				return;
+			}
+			//Clean up any potential entities that were inserted during window interactions.
+			if(_unallocatedPayNum!=0) {
+				//user is canceling out of the window and an unallocated transfer was made.
+				ODException.SwallowAnyException(() => {
+					Payments.Delete(_unallocatedPayNum);
+					SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatic transfer deleted for payNum: {_unallocatedPayNum}.");
+				});
+			}
+			if(_claimTransferResult!=null) {
+				//user is canceling out of the window and an claim transfer was made.
+				if(_claimTransferResult.ListInsertedClaimProcs.Count > 0) {
 					ODException.SwallowAnyException(() => {
-						Payments.Delete(_unallocatedPayNum);
-						SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatic transfer deleted for payNum: {_unallocatedPayNum}.");
+						ClaimProcs.DeleteMany(_claimTransferResult.ListInsertedClaimProcs);
+						SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatically transferred claimprocs deleted.");
 					});
 				}
-				if(_listInsertedClaimProcs.Count > 0) {
+				if(_claimTransferResult.ListInsertedPaySplits.Count > 0) {
 					ODException.SwallowAnyException(() => {
-						ClaimProcs.DeleteMany(_listInsertedClaimProcs);
-						SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatically transferred claimprocs deleted.");
+						List<long> listDistinctPayNums=_claimTransferResult.ListInsertedPaySplits.Select(x => x.PayNum).Distinct().ToList();
+						foreach(long payNum in listDistinctPayNums) {
+							Payments.Delete(payNum);
+						}
+						SecurityLogs.MakeLogEntry(Permissions.PaymentEdit,_patCur.PatNum,$"Automatically transferred unearned from claimprocs deleted.");
 					});
 				}
 			}
 		}
+
 	}
 }

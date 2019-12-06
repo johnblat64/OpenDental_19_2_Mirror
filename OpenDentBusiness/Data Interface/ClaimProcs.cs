@@ -143,15 +143,14 @@ namespace OpenDentBusiness{
 		}
 
 		///<summary>Finds all the claim pay by totals for this family and attempts to transfer them to their respective procedures. 
-		///If successful, listInsertedClaimProcs will be inserted into the database. Does not currently support capitation claims.
+		///If successful, lists will be inserted into the database. Does not currently support capitation claims.
 		///Throws exceptions.</summary>
-		public static List<ClaimProc> TransferClaimsAsTotalToProcedures(List<long> listFamilyPatNums)
-		{
+		public static ClaimTransferResult TransferClaimsAsTotalToProcedures(List<long> listFamilyPatNums) {
 			//No remoting role check; out parameters.
-			List<ClaimProc> listInsertedClaimProcs=new List<ClaimProc>();
+			ClaimTransferResult insertedResults=new ClaimTransferResult();
 			List<PayAsTotal> listClaimsAsTotalForFamily=GetOutstandingClaimPayByTotal(listFamilyPatNums);//Gets all claims as total not yet transferred
 			if(listClaimsAsTotalForFamily.Count == 0) {
-				return listInsertedClaimProcs;
+				return insertedResults;
 			}
 			List<Procedure> listProcsForFamily=Procedures.GetCompleteForPats(listFamilyPatNums);
 			//Purposefully getting claim procs of all statuses (including received).
@@ -163,7 +162,7 @@ namespace OpenDentBusiness{
 				ClaimProc supplementalOffset=CreateSuppClaimProcForTransfer(payAsTotal);//Make offsetting supplemental payment for claim as total
 				supplementalOffset.InsPayAmt=payAsTotal.SummedInsPayAmt*-1;
 				supplementalOffset.WriteOff=payAsTotal.SummedWriteOff*-1;
-				listInsertedClaimProcs.Add(supplementalOffset);
+				insertedResults.ListInsertedClaimProcs.Add(supplementalOffset);
 				List<ClaimProc> listClaimProcsCreatedForClaim=new List<ClaimProc>();
 				#region 1st layer, apply InsPay and WriteOff up to the InsPayEst and WriteOffEst amt
 				foreach(ClaimProc procClaimProc in listValidClaimProcsForAsTotalPayment) {//pay only up to the insurance estimate for this first round through.
@@ -173,7 +172,7 @@ namespace OpenDentBusiness{
 					double insPayAmt=0;
 					double writeOffAmt=0;
 					//create a positive supplemental payment to be made for this procedure if one does not already exist (multiple claim pay as totals)
-					ClaimProc claimPayForProc=listInsertedClaimProcs.FirstOrDefault(x => x.ClaimNum==payAsTotal.ClaimNum && x.ProcNum==procClaimProc.ProcNum);
+					ClaimProc claimPayForProc=insertedResults.ListInsertedClaimProcs.FirstOrDefault(x => x.ClaimNum==payAsTotal.ClaimNum && x.ProcNum==procClaimProc.ProcNum);
 					if(claimPayForProc==null) {
 						claimPayForProc=CreateSuppClaimProcForTransfer(procClaimProc);
 						if(procClaimProc.InsPayEst!=0 && insPayAmtToAllocate!=0) {//estimated payment exists and there is money to allocate
@@ -197,8 +196,8 @@ namespace OpenDentBusiness{
 					claimPayForProc.WriteOff+=writeOffAmt;
 					insPayAmtToAllocate-=insPayAmt;
 					writeOffAmtToAllocate-=writeOffAmt;
-					if(!listInsertedClaimProcs.Contains(claimPayForProc)) {
-						listInsertedClaimProcs.Add(claimPayForProc);//add even if 0 amounts so they can be used in the next level.
+					if(!insertedResults.ListInsertedClaimProcs.Contains(claimPayForProc)) {
+						insertedResults.ListInsertedClaimProcs.Add(claimPayForProc);//add even if 0 amounts so they can be used in the next level.
 					}
 					listClaimProcsCreatedForClaim.Add(claimPayForProc);
 				}
@@ -233,19 +232,47 @@ namespace OpenDentBusiness{
 					if(!insPayAmtToAllocate.IsZero() || !writeOffAmtToAllocate.IsZero()) {
 						//money is STILL remaining on this claimpayment even after allocating up to procedure fee. 
 						//put the rest of the money on the first procedure and let the income transfer manager figure the rest out later.
+						if(listClaimProcsCreatedForClaim.Count==0) {
+							//Unique issue present from a conversions error that caused some claims to get created with only As Totals and no procedures.
+							//This means that we will have not created any procedure supplementals and this list will be empty. 
+							//Instead of transferring to procedures, we will instead transfer this income to unearned. 
+							Payment unearnedPayment=new Payment();
+							unearnedPayment.PatNum=payAsTotal.PatNum;
+							unearnedPayment.ClinicNum=payAsTotal.ClinicNum;
+							unearnedPayment.PayDate=DateTime.Today;
+							unearnedPayment.PayAmt=payAsTotal.SummedInsPayAmt+payAsTotal.SummedWriteOff;
+							unearnedPayment.PayNote=Lans.g("FormIncomeTransferManager","Transfer from claim with no claim procedures");
+							Payments.Insert(unearnedPayment);
+							PaySplit unearnedSplit=new PaySplit();
+							unearnedSplit.ClinicNum=Clinics.ClinicNum;
+							unearnedSplit.DateEntry=DateTime.Today;
+							unearnedSplit.DatePay=DateTime.Today;
+							unearnedSplit.PatNum=payAsTotal.PatNum;
+							unearnedSplit.PayNum=unearnedPayment.PayNum;
+							unearnedSplit.ProvNum=payAsTotal.ProvNum;
+							unearnedSplit.SplitAmt=payAsTotal.SummedInsPayAmt+payAsTotal.SummedWriteOff;
+							unearnedSplit.UnearnedType=PrefC.GetLong(PrefName.PrepaymentUnearnedType);
+							insertedResults.ListInsertedPaySplits.Add(unearnedSplit);
+							continue;
+						}
 						listClaimProcsCreatedForClaim[0].InsPayAmt+=insPayAmtToAllocate;
 						listClaimProcsCreatedForClaim[0].WriteOff+=writeOffAmtToAllocate;
 					}
 					#endregion
 				}
 			}
-			listInsertedClaimProcs.RemoveAll(x => x.InsPayAmt.IsZero() && x.WriteOff.IsZero());
-			if(!listInsertedClaimProcs.Sum(x => x.InsPayAmt).IsZero() || !listInsertedClaimProcs.Sum(x => x.WriteOff).IsZero()) {
-				listInsertedClaimProcs=null;
+			insertedResults.ListInsertedClaimProcs.RemoveAll(x => x.InsPayAmt.IsZero() && x.WriteOff.IsZero());
+			if(!(insertedResults.ListInsertedClaimProcs.Sum(x => x.InsPayAmt)
+					+insertedResults.ListInsertedClaimProcs.Sum(x => x.WriteOff)
+					+insertedResults.ListInsertedPaySplits.Sum(x => x.SplitAmt))
+				.IsZero()) 
+			{
+				insertedResults=null;
 				throw new ApplicationException("Transfer returned a value other than 0. Please call support.");
 			}
-			listInsertedClaimProcs=InsertMany(listInsertedClaimProcs);
-			return listInsertedClaimProcs;
+			insertedResults.ListInsertedClaimProcs=InsertMany(insertedResults.ListInsertedClaimProcs);
+			PaySplits.InsertMany(insertedResults.ListInsertedPaySplits);
+			return insertedResults;
 		}
 
 		#endregion
@@ -2597,6 +2624,12 @@ namespace OpenDentBusiness{
 			ProcDate=claimProc.ProcDate;
 			DateEntry=claimProc.DateEntry;
 		}
+	}
+
+	///<summary>A helper class that stores inserted claimprocs and their corresponding paysplits.</summary>
+	public class ClaimTransferResult {
+		public List<ClaimProc> ListInsertedClaimProcs=new List<ClaimProc>();
+		public List<PaySplit> ListInsertedPaySplits=new List<PaySplit>();
 	}
 
 
