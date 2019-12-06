@@ -550,7 +550,7 @@ namespace OpenDentBusiness.Eclaims {
 			attachment.SubscriberId=insSub.SubscriberID;
 			attachment.SubscriberFirstName=subscriber.FName;
 			attachment.SubscriberLastName=subscriber.LName;
-			attachment.ProviderClaimID=claim.ClaimIdentifier;
+			attachment.ProviderClaimID=TruncateClaimIdentifierIfNeeded(claim.ClaimIdentifier);
 			attachment.PayerIdCode=carrier.ElectID;
 			if(claim.DateService.Year>1880) {
 				attachment.DateOfService=claim.DateService;
@@ -572,6 +572,15 @@ namespace OpenDentBusiness.Eclaims {
 				attachment.RenderingProviderZip=clinic.Zip;
 			}
 			return attachment;
+		}
+
+		///<summary>Mimics X837_5010.Sout with maxL set to 20. This behavior is also identical to X837_4010.</summary>
+		private static string TruncateClaimIdentifierIfNeeded(string inputStr) {
+			inputStr=inputStr.Trim();//removes leading and trailing spaces.
+			if(inputStr.Length>20) {
+				inputStr=inputStr.Substring(0,20);
+			}
+			return inputStr;
 		}
 		
 		private static Clearinghouse GetClearingHouseForClaim(Claim claim) {
