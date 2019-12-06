@@ -175,9 +175,6 @@ namespace OpenDentBusiness {
 			retVal.ListAccountCharges=PaymentEdit.ExplicitlyLinkCredits(retVal,listSplitsCurrentAndHistoric,listClaimProcs.Where(x => x.ProcNum!=0).ToList()
 				,listAdjustments.Where(x => x.ProcNum!=0).ToList(),listPayPlans,isIncomeTxfr);
 			#endregion
-			#region Net Unearned Amounts
-			retVal.ListAccountCharges=LinkUnearnedForPatProvClinicUnearnedType(retVal.ListAccountCharges);
-			#endregion
 			#region Implicitly Link Credits
 			if(!isIncomeTxfr) {//If this payment is an income transfer, do NOT use unallocated income to pay off charges.
 				PayResults implicitResult=ImplicitlyLinkCredits(constructChargesData.ListPaySplits,listAdjustments,listInsPays
@@ -311,7 +308,7 @@ namespace OpenDentBusiness {
 						splitForCollection.AccountEntryAmtPaid=(decimal)amtStart;
 						chargeCur.AmountEnd-=amtStart;
 						chargeCur.SplitCollection.Add(splitForCollection);
-						splitCur.SplitAmt-=(double)amtStart;//We use a copy here so SplitCur retains its amount (which is what shows up in left grid and paysplit edit window)
+						splitCur.SplitAmt-=(double)amtStart;
 						AccountEntry acctEntry=listAccountCharges.Find(x => x.GetType()==typeof(PaySplit) && x.SplitCollection.Contains(splitCur));
 						if(acctEntry==null) {
 							break;
@@ -350,32 +347,6 @@ namespace OpenDentBusiness {
 							negEntry.AmountEnd=0;
 						}
 					}
-					//if splitCur.ProcNum==0 NEEDS to be added back in the future, there is an additional case that will need to be handled elsewhere.  B13471.
-					else if(chargeCur.Tag.GetType()==typeof(PaySplit)//PaySplits will only ever be in the charge list if it's in income transfer mode.
-						&& splitCur.FSplitNum==chargeCur.PriKey && chargeCur.AmountEnd!=0
-						&& (chargeCur.ProvNum==splitCur.ProvNum || chargeCur.ProvNum==0 || splitCur.ProvNum==0)//providers need to match. Exception for unearned provider(0)
-						&& chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum) 
-					{
-						if(splitCur.PayNum!=payNum) {
-							chargeCur.AmountStart-=(decimal)splitCur.SplitAmt;//splits counteracting prepay are negative
-						}
-						PaySplit splitForCollection=splitCur.Copy();
-						splitForCollection.AccountEntryAmtPaid=(decimal)splitCur.SplitAmt;
-						chargeCur.AmountEnd-=(decimal)splitCur.SplitAmt;
-						chargeCur.SplitCollection.Add(splitForCollection);
-						List<AccountEntry> listPaySplitAccountEntries=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit));
-						AccountEntry negEntry=listPaySplitAccountEntries.FirstOrDefault(x => x.PriKey==splitCur.SplitNum);
-						if(negEntry!=null) {
-							List<PaySplit> listChildrenForNegEntry=listPaySplitAccountEntries.Select(x => (PaySplit)x.Tag).ToList();
-							bool hasChildren=listChildrenForNegEntry.Any(x => x.FSplitNum!=0 && x.FSplitNum==negEntry.PriKey);
-							if(((PaySplit)negEntry.Tag).UnearnedType==0 || hasChildren)	{
-								//only can get in here if the payspilt is not unearned OR it is unearned but it has children (i.e. it is not the final allocation). 
-								negEntry.AmountStart=0;
-								negEntry.AmountEnd=0;
-							}
-						}
-						break;
-					}
 					else if(chargeCur.Tag.GetType()==typeof(Adjustment)
 						&& splitCur.AdjNum==chargeCur.PriKey
 						&& chargeCur.ProvNum==splitCur.ProvNum && chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum) 
@@ -398,9 +369,69 @@ namespace OpenDentBusiness {
 						acctEntry.AmountEnd+=amtStart;
 						break;
 					}
+					else if(chargeCur.Tag.GetType()==typeof(PaySplit)//PaySplits will only ever be in the charge list if it's in income transfer mode.
+						&& chargeCur.AmountEnd!=0 && chargeCur.PriKey==splitCur.FSplitNum //fsplit num is correctly linked
+						&& (chargeCur.ProvNum==splitCur.ProvNum || chargeCur.ProvNum==0 || splitCur.ProvNum==0)//matching provs, except for unearned provider(0)
+						&& chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum //matching pat/prov/clinics
+						&& splitCur.ProcNum==0 && splitCur.AdjNum==0 && splitCur.PayPlanNum==0) //split is unattached
+					{
+						if(splitCur.PayNum!=payNum) {
+							chargeCur.AmountStart-=(decimal)splitCur.SplitAmt;//splits counteracting prepay are negative
+						}
+						PaySplit splitForCollection=splitCur.Copy();
+						splitForCollection.AccountEntryAmtPaid=(decimal)splitCur.SplitAmt;
+						chargeCur.AmountEnd-=(decimal)splitCur.SplitAmt;
+						chargeCur.SplitCollection.Add(splitForCollection);
+						List<AccountEntry> listPaySplitAccountEntries=listAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit));
+						AccountEntry splitCurEntry=listPaySplitAccountEntries.FirstOrDefault(x => x.PriKey==splitCur.SplitNum);//split entry
+						if(splitCurEntry!=null) {
+							splitCurEntry.AmountStart=0;//final allocations are likely to a procedure which gets handled elsewhere, don't double count them. 
+							splitCurEntry.AmountEnd=0;
+						}
+						break;
+					}
 				}
 				//Do not subtract amount from split or parent split here since we are looping through them and may be modifying split value that hasn't
 				//been evaluated yet. If this code absolutely needs to be added back, make to only have it execute when it is not an income transfer.
+			}
+			listAccountCharges=LinkUnearnedForPatProvClinicUnearnedType(listAccountCharges);
+			if(isIncomeTransfer) {
+				//Apply payments to pat/prov/clinic buckets. This is similar to "implicit linking" for paysplits, which does not happen for transfers
+				List<AccountEntry> listSplitEntries=listAccountCharges.Where(x => x.GetType()==typeof(PaySplit) && !x.AmountEnd.IsEqual(0)).ToList();
+				foreach(PaySplit splitCur in listSplitsCurrentAndHistoric.Where(x => x.SplitNum.In(listSplitEntries.Select(y => y.PriKey).ToList()))) {
+					foreach(AccountEntry chargeCur in listSplitEntries) {
+						AccountEntry splitEntry=listSplitEntries.FirstOrDefault(x => x.PriKey==splitCur.SplitNum);
+						if(splitEntry==null || splitEntry.AmountEnd.IsEqual(0)) {
+							break;
+						}
+						//if splitCur.ProcNum==0 NEEDS to be added back in the future, there is an additional case that will need to be handled elsewhere.  B13471.
+						if(!chargeCur.AmountEnd.IsEqual(0) && chargeCur.PriKey!=splitCur.SplitNum
+							&& (chargeCur.ProvNum==splitCur.ProvNum || chargeCur.ProvNum==0 || splitCur.ProvNum==0)//matching provs, except unearned provider (0)
+							&& chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum) 
+						{
+							if(Math.Sign(Math.Round(chargeCur.AmountEnd,3))==Math.Sign(Math.Round(splitEntry.AmountEnd,3))) {
+								continue;//do not apply splits to other splits when they are of the same sign, we want them to stay separated, not get combined.
+							}
+							decimal amount=Math.Min(Math.Abs(splitEntry.AmountEnd),Math.Abs(chargeCur.AmountEnd));
+							decimal splitAmount=amount;
+							if(chargeCur.AmountEnd<0) {//negative charge, positive splitEntry
+								amount=amount*-1;
+							}
+							if(splitCur.SplitAmt<0) {
+								splitAmount=amount*-1;
+							}
+							if(splitCur.PayNum!=payNum) {
+								chargeCur.AmountStart-=amount;
+							}
+							PaySplit splitForCollection=splitCur.Copy();
+							splitForCollection.AccountEntryAmtPaid=splitAmount;
+							chargeCur.AmountEnd-=amount;
+							chargeCur.SplitCollection.Add(splitForCollection);
+							splitEntry.AmountStart+=amount;
+							splitEntry.AmountEnd+=amount;
+						}
+					}
+				}
 			}
 			return listAccountCharges;
 		}

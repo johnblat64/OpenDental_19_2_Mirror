@@ -848,14 +848,11 @@ namespace UnitTests.Payments_Tests {
 			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat.PatNum },pat.PatNum,new List<PaySplit>(),
 				payCur,new List<AccountEntry>(),true,false);
 			//Make sure that the logic creates 3 charges - One for the procedure (original, start, and end are 50) 
-			//One for the wrongSplit paid to the procedure but wrong provider (original, start, and end are -50)
-			//One for the incorrectXferSplit that the user created to "Correct" the wrong split.(original, start, and end are 50). This charge gets created
-			//because when we implicitly link credits we assume that the "wrongSplit" was already allocated when we explicitly linked the procedures. 
-			//i.e the wrong split is associated to the proc but with the wrong provider. The logic does not associate the split to the procedure. When we try to 
-			//implicitly link incorrectXferSplit with the wrongSplit, we can't since wrongSplit has an attached procedure.
+			//Splits should get explicitly linked correctly for the wrong provider which will equate provB's balance to 0. 
+			//The procedure will still think it has been paid, there is not a way to know if the user intended that or not so no action needs to be taken.
 			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(Procedure) && x.AmountOriginal==50 && x.AmountStart==50 && x.AmountEnd==50).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountEnd==50).Count);
-			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountEnd==-50).Count);
+			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountOriginal==50 && x.AmountEnd==0).Count);
+			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.GetType()==typeof(PaySplit) && x.AmountOriginal==50 && x.AmountEnd==0).Count);
 			//The user needs to either unattach the paysplit on the procedure, attach the negative split on the procedure, or delete both splits.
 		}
 
