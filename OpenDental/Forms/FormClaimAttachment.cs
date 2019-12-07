@@ -267,9 +267,9 @@ namespace OpenDental {
 		///<summary>Saves all images in the grid to the patient on the claim's directory in the images module. Also creates
 		///a list of ClaimAttach objects to associate to the given claim.</summary>
 		private void buttonOK_Click(object sender,EventArgs e) {
-			//Do not let the user continue if they haven't added any images to the grid.
-			if(gridAttachedImages.Rows.Count==0) {
-				MsgBox.Show(this,"Add an image to be sent with the snipping tool or by attaching an existing file.");
+			//The user must create an image or narrative attachment before sending.
+			if(gridAttachedImages.Rows.Count==0 && textNarrative.Text.Trim().Length==0) {
+				MsgBox.Show(this,"An image or narrative must be specified before continuing.");
 				return;
 			}
 			try {
