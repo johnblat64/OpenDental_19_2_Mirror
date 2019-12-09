@@ -158,7 +158,7 @@ namespace OpenDentBusiness{
 		}
 
 		/// <summary>Gets all 'claims' attached to the claimpayment.</summary>
-		public static List<ClaimPaySplit> GetAttachedToPayment(long claimPaymentNum) {
+		public static List<ClaimPaySplit> GetAttachedToPayment(long claimPaymentNum,bool doIncludeTransfers=true) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
 				return Meth.GetObject<List<ClaimPaySplit>>(MethodBase.GetCurrentMethod(),claimPaymentNum);
 			}
@@ -172,6 +172,7 @@ namespace OpenDentBusiness{
 				+" AND patient.PatNum = claim.PatNum"
 				+" AND insplan.PlanNum = claim.PlanNum"
 				+" AND insplan.CarrierNum = carrier.CarrierNum"
+				+(doIncludeTransfers?"":" AND claimproc.IsTransfer = 0")//Prevents Transfer Payments from showing in ClaimPayBatch
 				+" AND claimproc.ClaimPaymentNum = "+claimPaymentNum+" ";
 			if(DataConnection.DBtype==DatabaseType.MySql) {
 				command+="GROUP BY claim.ClaimNum ";
