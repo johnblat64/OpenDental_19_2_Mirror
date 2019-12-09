@@ -417,9 +417,12 @@ namespace OpenDentBusiness{
 				dictFamProcs=Patients.GetFamilies(dictPatProcs.Keys.ToList()).Where(x => x.Guarantor!=null)
 					.ToDictionary(x => x.Guarantor.PatNum,x => x.ListPats
 						.ToDictionary(y => y.PatNum,y => Tuple.Create(y.Age,(dictPatProcs.TryGetValue(y.PatNum,out listProcsCur)?listProcsCur:new List<Procedure>()))));
-				listInsSubs=InsSubs.GetListInsSubs(dictFamProcs.SelectMany(x => x.Value.Keys).ToList());
-				listInsPlans=InsPlans.RefreshForSubList(listInsSubs);
 				listPatPlans=PatPlans.GetPatPlansForPats(dictPatProcs.Keys.ToList());
+				listInsSubs=InsSubs.GetListInsSubs(dictFamProcs.SelectMany(x => x.Value.Keys).ToList());
+				List<long> listInsSubNums=listInsSubs.Select(x => x.InsSubNum).ToList();
+				listInsSubs.AddRange(InsSubs.GetMany(listPatPlans.Select(x => x.InsSubNum).Distinct().Where(x => !listInsSubNums.Contains(x)).ToList()));
+				listInsSubs=listInsSubs.DistinctBy(x => x.InsSubNum).ToList();
+				listInsPlans=InsPlans.RefreshForSubList(listInsSubs);
 				listBenefits=Benefits.Refresh(listPatPlans,listInsSubs);
 				#region Has Paused or Cancelled
 				while(progress.IsPaused) {
@@ -456,7 +459,8 @@ namespace OpenDentBusiness{
 					}
 					#endregion Has Cancelled
 					long guarNum=x.Key;
-					List<InsSub> listInsSubsCur=listInsSubs.FindAll(y => y.Subscriber.In(x.Value.Keys));
+					List<long> listInsSubNumsPatPlanCur=listPatPlans.Where(y => y.PatNum.In(x.Value.Keys)).Select(y => y.InsSubNum).ToList();
+					List<InsSub> listInsSubsCur=listInsSubs.FindAll(y => y.Subscriber.In(x.Value.Keys) || y.InsSubNum.In(listInsSubNumsPatPlanCur));
 					List<InsPlan> listInsPlansCur=listInsPlans.FindAll(y => listInsSubsCur.Exists(z => z.PlanNum==y.PlanNum));
 					List<SubstitutionLink> listSubstitutionLinks=SubstitutionLinks.GetAllForPlans(listInsPlansCur);
 					List<PatPlan> listPatPlansCur;
