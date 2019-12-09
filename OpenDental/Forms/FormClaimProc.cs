@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Globalization;
 using CodeBase;
+using OpenDentBusiness.Crud;
 using OpenDentBusiness.Eclaims;
 
 namespace OpenDental {
@@ -1148,6 +1149,7 @@ namespace OpenDental {
 				MessageBox.Show(ex.Message);
 				return;
 			}
+			ClaimProcs.RemoveSupplementalTransfersForClaims(ClaimProcCur.ClaimNum);
 			ClaimProcCur.DoDelete=true;
 			IsSaved=false;
 			DialogResult=DialogResult.OK;
@@ -1316,6 +1318,9 @@ namespace OpenDental {
 						MsgBox.Show(this,"Status of procedure was changed back to preauth to match status of claim.");
 				}
 				ClaimProcs.Update(ClaimProcCur);
+				if(ClaimProcCrud.UpdateComparison(ClaimProcCur,ClaimProcOld)) {
+					ClaimProcs.RemoveSupplementalTransfersForClaims(ClaimProcCur.ClaimNum);
+				}
 				if(ClaimProcCur.Status!=ClaimProcOld.Status && IsProc) {
 					//We must update the DB such that any associated Canadian labs have the same status as their parent claimproc.
 					//If we do not do this then ClaimProcs.CanadianLabBaseEstHelper(...) will fail to match and will not update any existing lab claimpros either.

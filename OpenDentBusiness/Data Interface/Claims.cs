@@ -1470,6 +1470,7 @@ namespace OpenDentBusiness{
 			claimOriginal.InsPayAmt-=newClaim.InsPayAmt;
 			claimOriginal.WriteOff-=newClaim.WriteOff;
 			Claims.Update(claimOriginal);
+			ClaimProcs.RemoveSupplementalTransfersForClaims(claimOriginal.ClaimNum);
 			return newClaim;
 		}
 

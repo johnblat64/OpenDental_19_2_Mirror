@@ -294,6 +294,19 @@ namespace OpenDentBusiness{
 		#endregion
 
 		#region Delete
+		///<summary>If the claim has transfers and is then edited in any way after the fact, call this method to remove all associate transfer procedures.</summary>
+		public static void RemoveSupplementalTransfersForClaims(params long[] arrayClaimNums) {
+			List <long> listClaimNums=arrayClaimNums.Where(x => x!=0).ToList();
+			if(listClaimNums.Count==0) {
+				return;
+			}
+			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
+				Meth.GetVoid(MethodBase.GetCurrentMethod(),arrayClaimNums);
+				return;
+			}
+			string command="DELETE FROM claimproc WHERE ClaimNum IN ("+string.Join(",",listClaimNums)+") AND IsTransfer!=0";
+			Db.NonQ(command);
+		}
 		#endregion
 
 		#endregion

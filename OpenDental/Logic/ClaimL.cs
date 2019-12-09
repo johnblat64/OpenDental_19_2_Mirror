@@ -505,6 +505,7 @@ namespace OpenDental {
 				claim.DateReceived=claimPaid.DateReceived;
 			}
 			Claims.Update(claim);
+			ClaimProcs.RemoveSupplementalTransfersForClaims(claim.ClaimNum);
 			//JM - If we ever decide to enable ERA automation this will need to be considered.
 			if(PrefC.GetBool(PrefName.PromptForSecondaryClaim) && Security.IsAuthorized(Permissions.ClaimSend,true)) {
 				ClaimL.PromptForSecondaryClaim(listClaimProcsForClaim);

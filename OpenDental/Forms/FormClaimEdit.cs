@@ -967,17 +967,6 @@ namespace OpenDental{
 			SetCanadianExtractedTeeth();
 		}
 
-		///<summary>If the claim has transfers and is then edited in any way after the fact, remove all associate transfer procedures</summary>
-		private void RemoveSupplementalTransfers() {
-			for(int i=_listClaimProcsForClaim.Count-1;i>=0;i--) {
-				ClaimProc claimProc=_listClaimProcsForClaim[i];
-				if(claimProc.IsTransfer) {
-					ClaimProcs.Delete(claimProc);
-					_listClaimProcsForClaim.Remove(claimProc);
-				}
-			}
-		}
-
 		private void butRecalc_Click(object sender, System.EventArgs e) {
 			if(PatPlans.GetCountForPatAndInsSub(ClaimCur.InsSubNum,ClaimCur.PatNum)==0) {//If the plan has been dropped
 				//Don't let the user recalculate estimates.  Our estimate calculation code would zero all claimproc insurance estimate amounts.
@@ -1395,7 +1384,6 @@ namespace OpenDental{
 			if(!CheckRecalcEstimates(claimProcCur)) {
 				return;
 			}
-			RemoveSupplementalTransfers();
 			ClaimProcList=ClaimProcs.Refresh(PatCur.PatNum);
 			FillGrids();
 		}
@@ -1623,7 +1611,6 @@ namespace OpenDental{
 					_listClaimProcsForClaim[i].DateEntry=DateTime.Now;//the date is was switched to rec'd
 					ClaimProcs.Update(_listClaimProcsForClaim[i]);
 				}
-				RemoveSupplementalTransfers();
 				_isPaymentEntered=true;
 				comboClaimStatus.SelectedIndex=5;//Received
 				if(textDateRec.Text=="") {
@@ -1728,7 +1715,7 @@ namespace OpenDental{
 						//Deselect any ortho auto claimprocs so that the regular "payment" code below doesn't act on ortho auto procs.
 						gridProc.SetSelected(gridRowNum,false);
 					}
-					RemoveSupplementalTransfers();
+					ClaimProcs.RemoveSupplementalTransfersForClaims(ClaimCur.ClaimNum);
 				}
 			}
 			#endregion
@@ -1803,7 +1790,7 @@ namespace OpenDental{
 			if(textDateRec.Text==""){
 				textDateRec.Text=DateTime.Today.ToShortDateString();
 			}
-			RemoveSupplementalTransfers();
+			ClaimProcs.RemoveSupplementalTransfersForClaims(ClaimCur.ClaimNum);
 			ClaimProcList=ClaimProcs.Refresh(PatCur.PatNum);
 			FillGrids();
 		}
@@ -1882,7 +1869,7 @@ namespace OpenDental{
 				ClaimProcs.Update(FormCPT.ClaimProcsToEdit[i]);
 			}
 //fix: need to debug the recalculation feature to take this status into account.
-			RemoveSupplementalTransfers();
+			ClaimProcs.RemoveSupplementalTransfersForClaims(ClaimCur.ClaimNum);
 			ClaimProcList=ClaimProcs.Refresh(PatCur.PatNum);
 			FillGrids();
 		}
@@ -1923,7 +1910,6 @@ namespace OpenDental{
 			}
 			//Selection validation logic ensures these are only procs that are eligible to split from this claim.
 			Claims.InsertSplitClaim(ClaimCur,gridProc.SelectedTags<ClaimProc>());
-			RemoveSupplementalTransfers();
 			ClaimProcList=ClaimProcs.Refresh(PatCur.PatNum);
 			FillGrids();
 		}
