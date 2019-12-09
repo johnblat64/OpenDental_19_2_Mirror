@@ -291,6 +291,10 @@ namespace OpenDental
 		}
 
 		private void butOK_Click(object sender,System.EventArgs e) {
+			if(!textTotal.IsValid) {
+				MessageBox.Show(this,"Please fix data entry errors first.");
+				return;
+			}
 			try {
 				SaveGridChanges();
 			}
