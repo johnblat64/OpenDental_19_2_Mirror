@@ -207,9 +207,13 @@ namespace OpenDentBusiness{
 				else {
 					Prefs.UpdateString(PrefName.AgingBeginDateTime,POut.DateT(dtNow,false));//get lock on pref to block others
 					Signalods.SetInvalid(InvalidType.Prefs);//signal a cache refresh so other computers will have the updated pref as quickly as possible
-					Ledgers.ComputeAging(listGuarantorNums,dateAsOf);
-					Prefs.UpdateString(PrefName.AgingBeginDateTime,"");//clear lock on pref whether aging was successful or not
-					Signalods.SetInvalid(InvalidType.Prefs);
+					try {
+						Ledgers.ComputeAging(listGuarantorNums,dateAsOf);
+					}
+					finally {
+						Prefs.UpdateString(PrefName.AgingBeginDateTime,"");//clear lock on pref whether aging was successful or not
+						Signalods.SetInvalid(InvalidType.Prefs);
+					}
 				}
 			}
 			else {//not enterprise aging or only 1 guar so not using the famaging table, just run aging as usual
