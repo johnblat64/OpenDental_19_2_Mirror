@@ -209,7 +209,7 @@ namespace OpenDental {
 		}
 		#endregion
 
-		private void butRun_Click(object sender,EventArgs e) {
+		private void butRefresh_Click(object sender,EventArgs e) {
 			//refresh aging list
 			//refill the grid
 			_agingOptions = new AgingOptions {
@@ -260,7 +260,7 @@ namespace OpenDental {
 
 		private void butPrint_Click(object sender,EventArgs e) {
 			if(gridMain.Rows.Count==0) {
-				MsgBox.Show(this,"The report has no results to show. Please click 'Run' to populate the grid first.");
+				MsgBox.Show(this,"The report has no results to show. Please click 'Refresh' to populate the grid first.");
 				return;
 			}
 			DataTable tableReportCur=new DataTable();
