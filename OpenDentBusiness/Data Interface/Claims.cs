@@ -160,7 +160,7 @@ namespace OpenDentBusiness{
 		/// <summary>Gets all 'claims' attached to the claimpayment.</summary>
 		public static List<ClaimPaySplit> GetAttachedToPayment(long claimPaymentNum,bool doIncludeTransfers=true) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<ClaimPaySplit>>(MethodBase.GetCurrentMethod(),claimPaymentNum);
+				return Meth.GetObject<List<ClaimPaySplit>>(MethodBase.GetCurrentMethod(),claimPaymentNum,doIncludeTransfers);
 			}
 			string command=
 				"SELECT claim.DateService,claim.ProvTreat,"+DbHelper.Concat("patient.LName","', '","patient.FName")+" patName_,"
