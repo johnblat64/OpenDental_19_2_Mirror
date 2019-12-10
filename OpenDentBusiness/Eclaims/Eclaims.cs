@@ -227,6 +227,10 @@ namespace OpenDentBusiness.Eclaims
 				}
 			}
 			#endregion Data Sanity Checking (for Replication)
+			if(claim.ProvTreat==0) {//This has only happened in the past due to a conversion.
+				queueItem.MissingData=Lans.g("Eclaims","No treating provider set.");
+				return queueItem;
+			}
 			try {
 				if(clearinghouseClin.Eformat==ElectronicClaimFormat.x837D_4010) {
 					X837_4010.Validate(clearinghouseClin,queueItem);//,out warnings);
