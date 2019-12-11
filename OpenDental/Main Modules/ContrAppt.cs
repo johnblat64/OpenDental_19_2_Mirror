@@ -4043,6 +4043,12 @@ namespace OpenDental {
 					menuClearForDayOp.Enabled=false;
 					menuClearForDayClinics.Enabled=false;
 				}
+				else if(Security.IsAuthorized(Permissions.Blockouts,true)) {
+				menuCutCopyPaste.Enabled=true;
+				menuClearForDay.Enabled=true;
+				menuClearForDayOp.Enabled=true;
+				menuClearForDayClinics.Enabled=true;
+			}
 				int clickedOnBlockCount=0;
 				string blockoutFlags="";
 				Schedule[] ListForType=Schedules.GetForType(SchedListPeriod,ScheduleType.Blockout,0);

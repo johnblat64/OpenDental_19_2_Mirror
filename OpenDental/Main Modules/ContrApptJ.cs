@@ -375,6 +375,12 @@ namespace OpenDental {
 				menuClearForDayOp.Enabled=false;
 				menuClearForDayClinics.Enabled=false;
 			}
+			else if(Security.IsAuthorized(Permissions.Blockouts,true)) {
+				menuCutCopyPaste.Enabled=true;
+				menuClearForDay.Enabled=true;
+				menuClearForDayOp.Enabled=true;
+				menuClearForDayClinics.Enabled=true;
+			}
 			_blockoutClickedOnOp=e.OpNum;
 			_dateTimeClickedBlockout=e.DateT;
 			int clickedOnBlockCount=0;
