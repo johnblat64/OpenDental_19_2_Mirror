@@ -131,6 +131,20 @@ namespace OpenDentBusiness {
 			PatNum=paySplit.PatNum;
 		}
 
+		///<summary>Similar to a claimproc, payAsTotal stores the total InsPayAmt and WriteOffAmt for a group of Pat/Prov/Clinic's on a single claim 
+		///representing all of the claimprocs for that group. There is no primary key here because this is a placeholder for multiple objects.</summary>
+		public AccountEntry(PayAsTotal payAsTotal) {
+			Tag=payAsTotal;
+			Date=payAsTotal.DateEntry;
+			PriKey=0;//This is not a database object, no primary keys are available 
+			AmountOriginal=0-(decimal)(payAsTotal.SummedInsPayAmt+payAsTotal.SummedWriteOff);
+			AmountStart=AmountOriginal;
+			AmountEnd=AmountOriginal;
+			ProvNum=payAsTotal.ProvNum;
+			ClinicNum=payAsTotal.ClinicNum;
+			PatNum=payAsTotal.PatNum;
+		}
+
 		///<summary></summary>
 		public AccountEntry Copy(){
 			return (AccountEntry)this.MemberwiseClone();

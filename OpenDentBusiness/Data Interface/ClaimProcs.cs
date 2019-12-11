@@ -93,7 +93,7 @@ namespace OpenDentBusiness{
 		///<summary>Attempts to group up pay as totals on each claim and return at most, 1 pay as total per claim group. This is to balance the
 		///pay as totals so we do not transfer after a transfer has already been performed. Returns a list of PayAsTotals that can be transferred. 
 		///Does not currently support capitation claims.  Throws exceptions.</summary>
-		private static List<PayAsTotal> GetOutstandingClaimPayByTotal(List<long> listFamilyPatNums) {
+		public static List<PayAsTotal> GetOutstandingClaimPayByTotal(List<long> listFamilyPatNums) {
 			//No remoting role check; no call to db
 			List<ClaimProc> listClaimPayByTotals=GetByTotForPats(listFamilyPatNums)
 				.Where(x => !x.Status.In(ClaimProcStatus.CapClaim,ClaimProcStatus.CapComplete,ClaimProcStatus.CapEstimate)).ToList();

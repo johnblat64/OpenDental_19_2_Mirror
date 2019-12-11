@@ -125,7 +125,8 @@ namespace OpenDentBusiness {
 				}
 			}
 			if(!isIncomeTransfer) {
-				data.ListInsPayAsTotal=ClaimProcs.GetByTotForPats(listPatNums);//Claimprocs paid as total, might contain ins payplan payments.
+				//sum ins pay as totals by claims to include the value for the ones that have already been transferred and taken care of. 
+				data.ListInsPayAsTotal=ClaimProcs.GetOutstandingClaimPayByTotal(listPatNums);
 			}
 			data.ListPayPlans=PayPlans.GetForPats(listPatNums,patNum);//Used to figure out how much we need to pay off procs with, also contains ins payplans
 			data.ListPayPlanCharges=new List<PayPlanCharge>();
@@ -137,7 +138,7 @@ namespace OpenDentBusiness {
 				data.ListPaySplits.AddRange(data.ListPaySplitsPayPlan
 					.Where(x => !data.ListPaySplits.Any(y => y.SplitNum==x.SplitNum)).ToList());
 			}
-			data.ListClaimProcs=ClaimProcs.Refresh(listPatNums);
+			data.ListClaimProcsFiltered=ClaimProcs.Refresh(listPatNums).Where(x => x.ProcNum!=0).ToList();//does not contain PayAsTotals
 			return data;
 		}
 
@@ -150,19 +151,19 @@ namespace OpenDentBusiness {
 			retVal.Payment=payCur;
 			#region Get data
 			//Get the lists of items we'll be using to calculate with.
-			PaymentEdit.ConstructChargesData constructChargesData=loadData?.ConstructChargesData
-				??PaymentEdit.GetConstructChargesData(listPatNums,patCurNum,listSplitsCur,retVal.Payment.PayNum,isIncomeTxfr);
+			ConstructChargesData constructChargesData=loadData?.ConstructChargesData
+				??GetConstructChargesData(listPatNums,patCurNum,listSplitsCur,retVal.Payment.PayNum,isIncomeTxfr);
 			List<Procedure> listProcs=constructChargesData.ListProcsCompleted;//filled from db. List of completed procs for patient(s).
 			List<Adjustment> listAdjustments=constructChargesData.ListAdjustments;
-			List<ClaimProc> listInsPays=constructChargesData.ListInsPayAsTotal;//Claimprocs paid as total, might contain ins payplan payments.
+			List<PayAsTotal> listInsPayAsTotals=constructChargesData.ListInsPayAsTotal;//Claimprocs paid as total, might contain ins payplan payments.
 			//Used to figure out how much we need to pay off procs with, also contains insurance payplans.
 			List<PayPlan> listPayPlans=constructChargesData.ListPayPlans;
 			List<PayPlanCharge> listPayPlanCharges=constructChargesData.ListPayPlanCharges;
-			List<ClaimProc> listClaimProcs=constructChargesData.ListClaimProcs;
+			List<ClaimProc> listClaimProcsFiltered=constructChargesData.ListClaimProcsFiltered;
 			#endregion
 			#region Construct List of Charges
-			PaymentEdit.ConstructListChargesResult constructChargeResult=PaymentEdit.ConstructListCharges(listPayPlanCharges,listPayPlans,listAdjustments
-				,listProcs,constructChargesData.ListPaySplits,listInsPays,isIncomeTxfr);
+			ConstructListChargesResult constructChargeResult=ConstructListCharges(listPayPlanCharges,listPayPlans,listAdjustments,listProcs
+				,constructChargesData.ListPaySplits,listInsPayAsTotals,isIncomeTxfr);
 			retVal.ListAccountCharges=constructChargeResult.ListAccountEntries;
 			retVal.ListPayPlanCharges=constructChargeResult.ListPayPlanCharges;
 			retVal.ListAccountCharges.Sort(AccountEntrySort);
@@ -172,12 +173,12 @@ namespace OpenDentBusiness {
 			//This ordering is necessary so parents come before their children when explicitly linking credits.
 			listSplitsCurrentAndHistoric.AddRange(constructChargesData.ListPaySplits.OrderBy(x => x.DatePay).ThenBy(x => x.FSplitNum).ToList());
 			listSplitsCurrentAndHistoric.AddRange(listSplitsCur.Where(x => x.SplitNum==0).Select(y => y.Copy()).ToList());
-			retVal.ListAccountCharges=PaymentEdit.ExplicitlyLinkCredits(retVal,listSplitsCurrentAndHistoric,listClaimProcs.Where(x => x.ProcNum!=0).ToList()
+			retVal.ListAccountCharges=ExplicitlyLinkCredits(retVal,listSplitsCurrentAndHistoric,listClaimProcsFiltered
 				,listAdjustments.Where(x => x.ProcNum!=0).ToList(),listPayPlans,isIncomeTxfr);
 			#endregion
 			#region Implicitly Link Credits
 			if(!isIncomeTxfr) {//If this payment is an income transfer, do NOT use unallocated income to pay off charges.
-				PayResults implicitResult=ImplicitlyLinkCredits(constructChargesData.ListPaySplits,listAdjustments,listInsPays
+				PayResults implicitResult=ImplicitlyLinkCredits(constructChargesData.ListPaySplits,listAdjustments,listInsPayAsTotals
 					,retVal.ListAccountCharges,listSplitsCur,listEntriesLoading,retVal.Payment,patCurNum,isPreferCurPat);
 				retVal.ListAccountCharges=implicitResult.ListAccountCharges;
 				retVal.ListSplitsCur=implicitResult.ListSplitsCur;
@@ -188,7 +189,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static ConstructListChargesResult ConstructListCharges(List<PayPlanCharge> listPayPlanCharges,List<PayPlan>listPayPlans
-			,List<Adjustment>listAdjustments,List<Procedure>listProcs,List<PaySplit>listPaySplits,List<ClaimProc>listInsPayAsTotal,bool hasPayTypeNone) 
+			,List<Adjustment>listAdjustments,List<Procedure>listProcs,List<PaySplit>listPaySplits,List<PayAsTotal>listInsPayAsTotal,bool hasPayTypeNone) 
 		{
 			//No remoting role check; no call to db
 			ConstructListChargesResult retVal=new ConstructListChargesResult();
@@ -217,7 +218,7 @@ namespace OpenDentBusiness {
 				for(int i=listPaySplits.Count-1;i>=0;i--) {
 					listCharges.Add(new AccountEntry(listPaySplits[i]));//In Income Transfer mode, add all paysplits to the buckets.  The income transfers made previously should balance out any adjustments/inspaytotals that were transferred previously.
 				}
-				foreach(ClaimProc totalPmt in listInsPayAsTotal) {//Ins pay totals need to be added to the sum total for income transfers
+				foreach(PayAsTotal totalPmt in listInsPayAsTotal) {//Ins pay totals need to be added to the sum total for income transfers
 					listCharges.Add(new AccountEntry(totalPmt));
 				}
 			}
@@ -467,7 +468,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static PayResults ImplicitlyLinkCredits(List<PaySplit> listPaySplits,List<Adjustment> listAdjustments
-			,List<ClaimProc> listInsPayAsTotal,List<AccountEntry> listAccountCharges,List<PaySplit> listSplitsCur,List<AccountEntry> listAcctEntriesLoading
+			,List<PayAsTotal> listInsPayAsTotal,List<AccountEntry> listAccountCharges,List<PaySplit> listSplitsCur,List<AccountEntry> listAcctEntriesLoading
 			,Payment payCur,long patNum,bool isPatPrefer) 
 		{
 			//No remoting role check; no call to db
@@ -502,20 +503,21 @@ namespace OpenDentBusiness {
 					negSplit.SplitAmt+=amt;
 					posSplit.SplitAmt-=amt;
 				}
-				List<ClaimProc> payByTotals=listInsPayAsTotal.FindAll(x => x.PatNum==negSplit.PatNum && x.ProvNum==negSplit.ProvNum 
-					&& x.ClinicNum==negSplit.ClinicNum &&x.InsPayAmt!=0);
-				foreach(ClaimProc claimProc in payByTotals) {
-					claimProc.InsPayAmt=claimProc.InsPayAmt+claimProc.WriteOff;//just move both values to a single item for ease of use.  We don't care if it's a writeoff ornot.
-					claimProc.WriteOff=0;//Fix just in case we come back to this claimproc again in the future, don't want to re-add the value to InsPayAmt.
+				List<PayAsTotal> payByTotals=listInsPayAsTotal.FindAll(x => x.PatNum==negSplit.PatNum && x.ProvNum==negSplit.ProvNum 
+					&& x.ClinicNum==negSplit.ClinicNum &&x.SummedInsPayAmt!=0);
+				foreach(PayAsTotal claimProc in payByTotals) {
 					if(negSplit.SplitAmt==0) {
 						break;
 					}
-					if(claimProc.InsPayAmt==0) {
+					if(claimProc.SummedInsPayAmt==0 && claimProc.SummedWriteOff==0) {
 						continue;
 					}
-					double amt=Math.Min(Math.Abs(negSplit.SplitAmt),claimProc.InsPayAmt);
-					negSplit.SplitAmt+=amt;
-					claimProc.InsPayAmt-=amt;
+					double amtPay=Math.Min(Math.Abs(negSplit.SplitAmt),claimProc.SummedInsPayAmt);
+					negSplit.SplitAmt+=amtPay;
+					claimProc.SummedInsPayAmt-=amtPay;
+					double amtWriteOff=Math.Min(Math.Abs(negSplit.SplitAmt),claimProc.SummedWriteOff);
+					negSplit.SplitAmt+=amtWriteOff;
+					claimProc.SummedWriteOff-=amtWriteOff;
 				}
 				List<Adjustment> listAdjusts=listNegAdjustCopied.FindAll(x => x.PatNum==negSplit.PatNum && x.ProvNum==negSplit.ProvNum 
 					&& x.ClinicNum==negSplit.ClinicNum);
@@ -601,49 +603,47 @@ namespace OpenDentBusiness {
 		///because the lists are used multiple times (they keep track of if a PaySplit has been fully used, for example).  Make sure to pass in copies
 		///if you don't want original data overwritten.  Phase 1 matches on Prov, Clinic, and Patient.  Phase 2 matches on Prov and Patient.  Phase 3 matches only on Patient.
 		///The purpose is to implicitly link a patient's credits to their charges as accurately as possible.</summary>
-		public static void PayPatientBalances(ref List<ClaimProc> listInsPayAsTotal,ref List<PaySplit> listPaySplits,ref List<Adjustment> listAdjustments
+		public static void PayPatientBalances(ref List<PayAsTotal> listInsPayAsTotal,ref List<PaySplit> listPaySplits,ref List<Adjustment> listAdjustments
 			,int phase,ref List<AccountEntry> listAccountCharges) 
 		{
 			//No remoting role check; no call to db
 			List<long> listHiddenUnearnedDefNums=Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType)
 				.FindAll(x => !string.IsNullOrEmpty(x.ItemValue))//If ItemValue is not blank, it means "do not show on account"
 				.Select(x => x.DefNum).ToList();
-			foreach(ClaimProc claimProc in listInsPayAsTotal) {//Use claim payments by total to pay off procedures for that specific patient.
-				claimProc.InsPayAmt=claimProc.InsPayAmt+claimProc.WriteOff;//just move both values to a single item for ease of use.  We don't care if it's a writeoff or not.
-				claimProc.WriteOff=0;//Fix just in case we come back to this claimproc again in the future, don't want to re-add the value to InsPayAmt.
-				if(claimProc.InsPayAmt==0) {
+			foreach(PayAsTotal payAsTotal in listInsPayAsTotal) {//Use claim payments by total to pay off procedures for that specific patient.
+				if(payAsTotal.SummedInsPayAmt==0 && payAsTotal.SummedWriteOff==0) {
 					continue;
 				}
 				//Find all charges that have this claimproc's patient, provider, or clinic, and use the claimproc to pay them off.
-				List<AccountEntry> listEntriesForClaimProc=new List<AccountEntry>();
+				List<AccountEntry> listEntriesForPayAsTotal=new List<AccountEntry>();
 				switch (phase) {
 					case 1:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.ProvNum==claimProc.ProvNum && x.PatNum==claimProc.PatNum && x.ClinicNum==claimProc.ClinicNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.ProvNum==payAsTotal.ProvNum && x.PatNum==payAsTotal.PatNum && x.ClinicNum==payAsTotal.ClinicNum);
 						break;
 					case 2:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.ProvNum==claimProc.ProvNum && x.PatNum==claimProc.PatNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.ProvNum==payAsTotal.ProvNum && x.PatNum==payAsTotal.PatNum);
 						break;
 					case 3:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.ProvNum==claimProc.ProvNum && x.ClinicNum==claimProc.ClinicNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.ProvNum==payAsTotal.ProvNum && x.ClinicNum==payAsTotal.ClinicNum);
 						break;
 					case 4:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.PatNum==claimProc.PatNum && x.ClinicNum==claimProc.ClinicNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.PatNum==payAsTotal.PatNum && x.ClinicNum==payAsTotal.ClinicNum);
 						break;
 					case 5:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.ProvNum==claimProc.ProvNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.ProvNum==payAsTotal.ProvNum);
 						break;
 					case 6:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.PatNum==claimProc.PatNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.PatNum==payAsTotal.PatNum);
 						break;
 					case 7:
-						listEntriesForClaimProc=listAccountCharges.FindAll(x => x.ClinicNum==claimProc.ClinicNum);
+						listEntriesForPayAsTotal=listAccountCharges.FindAll(x => x.ClinicNum==payAsTotal.ClinicNum);
 						break;
 					case 8:
-						listEntriesForClaimProc=listAccountCharges;//Any unpaid charge.
+						listEntriesForPayAsTotal=listAccountCharges;//Any unpaid charge.
 						break;
 				}
-				foreach(AccountEntry accountEntry in listEntriesForClaimProc) {
-					if(claimProc.InsPayAmt==0) {
+				foreach(AccountEntry accountEntry in listEntriesForPayAsTotal) {
+					if(payAsTotal.SummedInsPayAmt==0 && payAsTotal.SummedWriteOff==0) {
 						break;
 					}
 					if(accountEntry.AmountEnd==0) {
@@ -652,10 +652,14 @@ namespace OpenDentBusiness {
 					if(accountEntry.GetType()==typeof(PayPlanCharge)) {//B12401
 						continue;
 					}
-					double amt=Math.Min((double)accountEntry.AmountEnd,claimProc.InsPayAmt);
+					double amt=Math.Min((double)accountEntry.AmountEnd,payAsTotal.SummedInsPayAmt);
 					accountEntry.AmountStart-=(decimal)amt;
 					accountEntry.AmountEnd-=(decimal)amt;
-					claimProc.InsPayAmt-=amt;
+					payAsTotal.SummedInsPayAmt-=amt;
+					double amtWriteOff=Math.Min((double)accountEntry.AmountEnd,payAsTotal.SummedWriteOff);
+					accountEntry.AmountStart-=(decimal)amtWriteOff;
+					accountEntry.AmountEnd-=(decimal)amtWriteOff;
+					payAsTotal.SummedWriteOff-=amtWriteOff;
 				}
 			}
 			foreach(PaySplit split in listPaySplits) {//Use unattached positive paysplits to pay off patient's procedures as accurately as possible.
@@ -1338,15 +1342,18 @@ namespace OpenDentBusiness {
 		///<summary>The data needed to construct a list of charges for FormPayment.</summary>
 		[Serializable]
 		public class ConstructChargesData {
-			///<summary>Will also contain TP procs if pref is set to ON.</summary>
-			public List<Procedure> ListProcsCompleted=new List<Procedure>();//list from the db, completed for pat. Not list of pre-selected procs from acct.
+			///<summary>List from the db, completed for pat. Not list of pre-selected procs from acct. Will also contain TP procs if pref is set to ON.</summary>
+			public List<Procedure> ListProcsCompleted=new List<Procedure>();
 			public List<Adjustment> ListAdjustments=new List<Adjustment>();
-			public List<PaySplit> ListPaySplits=new List<PaySplit>();//current list of all splits from database
-			public List<ClaimProc> ListInsPayAsTotal=new List<ClaimProc>();
+			///<summary>Current list of all splits from database</summary>
+			public List<PaySplit> ListPaySplits=new List<PaySplit>();
+			///<summary>Stores the summed outstanding ins pay as totals (amounts and write offs) for the list of patnums</summary>
+			public List<PayAsTotal> ListInsPayAsTotal=new List<PayAsTotal>();
 			public List<PayPlan> ListPayPlans=new List<PayPlan>();
 			public List<PaySplit> ListPaySplitsPayPlan=new List<PaySplit>();
 			public List<PayPlanCharge> ListPayPlanCharges=new List<PayPlanCharge>();
-			public List<ClaimProc> ListClaimProcs=new List<ClaimProc>();
+			///<summary>Stores the list of claimprocs (not ins pay as totals) for the list of pat nums</summary>
+			public List<ClaimProc> ListClaimProcsFiltered=new List<ClaimProc>();
 		}
 
 		///<summary>Data retrieved upon initialization. AutpSplit stores data retireved from going through list of charges, linking,and autosplitting.</summary>
