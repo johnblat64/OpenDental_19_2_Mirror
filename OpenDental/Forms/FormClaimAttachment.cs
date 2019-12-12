@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -193,6 +194,28 @@ namespace OpenDental {
 			}
 			catch(Exception ex) {
 				FriendlyException.Show(Lan.g(this,"An error occurred. Please try again or call support.")+"\r\n"+ex.Message,ex);
+			}
+		}
+
+		///<summary>Allows users to paste an image from their clipboard. Throws if the content on the clipboard is not a supported image format.</summary>
+		private void ButPasteImage_Click(object sender,EventArgs e) {
+			try{
+				Image imageClipboard=Clipboard.GetImage();
+				if(imageClipboard==null) {
+					//Either an image doesn't exist on the clipboard, or
+					// an image exists on the clipboard that cannot be converted to a bitmap, in which case imageClipboard will also be null.
+					throw new ODException(Lan.g(this,"Could not find a valid image on the clipboard."));
+				}
+				ShowImageAttachmentItemEdit(imageClipboard);
+			}
+			catch(ODException ode) {
+				MsgBox.Show(this,ode.Message);
+			}
+			catch(ExternalException ee) {
+				FriendlyException.Show(Lan.g(this,"The clipboard could not be accessed. This typically occurs when the clipboard is being used by another process."),ee);
+			}
+			catch(Exception ex) {
+				FriendlyException.Show(Lan.g(this,"An error occurred while accessing the clipboard. Please call support if the issue persists."),ex);
 			}
 		}
 

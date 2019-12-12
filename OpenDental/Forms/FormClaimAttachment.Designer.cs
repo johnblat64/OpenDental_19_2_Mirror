@@ -28,15 +28,17 @@
 			this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.labelNarrative = new System.Windows.Forms.Label();
 			this.groupBoxAttachment = new System.Windows.Forms.GroupBox();
-			this.labelClaimAttachWarning = new System.Windows.Forms.Label();
-			this.gridAttachedImages = new OpenDental.UI.ODGrid();
+			this.label1 = new System.Windows.Forms.Label();
 			this.textClaimStatus = new OpenDental.ODtextBox();
+			this.gridAttachedImages = new OpenDental.UI.ODGrid();
 			this.butSnipTool = new OpenDental.UI.Button();
 			this.butAddImage = new OpenDental.UI.Button();
 			this.textNarrative = new OpenDental.ODtextBox();
+			this.labelClaimAttachWarning = new System.Windows.Forms.Label();
 			this.butCancel = new OpenDental.UI.Button();
 			this.butOK = new OpenDental.UI.Button();
-			this.label1 = new System.Windows.Forms.Label();
+			this.labelPasteImage = new System.Windows.Forms.Label();
+			this.butPasteImage = new OpenDental.UI.Button();
 			this.contextMenuStrip1.SuspendLayout();
 			this.groupBoxAttachment.SuspendLayout();
 			this.SuspendLayout();
@@ -65,6 +67,8 @@
 			// 
 			// groupBoxAttachment
 			// 
+			this.groupBoxAttachment.Controls.Add(this.labelPasteImage);
+			this.groupBoxAttachment.Controls.Add(this.butPasteImage);
 			this.groupBoxAttachment.Controls.Add(this.label1);
 			this.groupBoxAttachment.Controls.Add(this.textClaimStatus);
 			this.groupBoxAttachment.Controls.Add(this.gridAttachedImages);
@@ -79,38 +83,13 @@
 			this.groupBoxAttachment.TabStop = false;
 			this.groupBoxAttachment.Text = "Create Attachment";
 			// 
-			// labelClaimAttachWarning
+			// label1
 			// 
-			this.labelClaimAttachWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.labelClaimAttachWarning.ForeColor = System.Drawing.Color.DarkRed;
-			this.labelClaimAttachWarning.Location = new System.Drawing.Point(7, 397);
-			this.labelClaimAttachWarning.Name = "labelClaimAttachWarning";
-			this.labelClaimAttachWarning.Size = new System.Drawing.Size(411, 27);
-			this.labelClaimAttachWarning.TabIndex = 15;
-			this.labelClaimAttachWarning.Text = "No claim attachment image category definition found.  Images will be saved using " +
-    "the first image category.";
-			this.labelClaimAttachWarning.Visible = false;
-			// 
-			// gridAttachedImages
-			// 
-			this.gridAttachedImages.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-			this.gridAttachedImages.ContextMenuStrip = this.contextMenuStrip1;
-			this.gridAttachedImages.HasAddButton = false;
-			this.gridAttachedImages.HasDropDowns = false;
-			this.gridAttachedImages.HasMultilineHeaders = false;
-			this.gridAttachedImages.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
-			this.gridAttachedImages.HeaderHeight = 15;
-			this.gridAttachedImages.HScrollVisible = false;
-			this.gridAttachedImages.Location = new System.Drawing.Point(6, 21);
-			this.gridAttachedImages.Name = "gridAttachedImages";
-			this.gridAttachedImages.ScrollValue = 0;
-			this.gridAttachedImages.Size = new System.Drawing.Size(460, 231);
-			this.gridAttachedImages.TabIndex = 10;
-			this.gridAttachedImages.Title = "Images to Send";
-			this.gridAttachedImages.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-			this.gridAttachedImages.TitleHeight = 18;
-			this.gridAttachedImages.TranslationName = "TableImagesToSend";
-			this.gridAttachedImages.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.CellDoubleClick_EditImage);
+			this.label1.Location = new System.Drawing.Point(283, 257);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(135, 13);
+			this.label1.TabIndex = 13;
+			this.label1.Text = "Claim Validation Status";
 			// 
 			// textClaimStatus
 			// 
@@ -126,6 +105,25 @@
 			this.textClaimStatus.Size = new System.Drawing.Size(301, 91);
 			this.textClaimStatus.TabIndex = 6;
 			this.textClaimStatus.Text = "";
+			// 
+			// gridAttachedImages
+			// 
+			this.gridAttachedImages.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+			this.gridAttachedImages.ContextMenuStrip = this.contextMenuStrip1;
+			this.gridAttachedImages.HasDropDowns = false;
+			this.gridAttachedImages.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
+			this.gridAttachedImages.HeaderHeight = 15;
+			this.gridAttachedImages.HScrollVisible = false;
+			this.gridAttachedImages.Location = new System.Drawing.Point(6, 21);
+			this.gridAttachedImages.Name = "gridAttachedImages";
+			this.gridAttachedImages.ScrollValue = 0;
+			this.gridAttachedImages.Size = new System.Drawing.Size(460, 231);
+			this.gridAttachedImages.TabIndex = 10;
+			this.gridAttachedImages.Title = "Images to Send";
+			this.gridAttachedImages.TitleFont = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+			this.gridAttachedImages.TitleHeight = 18;
+			this.gridAttachedImages.TranslationName = "TableImagesToSend";
+			this.gridAttachedImages.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.CellDoubleClick_EditImage);
 			// 
 			// butSnipTool
 			// 
@@ -171,6 +169,18 @@
 			this.textNarrative.TabIndex = 11;
 			this.textNarrative.Text = "";
 			// 
+			// labelClaimAttachWarning
+			// 
+			this.labelClaimAttachWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.labelClaimAttachWarning.ForeColor = System.Drawing.Color.DarkRed;
+			this.labelClaimAttachWarning.Location = new System.Drawing.Point(7, 397);
+			this.labelClaimAttachWarning.Name = "labelClaimAttachWarning";
+			this.labelClaimAttachWarning.Size = new System.Drawing.Size(411, 27);
+			this.labelClaimAttachWarning.TabIndex = 15;
+			this.labelClaimAttachWarning.Text = "No claim attachment image category definition found.  Images will be saved using " +
+    "the first image category.";
+			this.labelClaimAttachWarning.Visible = false;
+			// 
 			// butCancel
 			// 
 			this.butCancel.AdjustImageLocation = new System.Drawing.Point(0, 0);
@@ -203,13 +213,31 @@
 			this.butOK.UseVisualStyleBackColor = true;
 			this.butOK.Click += new System.EventHandler(this.buttonOK_Click);
 			// 
-			// label1
+			// labelPasteImage
 			// 
-			this.label1.Location = new System.Drawing.Point(283, 257);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(135, 13);
-			this.label1.TabIndex = 13;
-			this.label1.Text = "Claim Validation Status";
+			this.labelPasteImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.labelPasteImage.Location = new System.Drawing.Point(472, 107);
+			this.labelPasteImage.Name = "labelPasteImage";
+			this.labelPasteImage.Size = new System.Drawing.Size(115, 35);
+			this.labelPasteImage.TabIndex = 20;
+			this.labelPasteImage.Text = "(image may be pasted from your clipboard)";
+			this.labelPasteImage.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+			// 
+			// butPasteImage
+			// 
+			this.butPasteImage.AdjustImageLocation = new System.Drawing.Point(0, 0);
+			this.butPasteImage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butPasteImage.Autosize = true;
+			this.butPasteImage.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
+			this.butPasteImage.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
+			this.butPasteImage.CornerRadius = 4F;
+			this.butPasteImage.Location = new System.Drawing.Point(472, 80);
+			this.butPasteImage.Name = "butPasteImage";
+			this.butPasteImage.Size = new System.Drawing.Size(115, 24);
+			this.butPasteImage.TabIndex = 19;
+			this.butPasteImage.Text = "Paste Image";
+			this.butPasteImage.UseVisualStyleBackColor = true;
+			this.butPasteImage.Click += new System.EventHandler(this.ButPasteImage_Click);
 			// 
 			// FormClaimAttachment
 			// 
@@ -245,5 +273,7 @@
 		private System.Windows.Forms.GroupBox groupBoxAttachment;
 		private System.Windows.Forms.Label labelClaimAttachWarning;
 		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Label labelPasteImage;
+		private UI.Button butPasteImage;
 	}
 }
