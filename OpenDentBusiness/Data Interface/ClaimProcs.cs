@@ -2607,6 +2607,7 @@ namespace OpenDentBusiness{
 
 	///<summary>Class to represent PayAsTotal claimprocs. This is used specifically with ClaimProc pay as total transfers where we create
 	///a singular PayAsTotal to represent a group of summed pay as totals, which is where the SummedInsPayAmt and SummedInsWriteOff comes from.</summary>
+	[Serializable]
 	public class PayAsTotal {
 		public long ClaimNum;
 		public long PatNum;
@@ -2621,6 +2622,10 @@ namespace OpenDentBusiness{
 		public long ProcNum;
 		public DateTime ProcDate;
 		public DateTime DateEntry;
+
+		public PayAsTotal() {
+			//necessary for middle tier serialization
+		}
 
 		public PayAsTotal(ClaimProc claimProc,double summedInsPayAmt,double summedWriteOff) {
 			ClaimNum=claimProc.ClaimNum;
