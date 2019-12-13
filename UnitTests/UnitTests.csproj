@@ -122,6 +122,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IntegrationTests\InsVerifiesIntegrationTests.cs" />
     <Compile Include="UnitTests\ClinicPrefHelperTests.cs" />
     <Compile Include="UnitTests\DataActionTests.cs" />
     <Compile Include="UnitTests\EmailAttachTests.cs" />

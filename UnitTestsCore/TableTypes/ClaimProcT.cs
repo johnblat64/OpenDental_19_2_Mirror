@@ -71,6 +71,12 @@ namespace UnitTestsCore {
 			return cp;
 		}
 
+		///<summary>Deletes everything from the claimproc table.  Does not truncate the table so that PKs are not reused on accident.</summary>
+		public static void ClearClaimProcTable() {
+			string command="DELETE FROM claimproc";
+			DataCore.NonQ(command);
+		}
+
 
 	}
 }

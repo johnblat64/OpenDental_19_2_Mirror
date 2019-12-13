@@ -10,6 +10,8 @@ using OpenDentBusiness.Eclaims;
 namespace OpenDentBusiness.Eclaims {
 	///<summary>Handles all 270/270 logic.  Contains UI elements.  Passes off the 270 to the correct clearinghouse.</summary>
 	public class x270Controller {
+		///<summary>Only used by unit tests to spoof a fake 271 response.</summary>
+		public static string FakeResponseOverride271="";
 
 		///<summary>Throws exceptions. The insplan that's passed in need not be properly updated to the database first.</summary>
 		///<returns>The Etrans created from the request. Will be null if the request failed in any way.</returns>
@@ -44,13 +46,16 @@ namespace OpenDentBusiness.Eclaims {
 			Etrans etransHtml=null;
 			//a connection error here needs to bubble up
 			try {
-				if(clearinghouseClin.CommBridge==EclaimsCommBridge.ClaimConnect) {
+				if(!String.IsNullOrWhiteSpace(FakeResponseOverride271)) {
+					x12response=FakeResponseOverride271;
+				}
+				else if(clearinghouseClin.CommBridge==EclaimsCommBridge.ClaimConnect) {
 					x12response=ClaimConnect.Benefits270(clearinghouseClin,x12message);
 				}
-				if(clearinghouseClin.CommBridge==EclaimsCommBridge.EDS) {
+				else if(clearinghouseClin.CommBridge==EclaimsCommBridge.EDS) {
 					x12response=EDS.Benefits270(clearinghouseClin,x12message,out etransHtml);
 				}
-				if(clearinghouseClin.CommBridge==EclaimsCommBridge.WebMD) {
+				else if(clearinghouseClin.CommBridge==EclaimsCommBridge.WebMD) {
 					x12response=WebMD.Benefits270(clearinghouseClin,x12message);
 				}
 			}

@@ -178,15 +178,11 @@ namespace OpenDentBusiness
 			return validationErrors;
 		}
 
-		internal bool IsValidForBatchVerification(bool isCoinsuranceInverted,out string errorMsg) {
+		internal bool IsValidForBatchVerification(List<EB271> listBenefits,bool isCoinsuranceInverted,out string errorMsg) {
 			errorMsg=this.GetProcessingError();
 			if(errorMsg!=""){
 				return false;
 			}
-			//true=>isInNetwork. The is inNetwork segment flag is optional.
-			//Patients care about in network coverage because that is how they save the most money.
-			//If they want to see out of network benefits they can do this manually from FormInsPlan.cs.
-			List<EB271> listBenefits=GetListEB(true,isCoinsuranceInverted);
 			if(listBenefits.Count==0){
 				errorMsg="No benefits reported.";
 				return false;

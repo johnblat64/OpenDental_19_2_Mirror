@@ -1415,55 +1415,19 @@ namespace OpenDental{
 				ben=benefitListAll[i];
 				string benProcCode=ProcedureCodes.GetStringProcCode(ben.CodeNum);
 				//annual max individual
-				if(ben.CodeNum==0
-					&& ben.BenefitType==InsBenefitType.Limitations
-					&& (ben.CovCatNum==0
-					|| ben.CovCatNum==CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum)
-					&& ben.PatPlanNum==0
-					&& ben.Quantity==0
-					&& ben.QuantityQualifier==BenefitQuantity.None
-					&& (ben.TimePeriod==BenefitTimePeriod.CalendarYear || ben.TimePeriod==BenefitTimePeriod.ServiceYear)
-					&& ben.CoverageLevel==BenefitCoverageLevel.Individual) 
-				{
+				if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Individual)) {
 					textAnnualMax.Text=ben.MonetaryAmt.ToString("n");
 				}
 				//annual max family
-				else if(ben.CodeNum==0
-					&& ben.BenefitType==InsBenefitType.Limitations
-					&& (ben.CovCatNum==0
-					|| ben.CovCatNum==CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum)
-					&& ben.PatPlanNum==0
-					&& ben.Quantity==0
-					&& ben.QuantityQualifier==BenefitQuantity.None
-					&& (ben.TimePeriod==BenefitTimePeriod.CalendarYear || ben.TimePeriod==BenefitTimePeriod.ServiceYear)
-					&& ben.CoverageLevel==BenefitCoverageLevel.Family)
-				{
+				else if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Family)) {
 					textAnnualMaxFam.Text=ben.MonetaryAmt.ToString("n");
 				}
 				//deductible individual
-				else if(ben.CodeNum==0
-					&& ben.BenefitType==InsBenefitType.Deductible
-					&& (ben.CovCatNum==0
-					|| ben.CovCatNum==CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum)
-					&& ben.PatPlanNum==0
-					&& ben.Quantity==0
-					&& ben.QuantityQualifier==BenefitQuantity.None
-					&& (ben.TimePeriod==BenefitTimePeriod.CalendarYear || ben.TimePeriod==BenefitTimePeriod.ServiceYear)
-					&& ben.CoverageLevel==BenefitCoverageLevel.Individual)
-				{
+				else if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Individual)) {
 					textDeductible.Text=ben.MonetaryAmt.ToString("n");
 				}
 				//deductible family
-				else if(ben.CodeNum==0
-					&& ben.BenefitType==InsBenefitType.Deductible
-					&& (ben.CovCatNum==0
-					|| ben.CovCatNum==CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum)
-					&& ben.PatPlanNum==0
-					&& ben.Quantity==0
-					&& ben.QuantityQualifier==BenefitQuantity.None
-					&& (ben.TimePeriod==BenefitTimePeriod.CalendarYear || ben.TimePeriod==BenefitTimePeriod.ServiceYear)
-					&& ben.CoverageLevel==BenefitCoverageLevel.Family)
-				{
+				else if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Family)) {
 					textDeductibleFam.Text=ben.MonetaryAmt.ToString("n");
 				}
 				//Flo

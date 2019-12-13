@@ -401,7 +401,7 @@ namespace OpenDentBusiness{
 
 		///<summary>Called in OpenDentalService.  Attempts to verify patient benefits for same list in FormInsVerificaitonList.cs.
 		///Only runs for carriers that are flagged with TrustedEtransTypes.RealTimeEligibility.</summary>
-		public static List<InsVerify> TryBatchPatInsVerify(LogWriter logger=null,bool isTest=false) {
+		public static List<InsVerify> TryBatchPatInsVerify(LogWriter logger=null) {
 			//Mimics FormInsVerificaitonList.GetRowsForGrid(...)
 			bool excludePatVerifyWhenNoIns=PrefC.GetBool(PrefName.InsVerifyExcludePatVerify);
 			bool excludePatClones=(PrefC.GetBool(PrefName.ShowFeaturePatientClone) && PrefC.GetBool(PrefName.InsVerifyExcludePatientClones));
@@ -452,47 +452,56 @@ namespace OpenDentBusiness{
 					//When Both we only request and verify the PatIns.
 					string errorStatus="";
 					Etrans etransRequest=null;
-					if(isTest) {
-						//270 request placeholder
-						etransRequest=new Etrans();
-						//Example 271 response
-						etransRequest.AckEtrans=new Etrans();
-						//Valid test response copied from ClaimConnect.Benefits270(..) comment.
-						etransRequest.AckEtrans.MessageText="ISA*00*          *00*          *30*330989922      *29*AA0989922      *030606*0936*U*00401*000013966*0*T*:~GS*HB*330989922*AA0989922*20030606*0936*13966*X*004010X092~ST*271*0001~BHT*0022*11*ASX012145WEB*20030606*0936~HL*1**20*1~NM1*PR*2*ACME INC*****PI*12345~HL*2*1*21*1~NM1*1P*1*PROVLAST*PROVFIRST****SV*5558006~HL*3*2*22*0~TRN*2*100*1330989922~NM1*IL*1*SMITH*JOHN*B***MI*123456789~REF*6P*XYZ123*GROUPNAME~REF*18*2484568*TEST PLAN NAME~N3*29 FREMONT ST*~N4*PEACE*NY*10023~DMG*D8*19570515*M~DTP*307*RD8*19910712-19920525~EB*1*FAM*30~SE*17*0001~GE*1*13966~IEA*1*000013966~";
-						isTest=false;//Testing only checks for one successful request, all others are suppose to result in either an error or should be skipped.
-					}
-					else {
-						etransRequest=x270Controller.TryInsVerifyRequest(insVerifyObj.PatInsVerify,dictInsPlans[insVerifyObj.PatInsVerify.PlanNum]
-							,dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum],dictInsSubs[insVerifyObj.PatInsVerify.InsSubNum],out errorStatus
-						);//Can be null
-						logger?.WriteLine($"PatNum:{insVerifyObj.PatInsVerify.PatNum} error status:{errorStatus}",LogLevel.Verbose,"InsVerifyBatch");
-					}
+					etransRequest=x270Controller.TryInsVerifyRequest(insVerifyObj.PatInsVerify,dictInsPlans[insVerifyObj.PatInsVerify.PlanNum]
+						,dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum],dictInsSubs[insVerifyObj.PatInsVerify.InsSubNum],out errorStatus
+					);//Can be null
+					logger?.WriteLine($"PatNum:{insVerifyObj.PatInsVerify.PatNum} error status:{errorStatus}",LogLevel.Verbose,"InsVerifyBatch");
 					if(errorStatus.IsNullOrEmpty()) {//No error yet.
 						if(etransRequest==null) {//Can happen when an AAA segment is returned.
 							errorStatus=Lans.g("InsVerifyService","Unexpected carrier response.");
 						}
 						else {//Success, no errors so far and etrans returned
-							#region Verify Plan End dates
+							bool isCoinsuranceInverted=dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum].IsCoinsuranceInverted;
 							//AckEtrans and MessageText are not DB columns but are always set in x270.RequestBenefits(...). This is done to avoid queries.
 							X271 x271=new X271(etransRequest.AckEtrans.MessageText);
-							//Sets errorStatus if validation failed, otherwise blank string.
-							if(x271.IsValidForBatchVerification(dictTrustedCarriers[insVerifyObj.PatInsVerify.CarrierNum].IsCoinsuranceInverted,out errorStatus)){
-								List<DTP271> listPlanEndDates=x271.GetListDtpSubscriber().FindAll(x => x.Segment.Get(1)=="347");//347 => Plan End.
+							//Per NADG we should be considering both in-network and out-of-network benefits
+							List<EB271> listEb271=x271.GetListEB(true,isCoinsuranceInverted);
+							listEb271.AddRange(x271.GetListEB(false,isCoinsuranceInverted));
+							List<Benefit> listBensForPat=Benefits.RefreshForPlan(insVerifyObj.PatInsVerify.PlanNum,insVerifyObj.PatInsVerify.PatPlanNum);
+							//If the benefits received from 271 are valid, continue with further validation
+							if(x271.IsValidForBatchVerification(listEb271,isCoinsuranceInverted,out errorStatus)) {
+								string strGroupNumInOd=dictInsPlans[insVerifyObj.PatInsVerify.PlanNum].GroupNum;
+								string strGroupNumIn271=x271.GetGroupNum();
+								errorStatus+=ValidateGroupNumber(strGroupNumInOd,strGroupNumIn271);
+								#region Validate Plan dates
+								DateTime datePlanStart=DateTime.MinValue;
+								DateTime datePlanEnd=DateTime.MinValue;
+								List<DTP271> listPlanDates=x271.GetListDtpSubscriber();
+								List<DTP271> listPlanStartDates=listPlanDates.FindAll(x => x.Segment.Get(1)=="346");//346 => Plan Start.
+								List<DTP271> listPlanEndDates=listPlanDates.FindAll(x => x.Segment.Get(1)=="347");//347 => Plan End.
+								//If the 271 specifies more than 1 date we will always use the last one for both plan start and plan end.
+								if(listPlanStartDates.Count>0) {
+									datePlanStart=X12Parse.ToDate(listPlanStartDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectronic_Click(...)
+								}
 								if(listPlanEndDates.Count>0) {
-									DateTime planEndDate=X12Parse.ToDate(listPlanEndDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectonic_Click(...)
-									if(planEndDate<DateTime.Today) {
-										errorStatus=Lans.g("InsVerifyService","Inactive coverage");
-									}
+									datePlanEnd=X12Parse.ToDate(listPlanEndDates.Last().Segment.Get(3));//Mimics FormInsPlan.butGetElectronic_Click(...)
+								}
+								errorStatus+=ValidatePlanDates(datePlanStart,datePlanEnd,dictInsSubs[insVerifyObj.PatInsVerify.InsSubNum],insVerifyObj.PatInsVerify.AptNum);
+								#endregion
+								//The age old classic of short and sweet or long and descriptive.
+								errorStatus+=ValidateAnnualMaxAndGeneralDeductible(listBensForPat,listEb271.Select(x=>x.Benefitt).ToList());
+								if(errorStatus.IsNullOrEmpty()) {//Only create insurance adjustments if the plan has passed all validation up to this point.
+									CreateInsuranceAdjustmentIfNeeded(insVerifyObj.PatInsVerify.PatNum,insVerifyObj.PatInsVerify.PlanNum,
+										insVerifyObj.PatInsVerify.InsSubNum,listBensForPat,listEb271);
 								}
 							}
-							#endregion
 						}
 					}
 					if(errorStatus.IsNullOrEmpty()) {
 						InsVerifyOnVerify(insVerifyObj);
 						insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Success;
 					}
-					else {//Error occured
+					else {//Error occurred
 						InsVerifySetStatus(insVerifyObj,errorStatusDefNum,errorStatus);
 						insVerifyObj.PatInsVerify.BatchVerifyState=BatchInsVerifyState.Error;
 					}
@@ -533,6 +542,196 @@ namespace OpenDentBusiness{
 			InsVerifyHists.InsertFromInsVerify(insVerifyObj.PatInsVerify);//This also updates the insVerifyObj.PatInsVerify InsVerify DB record.
 			//Eventually we might incoroprate ins plan verification
 		}
+
+		///<summary>Checks to see if the group number in OD matches the group number in the 271 response. Returns "" for partial matches with the insplan group num
+		///or if no group number was found in the 271.</summary>
+		public static string ValidateGroupNumber(string insPlanGroupNum,string x271GroupNum) {
+			if(String.IsNullOrWhiteSpace(insPlanGroupNum) || insPlanGroupNum.Length<3) {
+				return Lans.g("InsVerifyService",$"Group number on insurance plan is invalid, current:{insPlanGroupNum}, received:{x271GroupNum}");
+			}
+			else 
+			if(String.IsNullOrWhiteSpace(x271GroupNum) || x271GroupNum.Length<3) {//If we receive an invalid or empty group number, assume what is in OD is correct.
+				return "";
+			}
+			else if(x271GroupNum.StartsWith(insPlanGroupNum) || x271GroupNum.EndsWith(insPlanGroupNum)) {
+				return "";
+			}
+			return Lans.g("InsVerifyService",$"Group number mismatch, current:{insPlanGroupNum}, received:{x271GroupNum}");
+		}
+
+		///<summary>Checks to see if a plan start and plan end date was specified in the given x271 object. 
+		///Silenty updates DateEffective and DateTerm for the given inssub if the date received is valid. Returns an error string if
+		///the patient's appointment date does not fall in the range of the received date(s).</summary>
+		public static string ValidatePlanDates(DateTime datePlanStart,DateTime datePlanEnd,InsSub insSub,long aptNum) {
+			if(datePlanStart==DateTime.MinValue && datePlanEnd==DateTime.MinValue) {//No plan date information was received from the 271, nothing to validate.
+				return "";
+			}
+			if(datePlanStart.Date!=DateTime.MinValue) {
+				insSub.DateEffective=datePlanStart;
+				InsSubs.Update(insSub);
+			}
+			if(datePlanEnd.Date!=DateTime.MinValue) {
+				insSub.DateTerm=datePlanEnd;
+				InsSubs.Update(insSub);
+			}
+			DateTime aptDate=Appointments.GetOneApt(aptNum).AptDateTime.Date;
+			if(datePlanEnd==DateTime.MinValue && datePlanStart>aptDate) {//No end date, but we have a start date, and plan starts in the future
+				return Lans.g("InsVerifyService",$"Plan does not start until {datePlanStart.ToShortDateString()}");
+			}
+			else if(datePlanStart==DateTime.MinValue && datePlanEnd<aptDate) {//No start date, but we have an end date, and plan ended in the past
+				return Lans.g("InsVerifyService",$"Inactive coverage.  Plan ended {datePlanEnd.ToShortDateString()}");
+			}
+			else if(!DateTime.Today.Between(datePlanStart,datePlanEnd)) {//Both dates were specified in the 271 response and plan is not currently active
+				return Lans.g("InsVerifyService",$"Invalid plan dates: {datePlanStart.ToShortDateString()} - {datePlanEnd.ToShortDateString()}");
+			}
+			return "";
+		}
+		
+		///<summary>Given a list of benefits for the patient's plan and a list of benefits received in a 271 response. Determines if the general deductible and annual
+		///max on the patient's insurance plan has a different amount than that received in the 271. Checks individual and family coverage level. Returns all errors as a string.</summary>
+		public static string ValidateAnnualMaxAndGeneralDeductible(List<Benefit> listPlanBenefits,List<Benefit> list271Benefits) {
+			Benefit annualMaxInd=null;
+			Benefit annualMaxFam=null;
+			Benefit generalDeductInd=null;
+			Benefit generalDeductFam=null;
+			//Find our current general deductible and annual max benefits.
+			//If duplicate benefits the last one will be considered.  This mimics the behavior in FormInsBenefits.cs.
+			foreach(Benefit ben in listPlanBenefits) {
+				if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Individual)) {
+					annualMaxInd=ben;
+				}
+				else if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Family)) {
+					annualMaxFam=ben;
+				}
+				else if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Individual)) {
+					generalDeductInd=ben;
+				}
+				else if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Family)) {
+					generalDeductFam=ben;
+				}
+			}
+			//Construct a list of annual max and general deductible benefits specified in the 271. 
+			List<Benefit> listAnnualMaxInd271=new List<Benefit>();
+			List<Benefit> listAnnualMaxFam271=new List<Benefit>();
+			List<Benefit> listGeneralDeductInd271=new List<Benefit>();
+			List<Benefit> listGeneralDeductFam271=new List<Benefit>();
+			foreach(Benefit ben in list271Benefits) {
+				if(ben==null) {//Most EB271.Benefitt objects will be null.
+					continue;
+				}
+				if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Individual)) {
+					listAnnualMaxInd271.Add(ben);
+				}
+				else if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Family)) {
+					listAnnualMaxFam271.Add(ben);
+				}
+				else if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Individual)) {
+					listGeneralDeductInd271.Add(ben);
+				}
+				else if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Family)) {
+					listGeneralDeductFam271.Add(ben);
+				}
+			}
+			//If the 271 does not specify a value, we will not do the comparison and consider the data in OD to be correct.
+			//If ANY benefit segment matches the associated value in OD, then the annual max/general deductible benefit will be considered valid.
+			//However, if the current benefit amount in OD is 0, and the 271 specifies an additional non-zero amount (for the same benefit),
+			//we will flag this patient as needing manual correction.
+			StringBuilder strBuildErrorStatus=new StringBuilder();
+			if(listAnnualMaxInd271.Count>0) {
+				if(annualMaxInd==null || annualMaxInd.MonetaryAmt==0 || !listAnnualMaxInd271.Any(x=>x.MonetaryAmt==annualMaxInd.MonetaryAmt)) {
+					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Individual annual max mismatch."));
+				}
+			}
+			if(listAnnualMaxFam271.Count>0) {
+				if(annualMaxFam==null || annualMaxFam.MonetaryAmt==0 || !listAnnualMaxFam271.Any(x=>x.MonetaryAmt==annualMaxFam.MonetaryAmt)) {
+					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Family annual max mismatch."));
+				}
+			}
+			if(listGeneralDeductInd271.Count>0) {
+				if(generalDeductInd==null || generalDeductInd.MonetaryAmt==0 || !listGeneralDeductInd271.Any(x=>x.MonetaryAmt==generalDeductInd.MonetaryAmt)) {
+					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Individual general deductible mismatch."));
+				}
+			}
+			if(listGeneralDeductFam271.Count>0) {
+				if(generalDeductFam==null || generalDeductFam.MonetaryAmt==0 || !listGeneralDeductFam271.Any(x=>x.MonetaryAmt==generalDeductFam.MonetaryAmt)) {
+					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Family general deductible mismatch."));
+				}
+			}
+			return strBuildErrorStatus.ToString();
+		}
+
+		///<summary>This method determines whether an insurance adjustment needs to be made given the current benefits in Open Dental and the EB271 segments from the 271 response.
+		///An insurance adjustment will be made if there is an individual general deductible or annual max specified in Open Dental and the 
+		///271 response specifies a 'remaining' benefit amount for the associated benefit (deductible or annual max).  Only one insurance adjustment will be made.</summary>
+		public static void CreateInsuranceAdjustmentIfNeeded(long patNum,long planNum,long insSubNum,List<Benefit> listDbBens,List<EB271> list271Bens) {
+			Benefit generalDeductInd=null;
+			Benefit annualMaxInd=null;
+			foreach(Benefit ben in listDbBens) {
+				if(Benefits.IsGeneralDeductible(ben,BenefitCoverageLevel.Individual)) {
+					generalDeductInd=ben;
+				}
+				else if(Benefits.IsAnnualMax(ben,BenefitCoverageLevel.Individual)) {
+					annualMaxInd=ben;
+				}
+			}
+			ClaimProc insAdj=ClaimProcs.CreateInsPlanAdjustment(patNum,planNum,insSubNum);
+			foreach(EB271 eb in list271Bens) {
+				//Kick out early if the segment doesn't have the elements needed
+				if(String.IsNullOrEmpty(eb.Segment.Get(6))) {//A time period qualifier must be specified in the 271 segment
+					continue;
+				}
+				//Per Mark, we will not import general deductible from 271 if we do not already have one entered in the database.  See job.
+				if(generalDeductInd!=null && IsIndGeneralDeductRemaining(eb)) {
+					double rem271DeductAmt=PIn.Double(eb.Segment.Get(7));
+					//Make sure the general deductible amount remaining is less than the 271 amount.  We don't want to make a negative insurance adjustment.
+					if(rem271DeductAmt <= generalDeductInd.MonetaryAmt) {
+						insAdj.DedApplied=generalDeductInd.MonetaryAmt-rem271DeductAmt;
+					}
+				}
+				//Per Mark, we will not import annual max from 271 if we do not already have one entered in the database.  See job.
+				else if(annualMaxInd!=null && IsIndAnnualMaxRemaining(eb)) {
+					double rem271GenMaxAmt=PIn.Double(eb.Segment.Get(7));
+					//Make sure the annual max amount remaining is less than the 271 amount.  We don't want to make a negative insurance adjustment.
+					if(rem271GenMaxAmt <= annualMaxInd.MonetaryAmt) {
+						insAdj.InsPayAmt=annualMaxInd.MonetaryAmt-rem271GenMaxAmt;
+					}
+				}
+			}
+			if(insAdj.DedApplied!=0 || insAdj.InsPayAmt!=0) {
+				ClaimProcs.Insert(insAdj);
+			}
+		}
+
+		///<summary>Checks the if the received EB271 segment is an individual general deductible 'remaining' benefit. 
+		///Remaining benefit segments are flagged with a time period qualifier value of "29".</summary>
+		public static bool IsIndGeneralDeductRemaining(EB271 eb) {
+			//Check to see if the given eb271 segment represents an individual general deductible.
+			//For example: EB*C*IND*35**DG PLUS, NON CONTRACTED*29*50.00*****U~ should result in a match with 50 being returned.
+			if(eb.Segment.Get(1)=="C"//Deductible
+				&& eb.Segment.Get(2)=="IND"//Individual
+				&& eb.Segment.Get(3)=="35"//Dental (In X270.cs we use Service Type Code 35 in request and we expect the same code type in response).
+				&& eb.Segment.Get(6)=="29")//Remaining
+			{
+				return true;
+			}
+			return false;
+		}
+
+		///<summary>Checks the if the received EB271 segment is an individual annual max 'remaining' benefit. 
+		///Remaining benefit segments are flagged with a time period qualifier value of "29".</summary>
+		public static bool IsIndAnnualMaxRemaining(EB271 eb) {
+			//We found a 'remaining' benefit segment. Check to see if it represents an individual general annual max.
+			//For example: EB*F*IND*35**DG PLUS, NON CONTRACTED*29*2000.00*****U~ should result in a match with 2000 being returned.
+			if(eb.Segment.Get(1)=="F"//Limitation
+				&& eb.Segment.Get(2)=="IND"//Individual
+				&& eb.Segment.Get(3)=="35"//Dental (In X270.cs we use Service Type Code 35 in request and we expect the same code type in response).
+				&& eb.Segment.Get(6)=="29")//Remaining
+			{
+				return true;
+			}
+			return false;
+		}
+
 
 		//If this table type will exist as cached data, uncomment the CachePattern region below and edit.
 		/*

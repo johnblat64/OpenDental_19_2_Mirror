@@ -39,6 +39,18 @@ namespace UnitTestsCore {
 			Benefits.Insert(ben);
 		}
 
+		public static Benefit CreateAnnualMax(long planNum,BenefitCoverageLevel coverageLevel,double amt){
+			Benefit ben=new Benefit();
+			ben.PlanNum=planNum;
+			ben.BenefitType=InsBenefitType.Limitations;
+			ben.CovCatNum=0;
+			ben.CoverageLevel=coverageLevel;
+			ben.MonetaryAmt=amt;
+			ben.TimePeriod=BenefitTimePeriod.CalendarYear;
+			Benefits.Insert(ben);
+			return ben;
+		}
+
 		/// <summary>Takes an individual codeNum instead of a category.</summary>
 		public static void CreateDeductible(long planNum,string procCodeStr,double amt){
 			Benefit ben=new Benefit();

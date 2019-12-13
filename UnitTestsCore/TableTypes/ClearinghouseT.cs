@@ -10,7 +10,8 @@ namespace UnitTestsCore {
 
 		///<summary></summary>
 		public static Clearinghouse CreateClearinghouse(string description,long clinicNum=0,EclaimsCommBridge commBridge=EclaimsCommBridge.None,
-			ElectronicClaimFormat eFormat=ElectronicClaimFormat.None,long hqClearinghouseNum=0,bool isAttachmentSendAllowed=false,string loginID="",string password="")
+			ElectronicClaimFormat eFormat=ElectronicClaimFormat.None,long hqClearinghouseNum=0,bool isAttachmentSendAllowed=false,string loginID="",string password="",
+			string isa05="",string isa07="",string isa08="",string isa15="")
 		{
 			Clearinghouse clearinghouse=new Clearinghouse() {
 				Description=description,
@@ -21,6 +22,10 @@ namespace UnitTestsCore {
 				IsAttachmentSendAllowed=isAttachmentSendAllowed,
 				LoginID=loginID,
 				Password=password,
+				ISA05=isa05,
+				ISA07=isa07,
+				ISA08=isa08,
+				ISA15=isa15
 			};
 			Clearinghouses.Insert(clearinghouse);//Automatically sets HqClearinghouseNum.
 			if(hqClearinghouseNum > 0) {

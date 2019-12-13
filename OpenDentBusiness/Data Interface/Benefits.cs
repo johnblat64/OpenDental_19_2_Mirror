@@ -2085,6 +2085,40 @@ namespace OpenDentBusiness {
 			return false;
 		}
 
+		///<summary>Returns true if the given benefit represents an annual max benefit. Can be either family or individual based on coverageLevel passed in.</summary>
+		public static bool IsAnnualMax(Benefit ben,BenefitCoverageLevel coverageLevel) {
+			if(ben.CodeNum==0
+				&& ben.BenefitType==InsBenefitType.Limitations
+				&& (ben.CovCatNum==0
+				|| ben.CovCatNum==CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum)
+				&& ben.PatPlanNum==0
+				&& ben.Quantity==0
+				&& ben.QuantityQualifier==BenefitQuantity.None
+				&& (ben.TimePeriod==BenefitTimePeriod.CalendarYear || ben.TimePeriod==BenefitTimePeriod.ServiceYear)
+				&& ben.CoverageLevel==coverageLevel) 
+			{
+				return true;
+			}
+			return false;
+		}
+
+		///<summary>Returns true if the given benefit represents a general deductible benefit. Can be either family or individual based on coverageLevel passed in.</summary>
+		public static bool IsGeneralDeductible(Benefit ben,BenefitCoverageLevel coverageLevel) {
+			if(ben.CodeNum==0
+				&& ben.BenefitType==InsBenefitType.Deductible
+				&& (ben.CovCatNum==0
+				|| ben.CovCatNum==CovCats.GetForEbenCat(EbenefitCategory.General).CovCatNum)
+				&& ben.PatPlanNum==0
+				&& ben.Quantity==0
+				&& ben.QuantityQualifier==BenefitQuantity.None
+				&& (ben.TimePeriod==BenefitTimePeriod.CalendarYear || ben.TimePeriod==BenefitTimePeriod.ServiceYear)
+				&& ben.CoverageLevel==coverageLevel) 
+			{
+				return true;
+			}
+			return false;
+		}
+
 		public static Benefit CreateFrequencyBenefit(EbenefitCategory benefitCategory,byte quantity,BenefitQuantity quantityQualifier,long planNum,
 			BenefitTimePeriod timePeriod) 
 		{
