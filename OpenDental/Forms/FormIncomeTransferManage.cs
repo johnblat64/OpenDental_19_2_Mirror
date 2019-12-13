@@ -563,13 +563,21 @@ namespace OpenDental {
 			}
 			//9. Transfer all remaining excess to unearned (but keep the same pat/prov/clinic, unless they're on rigorous accounting in which case go to 0 prov)
 			foreach(AccountEntry negCharge in listNegCharges) {
-				if(negCharge.AmountEnd>=0 || !negCharge.GetType().In(typeof(PaySplit),typeof(Procedure),typeof(Adjustment))) {
-					continue;
-				}
-				if(negCharge.GetType()==typeof(PaySplit) && ((PaySplit)negCharge.Tag).UnearnedType!=0) {//Only perform transfer with non-unearned splits.
-					continue;
-				}
 				decimal amt=Math.Abs(negCharge.AmountEnd);
+				if(negCharge.AmountEnd>=0 || !negCharge.GetType().In(typeof(Adjustment),typeof(Procedure),typeof(PaySplit))) {
+					continue;
+				}
+				if(negCharge.GetType()==typeof(Adjustment) || negCharge.GetType()==typeof(Procedure)) {
+					//Production is only allowed when they have been overpaid (patient payments exist) and need to transfer the overpayment to unearned.
+					if(negCharge.SplitCollection.Count==0) {
+						continue;
+					}
+					//amt being transferred should not exceed the amount of paysplits on the production.
+					amt=Math.Min(Math.Abs(negCharge.AmountEnd),Math.Abs(negCharge.SplitCollection.Sum(x => (decimal)x.SplitAmt)));
+				}
+				else if(negCharge.GetType()==typeof(PaySplit) && ((PaySplit)negCharge.Tag).UnearnedType!=0) {
+					continue;//Only perform transfer with non-unearned splits.
+				}
 				PaySplit negSplit=new PaySplit();
 				if(negCharge.GetType()==typeof(PaySplit)) {
 					negSplit.ProcNum=((PaySplit)negCharge.Tag).ProcNum;
@@ -577,9 +585,6 @@ namespace OpenDental {
 					negSplit.FSplitNum=negCharge.PriKey;
 				}
 				else if(negCharge.GetType()==typeof(Procedure)) {
-					if(((Procedure)negCharge.Tag).ProcFee < 0) {
-						continue;//don't use money from negative procedures as a souce of income. 
-					}
 					negSplit.ProcNum=((Procedure)negCharge.Tag).ProcNum;
 					negSplit.FSplitNum=0;
 				}
@@ -678,6 +683,13 @@ namespace OpenDental {
 					return false;
 				}
 				else{
+					if(negCharge.GetType()!=typeof(PaySplit)) {
+						if(negCharge.SplitCollection.Count==0) {
+							return false;//negative production cannot be used as an income source. Only can be attached to production when overpaid.
+						}
+						//splits exist that can be transferred, we need to validate the amount to not transfer more than the splits are worth.
+						amt=Math.Min(amt,Math.Abs(negCharge.SplitCollection.Sum(x => (decimal)x.SplitAmt)));
+					}
 					posSplit=new PaySplit();
 					posSplit.DatePay=DateTimeOD.Today;
 					posSplit.ClinicNum=posCharge.ClinicNum;
