@@ -419,9 +419,18 @@ namespace OpenDentBusiness.HL7 {
 					SecurityLogs.MakeLogEntry(Permissions.PatientCreate,pat.PatNum,"Created from HL7.",LogSources.HL7);
 				}
 				if(_isVerboseLogging) {
-					EventLog.WriteEntry("OpenDentHL7","Inserted patient "+pat.GetNameFLnoPref(),EventLogEntryType.Information);
+					EventLog.WriteEntry("OpenDentHL7","Inserted patient with PatNum="+pat.PatNum,EventLogEntryType.Information);
 				}
 				patOld=pat.Copy();
+				if(pat.Guarantor==0) {
+					pat.Guarantor=pat.PatNum;
+					Patients.Update(pat,patOld);
+					if(_isVerboseLogging) {
+						EventLog.WriteEntry("OpenDentHL7","Updated patient with PatNum="+pat.PatNum+", updated Guarantor from 0 to "+pat.Guarantor+".",
+							EventLogEntryType.Information);
+					}
+					patOld=pat.Copy();
+				}
 			}
 			#endregion Insert New Patient
 			//Update hl7msg table with correct PatNum for this message
@@ -476,9 +485,6 @@ namespace OpenDentBusiness.HL7 {
 				HL7Msgs.Update(_hl7MsgCur);
 			}
 			else {
-				if(_isNewPat && pat.Guarantor==0) {
-					pat.Guarantor=pat.PatNum;
-				}
 				Patients.Update(pat,patOld);
 				if(_isVerboseLogging) {
 					EventLog.WriteEntry("OpenDentHL7","Updated patient "+pat.GetNameFLnoPref(),EventLogEntryType.Information);
@@ -2116,9 +2122,10 @@ namespace OpenDentBusiness.HL7 {
 			if(apt!=null) {
 				Appointments.Update(apt,aptOld);
 				_aptProcessed=apt;
-			}
-			if(_isVerboseLogging) {
-				EventLog.WriteEntry("OpenDentHL7","Updated appointment for patient "+pat.GetNameFLnoPref()+" due to an incoming PV1 segment.",EventLogEntryType.Information);
+				if(_isVerboseLogging) {
+					EventLog.WriteEntry("OpenDentHL7","Updated appointment for patient "+pat.GetNameFLnoPref()+" due to an incoming PV1 segment.",
+						EventLogEntryType.Information);
+				}
 			}
 			return;
 		}
