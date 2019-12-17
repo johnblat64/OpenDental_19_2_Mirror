@@ -3175,7 +3175,8 @@ namespace OpenDentBusiness {
 					FROM claimproc 
 					LEFT JOIN patient ON claimproc.PatNum=patient.PatNum
 					LEFT JOIN procedurelog ON claimproc.ProcNum=procedurelog.ProcNum 
-					WHERE WriteOff<0";
+					WHERE claimproc.WriteOff<0
+					AND claimproc.IsTransfer=0";//The income transfer tool creates claimprocs with negative writeoffs. These are valid.
 			DataTable table=Db.GetTable(command);
 			if(table.Rows.Count==0 && !verbose) {
 				return "";
