@@ -638,23 +638,23 @@ namespace OpenDentBusiness{
 			//we will flag this patient as needing manual correction.
 			StringBuilder strBuildErrorStatus=new StringBuilder();
 			if(listAnnualMaxInd271.Count>0) {
-				if(annualMaxInd==null || annualMaxInd.MonetaryAmt==0 || !listAnnualMaxInd271.Any(x=>x.MonetaryAmt==annualMaxInd.MonetaryAmt)) {
-					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Individual annual max mismatch."));
+				if(annualMaxInd==null || annualMaxInd.MonetaryAmt.In(0,-1) || !listAnnualMaxInd271.Any(x=>x.MonetaryAmt==annualMaxInd.MonetaryAmt)) {
+					strBuildErrorStatus.AppendLine(Lans.g("InsVerifyService","Individual annual max mismatch."));
 				}
 			}
 			if(listAnnualMaxFam271.Count>0) {
-				if(annualMaxFam==null || annualMaxFam.MonetaryAmt==0 || !listAnnualMaxFam271.Any(x=>x.MonetaryAmt==annualMaxFam.MonetaryAmt)) {
-					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Family annual max mismatch."));
+				if(annualMaxFam==null || annualMaxFam.MonetaryAmt.In(0,-1) || !listAnnualMaxFam271.Any(x=>x.MonetaryAmt==annualMaxFam.MonetaryAmt)) {
+					strBuildErrorStatus.AppendLine(Lans.g("InsVerifyService","Family annual max mismatch."));
 				}
 			}
 			if(listGeneralDeductInd271.Count>0) {
-				if(generalDeductInd==null || generalDeductInd.MonetaryAmt==0 || !listGeneralDeductInd271.Any(x=>x.MonetaryAmt==generalDeductInd.MonetaryAmt)) {
-					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Individual general deductible mismatch."));
+				if(generalDeductInd==null || generalDeductInd.MonetaryAmt.In(0,-1) || !listGeneralDeductInd271.Any(x=>x.MonetaryAmt==generalDeductInd.MonetaryAmt)) {
+					strBuildErrorStatus.AppendLine(Lans.g("InsVerifyService","Individual general deductible mismatch."));
 				}
 			}
 			if(listGeneralDeductFam271.Count>0) {
-				if(generalDeductFam==null || generalDeductFam.MonetaryAmt==0 || !listGeneralDeductFam271.Any(x=>x.MonetaryAmt==generalDeductFam.MonetaryAmt)) {
-					strBuildErrorStatus.Append(Lans.g("InsVerifyService","Family general deductible mismatch."));
+				if(generalDeductFam==null || generalDeductFam.MonetaryAmt.In(0,-1) || !listGeneralDeductFam271.Any(x=>x.MonetaryAmt==generalDeductFam.MonetaryAmt)) {
+					strBuildErrorStatus.AppendLine(Lans.g("InsVerifyService","Family general deductible mismatch."));
 				}
 			}
 			return strBuildErrorStatus.ToString();
