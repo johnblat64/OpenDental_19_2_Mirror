@@ -227,7 +227,9 @@ namespace OpenDentBusiness{
 					AND claimproc.Status IN("+POut.Int((int)ClaimProcStatus.Received)+","+POut.Int((int)ClaimProcStatus.Supplemental)+","
 					+POut.Int((int)ClaimProcStatus.CapClaim)+@") 
 					AND claimproc.DateEntry <= "+POut.Date(DateTime.Now)+@" 
-					AND claimproc.DateEntry >= "+POut.Date(DateTime.Now.AddMonths(-1))+@")
+					AND claimproc.DateEntry >= "+POut.Date(DateTime.Now.AddMonths(-1))+@"
+					AND claimproc.IsTransfer=0
+					GROUP BY claimproc.ClaimNum)
 				) partialpayments";//claimproc.DateEntry is updated when payment is received.
 			return PIn.Int(Db.GetCount(command),false);
 		}
