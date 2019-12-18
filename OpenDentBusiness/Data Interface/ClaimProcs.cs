@@ -249,7 +249,12 @@ namespace OpenDentBusiness{
 							unearnedSplit.DatePay=DateTime.Today;
 							unearnedSplit.PatNum=payAsTotal.PatNum;
 							unearnedSplit.PayNum=unearnedPayment.PayNum;
-							unearnedSplit.ProvNum=payAsTotal.ProvNum;
+							if(PrefC.GetBool(PrefName.AllowPrepayProvider)) {
+								unearnedSplit.ProvNum=payAsTotal.ProvNum;
+							}
+							else {
+								unearnedSplit.ProvNum=0;
+							}
 							unearnedSplit.SplitAmt=payAsTotal.SummedInsPayAmt+payAsTotal.SummedWriteOff;
 							unearnedSplit.UnearnedType=PrefC.GetLong(PrefName.PrepaymentUnearnedType);
 							insertedResults.ListInsertedPaySplits.Add(unearnedSplit);
