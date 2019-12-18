@@ -3920,7 +3920,17 @@ namespace OpenDental.UI {
 				if(_hasEditableAcceptsCR) {//When multiline it inserts a carriage return instead of moving to the next cell.
 					return;
 				}
-				editBox_NextCell();
+				if(EditableEnterMovesDown){
+					editBox.Dispose();
+					editBox=null;
+					if(SelectedCellOld.Y==Rows.Count-1) {
+						return;//can't move down
+					}
+					selectedCell=new Point(SelectedCellOld.X,SelectedCellOld.Y+1);
+					CreateEditBox();
+					return;
+				}
+				editBox_NextCellRight();
 			}
 			if(e.KeyCode==Keys.Down) {
 				if(_hasEditableAcceptsCR) {//When multiline it moves down inside the text instead of down to the next cell.
@@ -3945,21 +3955,13 @@ namespace OpenDental.UI {
 				}
 			}
 			if(e.KeyCode==Keys.Tab) {
-				editBox_NextCell();
+				editBox_NextCellRight();
 			}
 		}
 		
-		private void editBox_NextCell() {
+		private void editBox_NextCellRight() {
 			editBox.Dispose();//This fires editBox_LostFocus, which is where we call OnCellLeave.
 			editBox=null;
-			if(EditableEnterMovesDown){
-				if(SelectedCellOld.Y==rows.Count-1) {
-					return;//can't move down
-				}
-				selectedCell=new Point(SelectedCellOld.X,SelectedCellOld.Y+1);
-				CreateEditBox();
-				return;
-			}
 			//find the next editable cell to the right.
 			int nextCellToRight=-1;
 			for(int i=SelectedCellOld.X+1;i<columns.Count;i++) {
