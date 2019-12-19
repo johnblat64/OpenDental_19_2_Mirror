@@ -2752,6 +2752,10 @@ namespace OpenDental{
 				}
 				else {  //User clicked cancel (or X button) on an existing appt
 					AptCur=AptOld.Copy();  //We do not want to save any other changes made in this form.
+					//Setting AptCur to a copy of AptOld causes the AptCur reference in _listAppointments to be lost. Remove and add back in so the sync below does not make 
+					//any changes to AptCur. We had an issue with changes to AptCur were happening outside of the OK_Click method.
+					_listAppointments.RemoveAll(x => x.AptNum==AptCur.AptNum);
+					_listAppointments.Add(AptCur);
 					if(AptCur.AptStatus==ApptStatus.Scheduled && PrefC.GetBool(PrefName.InsChecksFrequency) && !CheckFrequencies()) {
 						e.Cancel=true;
 						return;
