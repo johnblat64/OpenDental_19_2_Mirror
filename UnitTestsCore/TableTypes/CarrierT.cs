@@ -21,8 +21,11 @@ namespace UnitTestsCore {
 			return carrier;
 		}
 
-
-
-
+		///<summary>Deletes everything from the carrier table.  Does not truncate the table so that PKs are not reused on accident.</summary>
+		public static void ClearCarrierTable() {
+			string command="DELETE FROM carrier";
+			DataCore.NonQ(command);
+			Carriers.RefreshCache();
+		}
 	}
 }
