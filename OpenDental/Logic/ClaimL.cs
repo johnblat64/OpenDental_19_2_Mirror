@@ -466,7 +466,9 @@ namespace OpenDental {
 		///ClaimProcs associated to Category Percentage or Medicaid/Flat CoPay insurance plans, false does not post WriteOffs for these insurance plan 
 		///types.  isSupplementalPay=true causes claim to not be marked received because Supplemental payments can only be applied to previously 
 		///received claims, false allows the claim to be marked received if all ClaimProcs in listClaimProcsForClaim meet requirements.
-		public static void ReceiveEraPayment(Claim claim,Hx835_Claim claimPaid,List<ClaimProc> listClaimProcsForClaim,bool isIncludeWOPercCoPay,bool isSupplementalPay,InsPlan insPlan=null) {
+		public static void ReceiveEraPayment(Claim claim,Hx835_Claim claimPaid,List<ClaimProc> listClaimProcsForClaim,bool isIncludeWOPercCoPay,
+			bool isSupplementalPay,InsPlan insPlan=null) 
+		{
 			//Recalculate insurance paid, deductible, and writeoff amounts for the claim based on the final claimproc values, then save the results to the database.
 			claim.InsPayAmt=0;
 			claim.DedApplied=0;
@@ -477,7 +479,8 @@ namespace OpenDental {
 			}
 			foreach(ClaimProc claimProc in listClaimProcsForClaim) {
 				if(claimProc.Status==ClaimProcStatus.Preauth) {//Mimics FormClaimEdit preauth by procedure logic.
-					ClaimProcs.SetInsEstTotalOverride(claimProc.ProcNum,claimProc.PlanNum,claimProc.InsPayEst,new List<ClaimProc>() { claimProc });
+					ClaimProcs.SetInsEstTotalOverride(claimProc.ProcNum,claimProc.PlanNum,claimProc.InsSubNum,claimProc.InsPayEst,
+						new List<ClaimProc>() { claimProc });
 					continue;//SetInsEstTotalOverride() updates claimProc to database.
 				}
 				claim.InsPayAmt+=claimProc.InsPayAmt;

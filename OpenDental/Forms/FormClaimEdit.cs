@@ -1773,7 +1773,7 @@ namespace OpenDental{
 					for(int i=0;i<FormCPP.ClaimProcsToEdit.Count;i++) {
 						ClaimProcs.Update(FormCPP.ClaimProcsToEdit[i]);
 						ClaimProcs.SetInsEstTotalOverride(FormCPP.ClaimProcsToEdit[i].ProcNum,FormCPP.ClaimProcsToEdit[i].PlanNum,
-							FormCPP.ClaimProcsToEdit[i].InsPayEst,ClaimProcList);
+							FormCPP.ClaimProcsToEdit[i].InsSubNum,FormCPP.ClaimProcsToEdit[i].InsPayEst,ClaimProcList);
 					}
 				}
 				else {

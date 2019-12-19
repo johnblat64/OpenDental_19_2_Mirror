@@ -1217,13 +1217,16 @@ namespace OpenDentBusiness{
 		}*/
 
 		///<summary>After entering estimates from a preauth, this routine is called for each proc to override the ins est.</summary>
-		public static void SetInsEstTotalOverride(long procNum,long planNum,double insPayEst,List<ClaimProc> claimProcList) {
+		public static void SetInsEstTotalOverride(long procNum,long planNum,long insSubNum,double insPayEst,List<ClaimProc> claimProcList) {
 			//No need to check RemotingRole; no call to db.
 			for(int i=0;i<claimProcList.Count;i++) {
 				if(procNum!=claimProcList[i].ProcNum) {
 					continue;
 				}
 				if(planNum!=claimProcList[i].PlanNum) {
+					continue;
+				}
+				if(insSubNum!=claimProcList[i].InsSubNum) {
 					continue;
 				}
 				if(claimProcList[i].Status!=ClaimProcStatus.Estimate) {
