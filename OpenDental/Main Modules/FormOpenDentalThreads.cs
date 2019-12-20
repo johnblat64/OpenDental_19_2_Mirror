@@ -481,6 +481,8 @@ namespace OpenDental {
 				Description=Lans.g("EConnector","eConnector needs to be restarted"),
 				Severity=SeverityType.High,
 				Type=AlertType.EConnectorDown,
+				//Show for all clinics.
+				ClinicNum=-1,
 				FormToOpen=FormType.FormEServicesEConnector,
 			});
 			//We just inserted an alert so update the alert menu.
