@@ -320,6 +320,20 @@ namespace OpenDental{
 		}
 
 		private void butRun_Click(object sender,EventArgs e) {
+			//The updating of CDT codes takes place towards the end of the year, while we typically do it in December, we have 
+			//done it as early as Novemeber before. This warning will inform users that using the new codes will cause rejection
+			//on their claims if they try to use them before the first of the new year.
+			DateTime datePromptStart=new DateTime(2019,12,20);
+			DateTime datePromptEnd=new DateTime(datePromptStart.Year,12,31);
+			if(DateTime.Now.Between(datePromptStart,datePromptEnd) && checkDcodes.Checked) {//Only validate if attempting to update D Codes
+				if(MessageBox.Show(//Still between datePromptStart and the first of the next year, prompt that these codes may cause problems.
+						Lan.g(this,"Updating D Codes at this time could result in acquiring codes which are not valid until ")
+						+datePromptEnd.AddDays(1).ToShortDateString()+Lan.g(this,". Using these codes could cause claims to be rejected, continue?")
+						,Lan.g(this,"D Codes"),MessageBoxButtons.YesNo)==DialogResult.No) 
+				{
+					return;//Early return if the user is between datePromptStart and the first of the next year and they've said no to updating D Codes.
+				}
+			}
 			if(!checkTcodes.Checked && !checkNcodes.Checked && !checkDcodes.Checked && !checkAutocodes.Checked 
 				&& !checkProcButtons.Checked && !checkApptProcsQuickAdd.Checked && !checkRecallTypes.Checked)
 			{

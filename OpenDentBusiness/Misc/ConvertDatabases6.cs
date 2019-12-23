@@ -1737,5 +1737,38 @@ namespace OpenDentBusiness {
 			LargeTableHelper.AlterLargeTable("claimproc","ClaimProcNum",
 					new List<Tuple<string,string>> { Tuple.Create("IsTransfer","tinyint NOT NULL") });
 		}
+
+		private static void To19_2_57() {
+			string command;
+			//Moving codes to the Obsolete category that were deleted in CDT 2020.
+			if(CultureInfo.CurrentCulture.Name.EndsWith("US")) {//United States
+				//Move deprecated codes to the Obsolete procedure code category.
+				//Make sure the procedure code category exists before moving the procedure codes.
+				string procCatDescript="Obsolete";
+				long defNumForCat=0;
+				command="SELECT DefNum FROM definition WHERE Category=11 AND ItemName='"+POut.String(procCatDescript)+"'";//11 is DefCat.ProcCodeCats
+				DataTable dtDef=Db.GetTable(command);
+				if(dtDef.Rows.Count==0) { //The procedure code category does not exist, add it
+					command="SELECT COUNT(*) FROM definition WHERE Category=11";//11 is DefCat.ProcCodeCats
+					int countCats=PIn.Int(Db.GetCount(command));
+					command="INSERT INTO definition (Category,ItemName,ItemOrder) "
+								+"VALUES (11"+",'"+POut.String(procCatDescript)+"',"+POut.Int(countCats)+")";//11 is DefCat.ProcCodeCats
+					defNumForCat=Db.NonQ(command,true);
+				}
+				else { //The procedure code category already exists, get the existing defnum
+					defNumForCat=PIn.Long(dtDef.Rows[0]["DefNum"].ToString());
+				}
+				string[] cdtCodesDeleted=new string[] {
+					"D1550",
+					"D1555",
+					"D8691",
+					"D8692",
+					"D8693",
+					"D8694"
+				};
+				//Change the procedure codes' category to Obsolete.
+				Db.NonQ(command);
+			}
+		}
 	}
 }
