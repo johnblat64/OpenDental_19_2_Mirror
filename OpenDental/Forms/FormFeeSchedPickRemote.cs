@@ -152,6 +152,13 @@ namespace OpenDental {
 			ListFeeSchedFilesOntario.Add("ON_ODA_2019_PA.txt");//Ontario Dental Association 2019 fee schedule for Paediatric Dentists.
 			ListFeeSchedFilesOntario.Add("ON_ODA_2019_PE.txt");//Ontario Dental Association 2019 fee schedule for Periodontists.
 			ListFeeSchedFilesOntario.Add("ON_ODA_2019_PR.txt");//Ontario Dental Association 2019 fee schedule for Prosthodontists.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_AN.txt");//Ontario Dental Association 2020 fee schedule for Anaesthesiologists.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_EN.txt");//Ontario Dental Association 2020 fee schedule for Endodontists.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_GP.txt");//Ontario Dental Association 2020 fee schedule for General Practitioners.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_OS.txt");//Ontario Dental Association 2020 fee schedule for Oral & Maxillofacial Surgeons.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_PA.txt");//Ontario Dental Association 2020 fee schedule for Paediatric Dentists.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_PE.txt");//Ontario Dental Association 2020 fee schedule for Periodontists.
+			ListFeeSchedFilesOntario.Add("ON_ODA_2020_PR.txt");//Ontario Dental Association 2020 fee schedule for Prosthodontists.
 		}		
 
 		private void gridFeeSchedFiles_CellClick(object sender,ODGridClickEventArgs e) {
