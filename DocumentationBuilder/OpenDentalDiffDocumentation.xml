@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
-<database version="19.2.42.0">
+<database version="19.2.57.0">
     <table name="benefit">
         <summary></summary>
         <column order="12" name="SecDateTEntry" type="datetime">
@@ -58,7 +58,7 @@
     <table name="claimproc">
         <summary></summary>
         <column order="45" name="IsTransfer" type="tinyint(4)">
-            <summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim pay as total.</summary>
+            <summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim.</summary>
         </column>
     </table>
     <table name="creditcard">

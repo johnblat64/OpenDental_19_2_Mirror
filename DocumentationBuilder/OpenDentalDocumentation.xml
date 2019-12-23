@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDocumentation.xsl"?>
-<database version="19.2.42.0">
+<database version="19.2.57.0">
     <table name="account">
         <summary>Used in the accounting section in chart of accounts.  Not related to patient accounts in any way.</summary>
         <column order="0" name="AccountNum" type="bigint(20)">
@@ -2071,7 +2071,7 @@
             <summary>Date of the first claimPayment for this claim.</summary>
         </column>
         <column order="45" name="IsTransfer" type="tinyint(4)">
-            <summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim pay as total.</summary>
+            <summary>Bool, defaults to false. When true, indicates that a claimproc is part of a transfer from a claim.</summary>
         </column>
     </table>
     <table name="claimsnapshot">
@@ -5011,7 +5011,7 @@
             <summary>The name of the file that shows on the email.  For example: tooth2.jpg.</summary>
         </column>
         <column order="3" name="ActualFileName" type="varchar(255)">
-            <summary>The actual file is stored in the A-Z folder in EmailAttachments.  This field stores the name of the file.  The files are named automatically based on Date/time along with a random number.  This ensures that they will be sequential as well as unique.</summary>
+            <summary>The actual file is stored in the A-Z folder in EmailAttachments.  This field stores the sub directories and name of the file.  The files are named automatically based on Date/time along with a random number.  This ensures that they will be sequential as well as unique.</summary>
         </column>
         <column order="4" name="EmailTemplateNum" type="bigint(20)" fk="emailtemplate">
             <summary>FK to emailtemplate.EmailTemplateNum.  0 if EmailMessageNum is set, otherwise must have a value.</summary>
