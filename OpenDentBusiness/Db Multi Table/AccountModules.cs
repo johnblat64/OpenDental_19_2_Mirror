@@ -886,7 +886,8 @@ namespace OpenDentBusiness {
  				//By switching to claim.ProvTreat, we are more closely matching the P&I report and the account Claim row.  ProvBill is not very meaningful outside of the claim itself.
 				+"(SELECT ProvTreat FROM claim WHERE claimproc.ClaimNum=claim.ClaimNum) provNum_,"
 				+"MAX(claimproc.PayPlanNum) PayPlanNum,"//MAX PayPlanNum will return 0 or the num of the payplan tracking the payments. Each claim will have at most 1 PayPlanNum.
-				+"MAX(claimproc.SecDateTEdit) SecDateTEdit "
+				+"MAX(claimproc.SecDateTEdit) SecDateTEdit, "
+				+"MAX(claimproc.ProcNum) HasProc "//Any value other than 0 will indicate that this claim has actual procedures associated (not just pay as totals).
 				+"FROM claimproc "
 				+$"WHERE Status IN ({POut.Int((int)ClaimProcStatus.Received)},{POut.Int((int)ClaimProcStatus.Supplemental)},{POut.Int((int)ClaimProcStatus.CapClaim)}) "
 				+"AND (WriteOff!=0 OR InsPayAmt!=0) ";
@@ -916,7 +917,10 @@ namespace OpenDentBusiness {
 			decimal writeoff;
 			List<Def> listDefs=Defs.GetDefsForCategory(DefCat.AccountColors);
 			foreach(DataRow rawClaimPayRow in rawClaimPay.Rows) {//0 rows if isInvoice or is LimitedStatement with no procs
-				if(PIn.Bool(rawClaimPayRow["IsTransfer"].ToString())==true) {//we may want to add a boolean to control this later
+				//Hide transfers from showing so that they do not confuse the user / patient.
+				//However, only hide transfers associated to claims with actual procedures attached.
+				//There was a bug with databases from conversions where there were claims with no procedures but with a claimproc (pay as total).
+				if(PIn.Bool(rawClaimPayRow["IsTransfer"].ToString()) && PIn.Bool(rawClaimPayRow["HasProc"].ToString())) {
 					continue;
 				}
 				row=table.NewRow();
