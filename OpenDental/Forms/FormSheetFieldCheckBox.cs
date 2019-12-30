@@ -98,6 +98,7 @@ namespace OpenDental {
 			textUiLabelMobileRadioButtonMisc.Text=SheetFieldDefCur.UiLabelMobileRadioButton;
 			textUiLabelMobile.Text=SheetFieldDefCur.UiLabelMobile;
 			textUiLabelMobileCheckBoxNonMisc.Text=SheetFieldDefCur.UiLabelMobile;
+			textMobileMedicalNameOverride.Text=SheetFieldDefCur.UiLabelMobile;
 			if(_isMedHistSheet) {
 				radioYes.Checked=true;
 				if(_selectedFieldName=="allergy") {
@@ -194,6 +195,8 @@ namespace OpenDental {
 			butAddProblem.Visible=false;
 			labelMobileCheckOverride.Visible=false;
 			textMobileCheckOverride.Visible=false;
+			labelMobileMedicalNameOverride.Visible=false;
+			textMobileMedicalNameOverride.Visible=false;
 			if(!_hasSelectedFieldName) {
 				return;
 			}
@@ -213,6 +216,8 @@ namespace OpenDental {
 						//Only show mobile override option if field name is an allergy and the form it's on is mobile allowed sheet
 						labelMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 						textMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+						labelMobileMedicalNameOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+						textMobileMedicalNameOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 						break;
 					case "problem":
 						labelMedical.Visible=true;
@@ -227,6 +232,8 @@ namespace OpenDental {
 						//Only show mobile override option if field name is problem and the form it's on is mobile allowed sheet
 						labelMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 						textMobileCheckOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+						labelMobileMedicalNameOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
+						textMobileMedicalNameOverride.Visible=SheetDefs.IsMobileAllowed(_sheetDefCur.SheetType);
 						break;
 				}
 			}
@@ -468,7 +475,11 @@ namespace OpenDental {
 			}
 			else if(_isMedHistSheet) {
 				//All items with this group name get this UiLabelMobile.
-				updateGroupCaptionForFieldName(_selectedMedicalItemName);
+				string medicalName=_selectedMedicalItemName;
+				if(textMobileMedicalNameOverride.Visible && !textMobileMedicalNameOverride.Text.IsNullOrEmpty()) {
+					medicalName=textMobileMedicalNameOverride.Text;
+				}
+				updateGroupCaptionForFieldName(medicalName);
 				SheetFieldDefCur.UiLabelMobileRadioButton=radioItemValue;
 			}
 			else if(labelUiLabelMobileCheckBoxNonMisc.Visible) { 

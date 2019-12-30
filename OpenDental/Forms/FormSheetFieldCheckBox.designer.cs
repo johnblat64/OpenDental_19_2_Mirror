@@ -59,6 +59,8 @@ namespace OpenDental{
 			this.butAddProc = new OpenDental.UI.Button();
 			this.labelMobileCheckOverride = new System.Windows.Forms.Label();
 			this.textMobileCheckOverride = new System.Windows.Forms.TextBox();
+			this.labelMobileMedicalNameOverride = new System.Windows.Forms.Label();
+			this.textMobileMedicalNameOverride = new System.Windows.Forms.TextBox();
 			this.groupRadioMisc.SuspendLayout();
 			this.groupRadio.SuspendLayout();
 			this.SuspendLayout();
@@ -210,7 +212,7 @@ namespace OpenDental{
 			this.groupRadioMisc.Controls.Add(this.labelUiLabelMobileRadioButtonMisc);
 			this.groupRadioMisc.Controls.Add(this.label9);
 			this.groupRadioMisc.Controls.Add(this.label3);
-			this.groupRadioMisc.Location = new System.Drawing.Point(337,63);
+			this.groupRadioMisc.Location = new System.Drawing.Point(337,57);
 			this.groupRadioMisc.Name = "groupRadioMisc";
 			this.groupRadioMisc.Size = new System.Drawing.Size(322,129);
 			this.groupRadioMisc.TabIndex = 4;
@@ -265,7 +267,7 @@ namespace OpenDental{
 			// 
 			// label1
 			// 
-			this.label1.Location = new System.Drawing.Point(8,54);
+			this.label1.Location = new System.Drawing.Point(9,50);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(283,31);
 			this.label1.TabIndex = 87;
@@ -275,9 +277,9 @@ namespace OpenDental{
 			// listRadio
 			// 
 			this.listRadio.FormattingEnabled = true;
-			this.listRadio.Location = new System.Drawing.Point(119,90);
+			this.listRadio.Location = new System.Drawing.Point(122,81);
 			this.listRadio.Name = "listRadio";
-			this.listRadio.Size = new System.Drawing.Size(197,95);
+			this.listRadio.Size = new System.Drawing.Size(197,82);
 			this.listRadio.TabIndex = 0;
 			this.listRadio.Click += new System.EventHandler(this.listRadio_Click);
 			// 
@@ -289,9 +291,9 @@ namespace OpenDental{
 			this.groupRadio.Controls.Add(this.labelUiLabelMobile);
 			this.groupRadio.Controls.Add(this.listRadio);
 			this.groupRadio.Controls.Add(this.label1);
-			this.groupRadio.Location = new System.Drawing.Point(334,335);
+			this.groupRadio.Location = new System.Drawing.Point(334,363);
 			this.groupRadio.Name = "groupRadio";
-			this.groupRadio.Size = new System.Drawing.Size(322,191);
+			this.groupRadio.Size = new System.Drawing.Size(322,169);
 			this.groupRadio.TabIndex = 8;
 			this.groupRadio.TabStop = false;
 			this.groupRadio.Text = "Radio Button Value";
@@ -299,7 +301,7 @@ namespace OpenDental{
 			// 
 			// labelAlsoActs
 			// 
-			this.labelAlsoActs.Location = new System.Drawing.Point(11,90);
+			this.labelAlsoActs.Location = new System.Drawing.Point(14,81);
 			this.labelAlsoActs.Name = "labelAlsoActs";
 			this.labelAlsoActs.Size = new System.Drawing.Size(108,41);
 			this.labelAlsoActs.TabIndex = 123;
@@ -502,28 +504,47 @@ namespace OpenDental{
 			// 
 			// labelMobileCheckOverride
 			// 
-			this.labelMobileCheckOverride.AutoSize = true;
-			this.labelMobileCheckOverride.Location = new System.Drawing.Point(345,312);
+			this.labelMobileCheckOverride.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.labelMobileCheckOverride.Location = new System.Drawing.Point(337,312);
 			this.labelMobileCheckOverride.Name = "labelMobileCheckOverride";
-			this.labelMobileCheckOverride.Size = new System.Drawing.Size(156,13);
-			this.labelMobileCheckOverride.TabIndex = 125;
-			this.labelMobileCheckOverride.Text = "Mobile Checkbox Text Override";
+			this.labelMobileCheckOverride.Size = new System.Drawing.Size(119,13);
+			this.labelMobileCheckOverride.TabIndex = 124;
+			this.labelMobileCheckOverride.Text = "Mobile Y/N Override";
+			this.labelMobileCheckOverride.TextAlign = System.Drawing.ContentAlignment.TopRight;
 			this.labelMobileCheckOverride.Visible = false;
 			// 
 			// textMobileCheckOverride
 			// 
 			this.textMobileCheckOverride.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.textMobileCheckOverride.Location = new System.Drawing.Point(503,309);
+			this.textMobileCheckOverride.Location = new System.Drawing.Point(456,309);
 			this.textMobileCheckOverride.MaxLength = 65535;
 			this.textMobileCheckOverride.Name = "textMobileCheckOverride";
-			this.textMobileCheckOverride.Size = new System.Drawing.Size(147,20);
+			this.textMobileCheckOverride.Size = new System.Drawing.Size(194,20);
 			this.textMobileCheckOverride.TabIndex = 124;
 			this.textMobileCheckOverride.Visible = false;
+			// 
+			// labelMobileMedicalNameOverride
+			// 
+			this.labelMobileMedicalNameOverride.Location = new System.Drawing.Point(334,339);
+			this.labelMobileMedicalNameOverride.Name = "labelMobileMedicalNameOverride";
+			this.labelMobileMedicalNameOverride.Size = new System.Drawing.Size(122,13);
+			this.labelMobileMedicalNameOverride.TabIndex = 126;
+			this.labelMobileMedicalNameOverride.Text = "Mobile Item Caption";
+			this.labelMobileMedicalNameOverride.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			// 
+			// textMobileMedicalNameOverride
+			// 
+			this.textMobileMedicalNameOverride.Location = new System.Drawing.Point(456,336);
+			this.textMobileMedicalNameOverride.Name = "textMobileMedicalNameOverride";
+			this.textMobileMedicalNameOverride.Size = new System.Drawing.Size(194,20);
+			this.textMobileMedicalNameOverride.TabIndex = 127;
 			// 
 			// FormSheetFieldCheckBox
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.ClientSize = new System.Drawing.Size(675,696);
+			this.Controls.Add(this.textMobileMedicalNameOverride);
+			this.Controls.Add(this.labelMobileMedicalNameOverride);
 			this.Controls.Add(this.textMobileCheckOverride);
 			this.Controls.Add(this.labelMobileCheckOverride);
 			this.Controls.Add(this.butAddProc);
@@ -598,6 +619,8 @@ namespace OpenDental{
 			this.Controls.SetChildIndex(this.butAddProc,0);
 			this.Controls.SetChildIndex(this.labelMobileCheckOverride,0);
 			this.Controls.SetChildIndex(this.textMobileCheckOverride,0);
+			this.Controls.SetChildIndex(this.labelMobileMedicalNameOverride,0);
+			this.Controls.SetChildIndex(this.textMobileMedicalNameOverride,0);
 			this.groupRadioMisc.ResumeLayout(false);
 			this.groupRadioMisc.PerformLayout();
 			this.groupRadio.ResumeLayout(false);
@@ -645,5 +668,7 @@ namespace OpenDental{
 		private UI.Button butAddProc;
 		private System.Windows.Forms.Label labelMobileCheckOverride;
 		private System.Windows.Forms.TextBox textMobileCheckOverride;
+		private System.Windows.Forms.Label labelMobileMedicalNameOverride;
+		private System.Windows.Forms.TextBox textMobileMedicalNameOverride;
 	}
 }
