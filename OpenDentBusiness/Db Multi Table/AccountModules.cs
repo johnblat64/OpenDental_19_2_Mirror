@@ -1610,7 +1610,7 @@ namespace OpenDentBusiness {
 				decimal claimLabFeeTotalAmt=0;
 				//For Canada, add lab fee amounts into total claim amount.
 				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {
-					string[] arrayProcNumsForClaim=PIn.ByteArray(rawClaim.Rows[i]["ProcNums_"]).Split(',');
+					string[] arrayProcNumsForClaim=PIn.ByteArray(rawClaim.Rows[i]["ProcNums_"]).Split(',').Distinct().ToArray();
 					for(int j=0;j<arrayProcNumsForClaim.Length;j++) {
 						long procNum=PIn.Long(arrayProcNumsForClaim[j]);
 						if(procNum==0) {//ProcNum will be 0 for Total Payments on claims.
