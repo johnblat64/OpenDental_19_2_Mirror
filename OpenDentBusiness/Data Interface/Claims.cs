@@ -141,10 +141,13 @@ namespace OpenDentBusiness{
 			//Additionally, users found using the date of service to be unintuitive.
 			//STRONG CAUTION not to use the claimproc.ProcDate here in the future.
 			command+="INNER JOIN claimproc ON claimproc.ClaimNum=claim.ClaimNum "
-				+"WHERE (claim.ClaimStatus='S' OR "
+				+"WHERE " 
+				+"claimproc.IsTransfer=0 AND " 
+				+"(claim.ClaimStatus='S' OR "
 				+"(claim.ClaimStatus='R' AND (claimproc.InsPayAmt!=0 "+((claimPayDate.Year>1880)?("OR claimproc.DateCP>="+POut.Date(claimPayDate)):"")+"))) "
 				+"GROUP BY claim.ClaimNum";
-			command+=") outstanding WHERE UnattachedPayCount > 0 "//Either unfinalized ins pay amounts on at least one claimproc on the claim,
+			command+=") outstanding " 
+				+"WHERE UnattachedPayCount > 0 "//Either unfinalized ins pay amounts on at least one claimproc on the claim,
 				//or if preference is enabled with a specific date, also include received "NO PAYMENT" claims.
 				//Always show Sent claims regardless of preference to match version 16.4 behavior (see job B8189).
 				+"OR (AttachedCount=0"+((claimPayDate.Year>1880)?"":" AND ClaimStatus='S'")+")"
