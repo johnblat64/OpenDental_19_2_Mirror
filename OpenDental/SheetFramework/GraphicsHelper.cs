@@ -222,7 +222,12 @@ namespace OpenDental {
 				using(RichTextBox rtb=new RichTextBox()) {
 					//Copy values to new RichTextBox because we might modify text below.
 					rtb.Rtf=textbox.Rtf;
-					rtb.Font=textbox.Font;
+					//Setting the rtb.Font property in this RichTextBox causes an Out of Memory Exception when the Treatment Finder report attempted to run for 100+ 
+					//pdfs. Attempts were made to employ a "using" to dispose of the font, as well as to ensure the textbox passing it in was disposed of, 
+					//however neither method succeeded. Since the only importance of the Font in this context is getting the position of the Next Line, it is also 
+					//not necessary here because we obtain that from the Rtf and postNextLine. It's removal should not change the user experience. However, it will
+					//remain here, commented out, for future information so that others do not attempt to employ a font here.
+					//rtb.Font=textbox.Font;
 					rtb.Size=textbox.Size;
 					//According to MSDN, "If no paragraph is selected in the control, setting this property applies the alignment setting to the paragraph in
 					//which the insertion point appears as well as to paragraphs created after the paragraph that has the alignment property setting."
