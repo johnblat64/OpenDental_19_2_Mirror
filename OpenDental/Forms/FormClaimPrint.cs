@@ -1916,6 +1916,14 @@ namespace OpenDental{
 							displayStrings[i]=clinic.Zip;
 						}
 						break;
+					case "TreatingDentist":
+						if(providerClaimTreat.IsNotPerson) {
+							displayStrings[i]=providerClaimTreat.LName+" "+providerClaimTreat.Suffix;
+						}
+						else {
+							displayStrings[i]=providerClaimTreat.FName+" "+providerClaimTreat.MI+" "+providerClaimTreat.LName+" "+providerClaimTreat.Suffix;
+						}
+						break;
 					case "TreatingDentistFName":
 						displayStrings[i]=providerClaimTreat.FName;
 						break;
@@ -1963,6 +1971,14 @@ namespace OpenDental{
 						}
 						else {
 							displayStrings[i]=clinic.Address;
+						}
+						break;
+					case "TreatingDentistAddress2":
+						if(clinic==null) {
+							displayStrings[i]=PrefC.GetString(PrefName.PracticeAddress2);
+						}
+						else {
+							displayStrings[i]=clinic.Address2;
 						}
 						break;
 					case "TreatingDentistCity":
@@ -2023,6 +2039,14 @@ namespace OpenDental{
 							if(clinic.Phone.Length==10){
 								displayStrings[i]=clinic.Phone.Substring(6);
 							}
+						}
+						break;
+					case "TreatingDentistPhoneRaw":
+						if(clinic==null) {
+							displayStrings[i]=PrefC.GetString(PrefName.PracticePhone);
+						}
+						else {
+							displayStrings[i]=clinic.Phone;
 						}
 						break;
 					case "TreatingProviderSpecialty":
