@@ -1767,7 +1767,11 @@ namespace OpenDentBusiness {
 					"D8694"
 				};
 				//Change the procedure codes' category to Obsolete.
-				Db.NonQ(command);
+				//jsalmon - The following Db.NonQ was commented out because it would either run a harmless SELECT query or it would insert another 'Obsolete'
+				//proc code cat if the office didn't already have an Obsolete category.
+				//There was supposed to be code here for an UPDATE statement that would actually move cdtCodesDeleted to Obsolete.
+				//This will happen in v19.3.33 so it isn't dire that we create a v19.2.62 convert script method (the latest 19.2 version right now).
+				//Db.NonQ(command);
 			}
 		}
 	}
