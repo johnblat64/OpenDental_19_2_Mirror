@@ -1107,9 +1107,9 @@ namespace OpenDentBusiness{
 			}
 			command+=",DateCP="+POut.Date(date)+" "
 				+"WHERE ClaimNum="+POut.Long(claimNum)+" AND "
+				+"claimproc.IsTransfer=0 AND "
 				+"InsPayAmt!=0 AND ("
 				+"ClaimPaymentNum="+POut.Long(claimPaymentNum)+" OR ClaimPaymentNum=0)";
-			//MessageBox.Show(string command);
  			Db.NonQ(command);
 		}
 
@@ -1125,7 +1125,8 @@ namespace OpenDentBusiness{
 				+"DateInsFinalized = (CASE DateInsFinalized WHEN '0001-01-01' THEN "+DbHelper.Now()+" ELSE DateInsFinalized END) "
 				+"WHERE ClaimNum="+POut.Long(claimNum)+" "
 				+"AND Status IN ("+String.Join(",",ClaimProcs.GetInsPaidStatuses().Select(x => POut.Int((int)x)))+") "
-				+"AND ClaimPaymentNum=0";
+				+"AND ClaimPaymentNum=0 "
+				+"AND claimproc.IsTransfer=0 ";
 			return Db.NonQ(command);
 		}
 
@@ -1160,7 +1161,8 @@ namespace OpenDentBusiness{
 			}
 			string command= "UPDATE claimproc SET "
 				+"DateCP="+POut.Date(date)+" "
-				+"WHERE ClaimPaymentNum="+POut.Long(claimPaymentNum);
+				+"WHERE ClaimPaymentNum="+POut.Long(claimPaymentNum)+" "
+				+"AND claimproc.IsTransfer=0 ";
 			Db.NonQ(command);
 		}
 
@@ -2473,6 +2475,7 @@ namespace OpenDentBusiness{
 			//STRONG CAUTION not to use the claimproc.ProcDate here in the future.
 			string command="UPDATE claimproc SET ClaimPaymentNum="+POut.Long(claimPaymentNum)+" "
 				+"WHERE ClaimPaymentNum=0 "
+				+"AND claimproc.IsTransfer=0 "//do not attach transfer claimprocs to claim payments
 				+"AND claimproc.Status IN("+String.Join(",",ClaimProcs.GetInsPaidStatuses().Select(x => POut.Int((int)x)))+") "
 				+"AND (InsPayAmt != 0 ";
 			//See job #7517.

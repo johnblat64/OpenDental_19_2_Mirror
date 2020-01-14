@@ -161,9 +161,9 @@ namespace OpenDentBusiness{
 		}
 
 		/// <summary>Gets all 'claims' attached to the claimpayment.</summary>
-		public static List<ClaimPaySplit> GetAttachedToPayment(long claimPaymentNum,bool doIncludeTransfers=true) {
+		public static List<ClaimPaySplit> GetAttachedToPayment(long claimPaymentNum) {
 			if(RemotingClient.RemotingRole==RemotingRole.ClientWeb) {
-				return Meth.GetObject<List<ClaimPaySplit>>(MethodBase.GetCurrentMethod(),claimPaymentNum,doIncludeTransfers);
+				return Meth.GetObject<List<ClaimPaySplit>>(MethodBase.GetCurrentMethod(),claimPaymentNum);
 			}
 			string command=
 				"SELECT claim.DateService,claim.ProvTreat,"+DbHelper.Concat("patient.LName","', '","patient.FName")+" patName_,"
@@ -175,7 +175,6 @@ namespace OpenDentBusiness{
 				+" AND patient.PatNum = claim.PatNum"
 				+" AND insplan.PlanNum = claim.PlanNum"
 				+" AND insplan.CarrierNum = carrier.CarrierNum"
-				+(doIncludeTransfers?"":" AND claimproc.IsTransfer = 0")//Prevents Transfer Payments from showing in ClaimPayBatch
 				+" AND claimproc.ClaimPaymentNum = "+claimPaymentNum+" ";
 			if(DataConnection.DBtype==DatabaseType.MySql) {
 				command+="GROUP BY claim.ClaimNum ";
@@ -242,6 +241,7 @@ namespace OpenDentBusiness{
 				+" AND insplan.CarrierNum = carrier.CarrierNum"
 				+" AND (claimproc.Status = '1' OR claimproc.Status = '4' OR claimproc.Status=5)"//received or supplemental or capclaim
 				+" AND (claimproc.InsPayAmt != 0 AND claimproc.ClaimPaymentNum = '0')"
+				+" AND claimproc.IsTransfer=0"
 				+" GROUP BY claim.DateService,claim.ProvTreat,CONCAT(CONCAT(patient.LName,', '),patient.FName)"
 				+",carrier.CarrierName,claim.ClaimNum,claimproc.ClaimPaymentNum,claim.PatNum"
 				+" ORDER BY patName_";

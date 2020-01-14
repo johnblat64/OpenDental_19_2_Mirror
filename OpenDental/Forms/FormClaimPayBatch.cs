@@ -872,7 +872,7 @@ namespace OpenDental{
 		private void FillGrids(bool doRefreshOutstandingClaims=true){
 			Cursor.Current=Cursors.WaitCursor;
 			#region gridAttached
-			_listClaimsAttached=Claims.GetAttachedToPayment(ClaimPaymentCur.ClaimPaymentNum,false);
+			_listClaimsAttached=Claims.GetAttachedToPayment(ClaimPaymentCur.ClaimPaymentNum);
 			List<long> listClaimNumsToUpdate=new List<long>();
 			List<int> listPaymentRows=new List<int>();
 			for(int i=0;i<_listClaimsAttached.Count;i++) {

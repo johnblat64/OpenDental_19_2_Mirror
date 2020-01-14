@@ -504,7 +504,7 @@ namespace OpenDental {
 			#region Update Claim and ClaimProcs
 			foreach(List<ClaimProc> listClaimProcs in dictClaimProcs.Values) {
 				listClaimProcs.ForEach(x => {
-					if(x.ClaimPaymentNum==0) {
+					if(x.ClaimPaymentNum==0 && x.IsTransfer==false) {
 						//Only update claimprocs that are not already associated to another claim payment.
 						//This will happen when this ERA contains claim reversals or corrections, both are entered as supplemental payments.
 						x.ClaimPaymentNum=claimPay.ClaimPaymentNum;

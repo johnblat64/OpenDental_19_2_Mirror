@@ -62,6 +62,75 @@ namespace OpenDentBusiness {
 			"appointment","claimproc","commlog","document","etransmessagetext","histappointment","inseditlog","inssub","patient","periomeasure",
 			"procedurelog","procnote","recall","schedule","scheduleop","securitylog","securityloghash","sheetfield","toothinitial","treatplan"
 		};
+
+		///<summary>Attempts to detach all claim procs with IsTransfer set to true from their corresponding claim payment.
+		///Only detaches if the sum of all transfer claim procs (that are going to be detached) equate to $0.
+		///This has the potential to orphan claim payments (claim payment with no claim procs attached).
+		///These orphaned claim payments will need to be handled manually by the user (DBM ClaimPaymentsNotPartialWithNoClaimProcs).</summary>
+		private static void DetachTransferClaimProcsFromClaimPayments() {
+			//Get all claimprocs attached to a claim with at least one claimproc flagged as IsTransfer that is also attached to a claimpayment.
+			//The following query uses a subselect in order to get the claimprocs that have IsTransfer set to 0 but need to be considered (InsPayAmt).
+			//The information regarding these claimprocs is being selected instead of updated so that we can perform calculations and handle rounding in C#
+			//Several tricky rounding issues made the 'one query to rule them all' hard to read (and we just didn't trust MySQL to do our bidding).
+			//We group by claimpayment and 
+			string command=@"
+				SELECT claimproc.ClaimProcNum,claimproc.ClaimPaymentNum,claimproc.ClaimNum,claimproc.InsPayAmt,claimproc.IsTransfer
+				FROM claimproc
+				WHERE claimproc.ClaimNum > 0
+				AND claimproc.ClaimPaymentNum IN (
+					SELECT DISTINCT(ClaimPaymentNum) FROM claimproc 
+					WHERE claimproc.IsTransfer=1 
+					AND claimproc.ClaimPaymentNum!=0
+				)";
+			DataTable table=Db.GetTable(command);
+			List<long> listClaimProcNumsToUpdate=new List<long>();
+			//Group the claimprocs by ClaimPaymentNum because we do not want to detach offsetting claimprocs that are attached to different claim payments.
+			Dictionary<long,List<DataRow>> dictClaimPayNumClaimProcs=table.Select()
+				.GroupBy(x => PIn.Long(x["ClaimPaymentNum"].ToString()))
+				.ToDictionary(x => x.Key,x => x.ToList());
+			//Loop through every claim payment to find and detach any offsetting claimproc transfers that are associated to the same claim.
+			foreach(KeyValuePair<long,List<DataRow>> claimProcsForPayment in dictClaimPayNumClaimProcs) {
+				//Group the claimprocs for this claim payment by claim because we do not want to detach offsetting claimprocs for different claims.
+				Dictionary<long,List<DataRow>> dictClaimNumClaimProcs=claimProcsForPayment.Value
+					.GroupBy(x => PIn.Long(x["ClaimNum"].ToString()))
+					.ToDictionary(x => x.Key,x => x.ToList());
+				//Loop through every claim and find claimproc transfers that can be detached (equate to 0).
+				foreach(KeyValuePair<long,List<DataRow>> claimProcsForClaim in dictClaimNumClaimProcs) {
+					double sumAllClaimProcsForClaim=claimProcsForClaim.Value.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
+					double sumClaimProcsNoTransfers=claimProcsForClaim.Value
+						.Where(x => PIn.Bool(x["IsTransfer"].ToString())==false)
+						.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
+					double sumClaimProcsTransfers=claimProcsForClaim.Value
+						.Where(x => PIn.Bool(x["IsTransfer"].ToString())==true)
+						.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
+					//make sure that the transfer procs equate to 0, that removing them does not change the claimpayment amount
+					if(AreNumsEqual(sumAllClaimProcsForClaim,sumClaimProcsNoTransfers) && IsNumZero(sumClaimProcsTransfers)) {
+						List<long> listTransferClaimProcsForClaim=claimProcsForClaim.Value
+							.Where(x => PIn.Bool(x["IsTransfer"].ToString())==true)
+							.Select(y => PIn.Long(y["ClaimProcNum"].ToString()))
+							.ToList();
+						listClaimProcNumsToUpdate.AddRange(listTransferClaimProcsForClaim);
+					}
+				}
+			}
+			if(listClaimProcNumsToUpdate.Count>0) {
+				command=$@"UPDATE claimproc SET claimproc.ClaimPaymentNum=0 
+									WHERE claimproc.ClaimProcNum IN ({string.Join(",",listClaimProcNumsToUpdate.Select(x => POut.Long(x)))})";
+				Db.NonQ(command);
+			}
+		}
+
+		///<summary>Used to check if two doubles are "equal" based on some epsilon. 
+		/// Epsilon is 0.0000001f and will return true if the absolute value of (val - val2) is less than that.</summary>
+		private static bool AreNumsEqual(double val,double val2) {
+			return IsNumZero(val-val2);
+		}
+
+		///<summary>Used to check if a double is "equal" to zero based on some epsilon. 
+		/// Epsilon is 0.0000001f and will return true if the absolute value of the double is less than that.</summary>
+		private static bool IsNumZero(double val) {
+			return Math.Abs(val)<=0.0000001f;
+		}
 		#endregion Helper Functions/Variables
 
 		private static void To18_3_1() {
@@ -1773,6 +1842,10 @@ namespace OpenDentBusiness {
 				//This will happen in v19.3.33 so it isn't dire that we create a v19.2.62 convert script method (the latest 19.2 version right now).
 				//Db.NonQ(command);
 			}
+		}
+
+		private static void To19_2_62() {
+			DetachTransferClaimProcsFromClaimPayments();
 		}
 	}
 }
