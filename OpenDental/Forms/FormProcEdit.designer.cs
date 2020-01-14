@@ -59,6 +59,8 @@
 			this.label9 = new System.Windows.Forms.Label();
 			this.labelDx = new System.Windows.Forms.Label();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.labelTaxEst = new System.Windows.Forms.Label();
+			this.textTaxAmt = new OpenDental.ValidDouble();
 			this.textOrigDateComp = new OpenDental.ValidDate();
 			this.labelOrigDateComp = new System.Windows.Forms.Label();
 			this.textTimeFinal = new System.Windows.Forms.TextBox();
@@ -223,8 +225,6 @@
 			this.butChangeUser = new OpenDental.UI.Button();
 			this.labelPermAlert = new System.Windows.Forms.Label();
 			this.butEditAutoNote = new OpenDental.UI.Button();
-			this.labelTaxEst = new System.Windows.Forms.Label();
-			this.textTaxAmt = new OpenDental.ValidDouble();
 			this.groupQuadrant.SuspendLayout();
 			this.groupArch.SuspendLayout();
 			this.panelSurfaces.SuspendLayout();
@@ -700,6 +700,27 @@
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(397, 177);
 			this.panel1.TabIndex = 2;
+			// 
+			// labelTaxEst
+			// 
+			this.labelTaxEst.Location = new System.Drawing.Point(178, 157);
+			this.labelTaxEst.Name = "labelTaxEst";
+			this.labelTaxEst.Size = new System.Drawing.Size(75, 16);
+			this.labelTaxEst.TabIndex = 107;
+			this.labelTaxEst.Text = "Tax Est";
+			this.labelTaxEst.TextAlign = System.Drawing.ContentAlignment.TopRight;
+			this.labelTaxEst.Visible = false;
+			// 
+			// textTaxAmt
+			// 
+			this.textTaxAmt.Location = new System.Drawing.Point(254, 154);
+			this.textTaxAmt.MaxVal = 100000000D;
+			this.textTaxAmt.MinVal = -100000000D;
+			this.textTaxAmt.Name = "textTaxAmt";
+			this.textTaxAmt.ReadOnly = true;
+			this.textTaxAmt.Size = new System.Drawing.Size(68, 20);
+			this.textTaxAmt.TabIndex = 108;
+			this.textTaxAmt.Visible = false;
 			// 
 			// textOrigDateComp
 			// 
@@ -1623,6 +1644,9 @@
 			// 
 			// tabControl
 			// 
+			this.tabControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.tabControl.Controls.Add(this.tabPageFinancial);
 			this.tabControl.Controls.Add(this.tabPageMedical);
 			this.tabControl.Controls.Add(this.tabPageMisc);
@@ -1671,6 +1695,8 @@
 			// 
 			// gridPay
 			// 
+			this.gridPay.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
 			this.gridPay.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridPay.HasDropDowns = false;
 			this.gridPay.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
@@ -1690,6 +1716,9 @@
 			// 
 			// gridAdj
 			// 
+			this.gridAdj.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridAdj.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridAdj.HasDropDowns = false;
 			this.gridAdj.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
@@ -1709,6 +1738,7 @@
 			// 
 			// label20
 			// 
+			this.label20.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label20.Location = new System.Drawing.Point(807, 12);
 			this.label20.Name = "label20";
 			this.label20.Size = new System.Drawing.Size(75, 16);
@@ -1718,6 +1748,7 @@
 			// 
 			// textDiscount
 			// 
+			this.textDiscount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.textDiscount.Location = new System.Drawing.Point(883, 9);
 			this.textDiscount.MaxVal = 100000000D;
 			this.textDiscount.MinVal = -100000000D;
@@ -1759,6 +1790,8 @@
 			// 
 			// gridIns
 			// 
+			this.gridIns.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridIns.CellFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 			this.gridIns.HasDropDowns = false;
 			this.gridIns.HeaderFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F, System.Drawing.FontStyle.Bold);
@@ -2492,7 +2525,7 @@
 			// butCancel
 			// 
 			this.butCancel.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.butCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butCancel.Autosize = true;
 			this.butCancel.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butCancel.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
@@ -2508,7 +2541,7 @@
 			// butOK
 			// 
 			this.butOK.AdjustImageLocation = new System.Drawing.Point(0, 0);
-			this.butOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.butOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butOK.Autosize = true;
 			this.butOK.BtnShape = OpenDental.UI.enumType.BtnShape.Rectangle;
 			this.butOK.BtnStyle = OpenDental.UI.enumType.XPStyle.Silver;
@@ -2570,27 +2603,6 @@
 			this.butEditAutoNote.TabIndex = 211;
 			this.butEditAutoNote.Text = "Edit Auto Note";
 			this.butEditAutoNote.Click += new System.EventHandler(this.butEditAutoNote_Click);
-			// 
-			// labelTaxEst
-			// 
-			this.labelTaxEst.Location = new System.Drawing.Point(178, 157);
-			this.labelTaxEst.Name = "labelTaxEst";
-			this.labelTaxEst.Size = new System.Drawing.Size(75, 16);
-			this.labelTaxEst.TabIndex = 107;
-			this.labelTaxEst.Text = "Tax Est";
-			this.labelTaxEst.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			this.labelTaxEst.Visible = false;
-			// 
-			// textTaxAmt
-			// 
-			this.textTaxAmt.Location = new System.Drawing.Point(254, 154);
-			this.textTaxAmt.MaxVal = 100000000D;
-			this.textTaxAmt.MinVal = -100000000D;
-			this.textTaxAmt.Name = "textTaxAmt";
-			this.textTaxAmt.ReadOnly = true;
-			this.textTaxAmt.Size = new System.Drawing.Size(68, 20);
-			this.textTaxAmt.TabIndex = 108;
-			this.textTaxAmt.Visible = false;
 			// 
 			// FormProcEdit
 			// 
