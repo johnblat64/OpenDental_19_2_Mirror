@@ -68,55 +68,59 @@ namespace OpenDentBusiness {
 		///This has the potential to orphan claim payments (claim payment with no claim procs attached).
 		///These orphaned claim payments will need to be handled manually by the user (DBM ClaimPaymentsNotPartialWithNoClaimProcs).</summary>
 		private static void DetachTransferClaimProcsFromClaimPayments() {
-			//Get all claimprocs attached to a claim with at least one claimproc flagged as IsTransfer that is also attached to a claimpayment.
-			//The following query uses a subselect in order to get the claimprocs that have IsTransfer set to 0 but need to be considered (InsPayAmt).
+			//Get all ClaimNums attached to claimprocs flagged as IsTransfer that are also attached to a claimpayment.
 			//The information regarding these claimprocs is being selected instead of updated so that we can perform calculations and handle rounding in C#
 			//Several tricky rounding issues made the 'one query to rule them all' hard to read (and we just didn't trust MySQL to do our bidding).
-			//We group by claimpayment and 
+			//Also, using a subselect was slow for MySQL 5.5 which is the officially supported version for Open Dental (v5.6 was fast).
 			string command=@"
-				SELECT claimproc.ClaimProcNum,claimproc.ClaimPaymentNum,claimproc.ClaimNum,claimproc.InsPayAmt,claimproc.IsTransfer
+				SELECT DISTINCT claimproc.ClaimNum
 				FROM claimproc
 				WHERE claimproc.ClaimNum > 0
-				AND claimproc.ClaimPaymentNum IN (
-					SELECT DISTINCT(ClaimPaymentNum) FROM claimproc 
-					WHERE claimproc.IsTransfer=1 
-					AND claimproc.ClaimPaymentNum!=0
-				)";
-			DataTable table=Db.GetTable(command);
-			List<long> listClaimProcNumsToUpdate=new List<long>();
-			//Group the claimprocs by ClaimPaymentNum because we do not want to detach offsetting claimprocs that are attached to different claim payments.
-			Dictionary<long,List<DataRow>> dictClaimPayNumClaimProcs=table.Select()
-				.GroupBy(x => PIn.Long(x["ClaimPaymentNum"].ToString()))
-				.ToDictionary(x => x.Key,x => x.ToList());
-			//Loop through every claim payment to find and detach any offsetting claimproc transfers that are associated to the same claim.
-			foreach(KeyValuePair<long,List<DataRow>> claimProcsForPayment in dictClaimPayNumClaimProcs) {
-				//Group the claimprocs for this claim payment by claim because we do not want to detach offsetting claimprocs for different claims.
-				Dictionary<long,List<DataRow>> dictClaimNumClaimProcs=claimProcsForPayment.Value
-					.GroupBy(x => PIn.Long(x["ClaimNum"].ToString()))
+				AND claimproc.ClaimPaymentNum > 0
+				AND claimproc.IsTransfer=1 ";
+			List<long> listClaimNums=Db.GetListLong(command);
+			if(listClaimNums.Count > 0) {
+				List<long> listClaimProcNumsToUpdate=new List<long>();
+				command=$@"
+				SELECT claimproc.ClaimProcNum,claimproc.ClaimPaymentNum,claimproc.ClaimNum,claimproc.InsPayAmt,claimproc.IsTransfer
+				FROM claimproc
+				WHERE claimproc.ClaimNum IN({string.Join(",",listClaimNums.Select(x => POut.Long(x)))})
+				AND claimproc.ClaimPaymentNum > 0";
+				DataTable table=Db.GetTable(command);
+				//Group the claimprocs by ClaimPaymentNum because we do not want to detach offsetting claimprocs that are attached to different claim payments.
+				Dictionary<long,List<DataRow>> dictClaimPayNumClaimProcs=table.Select()
+					.GroupBy(x => PIn.Long(x["ClaimPaymentNum"].ToString()))
 					.ToDictionary(x => x.Key,x => x.ToList());
-				//Loop through every claim and find claimproc transfers that can be detached (equate to 0).
-				foreach(KeyValuePair<long,List<DataRow>> claimProcsForClaim in dictClaimNumClaimProcs) {
-					double sumAllClaimProcsForClaim=claimProcsForClaim.Value.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
-					double sumClaimProcsNoTransfers=claimProcsForClaim.Value
-						.Where(x => PIn.Bool(x["IsTransfer"].ToString())==false)
-						.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
-					double sumClaimProcsTransfers=claimProcsForClaim.Value
-						.Where(x => PIn.Bool(x["IsTransfer"].ToString())==true)
-						.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
-					//make sure that the transfer procs equate to 0, that removing them does not change the claimpayment amount
-					if(AreNumsEqual(sumAllClaimProcsForClaim,sumClaimProcsNoTransfers) && IsNumZero(sumClaimProcsTransfers)) {
-						List<long> listTransferClaimProcsForClaim=claimProcsForClaim.Value
+				//Loop through every claim payment to find and detach any offsetting claimproc transfers that are associated to the same claim.
+				foreach(KeyValuePair<long,List<DataRow>> claimProcsForPayment in dictClaimPayNumClaimProcs) {
+					//Group the claimprocs for this claim payment by claim because we do not want to detach offsetting claimprocs for different claims.
+					Dictionary<long,List<DataRow>> dictClaimNumClaimProcs=claimProcsForPayment.Value
+						.GroupBy(x => PIn.Long(x["ClaimNum"].ToString()))
+						.ToDictionary(x => x.Key,x => x.ToList());
+					//Loop through every claim and find claimproc transfers that can be detached (equate to 0).
+					foreach(KeyValuePair<long,List<DataRow>> claimProcsForClaim in dictClaimNumClaimProcs) {
+						double sumAllClaimProcsForClaim=claimProcsForClaim.Value.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
+						double sumClaimProcsNoTransfers=claimProcsForClaim.Value
+							.Where(x => PIn.Bool(x["IsTransfer"].ToString())==false)
+							.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
+						double sumClaimProcsTransfers=claimProcsForClaim.Value
 							.Where(x => PIn.Bool(x["IsTransfer"].ToString())==true)
-							.Select(y => PIn.Long(y["ClaimProcNum"].ToString()))
-							.ToList();
-						listClaimProcNumsToUpdate.AddRange(listTransferClaimProcsForClaim);
+							.Sum(x => PIn.Double(x["InsPayAmt"].ToString()));
+						//make sure that the transfer procs equate to 0, that removing them does not change the claimpayment amount
+						if(AreNumsEqual(sumAllClaimProcsForClaim,sumClaimProcsNoTransfers) && IsNumZero(sumClaimProcsTransfers)) {
+							List<long> listTransferClaimProcsForClaim=claimProcsForClaim.Value
+								.Where(x => PIn.Bool(x["IsTransfer"].ToString())==true)
+								.Select(y => PIn.Long(y["ClaimProcNum"].ToString()))
+								.ToList();
+							listClaimProcNumsToUpdate.AddRange(listTransferClaimProcsForClaim);
+						}
 					}
 				}
-			}
-			if(listClaimProcNumsToUpdate.Count>0) {
-				command=$@"UPDATE claimproc SET claimproc.ClaimPaymentNum=0 
-									WHERE claimproc.ClaimProcNum IN ({string.Join(",",listClaimProcNumsToUpdate.Select(x => POut.Long(x)))})";
-				Db.NonQ(command);
+				if(listClaimProcNumsToUpdate.Count>0) {
+					command=$@"UPDATE claimproc SET claimproc.ClaimPaymentNum=0 
+										WHERE claimproc.ClaimProcNum IN ({string.Join(",",listClaimProcNumsToUpdate.Select(x => POut.Long(x)))})";
+					Db.NonQ(command);
+				}
 			}
 		}
 
