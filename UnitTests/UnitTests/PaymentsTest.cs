@@ -876,6 +876,46 @@ namespace UnitTests.Payments_Tests {
 			Assert.AreEqual(1,results.ListAccountCharges.FindAll(x => x.AmountEnd==50).Count);//PaySplits are opposite signed as account charges. 
 		}
 
+		///<summary>Assert that an adjustment can be explicitly offset by a paysplit when both are associated to the same procedure.</summary>
+		[TestMethod]
+		public void PaymentEdit_ConstructLinkChargeCredits_AdjustmentsLinkToPaySplitsThroughProcedures() {
+			/*****************************************************
+				Create Patient: pat1
+				Create Provider: provNum1
+				Create Provider: provNum2
+				Create Procedure:  Today  provNum1  Pat1  $60
+				Create Adjustment: Today  provNum2  Pat1  $10
+					^Attached to Procedure
+				Create Payment:    Today  provNum2  Pat1  $10
+					^Attached to Procedure
+			******************************************************/
+			string suffix=MethodBase.GetCurrentMethod().Name;
+			Patient pat1=PatientT.CreatePatient(suffix);
+			long provNum1=ProviderT.CreateProvider($"{suffix}-1");
+			long provNum2=ProviderT.CreateProvider($"{suffix}-2");
+			ProcedureCode procedureCode=ProcedureCodeT.CreateProcCode("T1234");
+			Procedure procedure=ProcedureT.CreateProcedure(pat1,procedureCode.ProcCode,ProcStat.C,"",60,provNum:provNum1);
+			Adjustment adjustment=AdjustmentT.MakeAdjustment(pat1.PatNum,10,procNum:procedure.ProcNum,provNum:provNum2);
+			Payment payment=PaymentT.MakePayment(pat1.PatNum,10,DateTime.Today,provNum:provNum2,procNum:procedure.ProcNum);
+			Payment payCur=PaymentT.MakePaymentNoSplits(pat1.PatNum,0);
+			PaymentEdit.ConstructResults results=PaymentEdit.ConstructAndLinkChargeCredits(new List<long>() { pat1.PatNum },pat1.PatNum,new List<PaySplit>(),
+				payCur,new List<AccountEntry>(),true,false);
+			//The AmountEnd on the adjustment and the payment should be 0 because they should explicitly link to each other via the procedure.
+			Assert.AreEqual(3,results.ListAccountCharges.Count);
+			Assert.AreEqual(1,results.ListAccountCharges.Count(x => x.GetType()==typeof(Procedure)
+				&& x.AmountEnd==60
+				&& x.AmountOriginal==60
+				&& x.AmountStart==60));
+			Assert.AreEqual(1,results.ListAccountCharges.Count(x => x.GetType()==typeof(Adjustment)
+				&& x.AmountEnd==0
+				&& x.AmountOriginal==10
+				&& x.AmountStart==0));
+			Assert.AreEqual(1,results.ListAccountCharges.Count(x => x.GetType()==typeof(PaySplit)
+				&& x.AmountEnd==0
+				&& x.AmountOriginal==0
+				&& x.AmountStart==0));
+		}
+
 		///<summary>If there is an adjustment that needs paying, autosplit logic should attach the paysplit to the adjustment. (treat it like a proc)</summary>
 		[TestMethod]
 		public void PaymentEdit_PaymentAutoSplitToAdjustment() {

@@ -349,7 +349,8 @@ namespace OpenDentBusiness {
 						}
 					}
 					else if(chargeCur.Tag.GetType()==typeof(Adjustment)
-						&& splitCur.AdjNum==chargeCur.PriKey
+						&& (splitCur.AdjNum==chargeCur.PriKey || (splitCur.ProcNum!=0 && splitCur.ProcNum==((Adjustment)chargeCur.Tag).ProcNum))
+						&& (splitCur.PayPlanNum==0 || doAttachSplitForPayPlan)
 						&& chargeCur.ProvNum==splitCur.ProvNum && chargeCur.PatNum==splitCur.PatNum && chargeCur.ClinicNum==splitCur.ClinicNum) 
 					{
 						decimal amtStart=(decimal)splitCur.SplitAmt;
