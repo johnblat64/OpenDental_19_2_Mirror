@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="OpenDentalDiffDocumentation.xsl"?>
-<database version="19.2.57.0">
+<database version="19.2.62.0">
     <table name="benefit">
         <summary></summary>
         <column order="12" name="SecDateTEntry" type="datetime">
