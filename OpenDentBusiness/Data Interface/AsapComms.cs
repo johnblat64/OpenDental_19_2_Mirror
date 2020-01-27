@@ -567,12 +567,8 @@ namespace OpenDentBusiness{
 						patDetail.AppendNote(Lans.g(_lanThis,"Not sending email because this patient's preferred contact method is not email."));
 						return false;
 					}
-					if(!patComm.IsEmailValidForClinic) {
-						patDetail.AppendNote(Lans.g(_lanThis,"Not sending email because this clinic does not have a valid email address."));
-						return false;
-					}
 					if(!patComm.IsEmailAnOption) {
-						patDetail.AppendNote(Lans.g(_lanThis,"Not sending email because this patient does not have an email address."));
+						patDetail.AppendNote(Lans.g(_lanThis,patComm.GetReasonCantEmail()));
 						return false;
 					}
 					return true;

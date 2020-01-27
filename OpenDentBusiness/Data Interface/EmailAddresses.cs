@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace OpenDentBusiness{
 	///<summary></summary>
@@ -161,6 +162,14 @@ namespace OpenDentBusiness{
 			//No need to check RemotingRole; no call to db.
 			EmailAddress emailAddress=GetFirstOrDefault(x => x.SMTPserver!="");
 			return (emailAddress!=null);
+		}
+
+		///<summary>Does basic email validation. Checks if the address has at least 1 character, an '@', at least 1 character, a '.', then at least
+		///1 character.</summary>
+		public static bool IsValidEmail(string email) {
+			//Regex lesson! A period (.) means match any character. A plus (+) means 1 or more of the preceding. The backslash is to match a literal
+			//period (.) character.
+			return Regex.IsMatch(email,@".+@.+\..+");
 		}
 
 		///<summary></summary>

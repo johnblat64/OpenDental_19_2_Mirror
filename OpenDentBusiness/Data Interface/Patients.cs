@@ -4445,7 +4445,7 @@ namespace OpenDentBusiness {
 			IsTextingEnabledForClinic=isTextingEnabledForClinic;	
 			IsEmailAnOption=
 				//Patient has a valid email.
-				!string.IsNullOrWhiteSpace(Email)
+				EmailAddresses.IsValidEmail(Email)
 				//Clinic linked to this PatComm has a valid email.
 				&& isEmailValidForClinic;
 			IsEmailValidForClinic=isEmailValidForClinic;
@@ -4467,6 +4467,23 @@ namespace OpenDentBusiness {
 			}
 			if(!IsSmsAnOption) {
 				return "Not sending text because this patient is not able to receive texts.";
+			}
+			return "";
+		}
+
+		///<summary>Returns the reason that the patient cannot receive emails.</summary>
+		public string GetReasonCantEmail() {
+			if(!IsEmailValidForClinic) {
+				return "Not sending email because email is not enabled for this clinic.";
+			}
+			if(string.IsNullOrEmpty(Email)) {
+				return "Not sending email because this patient does not have an email entered.";
+			}
+			if(!EmailAddresses.IsValidEmail(Email)) {
+				return "Not sending email because this patient's email is not a valid address.";
+			}
+			if(!IsEmailAnOption) {
+				return "Not sending email because this patient is not able to receive emails.";
 			}
 			return "";
 		}
